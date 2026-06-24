@@ -1,0 +1,6500 @@
+[
+	{
+		"id": 4,
+		"payoutMultiplier": 6100,
+		"events": [
+			{
+				"index": 0,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "H3" },
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L1" },
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "H1" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "H1" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L4" },
+						{ "name": "S", "scatter": true }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "H1" },
+						{ "name": "L3" },
+						{ "name": "H3" }
+					]
+				],
+				"paddingPositions": [79, 90, 209, 78, 123, 178],
+				"gameType": "basegame",
+				"anticipation": [0, 0, 0, 0, 1, 2]
+			},
+			{
+				"index": 1,
+				"type": "winInfo",
+				"totalWin": 10,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 10,
+						"positions": [
+							{ "reel": 0, "row": 3 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 10,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 2, "type": "updateTumbleWin", "amount": 10 },
+			{
+				"index": 3,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 3 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 4,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L2" }],
+					[{ "name": "H4" }],
+					[{ "name": "H2" }, { "name": "L4" }],
+					[{ "name": "H2" }, { "name": "S", "scatter": true }],
+					[{ "name": "H3" }, { "name": "L2" }],
+					[{ "name": "W", "wild": true }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 3 }
+				]
+			},
+			{ "index": 5, "type": "setWin", "amount": 10, "winLevel": 2 },
+			{ "index": 6, "type": "setTotalWin", "amount": 10 },
+			{
+				"index": 7,
+				"type": "freeSpinTrigger",
+				"totalFs": 12,
+				"positions": [
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 5 }
+				]
+			},
+			{ "index": 8, "type": "updateFreeSpin", "amount": 1, "total": 12 },
+			{
+				"index": 9,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H1" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "W", "wild": true }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "S", "scatter": true }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L3" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "S", "scatter": true },
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "H4" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "W", "wild": true },
+						{ "name": "H3" }
+					]
+				],
+				"paddingPositions": [180, 45, 14, 65, 5, 191],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 1, 2]
+			},
+			{
+				"index": 10,
+				"type": "winInfo",
+				"totalWin": 30,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 10,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 10,
+							"overlay": { "reel": 2, "row": 3 }
+						},
+						"count": 8
+					},
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 3 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 5, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 11, "type": "updateTumbleWin", "amount": 30 },
+			{
+				"index": 12,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 5, "row": 5 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 13,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L3" }, { "name": "L1" }],
+					[{ "name": "L1" }, { "name": "L2" }, { "name": "H4" }, { "name": "H3" }],
+					[{ "name": "L1" }, { "name": "L3" }, { "name": "H4" }],
+					[{ "name": "L3" }, { "name": "L4" }, { "name": "H4" }],
+					[],
+					[{ "name": "H3" }, { "name": "L2" }, { "name": "S", "scatter": true }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{ "index": 14, "type": "setWin", "amount": 30, "winLevel": 2 },
+			{ "index": 15, "type": "setTotalWin", "amount": 40 },
+			{
+				"index": 16,
+				"type": "freeSpinRetrigger",
+				"totalFs": 19,
+				"positions": [
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 2 }
+				]
+			},
+			{ "index": 17, "type": "updateFreeSpin", "amount": 2, "total": 19 },
+			{
+				"index": 18,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "W", "wild": true },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "W", "wild": true },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "H1" },
+						{ "name": "L1" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "W", "wild": true },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "H2" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "L2" }
+					]
+				],
+				"paddingPositions": [140, 201, 107, 93, 96, 148],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 19,
+				"type": "winInfo",
+				"totalWin": 80,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 80,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 0, "row": 2 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 4 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 80,
+							"overlay": { "reel": 2, "row": 3 }
+						},
+						"count": 12
+					}
+				]
+			},
+			{ "index": 20, "type": "updateTumbleWin", "amount": 80 },
+			{
+				"index": 21,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 4 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 22,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L3" }, { "name": "S", "scatter": true }, { "name": "L1" }],
+					[{ "name": "L3" }, { "name": "S", "scatter": true }, { "name": "L2" }],
+					[{ "name": "L1" }, { "name": "L3" }],
+					[],
+					[{ "name": "L3" }, { "name": "L2" }, { "name": "L3" }],
+					[{ "name": "L1" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 2 }
+				]
+			},
+			{
+				"index": 23,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 4 },
+							{ "reel": 1, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 4, "row": 3 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 24, "type": "updateTumbleWin", "amount": 100 },
+			{
+				"index": 25,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 1, "row": 3 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 26,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[],
+					[{ "name": "L3" }, { "name": "W", "wild": true }],
+					[{ "name": "H4" }],
+					[{ "name": "L2" }],
+					[{ "name": "L2" }, { "name": "L1" }],
+					[{ "name": "H4" }, { "name": "H1" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 1, "row": 5 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 4 }
+				]
+			},
+			{
+				"index": 27,
+				"type": "winInfo",
+				"totalWin": 30,
+				"wins": [
+					{
+						"symbol": "L1",
+						"win": 30,
+						"positions": [
+							{ "reel": 0, "row": 2 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 1, "row": 1 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 30,
+							"overlay": { "reel": 4, "row": 4 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 28, "type": "updateTumbleWin", "amount": 130 },
+			{
+				"index": 29,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 1, "row": 1 }
+				],
+				"charge": 3
+			},
+			{
+				"index": 30,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H4" }],
+					[{ "name": "H1" }, { "name": "L3" }],
+					[{ "name": "L4" }],
+					[{ "name": "L4" }],
+					[{ "name": "L3" }, { "name": "L4" }],
+					[{ "name": "L3" }, { "name": "H3" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 }
+				]
+			},
+			{ "index": 31, "type": "setWin", "amount": 130, "winLevel": 3 },
+			{ "index": 32, "type": "setTotalWin", "amount": 170 },
+			{ "index": 33, "type": "updateFreeSpin", "amount": 3, "total": 19 },
+			{
+				"index": 34,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L4" },
+						{ "name": "H1" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "W", "wild": true },
+						{ "name": "H2" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "H4" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "H2" },
+						{ "name": "H2" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "H3" },
+						{ "name": "L3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "W", "wild": true },
+						{ "name": "H3" },
+						{ "name": "H4" },
+						{ "name": "H4" }
+					]
+				],
+				"paddingPositions": [181, 46, 159, 50, 30, 193],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{ "index": 35, "type": "setTotalWin", "amount": 170 },
+			{ "index": 36, "type": "updateFreeSpin", "amount": 4, "total": 19 },
+			{
+				"index": 37,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "L3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "L3" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "H2" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "H1" },
+						{ "name": "H1" }
+					]
+				],
+				"paddingPositions": [118, 88, 131, 90, 228, 134],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 38,
+				"type": "winInfo",
+				"totalWin": 50,
+				"wins": [
+					{
+						"symbol": "L2",
+						"win": 50,
+						"positions": [
+							{ "reel": 1, "row": 3 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 0, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 50,
+							"overlay": { "reel": 2, "row": 3 }
+						},
+						"count": 10
+					}
+				]
+			},
+			{ "index": 39, "type": "updateTumbleWin", "amount": 50 },
+			{
+				"index": 40,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 1, "row": 3 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 0, "row": 3 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 41,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L4" }],
+					[{ "name": "L1" }],
+					[{ "name": "L3" }, { "name": "W", "wild": true }],
+					[{ "name": "H4" }],
+					[{ "name": "L3" }, { "name": "L2" }, { "name": "H1" }],
+					[{ "name": "H2" }, { "name": "L2" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 3 }
+				]
+			},
+			{ "index": 42, "type": "setWin", "amount": 50, "winLevel": 2 },
+			{ "index": 43, "type": "setTotalWin", "amount": 220 },
+			{ "index": 44, "type": "updateFreeSpin", "amount": 5, "total": 19 },
+			{
+				"index": 45,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L2" },
+						{ "name": "W", "wild": true },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "S", "scatter": true },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "H1" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "W", "wild": true }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "H3" },
+						{ "name": "H2" },
+						{ "name": "H2" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "W", "wild": true },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "W", "wild": true },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H4" }
+					]
+				],
+				"paddingPositions": [150, 191, 199, 204, 94, 220],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 46,
+				"type": "winInfo",
+				"totalWin": 130,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 100,
+						"positions": [
+							{ "reel": 0, "row": 2 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 0, "row": 1 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 5, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 100,
+							"overlay": { "reel": 4, "row": 3 }
+						},
+						"count": 12
+					},
+					{
+						"symbol": "L4",
+						"win": 10,
+						"positions": [
+							{ "reel": 0, "row": 5 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 0, "row": 1 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 5, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 10,
+							"overlay": { "reel": 4, "row": 4 }
+						},
+						"count": 8
+					},
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 5, "row": 4 },
+							{ "reel": 0, "row": 1 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 5, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 1, "row": 2 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 47, "type": "updateTumbleWin", "amount": 130 },
+			{
+				"index": 48,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 0, "row": 1 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 0, "row": 1 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 0, "row": 1 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 3 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 49,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L1" }, { "name": "L2" }, { "name": "L4" }],
+					[{ "name": "L2" }, { "name": "H3" }, { "name": "H2" }],
+					[{ "name": "L3" }, { "name": "S", "scatter": true }, { "name": "L1" }],
+					[{ "name": "W", "wild": true }, { "name": "L1" }],
+					[{ "name": "L4" }, { "name": "L2" }, { "name": "L1" }, { "name": "L3" }],
+					[{ "name": "L4" }, { "name": "L2" }, { "name": "L1" }, { "name": "L4" }, { "name": "L4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 3 }
+				]
+			},
+			{
+				"index": 50,
+				"type": "winInfo",
+				"totalWin": 30,
+				"wins": [
+					{
+						"symbol": "L1",
+						"win": 30,
+						"positions": [
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 30,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 51, "type": "updateTumbleWin", "amount": 160 },
+			{
+				"index": 52,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 53,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[],
+					[{ "name": "L1" }],
+					[{ "name": "L4" }, { "name": "L1" }],
+					[{ "name": "W", "wild": true }, { "name": "H4" }],
+					[{ "name": "L1" }, { "name": "L3" }],
+					[{ "name": "H1" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 }
+				]
+			},
+			{ "index": 54, "type": "setWin", "amount": 160, "winLevel": 3 },
+			{ "index": 55, "type": "setTotalWin", "amount": 380 },
+			{ "index": 56, "type": "updateFreeSpin", "amount": 6, "total": 19 },
+			{
+				"index": 57,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "W", "wild": true },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "L3" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "S", "scatter": true },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "W", "wild": true },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H1" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "H4" }
+					]
+				],
+				"paddingPositions": [23, 53, 87, 131, 156, 92],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 58,
+				"type": "winInfo",
+				"totalWin": 50,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 30,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 0, "row": 3 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 0, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 30,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 10
+					},
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 1, "row": 3 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 0, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 2, "row": 2 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 59, "type": "updateTumbleWin", "amount": 50 },
+			{
+				"index": 60,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 0, "row": 2 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 61,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H3" }, { "name": "H4" }, { "name": "L2" }, { "name": "S", "scatter": true }],
+					[{ "name": "L4" }, { "name": "S", "scatter": true }, { "name": "L2" }],
+					[{ "name": "L4" }, { "name": "H4" }, { "name": "H1" }, { "name": "L2" }],
+					[{ "name": "L4" }, { "name": "L1" }],
+					[{ "name": "H4" }, { "name": "H3" }],
+					[{ "name": "W", "wild": true }, { "name": "L3" }, { "name": "H1" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{
+				"index": 62,
+				"type": "winInfo",
+				"totalWin": 50,
+				"wins": [
+					{
+						"symbol": "L2",
+						"win": 50,
+						"positions": [
+							{ "reel": 0, "row": 2 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 5, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 50,
+							"overlay": { "reel": 2, "row": 3 }
+						},
+						"count": 11
+					}
+				]
+			},
+			{ "index": 63, "type": "updateTumbleWin", "amount": 100 },
+			{
+				"index": 64,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 5, "row": 3 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 65,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H2" }, { "name": "L4" }],
+					[{ "name": "L2" }, { "name": "L4" }],
+					[{ "name": "H2" }, { "name": "S", "scatter": true }],
+					[{ "name": "L3" }, { "name": "H2" }],
+					[{ "name": "H4" }],
+					[{ "name": "L2" }, { "name": "H4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 5, "row": 3 }
+				]
+			},
+			{ "index": 66, "type": "setWin", "amount": 100, "winLevel": 3 },
+			{ "index": 67, "type": "setTotalWin", "amount": 480 },
+			{
+				"index": 68,
+				"type": "freeSpinRetrigger",
+				"totalFs": 26,
+				"positions": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 4 }
+				]
+			},
+			{ "index": 69, "type": "updateFreeSpin", "amount": 7, "total": 26 },
+			{
+				"index": 70,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H1" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "H3" },
+						{ "name": "H3" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H1" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "H3" },
+						{ "name": "H3" },
+						{ "name": "L3" },
+						{ "name": "H1" },
+						{ "name": "L2" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "H2" },
+						{ "name": "L2" },
+						{ "name": "H3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "L2" }
+					]
+				],
+				"paddingPositions": [179, 139, 23, 79, 175, 81],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 71,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 3, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 72, "type": "updateTumbleWin", "amount": 20 },
+			{
+				"index": 73,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 3, "row": 2 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 74,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L1" }, { "name": "L3" }],
+					[],
+					[{ "name": "L3" }],
+					[{ "name": "L4" }, { "name": "H4" }],
+					[{ "name": "L4" }],
+					[{ "name": "L1" }, { "name": "L4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{ "index": 75, "type": "setWin", "amount": 20, "winLevel": 2 },
+			{ "index": 76, "type": "setTotalWin", "amount": 500 },
+			{ "index": 77, "type": "updateFreeSpin", "amount": 8, "total": 26 },
+			{
+				"index": 78,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L3" }
+					]
+				],
+				"paddingPositions": [160, 38, 184, 176, 79, 123],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 79,
+				"type": "winInfo",
+				"totalWin": 10,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 10,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 5, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 10,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 80, "type": "updateTumbleWin", "amount": 10 },
+			{
+				"index": 81,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 5 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 82,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H1" }],
+					[],
+					[{ "name": "L1" }, { "name": "H4" }],
+					[{ "name": "W", "wild": true }, { "name": "H3" }, { "name": "L4" }, { "name": "H1" }],
+					[{ "name": "L4" }],
+					[{ "name": "L4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{ "index": 83, "type": "setWin", "amount": 10, "winLevel": 2 },
+			{ "index": 84, "type": "setTotalWin", "amount": 510 },
+			{ "index": 85, "type": "updateFreeSpin", "amount": 9, "total": 26 },
+			{
+				"index": 86,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "H4" },
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "H1" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "H3" },
+						{ "name": "H3" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "H1" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "W", "wild": true },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H1" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "H4" },
+						{ "name": "H2" },
+						{ "name": "H1" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H4" }
+					]
+				],
+				"paddingPositions": [153, 136, 103, 8, 60, 189],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 87,
+				"type": "winInfo",
+				"totalWin": 10,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 10,
+						"positions": [
+							{ "reel": 0, "row": 2 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 5, "row": 4 },
+							{ "reel": 3, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 10,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 88, "type": "updateTumbleWin", "amount": 10 },
+			{
+				"index": 89,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 3, "row": 2 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 90,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L3" }],
+					[{ "name": "H3" }],
+					[],
+					[{ "name": "L2" }, { "name": "H3" }, { "name": "L4" }],
+					[],
+					[{ "name": "H3" }, { "name": "L3" }, { "name": "H3" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 }
+				]
+			},
+			{
+				"index": 91,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 3 },
+							{ "reel": 0, "row": 4 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 5, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 92, "type": "updateTumbleWin", "amount": 30 },
+			{
+				"index": 93,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 5 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 94,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L4" }, { "name": "L2" }, { "name": "W", "wild": true }],
+					[{ "name": "L4" }],
+					[{ "name": "H2" }],
+					[{ "name": "L3" }],
+					[],
+					[{ "name": "L4" }, { "name": "H1" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{
+				"index": 95,
+				"type": "winInfo",
+				"totalWin": 80,
+				"wins": [
+					{
+						"symbol": "H3",
+						"win": 80,
+						"positions": [
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 0, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 80,
+							"overlay": { "reel": 3, "row": 2 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 96, "type": "updateTumbleWin", "amount": 110 },
+			{
+				"index": 97,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 0, "row": 2 }
+				],
+				"charge": 3
+			},
+			{
+				"index": 98,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L2" }],
+					[{ "name": "L3" }, { "name": "W", "wild": true }, { "name": "H1" }],
+					[{ "name": "L1" }],
+					[{ "name": "H1" }],
+					[],
+					[{ "name": "L2" }, { "name": "H2" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 }
+				]
+			},
+			{ "index": 99, "type": "setWin", "amount": 110, "winLevel": 3 },
+			{ "index": 100, "type": "setTotalWin", "amount": 620 },
+			{ "index": 101, "type": "updateFreeSpin", "amount": 10, "total": 26 },
+			{
+				"index": 102,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "H2" },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "L3" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "W", "wild": true },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "EYE", "eye": true },
+						{ "name": "H2" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "H1" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true }
+					],
+					[
+						{ "name": "S", "scatter": true },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "H1" },
+						{ "name": "L3" }
+					]
+				],
+				"paddingPositions": [116, 166, 107, 37, 14, 163],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 103,
+				"type": "winInfo",
+				"totalWin": 130,
+				"wins": [
+					{
+						"symbol": "L1",
+						"win": 30,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 3 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 4 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 30,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 9
+					},
+					{
+						"symbol": "H2",
+						"win": 100,
+						"positions": [
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 4 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 100,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 104, "type": "updateTumbleWin", "amount": 130 },
+			{
+				"index": 105,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 4 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 106,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H4" }, { "name": "H2" }],
+					[{ "name": "H4" }, { "name": "L2" }, { "name": "H2" }, { "name": "L4" }],
+					[{ "name": "L1" }, { "name": "L3" }],
+					[{ "name": "L3" }, { "name": "L4" }, { "name": "L3" }],
+					[{ "name": "H1" }, { "name": "H2" }],
+					[]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 4, "row": 4 }
+				]
+			},
+			{
+				"index": 107,
+				"type": "eyeReveal",
+				"position": { "reel": 3, "row": 5 },
+				"eyeType": "ADD",
+				"startValue": 2
+			},
+			{
+				"index": 108,
+				"type": "eyeResolve",
+				"charge": 1,
+				"eyeType": "ADD",
+				"startValue": 2,
+				"totalMult": 3
+			},
+			{ "index": 109, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 110, "type": "setWin", "amount": 1560, "winLevel": 6 },
+			{ "index": 111, "type": "setTotalWin", "amount": 2180 },
+			{ "index": 112, "type": "updateFreeSpin", "amount": 11, "total": 26 },
+			{
+				"index": 113,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "H1" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L1" },
+						{ "name": "H1" },
+						{ "name": "L3" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "S", "scatter": true }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "H3" }
+					]
+				],
+				"paddingPositions": [144, 33, 161, 229, 201, 105],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{ "index": 114, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 115, "type": "setTotalWin", "amount": 2180 },
+			{ "index": 116, "type": "updateFreeSpin", "amount": 12, "total": 26 },
+			{
+				"index": 117,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "H4" },
+						{ "name": "W", "wild": true },
+						{ "name": "H2" },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "H4" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "H1" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "W", "wild": true },
+						{ "name": "L1" }
+					]
+				],
+				"paddingPositions": [38, 15, 216, 107, 75, 36],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 118,
+				"type": "winInfo",
+				"totalWin": 80,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 2 },
+							{ "reel": 0, "row": 3 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 5, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 4, "row": 4 }
+						},
+						"count": 9
+					},
+					{
+						"symbol": "L1",
+						"win": 60,
+						"positions": [
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 5, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 60,
+							"overlay": { "reel": 4, "row": 5 }
+						},
+						"count": 10
+					}
+				]
+			},
+			{ "index": 119, "type": "updateTumbleWin", "amount": 80 },
+			{
+				"index": 120,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 5, "row": 5 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 121,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H2" }, { "name": "L4" }, { "name": "L1" }],
+					[{ "name": "L2" }, { "name": "L1" }],
+					[{ "name": "L3" }, { "name": "L1" }],
+					[{ "name": "W", "wild": true }, { "name": "L1" }, { "name": "H1" }, { "name": "H4" }],
+					[{ "name": "L4" }, { "name": "H3" }, { "name": "H1" }],
+					[{ "name": "L3" }, { "name": "L3" }, { "name": "L4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{ "index": 122, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 123, "type": "setWin", "amount": 320, "winLevel": 4 },
+			{ "index": 124, "type": "setTotalWin", "amount": 2500 },
+			{ "index": 125, "type": "updateFreeSpin", "amount": 13, "total": 26 },
+			{
+				"index": 126,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "W", "wild": true },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "H2" },
+						{ "name": "H2" },
+						{ "name": "W", "wild": true },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "H3" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "L2" }
+					]
+				],
+				"paddingPositions": [218, 43, 133, 116, 124, 176],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 127,
+				"type": "winInfo",
+				"totalWin": 40,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 0, "row": 2 },
+							{ "reel": 0, "row": 3 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 5, "row": 4 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 4, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 9
+					},
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 1, "row": 3 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 4, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 2, "row": 2 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 128, "type": "updateTumbleWin", "amount": 40 },
+			{
+				"index": 129,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 4, "row": 5 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 130,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[
+						{ "name": "W", "wild": true },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "H3" }
+					],
+					[{ "name": "L3" }, { "name": "L1" }, { "name": "L2" }],
+					[{ "name": "W", "wild": true }, { "name": "H3" }, { "name": "H2" }],
+					[{ "name": "L3" }, { "name": "L2" }],
+					[{ "name": "H3" }],
+					[{ "name": "L1" }, { "name": "S", "scatter": true }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{ "index": 131, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 132, "type": "setWin", "amount": 160, "winLevel": 3 },
+			{ "index": 133, "type": "setTotalWin", "amount": 2660 },
+			{ "index": 134, "type": "updateFreeSpin", "amount": 14, "total": 26 },
+			{
+				"index": 135,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "H1" },
+						{ "name": "L1" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "H1" }
+					],
+					[
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "L3" },
+						{ "name": "H2" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "H3" },
+						{ "name": "H2" },
+						{ "name": "H4" },
+						{ "name": "H4" }
+					]
+				],
+				"paddingPositions": [74, 120, 103, 37, 28, 96],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 136,
+				"type": "winInfo",
+				"totalWin": 30,
+				"wins": [
+					{
+						"symbol": "L1",
+						"win": 30,
+						"positions": [
+							{ "reel": 0, "row": 3 },
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 3 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 3, "row": 4 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 30,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 137, "type": "updateTumbleWin", "amount": 30 },
+			{
+				"index": 138,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 3, "row": 4 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 139,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L1" }, { "name": "L3" }],
+					[{ "name": "H3" }, { "name": "L3" }],
+					[{ "name": "H2" }],
+					[{ "name": "L3" }, { "name": "L4" }, { "name": "L3" }],
+					[{ "name": "H3" }],
+					[]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 5 }
+				]
+			},
+			{
+				"index": 140,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 0, "row": 2 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 5, "row": 1 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 2, "row": 3 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 141, "type": "updateTumbleWin", "amount": 50 },
+			{
+				"index": 142,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 1 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 143,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L4" }, { "name": "H3" }],
+					[{ "name": "H1" }],
+					[{ "name": "L1" }],
+					[{ "name": "L2" }, { "name": "W", "wild": true }],
+					[{ "name": "L2" }],
+					[{ "name": "H1" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 1 }
+				]
+			},
+			{ "index": 144, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 145, "type": "setWin", "amount": 200, "winLevel": 4 },
+			{ "index": 146, "type": "setTotalWin", "amount": 2860 },
+			{ "index": 147, "type": "updateFreeSpin", "amount": 15, "total": 26 },
+			{
+				"index": 148,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "H1" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "L3" },
+						{ "name": "W", "wild": true },
+						{ "name": "H3" },
+						{ "name": "H2" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L1" }
+					]
+				],
+				"paddingPositions": [45, 160, 127, 222, 86, 46],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 149,
+				"type": "winInfo",
+				"totalWin": 10,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 10,
+						"positions": [
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 5, "row": 4 },
+							{ "reel": 2, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 10,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 150, "type": "updateTumbleWin", "amount": 10 },
+			{
+				"index": 151,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 2, "row": 3 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 152,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L2" }],
+					[{ "name": "L3" }],
+					[{ "name": "L4" }],
+					[{ "name": "L2" }, { "name": "H3" }],
+					[{ "name": "L2" }],
+					[{ "name": "L1" }, { "name": "H4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 }
+				]
+			},
+			{ "index": 153, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 154, "type": "setWin", "amount": 40, "winLevel": 2 },
+			{ "index": 155, "type": "setTotalWin", "amount": 2900 },
+			{ "index": 156, "type": "updateFreeSpin", "amount": 16, "total": 26 },
+			{
+				"index": 157,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "S", "scatter": true },
+						{ "name": "H3" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "H3" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H1" },
+						{ "name": "H3" },
+						{ "name": "H2" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "W", "wild": true },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "W", "wild": true }
+					],
+					[
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "S", "scatter": true },
+						{ "name": "H1" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "W", "wild": true },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "W", "wild": true },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H2" }
+					]
+				],
+				"paddingPositions": [200, 140, 222, 128, 92, 16],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 1, 2]
+			},
+			{
+				"index": 158,
+				"type": "winInfo",
+				"totalWin": 30,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 10,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 4, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 10,
+							"overlay": { "reel": 2, "row": 4 }
+						},
+						"count": 9
+					},
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 3 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 4, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 4, "row": 3 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 159, "type": "updateTumbleWin", "amount": 30 },
+			{
+				"index": 160,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 4, "row": 5 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 161,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L1" }, { "name": "H3" }],
+					[{ "name": "L1" }, { "name": "L2" }],
+					[{ "name": "L1" }, { "name": "H4" }],
+					[{ "name": "H1" }, { "name": "L3" }],
+					[{ "name": "L1" }, { "name": "L3" }, { "name": "L4" }, { "name": "L2" }],
+					[{ "name": "H3" }, { "name": "L1" }, { "name": "H3" }, { "name": "H2" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 5, "row": 1 }
+				]
+			},
+			{
+				"index": 162,
+				"type": "winInfo",
+				"totalWin": 100,
+				"wins": [
+					{
+						"symbol": "H3",
+						"win": 80,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 1, "row": 3 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 4 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 80,
+							"overlay": { "reel": 2, "row": 2 }
+						},
+						"count": 9
+					},
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 1, "row": 1 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 5, "row": 4 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 163, "type": "updateTumbleWin", "amount": 130 },
+			{
+				"index": 164,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 5, "row": 4 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 165,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L1" }, { "name": "H4" }],
+					[{ "name": "L4" }, { "name": "H3" }, { "name": "L3" }, { "name": "L4" }],
+					[{ "name": "H3" }, { "name": "L1" }, { "name": "H2" }, { "name": "H3" }],
+					[{ "name": "H4" }],
+					[{ "name": "L4" }, { "name": "H3" }],
+					[{ "name": "L1" }, { "name": "L4" }, { "name": "H4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 5, "row": 4 }
+				]
+			},
+			{
+				"index": 166,
+				"type": "winInfo",
+				"totalWin": 30,
+				"wins": [
+					{
+						"symbol": "L1",
+						"win": 30,
+						"positions": [
+							{ "reel": 0, "row": 2 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 4 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 30,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 167, "type": "updateTumbleWin", "amount": 160 },
+			{
+				"index": 168,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 4 }
+				],
+				"charge": 3
+			},
+			{
+				"index": 169,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L2" }],
+					[{ "name": "H1" }],
+					[{ "name": "L3" }, { "name": "L1" }],
+					[{ "name": "H4" }],
+					[{ "name": "H4" }, { "name": "L2" }],
+					[{ "name": "H1" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 4 }
+				]
+			},
+			{ "index": 170, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 171, "type": "setWin", "amount": 640, "winLevel": 5 },
+			{ "index": 172, "type": "setTotalWin", "amount": 3540 },
+			{ "index": 173, "type": "updateFreeSpin", "amount": 17, "total": 26 },
+			{
+				"index": 174,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H1" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "H1" },
+						{ "name": "W", "wild": true },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "H2" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "W", "wild": true },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H1" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "H2" }
+					]
+				],
+				"paddingPositions": [177, 150, 169, 8, 194, 78],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 175,
+				"type": "winInfo",
+				"totalWin": 100,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 4, "row": 1 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 2, "row": 3 }
+						},
+						"count": 8
+					},
+					{
+						"symbol": "L1",
+						"win": 30,
+						"positions": [
+							{ "reel": 0, "row": 2 },
+							{ "reel": 1, "row": 3 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 4, "row": 1 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 30,
+							"overlay": { "reel": 3, "row": 2 }
+						},
+						"count": 9
+					},
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 3 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 4, "row": 1 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 4, "row": 4 }
+						},
+						"count": 8
+					},
+					{
+						"symbol": "L4",
+						"win": 30,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 4, "row": 1 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 30,
+							"overlay": { "reel": 1, "row": 5 }
+						},
+						"count": 11
+					}
+				]
+			},
+			{ "index": 176, "type": "updateTumbleWin", "amount": 100 },
+			{
+				"index": 177,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 1 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 178,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H3" }, { "name": "L1" }, { "name": "H4" }, { "name": "L2" }],
+					[
+						{ "name": "H3" },
+						{ "name": "H2" },
+						{ "name": "L3" },
+						{ "name": "W", "wild": true },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "H1" },
+						{ "name": "L3" }
+					],
+					[{ "name": "L3" }, { "name": "L2" }, { "name": "H3" }, { "name": "L4" }],
+					[
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "H4" },
+						{ "name": "H4" },
+						{ "name": "H2" }
+					],
+					[{ "name": "L2" }, { "name": "H3" }, { "name": "L1" }, { "name": "L3" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 5, "row": 2 }
+				]
+			},
+			{ "index": 179, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 180, "type": "setWin", "amount": 400, "winLevel": 4 },
+			{ "index": 181, "type": "setTotalWin", "amount": 3940 },
+			{ "index": 182, "type": "updateFreeSpin", "amount": 18, "total": 26 },
+			{
+				"index": 183,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "H1" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L1" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "L3" },
+						{ "name": "W", "wild": true }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "H1" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "H3" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "L2" }
+					]
+				],
+				"paddingPositions": [71, 213, 124, 67, 197, 176],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{ "index": 184, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 185, "type": "setTotalWin", "amount": 3940 },
+			{ "index": 186, "type": "updateFreeSpin", "amount": 19, "total": 26 },
+			{
+				"index": 187,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "H2" },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "L3" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "H4" },
+						{ "name": "H2" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "H3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "H1" },
+						{ "name": "H4" },
+						{ "name": "H1" },
+						{ "name": "L1" },
+						{ "name": "H2" },
+						{ "name": "H1" }
+					]
+				],
+				"paddingPositions": [87, 166, 45, 148, 218, 2],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{ "index": 188, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 189, "type": "setTotalWin", "amount": 3940 },
+			{ "index": 190, "type": "updateFreeSpin", "amount": 20, "total": 26 },
+			{
+				"index": 191,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "H2" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "H1" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "H1" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "H3" },
+						{ "name": "H3" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "H1" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "H3" },
+						{ "name": "H4" },
+						{ "name": "H2" },
+						{ "name": "L2" },
+						{ "name": "H1" },
+						{ "name": "L4" }
+					]
+				],
+				"paddingPositions": [83, 171, 70, 118, 73, 209],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{ "index": 192, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 193, "type": "setTotalWin", "amount": 3940 },
+			{ "index": 194, "type": "updateFreeSpin", "amount": 21, "total": 26 },
+			{
+				"index": 195,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "H1" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "H1" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "H1" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "H3" },
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "L4" },
+						{ "name": "H2" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" }
+					]
+				],
+				"paddingPositions": [91, 89, 70, 164, 88, 188],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 196,
+				"type": "winInfo",
+				"totalWin": 10,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 10,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 0, "row": 3 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 5, "row": 4 },
+							{ "reel": 5, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 10,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 197, "type": "updateTumbleWin", "amount": 10 },
+			{
+				"index": 198,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 199,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H2" }, { "name": "H1" }],
+					[],
+					[{ "name": "L3" }],
+					[{ "name": "L4" }, { "name": "L2" }],
+					[{ "name": "H3" }],
+					[{ "name": "H1" }, { "name": "H3" }, { "name": "L3" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{
+				"index": 200,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 3 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 3, "row": 2 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 201, "type": "updateTumbleWin", "amount": 30 },
+			{
+				"index": 202,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 203,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L2" }],
+					[{ "name": "L1" }, { "name": "L2" }],
+					[{ "name": "L3" }],
+					[{ "name": "L4" }],
+					[{ "name": "L2" }, { "name": "L4" }],
+					[{ "name": "L4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 }
+				]
+			},
+			{
+				"index": 204,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 4 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 205, "type": "updateTumbleWin", "amount": 50 },
+			{
+				"index": 206,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 4 }
+				],
+				"charge": 3
+			},
+			{
+				"index": 207,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L2" }],
+					[{ "name": "L1" }, { "name": "H1" }],
+					[{ "name": "L3" }],
+					[{ "name": "L2" }, { "name": "L1" }],
+					[{ "name": "H4" }],
+					[{ "name": "H2" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 4 }
+				]
+			},
+			{ "index": 208, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 209, "type": "setWin", "amount": 200, "winLevel": 4 },
+			{ "index": 210, "type": "setTotalWin", "amount": 4140 },
+			{ "index": 211, "type": "updateFreeSpin", "amount": 22, "total": 26 },
+			{
+				"index": 212,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "H3" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "W", "wild": true },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "W", "wild": true }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "H2" }
+					]
+				],
+				"paddingPositions": [215, 44, 222, 221, 176, 115],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 213,
+				"type": "winInfo",
+				"totalWin": 40,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 5, "row": 4 },
+							{ "reel": 2, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 3, "row": 5 }
+						},
+						"count": 9
+					},
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 2, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 2, "row": 3 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 214, "type": "updateTumbleWin", "amount": 40 },
+			{
+				"index": 215,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 2, "row": 2 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 216,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "W", "wild": true }, { "name": "L4" }],
+					[{ "name": "L1" }, { "name": "L2" }, { "name": "H4" }],
+					[{ "name": "H3" }, { "name": "L1" }, { "name": "H4" }],
+					[{ "name": "H1" }, { "name": "L2" }],
+					[{ "name": "L4" }, { "name": "L1" }],
+					[{ "name": "H3" }, { "name": "L4" }, { "name": "L1" }, { "name": "L4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 }
+				]
+			},
+			{
+				"index": 217,
+				"type": "winInfo",
+				"totalWin": 40,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 10,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 5, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 10,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 9
+					},
+					{
+						"symbol": "L1",
+						"win": 30,
+						"positions": [
+							{ "reel": 0, "row": 3 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 4 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 30,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 218, "type": "updateTumbleWin", "amount": 80 },
+			{
+				"index": 219,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 4 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 220,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L2" }, { "name": "L3" }],
+					[{ "name": "H4" }, { "name": "L3" }],
+					[{ "name": "L1" }, { "name": "H2" }],
+					[{ "name": "L2" }, { "name": "L2" }, { "name": "W", "wild": true }],
+					[{ "name": "L3" }, { "name": "H4" }, { "name": "H4" }, { "name": "L3" }],
+					[{ "name": "H2" }, { "name": "L4" }, { "name": "H2" }, { "name": "H3" }, { "name": "L2" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 4 }
+				]
+			},
+			{
+				"index": 221,
+				"type": "winInfo",
+				"totalWin": 210,
+				"wins": [
+					{
+						"symbol": "H3",
+						"win": 150,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 0, "row": 2 },
+							{ "reel": 3, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 150,
+							"overlay": { "reel": 2, "row": 4 }
+						},
+						"count": 10
+					},
+					{
+						"symbol": "H4",
+						"win": 60,
+						"positions": [
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 0, "row": 2 },
+							{ "reel": 3, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 60,
+							"overlay": { "reel": 2, "row": 3 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 222, "type": "updateTumbleWin", "amount": 290 },
+			{
+				"index": 223,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 3, "row": 2 }
+				],
+				"charge": 3
+			},
+			{
+				"index": 224,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L3" }, { "name": "H3" }, { "name": "H3" }],
+					[{ "name": "L3" }, { "name": "H3" }],
+					[{ "name": "L2" }, { "name": "L3" }, { "name": "L1" }, { "name": "H3" }],
+					[{ "name": "H4" }, { "name": "L4" }],
+					[{ "name": "L2" }, { "name": "L1" }, { "name": "L2" }],
+					[{ "name": "L4" }, { "name": "L4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{
+				"index": 225,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 3 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 5, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 226, "type": "updateTumbleWin", "amount": 310 },
+			{
+				"index": 227,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 5 }
+				],
+				"charge": 4
+			},
+			{
+				"index": 228,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H3" }, { "name": "H2" }],
+					[{ "name": "L4" }],
+					[],
+					[{ "name": "L3" }, { "name": "L2" }, { "name": "H3" }],
+					[{ "name": "L3" }],
+					[{ "name": "L4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{ "index": 229, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 230, "type": "setWin", "amount": 1240, "winLevel": 5 },
+			{ "index": 231, "type": "setTotalWin", "amount": 5380 },
+			{ "index": 232, "type": "updateFreeSpin", "amount": 23, "total": 26 },
+			{
+				"index": 233,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "S", "scatter": true }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "W", "wild": true },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L4" }
+					]
+				],
+				"paddingPositions": [132, 36, 135, 42, 50, 214],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 234,
+				"type": "winInfo",
+				"totalWin": 40,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 40,
+						"positions": [
+							{ "reel": 0, "row": 2 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 3, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 40,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 10
+					}
+				]
+			},
+			{ "index": 235, "type": "updateTumbleWin", "amount": 40 },
+			{
+				"index": 236,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 3, "row": 5 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 237,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H4" }, { "name": "H2" }],
+					[{ "name": "L4" }, { "name": "H4" }],
+					[{ "name": "L4" }, { "name": "L2" }],
+					[{ "name": "L1" }, { "name": "W", "wild": true }],
+					[{ "name": "L4" }, { "name": "W", "wild": true }],
+					[]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 }
+				]
+			},
+			{
+				"index": 238,
+				"type": "winInfo",
+				"totalWin": 30,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 30,
+						"positions": [
+							{ "reel": 0, "row": 2 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 5, "row": 4 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 4, "row": 1 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 30,
+							"overlay": { "reel": 2, "row": 4 }
+						},
+						"count": 11
+					}
+				]
+			},
+			{ "index": 239, "type": "updateTumbleWin", "amount": 70 },
+			{
+				"index": 240,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 4, "row": 1 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 241,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L1" }],
+					[{ "name": "L2" }],
+					[{ "name": "H3" }, { "name": "H2" }],
+					[{ "name": "H3" }],
+					[{ "name": "H1" }, { "name": "H3" }, { "name": "L1" }],
+					[{ "name": "H4" }, { "name": "H2" }, { "name": "L2" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{ "index": 242, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 243, "type": "setWin", "amount": 280, "winLevel": 4 },
+			{ "index": 244, "type": "setTotalWin", "amount": 5660 },
+			{ "index": 245, "type": "updateFreeSpin", "amount": 24, "total": 26 },
+			{
+				"index": 246,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "H1" },
+						{ "name": "L1" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "L3" },
+						{ "name": "H1" },
+						{ "name": "L3" },
+						{ "name": "H1" },
+						{ "name": "H1" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "H3" },
+						{ "name": "H3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L1" },
+						{ "name": "H1" },
+						{ "name": "L1" },
+						{ "name": "H3" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L1" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L4" },
+						{ "name": "L4" }
+					]
+				],
+				"paddingPositions": [72, 177, 20, 184, 171, 186],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{ "index": 247, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 248, "type": "setTotalWin", "amount": 5660 },
+			{ "index": 249, "type": "updateFreeSpin", "amount": 25, "total": 26 },
+			{
+				"index": 250,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "W", "wild": true },
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "W", "wild": true },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "W", "wild": true },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "S", "scatter": true },
+						{ "name": "L2" },
+						{ "name": "H3" },
+						{ "name": "L4" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L2" },
+						{ "name": "L4" }
+					]
+				],
+				"paddingPositions": [148, 132, 170, 107, 77, 159],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 251,
+				"type": "winInfo",
+				"totalWin": 10,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 10,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 0, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 10,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 252, "type": "updateTumbleWin", "amount": 10 },
+			{
+				"index": 253,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 0, "row": 3 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 254,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L2" }, { "name": "L1" }],
+					[{ "name": "W", "wild": true }, { "name": "L3" }],
+					[{ "name": "H1" }],
+					[{ "name": "H4" }],
+					[{ "name": "L2" }, { "name": "L4" }],
+					[{ "name": "L1" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 3 }
+				]
+			},
+			{
+				"index": 255,
+				"type": "winInfo",
+				"totalWin": 40,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 40,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 2, "row": 1 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 40,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 11
+					}
+				]
+			},
+			{ "index": 256, "type": "updateTumbleWin", "amount": 50 },
+			{
+				"index": 257,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 1 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 258,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L4" }],
+					[{ "name": "L2" }, { "name": "L3" }, { "name": "L2" }],
+					[{ "name": "H1" }, { "name": "L3" }],
+					[{ "name": "W", "wild": true }, { "name": "L1" }, { "name": "H1" }],
+					[{ "name": "H3" }, { "name": "H1" }],
+					[]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 3 }
+				]
+			},
+			{
+				"index": 259,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 0, "row": 3 },
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 2 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 1, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 2, "row": 4 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 260, "type": "updateTumbleWin", "amount": 70 },
+			{
+				"index": 261,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 1, "row": 3 }
+				],
+				"charge": 3
+			},
+			{
+				"index": 262,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L4" }, { "name": "H4" }, { "name": "H2" }],
+					[{ "name": "L2" }, { "name": "L3" }],
+					[{ "name": "L4" }],
+					[],
+					[{ "name": "L4" }],
+					[{ "name": "L3" }, { "name": "L3" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{ "index": 263, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 264, "type": "setWin", "amount": 280, "winLevel": 4 },
+			{ "index": 265, "type": "setTotalWin", "amount": 5940 },
+			{ "index": 266, "type": "updateFreeSpin", "amount": 26, "total": 26 },
+			{
+				"index": 267,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "W", "wild": true },
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "H3" },
+						{ "name": "H2" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "H2" },
+						{ "name": "H2" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "H1" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "L3" }
+					]
+				],
+				"paddingPositions": [69, 184, 7, 50, 40, 150],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 268,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 4, "row": 4 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 269, "type": "updateTumbleWin", "amount": 20 },
+			{
+				"index": 270,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 2 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 271,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H1" }, { "name": "H4" }],
+					[{ "name": "H1" }],
+					[{ "name": "L4" }, { "name": "L1" }],
+					[{ "name": "L2" }],
+					[{ "name": "L4" }],
+					[{ "name": "L3" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 2 }
+				]
+			},
+			{
+				"index": 272,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 4 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 0, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 2, "row": 4 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 273, "type": "updateTumbleWin", "amount": 40 },
+			{
+				"index": 274,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 0, "row": 2 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 275,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L4" }],
+					[{ "name": "H1" }],
+					[{ "name": "H2" }],
+					[],
+					[{ "name": "L3" }, { "name": "L2" }, { "name": "H1" }],
+					[{ "name": "L1" }, { "name": "L1" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{ "index": 276, "type": "setPersistentMult", "mult": 4 },
+			{ "index": 277, "type": "setWin", "amount": 160, "winLevel": 3 },
+			{ "index": 278, "type": "setTotalWin", "amount": 6100 },
+			{ "index": 279, "type": "freeSpinEnd", "amount": 6090, "winLevel": 6 },
+			{ "index": 280, "type": "finalWin", "amount": 6100, "capped": false }
+		],
+		"criteria": "freegame",
+		"baseGameWins": 0.1,
+		"freeGameWins": 60.9
+	},
+	{
+		"id": 0,
+		"payoutMultiplier": 70,
+		"events": [
+			{
+				"index": 0,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "H1" },
+						{ "name": "L1" },
+						{ "name": "H2" },
+						{ "name": "H4" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "S", "scatter": true },
+						{ "name": "H1" },
+						{ "name": "L2" },
+						{ "name": "W", "wild": true },
+						{ "name": "H3" },
+						{ "name": "H2" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "W", "wild": true },
+						{ "name": "H1" },
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "H1" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "L4" }
+					]
+				],
+				"paddingPositions": [216, 205, 195, 16, 65, 30],
+				"gameType": "basegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 1,
+				"type": "winInfo",
+				"totalWin": 70,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 0, "row": 4 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 3, "row": 1 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 4, "row": 4 }
+						},
+						"count": 8
+					},
+					{
+						"symbol": "L2",
+						"win": 50,
+						"positions": [
+							{ "reel": 0, "row": 3 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 5, "row": 4 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 2, "row": 3 },
+							{ "reel": 3, "row": 1 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 50,
+							"overlay": { "reel": 4, "row": 3 }
+						},
+						"count": 11
+					}
+				]
+			},
+			{ "index": 2, "type": "updateTumbleWin", "amount": 70 },
+			{
+				"index": 3,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 1 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 4,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L1" }, { "name": "L1" }, { "name": "L1" }, { "name": "L2" }],
+					[{ "name": "H2" }],
+					[{ "name": "L1" }, { "name": "L1" }],
+					[{ "name": "S", "scatter": true }, { "name": "H3" }],
+					[{ "name": "H4" }, { "name": "L4" }, { "name": "L4" }, { "name": "H3" }],
+					[{ "name": "W", "wild": true }, { "name": "L3" }, { "name": "H4" }, { "name": "L4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{ "index": 5, "type": "setWin", "amount": 70, "winLevel": 2 },
+			{ "index": 6, "type": "setTotalWin", "amount": 70 },
+			{ "index": 7, "type": "finalWin", "amount": 70, "capped": false }
+		],
+		"criteria": "basegame",
+		"baseGameWins": 0.7,
+		"freeGameWins": 0
+	},
+	{
+		"id": 5,
+		"payoutMultiplier": 0,
+		"events": [
+			{
+				"index": 0,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L1" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "EYE", "eye": true },
+						{ "name": "H1" },
+						{ "name": "H4" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "H2" },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "W", "wild": true }
+					]
+				],
+				"paddingPositions": [210, 20, 124, 195, 66, 9],
+				"gameType": "basegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{ "index": 1, "type": "setTotalWin", "amount": 0 },
+			{ "index": 2, "type": "finalWin", "amount": 0, "capped": false }
+		],
+		"criteria": "0",
+		"baseGameWins": 0,
+		"freeGameWins": 0
+	},
+	{
+		"id": 905,
+		"payoutMultiplier": 1500000,
+		"events": [
+			{
+				"index": 0,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "S", "scatter": true },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "H1" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "S", "scatter": true },
+						{ "name": "L3" },
+						{ "name": "W", "wild": true },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "S", "scatter": true }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "H2" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "H1" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "H1" },
+						{ "name": "L3" },
+						{ "name": "L3" }
+					]
+				],
+				"paddingPositions": [149, 200, 93, 19, 205, 181],
+				"gameType": "basegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 1,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 3 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 2, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 2, "row": 5 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 2, "type": "updateTumbleWin", "amount": 20 },
+			{
+				"index": 3,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 2, "row": 2 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 4,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L2" }],
+					[{ "name": "L3" }],
+					[{ "name": "S", "scatter": true }, { "name": "L2" }, { "name": "L4" }],
+					[],
+					[{ "name": "L1" }],
+					[{ "name": "H4" }, { "name": "L3" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{
+				"index": 5,
+				"type": "winInfo",
+				"totalWin": 10,
+				"wins": [
+					{
+						"symbol": "L4",
+						"win": 10,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 10,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 6, "type": "updateTumbleWin", "amount": 30 },
+			{
+				"index": 7,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 8,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L4" }],
+					[{ "name": "L4" }, { "name": "S", "scatter": true }],
+					[{ "name": "L2" }],
+					[{ "name": "L4" }],
+					[{ "name": "L4" }, { "name": "H2" }, { "name": "L2" }],
+					[{ "name": "L2" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 }
+				]
+			},
+			{ "index": 9, "type": "setWin", "amount": 30, "winLevel": 2 },
+			{ "index": 10, "type": "setTotalWin", "amount": 30 },
+			{
+				"index": 11,
+				"type": "freeSpinTrigger",
+				"totalFs": 12,
+				"positions": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 2 }
+				]
+			},
+			{ "index": 12, "type": "updateFreeSpin", "amount": 1, "total": 12 },
+			{
+				"index": 13,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "S", "scatter": true },
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "H4" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "W", "wild": true },
+						{ "name": "H2" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "W", "wild": true },
+						{ "name": "L1" },
+						{ "name": "L1" },
+						{ "name": "L1" },
+						{ "name": "H4" }
+					]
+				],
+				"paddingPositions": [122, 87, 216, 135, 104, 39],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 14,
+				"type": "winInfo",
+				"totalWin": 130,
+				"wins": [
+					{
+						"symbol": "H2",
+						"win": 100,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 3 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 100,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 8
+					},
+					{
+						"symbol": "L1",
+						"win": 30,
+						"positions": [
+							{ "reel": 2, "row": 1 },
+							{ "reel": 2, "row": 4 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 5, "row": 4 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 30,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 15, "type": "updateTumbleWin", "amount": 130 },
+			{
+				"index": 16,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 17,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "W", "wild": true }],
+					[{ "name": "L1" }, { "name": "H1" }],
+					[{ "name": "L2" }, { "name": "L3" }, { "name": "L1" }],
+					[{ "name": "S", "scatter": true }, { "name": "H1" }],
+					[{ "name": "L4" }],
+					[
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "S", "scatter": true },
+						{ "name": "L1" }
+					]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 4 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 5, "row": 4 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 5, "row": 2 }
+				]
+			},
+			{ "index": 18, "type": "setWin", "amount": 130, "winLevel": 3 },
+			{ "index": 19, "type": "setTotalWin", "amount": 160 },
+			{ "index": 20, "type": "updateFreeSpin", "amount": 2, "total": 12 },
+			{
+				"index": 21,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "S", "scatter": true }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "H1" },
+						{ "name": "L3" },
+						{ "name": "H1" },
+						{ "name": "W", "wild": true },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "H3" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "H2" },
+						{ "name": "H2" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "H3" },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "L1" }
+					]
+				],
+				"paddingPositions": [132, 9, 167, 48, 114, 118],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 22,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 2 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 2, "row": 1 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 4 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 2, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 3, "row": 4 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 23, "type": "updateTumbleWin", "amount": 20 },
+			{
+				"index": 24,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 2, "row": 3 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 25,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "H4" }, { "name": "H2" }],
+					[],
+					[{ "name": "H4" }, { "name": "L1" }, { "name": "L4" }],
+					[{ "name": "W", "wild": true }],
+					[{ "name": "L4" }],
+					[{ "name": "L3" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 2 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 2, "row": 3 },
+					{ "reel": 3, "row": 4 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 1 }
+				]
+			},
+			{ "index": 26, "type": "setWin", "amount": 20, "winLevel": 2 },
+			{ "index": 27, "type": "setTotalWin", "amount": 180 },
+			{ "index": 28, "type": "updateFreeSpin", "amount": 3, "total": 12 },
+			{
+				"index": 29,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "H1" },
+						{ "name": "H3" },
+						{ "name": "L2" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H1" },
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "W", "wild": true },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "H4" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L1" },
+						{ "name": "L3" },
+						{ "name": "H3" },
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "S", "scatter": true },
+						{ "name": "H4" },
+						{ "name": "H1" },
+						{ "name": "H4" },
+						{ "name": "L1" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "EYE", "eye": true },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "H2" },
+						{ "name": "H1" },
+						{ "name": "L1" },
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "H3" }
+					]
+				],
+				"paddingPositions": [179, 65, 198, 16, 136, 6],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{ "index": 30, "type": "setTotalWin", "amount": 180 },
+			{ "index": 31, "type": "updateFreeSpin", "amount": 4, "total": 12 },
+			{
+				"index": 32,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L1" },
+						{ "name": "H3" },
+						{ "name": "L4" },
+						{ "name": "H3" },
+						{ "name": "H4" },
+						{ "name": "H2" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "H2" },
+						{ "name": "H2" },
+						{ "name": "L1" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "L1" },
+						{ "name": "H2" },
+						{ "name": "H3" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "S", "scatter": true },
+						{ "name": "H1" },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L1" },
+						{ "name": "H4" },
+						{ "name": "H4" },
+						{ "name": "H2" },
+						{ "name": "L1" },
+						{ "name": "W", "wild": true },
+						{ "name": "L4" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L4" },
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "H4" },
+						{ "name": "L1" }
+					]
+				],
+				"paddingPositions": [12, 163, 30, 129, 190, 118],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 33,
+				"type": "winInfo",
+				"totalWin": 100,
+				"wins": [
+					{
+						"symbol": "H2",
+						"win": 100,
+						"positions": [
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 2 },
+							{ "reel": 4, "row": 3 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 4, "row": 5 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 100,
+							"overlay": { "reel": 4, "row": 3 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 34, "type": "updateTumbleWin", "amount": 100 },
+			{
+				"index": 35,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 4, "row": 5 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 36,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L2" }],
+					[{ "name": "L4" }, { "name": "H4" }, { "name": "H4" }],
+					[{ "name": "L2" }, { "name": "L2" }],
+					[],
+					[{ "name": "L1" }, { "name": "L4" }],
+					[{ "name": "L3" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 2 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 4, "row": 3 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 3 }
+				]
+			},
+			{ "index": 37, "type": "setWin", "amount": 100, "winLevel": 3 },
+			{ "index": 38, "type": "setTotalWin", "amount": 280 },
+			{ "index": 39, "type": "updateFreeSpin", "amount": 5, "total": 12 },
+			{
+				"index": 40,
+				"type": "reveal",
+				"board": [
+					[
+						{ "name": "L3" },
+						{ "name": "H4" },
+						{ "name": "H4" },
+						{ "name": "L4" },
+						{ "name": "L3" },
+						{ "name": "L3" },
+						{ "name": "L3" }
+					],
+					[
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "W", "wild": true }
+					],
+					[
+						{ "name": "H2" },
+						{ "name": "L4" },
+						{ "name": "L1" },
+						{ "name": "EYE", "eye": true },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "L2" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "L3" },
+						{ "name": "H1" },
+						{ "name": "L4" },
+						{ "name": "L2" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L3" },
+						{ "name": "L2" },
+						{ "name": "H1" },
+						{ "name": "H2" },
+						{ "name": "L2" },
+						{ "name": "L2" },
+						{ "name": "H3" }
+					],
+					[
+						{ "name": "L2" },
+						{ "name": "H4" },
+						{ "name": "L2" },
+						{ "name": "L1" },
+						{ "name": "H1" },
+						{ "name": "H4" },
+						{ "name": "H1" }
+					]
+				],
+				"paddingPositions": [152, 124, 4, 70, 225, 229],
+				"gameType": "freegame",
+				"anticipation": [0, 0, 0, 0, 0, 0]
+			},
+			{
+				"index": 41,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L2",
+						"win": 20,
+						"positions": [
+							{ "reel": 1, "row": 1 },
+							{ "reel": 1, "row": 3 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 3, "row": 5 },
+							{ "reel": 4, "row": 1 },
+							{ "reel": 4, "row": 4 },
+							{ "reel": 4, "row": 5 },
+							{ "reel": 5, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 4, "row": 4 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 42, "type": "updateTumbleWin", "amount": 20 },
+			{
+				"index": 43,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 }
+				],
+				"charge": 1
+			},
+			{
+				"index": 44,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[],
+					[{ "name": "W", "wild": true }, { "name": "L2" }, { "name": "L1" }],
+					[],
+					[{ "name": "L2" }],
+					[{ "name": "L2" }, { "name": "L4" }, { "name": "L3" }],
+					[{ "name": "L4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 1, "row": 1 },
+					{ "reel": 1, "row": 3 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 3, "row": 5 },
+					{ "reel": 4, "row": 1 },
+					{ "reel": 4, "row": 4 },
+					{ "reel": 4, "row": 5 },
+					{ "reel": 5, "row": 2 }
+				]
+			},
+			{
+				"index": 45,
+				"type": "winInfo",
+				"totalWin": 20,
+				"wins": [
+					{
+						"symbol": "L3",
+						"win": 20,
+						"positions": [
+							{ "reel": 0, "row": 4 },
+							{ "reel": 0, "row": 5 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 4, "row": 3 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 20,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 8
+					}
+				]
+			},
+			{ "index": 46, "type": "updateTumbleWin", "amount": 40 },
+			{
+				"index": 47,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 3 }
+				],
+				"charge": 2
+			},
+			{
+				"index": 48,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L2" }, { "name": "W", "wild": true }],
+					[{ "name": "L3" }, { "name": "L1" }],
+					[{ "name": "W", "wild": true }],
+					[{ "name": "L2" }],
+					[{ "name": "L3" }, { "name": "H3" }],
+					[]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 5 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 4, "row": 3 }
+				]
+			},
+			{
+				"index": 49,
+				"type": "winInfo",
+				"totalWin": 60,
+				"wins": [
+					{
+						"symbol": "H4",
+						"win": 60,
+						"positions": [
+							{ "reel": 0, "row": 3 },
+							{ "reel": 0, "row": 4 },
+							{ "reel": 1, "row": 5 },
+							{ "reel": 2, "row": 5 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 5, "row": 2 },
+							{ "reel": 5, "row": 5 },
+							{ "reel": 0, "row": 1 },
+							{ "reel": 1, "row": 2 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 60,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 9
+					}
+				]
+			},
+			{ "index": 50, "type": "updateTumbleWin", "amount": 100 },
+			{
+				"index": 51,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 },
+					{ "reel": 0, "row": 1 },
+					{ "reel": 1, "row": 2 }
+				],
+				"charge": 3
+			},
+			{
+				"index": 52,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L1" }, { "name": "L2" }, { "name": "L4" }],
+					[{ "name": "H1" }, { "name": "H3" }],
+					[{ "name": "L2" }],
+					[{ "name": "H4" }],
+					[],
+					[{ "name": "H4" }, { "name": "L2" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 3 },
+					{ "reel": 0, "row": 4 },
+					{ "reel": 0, "row": 1 },
+					{ "reel": 1, "row": 5 },
+					{ "reel": 1, "row": 2 },
+					{ "reel": 2, "row": 5 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 5, "row": 2 },
+					{ "reel": 5, "row": 5 }
+				]
+			},
+			{
+				"index": 53,
+				"type": "winInfo",
+				"totalWin": 50,
+				"wins": [
+					{
+						"symbol": "L2",
+						"win": 50,
+						"positions": [
+							{ "reel": 0, "row": 1 },
+							{ "reel": 0, "row": 3 },
+							{ "reel": 1, "row": 4 },
+							{ "reel": 3, "row": 1 },
+							{ "reel": 3, "row": 2 },
+							{ "reel": 3, "row": 3 },
+							{ "reel": 4, "row": 2 },
+							{ "reel": 5, "row": 1 },
+							{ "reel": 5, "row": 3 },
+							{ "reel": 2, "row": 1 }
+						],
+						"meta": {
+							"globalMult": 1,
+							"clusterMult": 1,
+							"winWithoutMult": 50,
+							"overlay": { "reel": 3, "row": 3 }
+						},
+						"count": 10
+					}
+				]
+			},
+			{ "index": 54, "type": "updateTumbleWin", "amount": 150 },
+			{
+				"index": 55,
+				"type": "gazeStep",
+				"fromPositions": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 3 },
+					{ "reel": 2, "row": 1 }
+				],
+				"charge": 4
+			},
+			{
+				"index": 56,
+				"type": "tumbleBoard",
+				"newSymbols": [
+					[{ "name": "L4" }, { "name": "L2" }],
+					[{ "name": "L4" }],
+					[{ "name": "H3" }],
+					[{ "name": "H4" }, { "name": "H4" }, { "name": "S", "scatter": true }],
+					[{ "name": "L4" }],
+					[{ "name": "L2" }, { "name": "L4" }]
+				],
+				"explodingSymbols": [
+					{ "reel": 0, "row": 1 },
+					{ "reel": 0, "row": 3 },
+					{ "reel": 1, "row": 4 },
+					{ "reel": 2, "row": 1 },
+					{ "reel": 3, "row": 1 },
+					{ "reel": 3, "row": 2 },
+					{ "reel": 3, "row": 3 },
+					{ "reel": 4, "row": 2 },
+					{ "reel": 5, "row": 1 },
+					{ "reel": 5, "row": 3 }
+				]
+			},
+			{
+				"index": 57,
+				"type": "eyeReveal",
+				"position": { "reel": 2, "row": 5 },
+				"eyeType": "ADD",
+				"startValue": 100
+			},
+			{
+				"index": 58,
+				"type": "eyeResolve",
+				"charge": 4,
+				"eyeType": "ADD",
+				"startValue": 100,
+				"totalMult": 104
+			},
+			{ "index": 59, "type": "setPersistentMult", "mult": 105 },
+			{ "index": 60, "type": "wincap", "amount": 1500000 },
+			{ "index": 61, "type": "setTotalWin", "amount": 1500000 },
+			{ "index": 62, "type": "freeSpinEnd", "amount": 1500000, "winLevel": 10 },
+			{ "index": 63, "type": "finalWin", "amount": 1500000, "capped": true }
+		],
+		"criteria": "freegame",
+		"baseGameWins": 0.3,
+		"freeGameWins": 15000
+	}
+]

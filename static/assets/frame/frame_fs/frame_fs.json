@@ -1,0 +1,114 @@
+{
+	"frames": {
+		"gaze_meter_fs_frame_empty": {
+			"frame": {
+				"x": 0,
+				"y": 0,
+				"w": 484,
+				"h": 1063
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 484,
+				"h": 1063
+			},
+			"sourceSize": {
+				"w": 484,
+				"h": 1063
+			}
+		},
+		"gaze_meter_fs_eye_top": {
+			"frame": {
+				"x": 484,
+				"y": 0,
+				"w": 484,
+				"h": 1063
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 484,
+				"h": 1063
+			},
+			"sourceSize": {
+				"w": 484,
+				"h": 1063
+			}
+		},
+		"gaze_meter_fs_glow_soft": {
+			"frame": {
+				"x": 968,
+				"y": 0,
+				"w": 484,
+				"h": 1063
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 484,
+				"h": 1063
+			},
+			"sourceSize": {
+				"w": 484,
+				"h": 1063
+			}
+		},
+		"gaze_meter_fs_particle_burst": {
+			"frame": {
+				"x": 1452,
+				"y": 0,
+				"w": 484,
+				"h": 1063
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 484,
+				"h": 1063
+			},
+			"sourceSize": {
+				"w": 484,
+				"h": 1063
+			}
+		},
+		"gaze_meter_fs_dividers_front": {
+			"frame": {
+				"x": 0,
+				"y": 1063,
+				"w": 484,
+				"h": 1063
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 484,
+				"h": 1063
+			},
+			"sourceSize": {
+				"w": 484,
+				"h": 1063
+			}
+		}
+	},
+	"meta": {
+		"app": "spritesheetgen",
+		"image": "frame_fs.png",
+		"format": "RGBA8888",
+		"size": {
+			"w": 1936,
+			"h": 2126
+		},
+		"scale": "1"
+	}
+}

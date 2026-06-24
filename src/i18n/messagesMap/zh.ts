@@ -1,0 +1,18 @@
+export default {
+	HOME: '主页',
+	LOADER_SUBTITLE: '玩法说明',
+	LOADER_LOGO: 'ABYSSAL',
+	LOADER_CARD_1_TITLE: '积攒凝视能量',
+	LOADER_CARD_1_BODY: '获胜组合会积攒凝视能量。\n更多连消，更多力量。',
+	LOADER_CARD_2_TITLE: '眼睛倍数',
+	LOADER_CARD_2_BODY: '眼睛出现时会提升您的赢分。\n可能出现加成或倍增眼睛。',
+	LOADER_CARD_3_TITLE: '最高赢分',
+	LOADER_CARD_3_BODY: '充能眼睛与凝视能量结合，\n带来巨额奖励。\n积蓄力量，再尽情释放。',
+	LOADER_CTA: '点击继续',
+	LOADER_LOADING: '加载中',
+	LOADER_CARDS_LABEL: '教程卡片',
+	LOADER_PREVIOUS_CARD: '上一张卡片',
+	LOADER_NEXT_CARD: '下一张卡片',
+	FREE_SPINS_TAP_TO_PLAY: '点击任意处开始',
+	FREE_SPINS_TAP_TO_SKIP: '点击任意处跳过',
+};

@@ -1,0 +1,114 @@
+{
+  "frames": {
+    "gaze_meter_frame_empty": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 481,
+        "h": 1061
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 481,
+        "h": 1061
+      },
+      "sourceSize": {
+        "w": 481,
+        "h": 1061
+      }
+    },
+    "gaze_meter_eye_top": {
+      "frame": {
+        "x": 481,
+        "y": 0,
+        "w": 481,
+        "h": 1061
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 481,
+        "h": 1061
+      },
+      "sourceSize": {
+        "w": 481,
+        "h": 1061
+      }
+    },
+    "gaze_meter_glow_soft": {
+      "frame": {
+        "x": 962,
+        "y": 0,
+        "w": 481,
+        "h": 1061
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 481,
+        "h": 1061
+      },
+      "sourceSize": {
+        "w": 481,
+        "h": 1061
+      }
+    },
+    "gaze_meter_particle_burst": {
+      "frame": {
+        "x": 1443,
+        "y": 0,
+        "w": 481,
+        "h": 1061
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 481,
+        "h": 1061
+      },
+      "sourceSize": {
+        "w": 481,
+        "h": 1061
+      }
+    },
+    "gaze_meter_dividers_front": {
+      "frame": {
+        "x": 0,
+        "y": 1061,
+        "w": 481,
+        "h": 1061
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 481,
+        "h": 1061
+      },
+      "sourceSize": {
+        "w": 481,
+        "h": 1061
+      }
+    }
+  },
+  "meta": {
+    "app": "spritesheetgen",
+    "image": "spritesheet.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 1924,
+      "h": 2122
+    },
+    "scale": "1"
+  }
+}

@@ -1,0 +1,242 @@
+<script lang="ts" module>
+	export type EmitterEventReelFrame =
+		| { type: 'reelFrameGlowShow' }
+		| { type: 'reelFrameGlowHide' }
+		| { type: 'reelFrameSpinLaunch' }
+		| { type: 'reelFrameScatterLand' }
+		| { type: 'reelFrameEyeLand' }
+		| { type: 'reelFrameScatterAnticipationStart' }
+		| { type: 'reelFrameScatterAnticipationEnd' };
+</script>
+
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { Tween } from 'svelte/motion';
+
+	import { Container, Graphics, Sprite } from 'pixi-svelte';
+
+	import { getContext } from '../game/context';
+	import type { ReelFrameLayout } from '../game/constants';
+	import {
+		MOBILE_REEL_DISPLAY_SCALE,
+		REEL_LAYOUT_BASE,
+		REEL_LAYOUT_FREE_SPINS,
+		getReelDisplayScale,
+		getReelPosition,
+	} from '../game/constants';
+
+	type Props = {
+		layer?: 'background' | 'overlay';
+		debug?: boolean;
+	};
+
+	const props: Props = $props();
+	const context = getContext();
+	const feature = $derived(context.stateGame.gameType === 'freegame');
+	const featureMix = new Tween(0, { duration: 620 });
+
+	const frame = $derived({
+		key: feature ? 'reelFrameFs' : 'reelFrameBase',
+		layout: context.stateGameDerived.reelLayout(),
+		glowColor: feature ? 0xff4d18 : 0x7f35ff,
+	});
+	const frameVariants = $derived([
+		{ key: 'reelFrameBase', layout: REEL_LAYOUT_BASE, alpha: 1 - featureMix.current },
+		{ key: 'reelFrameFs', layout: REEL_LAYOUT_FREE_SPINS, alpha: featureMix.current },
+	]);
+
+	$effect(() => {
+		featureMix.set(feature ? 1 : 0);
+	});
+
+	const layer = $derived(props.layer ?? 'background');
+	const mobileReelScale = $derived(
+		context.stateLayoutDerived.layoutType() === 'portrait' ? MOBILE_REEL_DISPLAY_SCALE : 1,
+	);
+
+	let now = $state(0);
+	let boosted = $state(false);
+	let launchStartedAt = $state(-1);
+	let scatterStartedAt = $state(-1);
+	let eyeStartedAt = $state(-1);
+	let scatterAnticipationStartedAt = $state(-1);
+	let scatterAnticipationReleasedAt = $state(-1);
+	let scatterAnticipationReleaseFrom = $state(0);
+	const t = $derived(now / 1000);
+
+	onMount(() => {
+		let raf = 0;
+		const loop = (timestamp: number) => {
+			now = timestamp;
+			raf = requestAnimationFrame(loop);
+		};
+		raf = requestAnimationFrame(loop);
+		return () => cancelAnimationFrame(raf);
+	});
+
+	context.eventEmitter.subscribeOnMount({
+		reelFrameGlowShow: () => (boosted = true),
+		reelFrameGlowHide: () => (boosted = false),
+		reelFrameSpinLaunch: () => (launchStartedAt = performance.now()),
+		reelFrameScatterLand: () => (scatterStartedAt = performance.now()),
+		reelFrameEyeLand: () => (eyeStartedAt = performance.now()),
+		reelFrameScatterAnticipationStart: () => {
+			scatterAnticipationStartedAt = performance.now();
+			scatterAnticipationReleasedAt = -1;
+		},
+		reelFrameScatterAnticipationEnd: () => {
+			scatterAnticipationReleaseFrom = scatterAnticipationProgress;
+			scatterAnticipationReleasedAt = performance.now();
+		},
+	});
+
+	const getBurstEnergy = (startedAt: number, duration: number) => {
+		const elapsed = startedAt < 0 ? Infinity : (now - startedAt) / 1000;
+		return elapsed < duration ? Math.max(0, 1 - elapsed / duration) : 0;
+	};
+	const launchEnergy = $derived(getBurstEnergy(launchStartedAt, 0.62));
+	const scatterEnergy = $derived(getBurstEnergy(scatterStartedAt, 0.52));
+	const eyeEnergy = $derived(getBurstEnergy(eyeStartedAt, 0.76));
+	const specialEnergy = $derived(Math.max(scatterEnergy, eyeEnergy));
+	const effectEnergy = $derived(Math.max(launchEnergy, specialEnergy));
+	const effectColor = $derived(
+		eyeEnergy > scatterEnergy ? 0xd866ff : scatterEnergy > 0 ? 0x4cecff : frame.glowColor,
+	);
+	const launchMotion = $derived(launchEnergy > 0 ? Math.sin((1 - launchEnergy) * Math.PI) : 0);
+	const scatterAnticipationProgress = $derived.by(() => {
+		if (scatterAnticipationReleasedAt >= 0) {
+			const releaseElapsed = (now - scatterAnticipationReleasedAt) / 1000;
+			return Math.max(0, scatterAnticipationReleaseFrom * (1 - releaseElapsed / 0.2));
+		}
+
+		if (scatterAnticipationStartedAt < 0) return 0;
+		const progress = Math.min(1, (now - scatterAnticipationStartedAt) / 1000);
+		return progress * progress * (3 - 2 * progress);
+	});
+	const frameShakeY = $derived(launchMotion * 42);
+	const getFrameTransform = (layout: ReelFrameLayout) => {
+		const position = getReelPosition(layout);
+		const displayScale = getReelDisplayScale(layout);
+		return {
+			x: position.x + (layout.gridX + layout.gridWidth / 2) * displayScale,
+			y: position.y + (layout.gridY + layout.gridHeight / 2) * displayScale + frameShakeY,
+			pivot: { x: layout.gridX + layout.gridWidth / 2, y: layout.gridY + layout.gridHeight / 2 },
+			scale:
+				displayScale *
+				mobileReelScale *
+				(1 + launchMotion * 0.045 + scatterAnticipationProgress * 0.06),
+		};
+	};
+	const getGlintX = (layout: ReelFrameLayout) =>
+		layout.gridX + ((t * 180) % Math.max(layout.gridWidth, 1));
+
+	const drawOverlayMask = (g: import('pixi.js').Graphics, layout: ReelFrameLayout) => {
+		g.rect(0, 0, layout.imageWidth, layout.imageHeight)
+			.fill(0xffffff)
+			.rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight)
+			.cut();
+	};
+
+	const drawEffectMask = (g: import('pixi.js').Graphics, layout: ReelFrameLayout) => {
+		g.rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight).fill(0xffffff);
+	};
+
+	const drawBottomSurge = (g: import('pixi.js').Graphics, layout: ReelFrameLayout) => {
+		const bottom = layout.gridY + layout.gridHeight;
+		const cellWidth = layout.gridWidth / layout.columns;
+
+		for (let index = 0; index < layout.columns; index++) {
+			const x = layout.gridX + cellWidth * (index + 0.5);
+			const height = 26 + ((index * 11) % 18);
+			const y = bottom + 10;
+			g.ellipse(x, y, cellWidth * 0.46, height).fill({ color: effectColor, alpha: 0.28 });
+			g.ellipse(x + cellWidth * 0.1, y - height * 0.22, cellWidth * 0.24, height * 0.62).fill({
+				color: 0xffffff,
+				alpha: 0.2,
+			});
+			g.roundRect(x - cellWidth * 0.32, bottom - 9, cellWidth * 0.64, 8, 4).fill({
+				color: effectColor,
+				alpha: 0.7,
+			});
+		}
+	};
+
+	const drawGlint = (g: import('pixi.js').Graphics) => {
+		g.moveTo(-13, 0).lineTo(13, 0).stroke({ width: 2, color: 0xffffff, alpha: 0.9 });
+		g.moveTo(0, -8).lineTo(0, 8).stroke({ width: 2, color: 0xffffff, alpha: 0.9 });
+		g.circle(0, 0, 3).fill({ color: effectColor, alpha: 1 });
+	};
+
+	const drawDebugGrid = (g: import('pixi.js').Graphics, layout: ReelFrameLayout) => {
+		g.rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight).stroke({
+			color: 0xff00ff,
+			width: 3,
+			alpha: 0.9,
+		});
+
+		const cellWidth = layout.gridWidth / layout.columns;
+		const cellHeight = layout.gridHeight / layout.rows;
+
+		for (let c = 1; c < layout.columns; c++) {
+			const x = layout.gridX + c * cellWidth;
+			g.moveTo(x, layout.gridY).lineTo(x, layout.gridY + layout.gridHeight);
+		}
+
+		for (let r = 1; r < layout.rows; r++) {
+			const y = layout.gridY + r * cellHeight;
+			g.moveTo(layout.gridX, y).lineTo(layout.gridX + layout.gridWidth, y);
+		}
+
+		g.stroke({
+			color: 0x00ffff,
+			width: 1,
+			alpha: 0.65,
+		});
+	};
+</script>
+
+{#each frameVariants as variant}
+	{@const transform = getFrameTransform(variant.layout)}
+	<Container
+		x={transform.x}
+		y={transform.y}
+		pivot={transform.pivot}
+		scale={transform.scale}
+		alpha={variant.alpha}
+	>
+		{#if layer === 'background'}
+			<Sprite
+				key={variant.key}
+				width={variant.layout.imageWidth}
+				height={variant.layout.imageHeight}
+			/>
+		{:else}
+			<Container>
+				<Graphics draw={(g) => drawOverlayMask(g, variant.layout)} isMask />
+				<Sprite
+					key={variant.key}
+					width={variant.layout.imageWidth}
+					height={variant.layout.imageHeight}
+				/>
+			</Container>
+			<Container>
+				<Graphics draw={(g) => drawEffectMask(g, variant.layout)} isMask />
+				<Graphics
+					draw={(g) => drawBottomSurge(g, variant.layout)}
+					alpha={effectEnergy}
+					blendMode="add"
+				/>
+				<Graphics
+					x={getGlintX(variant.layout)}
+					y={variant.layout.gridY + 12}
+					draw={(g) => drawGlint(g)}
+					alpha={0.08 + effectEnergy * 0.72 + (boosted ? 0.16 : 0)}
+					blendMode="add"
+				/>
+			</Container>
+			{#if props.debug}
+				<Graphics draw={(g) => drawDebugGrid(g, variant.layout)} />
+			{/if}
+		{/if}
+	</Container>
+{/each}

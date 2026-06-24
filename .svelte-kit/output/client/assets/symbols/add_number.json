@@ -1,0 +1,103 @@
+{"frames": {
+
+"add_numbers-0.png":
+{
+	"frame": {"x":1,"y":1,"w":133,"h":200},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":200},
+	"sourceSize": {"w":133,"h":200}
+},
+"add_numbers-1.png":
+{
+	"frame": {"x":136,"y":1,"w":133,"h":200},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":200},
+	"sourceSize": {"w":133,"h":200}
+},
+"add_numbers-2.png":
+{
+	"frame": {"x":271,"y":1,"w":133,"h":200},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":200},
+	"sourceSize": {"w":133,"h":200}
+},
+"add_numbers-3.png":
+{
+	"frame": {"x":406,"y":1,"w":133,"h":200},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":200},
+	"sourceSize": {"w":133,"h":200}
+},
+"add_numbers-4.png":
+{
+	"frame": {"x":541,"y":1,"w":133,"h":200},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":200},
+	"sourceSize": {"w":133,"h":200}
+},
+"add_numbers-5.png":
+{
+	"frame": {"x":676,"y":1,"w":133,"h":200},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":200},
+	"sourceSize": {"w":133,"h":200}
+},
+"add_numbers-6.png":
+{
+	"frame": {"x":811,"y":1,"w":133,"h":200},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":200},
+	"sourceSize": {"w":133,"h":200}
+},
+"add_numbers-7.png":
+{
+	"frame": {"x":946,"y":1,"w":133,"h":200},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":200},
+	"sourceSize": {"w":133,"h":200}
+},
+"add_numbers-8.png":
+{
+	"frame": {"x":1081,"y":1,"w":133,"h":200},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":200},
+	"sourceSize": {"w":133,"h":200}
+},
+"add_numbers-9.png":
+{
+	"frame": {"x":1216,"y":1,"w":133,"h":200},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":200},
+	"sourceSize": {"w":133,"h":200}
+},
+"add_numbers-sign-0.png":
+{
+	"frame": {"x":1351,"y":1,"w":133,"h":200},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":133,"h":200},
+	"sourceSize": {"w":133,"h":200}
+}},
+"animations": {
+	"add_numbers": ["add_numbers-0.png","add_numbers-1.png","add_numbers-2.png","add_numbers-3.png","add_numbers-4.png","add_numbers-5.png","add_numbers-6.png","add_numbers-7.png","add_numbers-8.png","add_numbers-9.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "add_number.png",
+	"format": "RGBA8888",
+	"size": {"w":1485,"h":202},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:5906bdab93eda087d799eea7bce8daf8:4ad18cd82929c1d81658ceaad35a72f5:3e66e392b8079bd0c51785a0bced071c$"
+}
+}
