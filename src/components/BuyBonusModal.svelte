@@ -184,7 +184,7 @@
 </script>
 
 {#if stateModal.modal?.name === 'buyBonus'}
-	<Popup zIndex={zIndex.modal} onclose={close}>
+	<Popup zIndex={zIndex.modal} closeOnEscape={false} closeOnOutside={false} onclose={close}>
 		<div class="buy-modal">
 			<div class="bm-bet">
 				<span class="bm-bet-label">BET</span>
@@ -249,7 +249,12 @@
 	<!-- confirm step as its own stacked popup (avoids the shared Popup's double-render of an
 	     in-modal overlay, which showed the panel twice) -->
 	{#if pending}
-		<Popup zIndex={zIndex.dialog} onclose={cancelConfirm}>
+		<Popup
+			zIndex={zIndex.dialog}
+			closeOnEscape={false}
+			closeOnOutside={false}
+			onclose={cancelConfirm}
+		>
 			<div class="bm-confirm-panel">
 				{#if heroOf(pending)}
 					<img class="bm-confirm-hero" src={heroOf(pending)} alt={pending.text.title} />

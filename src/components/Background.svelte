@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Painted abyss scene (`background-base.png`) used as a full-cover backdrop, brought to
+	// Painted abyss scene (`base.webp`) used as a full-cover backdrop, brought to
 	// life with a core-pixi ColorMatrixFilter shimmer + a slow breathe/drift and light shafts.
 	import { onMount } from 'svelte';
 	import { ColorMatrixFilter, type Filter } from 'pixi.js';
@@ -10,7 +10,7 @@
 	import { getContext } from '../game/context';
 
 	const context = getContext();
-	const IMAGE_RATIO = 1538 / 1026; // background-base.png (3:2)
+	const IMAGE_RATIO = 2752 / 1536; // base.webp / freespins.webp
 	const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
 		x: (i * 137) % 1000,
 		y: (i * 251) % 1000,

@@ -1,9 +1,13 @@
 import _ from 'lodash';
 
 import { recordBookEvent, checkIsMultipleRevealEvents, type BookEventHandlerMap } from 'utils-book';
+import { backOut } from 'svelte/easing';
+
 import { stateBet, stateBetDerived } from 'state-shared';
 import { waitForTimeout } from 'utils-shared/wait';
 import { BOOK_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
+
+import { REEL_CELL_HEIGHT } from './constants';
 
 import { eventEmitter } from './eventEmitter';
 import { winLevelMap, type WinLevel, type WinLevelData } from './winLevelMap';
@@ -213,12 +217,19 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 			stateGame.board[bookEvent.position.reel]?.reelState.symbols[bookEvent.position.row];
 		if (cell) {
 			cell.rawSymbol = { name: 'EYE', eye: true };
-			cell.symbolState = 'land'; // play the Eye drop-in + shake
+			cell.symbolState = 'land'; // AbyssalEye settle shake
+			// drop it in from just above the cell so it reads as a landing, not an in-place swap.
+			// NOTE: the board is full at this point (eyeDrop arrives after the tumble settled), so the
+			// Eye necessarily takes over this cell — a true gap-fill fall would need the math to send
+			// the Eye inside the tumble's `newSymbols` refill instead of a standalone eyeDrop.
+			const targetY = cell.symbolY.current;
+			cell.symbolY.set(targetY - REEL_CELL_HEIGHT * 0.95, { duration: 0 });
+			void cell.symbolY.set(targetY, { duration: 260 / stateBetDerived.timeScale(), easing: backOut });
 		}
 		// it slams onto the board
 		eventEmitter.broadcast({ type: 'boardEyeImpact' });
 		eventEmitter.broadcast({ type: 'reelFrameEyeLand' });
-		await waitForTimeout(420 / stateBetDerived.timeScale());
+		await waitForTimeout(440 / stateBetDerived.timeScale());
 	},
 
 	eyeReveal: async (bookEvent: BookEventOfType<'eyeReveal'>) => {

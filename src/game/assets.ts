@@ -11,37 +11,23 @@ export default {
 	// replaced by Abyssal-specific art or code-drawn placeholders.
 	backgroundBase: {
 		type: 'sprite',
-		src: new URL('../../assets/background/background-base.png', import.meta.url).href,
+		src: new URL('../../assets/background/base.webp', import.meta.url).href,
 		preload: true,
 	},
 	backgroundFs: {
 		type: 'sprite',
-		src: new URL('../../assets/background/background-fs.png', import.meta.url).href,
+		src: new URL('../../assets/background/freespins.webp', import.meta.url).href,
 		preload: true,
 	},
-	// Current frame PNGs include the inner dark reel background and vertical separators.
-	reelFrameBase: {
-		type: 'sprite',
-		src: new URL('../../assets/frame/reel_frame_base.png', import.meta.url).href,
-		preload: true,
-	},
-	reelFrameFs: {
-		type: 'sprite',
-		src: new URL('../../assets/frame/reel_frame_fs.png', import.meta.url).href,
-		preload: true,
-	},
-	// Layered Gaze meter kit. The component composes its frame, Eye and FX at runtime so the
-	// ten charge steps and multiplier remain fully driven by game state.
-	gazeMeter: {
+	// Layered reel frame atlas: background panel, reel separators, and foreground border.
+	reelFrame: {
 		type: 'sprites',
-		src: new URL('../../assets/frame/fram/spritesheet.json', import.meta.url).href,
+		src: new URL('../../assets/frame/reel_frame/atlas.json', import.meta.url).href,
 		preload: true,
 	},
-	// Free-spins counterpart of the Gaze kit. Its frame names are FS-prefixed in the atlas
-	// so both skins can be preloaded without replacing each other's textures.
-	gazeMeterFs: {
-		type: 'sprites',
-		src: new URL('../../assets/frame/frame_fs/frame_fs.json', import.meta.url).href,
+	winMeter: {
+		type: 'sprite',
+		src: new URL('../../assets/frame/gaze_sprite/winmeter.png', import.meta.url).href,
 		preload: true,
 	},
 	// Provider logo used as the buy-bonus glyph on the control bar.

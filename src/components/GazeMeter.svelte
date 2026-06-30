@@ -5,16 +5,13 @@
 		| { type: 'gazeMeterShow' }
 		| { type: 'gazeMeterHide' }
 		| { type: 'gazeMeterReset' }
-		// the connection's energy flows into the meter; `charge` is the new running total
 		| { type: 'gazeMeterFill'; fromPositions: Position[]; charge: number }
-		// the Eye connects: the meter empties its energy into the Eye cell
 		| { type: 'gazeMeterToEye' }
-		// near-miss: a winning spin resolved with no Eye → the charge is discarded
 		| { type: 'gazeMeterDrain' };
 </script>
 
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import gsap from 'gsap';
 	import { FillGradient } from 'pixi.js';
 	import { Tween } from 'svelte/motion';
@@ -29,111 +26,126 @@
 	import { getContext } from '../game/context';
 	import {
 		BOARD_SIZES,
+		GAZE_METER_IMAGE_SIZE,
 		GAZE_METER_LAYOUT,
 		GAZE_METER_MAX_CHARGE,
 		GAZE_METER_MULTIPLIER_COLOR,
-		getGazeMeterDisplayWidth,
 		SYMBOL_SIZE,
 	} from '../game/constants';
 	import { getPositionX, getPositionY } from '../game/utils';
 
 	const context = getContext();
 
+	const LAYER_KEYS = {
+		bar: 'winMeter',
+	} as const;
+	type TrackSegment = { x: number; y: number; w: number; h: number; r: number };
+	const GAZE_COLORS = {
+		fillDeep: 0x075aa8,
+		fillMid: 0x0aa4ff,
+		fillCore: 0x28d7ff,
+		fillTop: 0xc7ffff,
+		fillGlow: 0x35cfff,
+		edge: 0xe9ffff,
+		energy: 0xc77dff,
+		rim: 0xffffff,
+		backing: 0x0d4b53,
+		backingStroke: 0x0d4b53,
+	} as const;
+
 	let show = $state(false);
 	let charge = $state(0);
 	let sourcePositions = $state<Position[]>([]);
 	let eyeCell = $state({ reel: 3, row: 3 });
 	let flying = $state(false);
-	let eyeIdle = $state({ alpha: 0.92 });
 	let fx = $state({
-		eyeScale: 1,
 		burst: 0,
-		burstScale: 0.9,
-		particle: 0,
 		textScale: 1,
 		overcharge: 0,
 	});
 	const animations = new Set<gsap.core.Animation>();
 
-	const fill = new Tween(0, { duration: 320 });
-	const energy = new Tween(0, { duration: 260 }); // board → meter on fill
-	const toEye = new Tween(0, { duration: 1 }); // meter → eye on connect
-	const skinAlpha = new Tween(1, { duration: 500 });
-	let previousSkinFrame: string | undefined;
+	const fill = new Tween(0, { duration: 520, easing: cubicOut });
+	const energy = new Tween(0, { duration: 260 });
+	const toEye = new Tween(0, { duration: 1 });
 
 	const isMobile = $derived(context.stateLayoutDerived.layoutType() === 'portrait');
-	const gazeSkin = $derived(
-		context.stateGame.gameType === 'freegame'
-			? {
-					frame: 'gaze_meter_fs_frame_empty',
-					eye: 'gaze_meter_fs_eye_top',
-					glow: 'gaze_meter_fs_glow_soft',
-					particle: 'gaze_meter_fs_particle_burst',
-					liquidTop: 0xff6973,
-					liquidMid: 0xb31f2d,
-					liquidBottom: 0x38050a,
-					chamber: 0x310509,
-					meniscus: 0xffc3c9,
-					bubble: 0xffccd0,
-					energy: 0xd93646,
-					rim: 0xffa2aa,
-				}
-			: {
-					frame: 'gaze_meter_frame_empty',
-					eye: 'gaze_meter_eye_top',
-					glow: 'gaze_meter_glow_soft',
-					particle: 'gaze_meter_particle_burst',
-					liquidTop: 0x4fc4df,
-					liquidMid: 0x237ca9,
-					liquidBottom: 0x082946,
-					chamber: 0x051d34,
-					meniscus: 0xaeeeff,
-					bubble: 0xa4e8f9,
-					energy: 0x1677a8,
-					rim: 0x3da7d8,
-				},
+	const gazeH = $derived(isMobile ? BOARD_SIZES.width * 0.82 : BOARD_SIZES.height * 0.84);
+	const gazeW = $derived(gazeH * (GAZE_METER_IMAGE_SIZE.width / GAZE_METER_IMAGE_SIZE.height));
+	const nativeScale = $derived(gazeH / GAZE_METER_IMAGE_SIZE.height);
+	const meterRotation = $derived(isMobile ? Math.PI / 2 : 0);
+	const multiplierTextRotation = $derived(isMobile ? -Math.PI / 2 : 0);
+	const mobileArtworkLeft = $derived(gazeW * GAZE_METER_LAYOUT.visibleBounds.left);
+	const mobileArtworkCenterY = $derived(
+		gazeH * ((GAZE_METER_LAYOUT.visibleBounds.top + GAZE_METER_LAYOUT.visibleBounds.bottom) / 2),
 	);
-
-	$effect(() => {
-		const nextFrame = gazeSkin.frame;
-		if (previousSkinFrame && previousSkinFrame !== nextFrame) {
-			skinAlpha.set(0, { duration: 0 });
-			skinAlpha.set(1);
-		}
-		previousSkinFrame = nextFrame;
-	});
-	const gazeH = $derived(BOARD_SIZES.height * (isMobile ? 0.43 : 0.78));
-	const gazeW = $derived(getGazeMeterDisplayWidth(gazeH));
+	const mobileMeterTop = $derived(BOARD_SIZES.height - SYMBOL_SIZE * 0.02);
+	const desktopMeterGap = $derived(SYMBOL_SIZE * 0.22);
 	const position = $derived({
-		x: isMobile ? -gazeW * 0.1 : -gazeW - SYMBOL_SIZE * 0.5,
-		// Portrait HUD sits entirely above the reel bounds, with a small scaled gap.
-		y: isMobile
-			? -gazeH - SYMBOL_SIZE * 0.16
-			: (BOARD_SIZES.height - gazeH) / 2 - SYMBOL_SIZE * 1.3,
+		x: isMobile
+			? BOARD_SIZES.width / 2 + mobileArtworkCenterY
+			: -gazeW * GAZE_METER_LAYOUT.visibleBounds.right - desktopMeterGap,
+		y: isMobile ? mobileMeterTop - mobileArtworkLeft : (BOARD_SIZES.height - gazeH) / 2,
 	});
 
-	// Gaze chamber geometry in local meter space. All ten segments share this one mask.
-	const tubeX = $derived(gazeW * GAZE_METER_LAYOUT.inner.left);
-	const tubeW = $derived(gazeW * (GAZE_METER_LAYOUT.inner.right - GAZE_METER_LAYOUT.inner.left));
-	const tubeTop = $derived(gazeH * GAZE_METER_LAYOUT.inner.top);
-	const tubeH = $derived(gazeH * (GAZE_METER_LAYOUT.inner.bottom - GAZE_METER_LAYOUT.inner.top));
-	const tubeRadius = $derived(tubeW * GAZE_METER_LAYOUT.inner.radius);
-	const segmentH = $derived(tubeH / GAZE_METER_MAX_CHARGE);
+	const trackSegments = $derived(
+		GAZE_METER_LAYOUT.trackSegments.map((segment) => {
+			const h = gazeH * (segment.bottom - segment.top);
+			return {
+				x: gazeW * segment.left,
+				y: gazeH * segment.top,
+				w: gazeW * (segment.right - segment.left),
+				h,
+				r: h * segment.radius,
+			};
+		}),
+	);
+	const trackTotalH = $derived(trackSegments.reduce((total, segment) => total + segment.h, 0));
+	const trackFill = $derived.by(() => {
+		let remaining = Math.min(Math.max(fill.current, 0), 1) * trackTotalH;
+
+		return trackSegments.map((segment) => {
+			const amount = Math.min(Math.max(remaining / segment.h, 0), 1);
+			remaining -= segment.h;
+			return amount;
+		});
+	});
 	const eyeX = $derived(gazeW * GAZE_METER_LAYOUT.eye.x);
 	const eyeY = $derived(gazeH * GAZE_METER_LAYOUT.eye.y);
-	// All FX slices were exported on an untrimmed 481×1061 canvas. Offset their canvas so
-	// the visible artwork sits at the Eye's intended top-of-meter position.
-	const eyeArtworkOffsetY = $derived(eyeY - gazeH * 0.5);
-	const meterEnergyX = $derived(position.x + eyeX);
-	const meterEnergyY = $derived(position.y + eyeY);
-	// The plaque only has meaning while a Gaze charge is waiting to resolve. During the
-	// transfer, the separate flying value owns the presentation instead.
-	const showMultiplier = $derived(charge > 0 && !flying);
-	const segmentFill = $derived(
-		Array.from({ length: GAZE_METER_MAX_CHARGE }, (_, index) =>
-			Math.min(Math.max(fill.current * GAZE_METER_MAX_CHARGE - index, 0), 1),
-		),
-	);
+	const gemX = $derived(gazeW * GAZE_METER_LAYOUT.gem.x);
+	const gemY = $derived(gazeH * GAZE_METER_LAYOUT.gem.y);
+	const gemR = $derived(gazeH * GAZE_METER_LAYOUT.gem.radius);
+	const plaqueX = $derived(gazeW * GAZE_METER_LAYOUT.plaque.x);
+	const plaqueY = $derived(gazeH * GAZE_METER_LAYOUT.plaque.y);
+	const plaqueR = $derived(gazeH * GAZE_METER_LAYOUT.plaque.radius);
+	const plaqueTextX = $derived(plaqueX);
+	const plaqueTextY = $derived(plaqueY + gazeH * GAZE_METER_LAYOUT.plaque.textDy);
+	const meterEnergyX = $derived(isMobile ? position.x - eyeY : position.x + eyeX);
+	const meterEnergyY = $derived(isMobile ? position.y + eyeX : position.y + eyeY);
+	const fillLead = $derived.by(() => {
+		let remaining = Math.min(Math.max(fill.current, 0), 1) * trackTotalH;
+		let lead:
+			| {
+					x: number;
+					y: number;
+					h: number;
+				}
+			| undefined;
+
+		for (const segment of trackSegments) {
+			const height = Math.max(0, Math.min(segment.h, remaining));
+			if (height > 0.5) {
+				lead = {
+					x: segment.x + segment.w / 2,
+					y: segment.y + segment.h - height,
+					h: segment.w,
+				};
+			}
+			remaining -= segment.h;
+		}
+
+		return lead;
+	});
 
 	const track = <T extends gsap.core.Animation>(animation: T) => {
 		animations.add(animation);
@@ -141,26 +153,28 @@
 		return animation;
 	};
 
+	const resetFx = () => {
+		Object.assign(fx, {
+			burst: 0,
+			textScale: 1,
+			overcharge: 0,
+		});
+	};
+
 	const playChargeFx = (overcharged = false) => {
 		gsap.killTweensOf(fx);
 		const timeline = gsap.timeline();
 		track(timeline);
 		timeline
-			.set(fx, { eyeScale: 1, burst: 0, burstScale: 0.86, particle: 0, textScale: 0.9 })
+			.set(fx, { burst: 0, textScale: 0.9 })
 			.to(fx, {
-				eyeScale: overcharged ? 1.16 : 1.1,
 				burst: 0.92,
-				burstScale: 1.08,
-				particle: 1,
 				textScale: 1.12,
 				duration: 0.14,
 				ease: 'power2.out',
 			})
 			.to(fx, {
-				eyeScale: 1,
 				burst: 0,
-				burstScale: overcharged ? 1.55 : 1.35,
-				particle: 0,
 				textScale: 1,
 				duration: overcharged ? 0.5 : 0.32,
 				ease: 'power2.out',
@@ -183,28 +197,14 @@
 		}
 	};
 
-	onMount(() => {
-		track(
-			gsap.to(eyeIdle, {
-				alpha: 0.72,
-				duration: 1.6,
-				repeat: -1,
-				yoyo: true,
-				ease: 'sine.inOut',
-			}),
-		);
-
-		return () => {
-			animations.forEach((animation) => animation.kill());
-			animations.clear();
-			gsap.killTweensOf(fx);
-			gsap.killTweensOf(eyeIdle);
-		};
+	onDestroy(() => {
+		animations.forEach((animation) => animation.kill());
+		animations.clear();
+		gsap.killTweensOf(fx);
 	});
 
 	const setCharge = async (value: number) => {
 		charge = value;
-		// Charge keeps counting for the multiplier label, but the artwork's bar has ten segments.
 		await fill.set(Math.min(value / GAZE_METER_MAX_CHARGE, 1));
 	};
 
@@ -216,14 +216,7 @@
 			sourcePositions = [];
 			flying = false;
 			gsap.killTweensOf(fx);
-			Object.assign(fx, {
-				eyeScale: 1,
-				burst: 0,
-				burstScale: 0.9,
-				particle: 0,
-				textScale: 1,
-				overcharge: 0,
-			});
+			resetFx();
 			fill.set(0, { duration: 0 });
 			energy.set(0, { duration: 0 });
 			toEye.set(0, { duration: 0 });
@@ -241,9 +234,7 @@
 			playChargeFx(emitterEvent.charge > GAZE_METER_MAX_CHARGE);
 			await energy.set(0);
 		},
-		// remember where the Eye is so the connect energy knows its target
 		eyeShow: (e) => (eyeCell = { reel: e.reel, row: e.row }),
-		// the Eye connects: launch the charge from the meter into the Eye, then drain the bar
 		gazeMeterToEye: async () => {
 			if (charge <= 0) return;
 			flying = true;
@@ -261,7 +252,6 @@
 		},
 	});
 
-	// board cells → meter on fill (energy rising into the gem)
 	const drawEnergyIn = (g: import('pixi.js').Graphics) => {
 		if (energy.current <= 0) return;
 		const alpha = energy.current * 0.5;
@@ -272,13 +262,12 @@
 			const midY = sy + (meterEnergyY - sy) * 0.45 - SYMBOL_SIZE * 0.35;
 			g.moveTo(sx, sy).quadraticCurveTo(midX, midY, meterEnergyX, meterEnergyY).stroke({
 				width: 2.4,
-				color: gazeSkin.energy,
+				color: GAZE_COLORS.energy,
 				alpha,
 			});
 		}
 	};
 
-	// meter → Eye on connect (a beam following the flying charge)
 	const drawEnergyOut = (g: import('pixi.js').Graphics) => {
 		if (!flying) return;
 		const t = toEye.current;
@@ -294,10 +283,9 @@
 				headX,
 				headY,
 			)
-			.stroke({ width: 3, color: gazeSkin.rim, alpha: 0.5 * (1 - t * 0.4) });
+			.stroke({ width: 3, color: GAZE_COLORS.rim, alpha: 0.5 * (1 - t * 0.4) });
 	};
 
-	// the flying charge number (meter → Eye)
 	const flyT = $derived(toEye.current);
 	const flyX = $derived(meterEnergyX + (getPositionX(eyeCell.reel) - meterEnergyX) * flyT);
 	const flyY = $derived(
@@ -307,56 +295,193 @@
 	);
 	const flyAlpha = $derived(flyT < 0.82 ? 1 : Math.max(0, 1 - (flyT - 0.82) / 0.18));
 
-	const drawTubeMask = (g: import('pixi.js').Graphics) => {
-		g.roundRect(tubeX, tubeTop, tubeW, tubeH, tubeRadius).fill(0xffffff);
+	const drawTrackBackplates = (g: import('pixi.js').Graphics) => {
+		const inset = Math.max(1, nativeScale);
+		const strokeWidth = Math.max(1, nativeScale * 0.85);
+		const bleedX = 4 * nativeScale;
+		const bleedY = 22 * nativeScale;
+
+		for (const segment of trackSegments) {
+			const backingRadius = Math.max(4 * nativeScale, segment.w * 0.18);
+			g.roundRect(
+				segment.x - bleedX,
+				segment.y - bleedY,
+				segment.w + bleedX * 2,
+				segment.h + bleedY * 2,
+				backingRadius,
+			).fill({
+				color: GAZE_COLORS.backing,
+				alpha: 0.6,
+			});
+			g.roundRect(
+				segment.x + inset,
+				segment.y + inset,
+				Math.max(0, segment.w - inset * 2),
+				Math.max(0, segment.h - inset * 2),
+				Math.max(0, backingRadius - inset),
+			).stroke({
+				width: strokeWidth,
+				color: GAZE_COLORS.backingStroke,
+				alpha: 0.16,
+			});
+		}
 	};
 
-	const drawSegment = (g: import('pixi.js').Graphics) => {
-		const outerRadius = Math.min(10, segmentH * 0.18);
-		const innerRadius = Math.min(7, segmentH * 0.12);
-		const innerX = 8;
-		const innerY = 5;
-		const innerW = tubeW - innerX * 2;
-		const innerH = segmentH - innerY * 2;
-		const liquid = new FillGradient({
+	const drawMultiplierBackplate = (g: import('pixi.js').Graphics) => {
+		g.circle(plaqueX, plaqueY, plaqueR * 1.26).fill({
+			color: GAZE_COLORS.backing,
+			alpha: 0.42,
+		});
+		g.circle(plaqueX, plaqueY, plaqueR * 1.16).stroke({
+			width: Math.max(1, nativeScale * 1.4),
+			color: GAZE_COLORS.backingStroke,
+			alpha: 0.2,
+		});
+	};
+
+	const drawTrackFill = (
+		g: import('pixi.js').Graphics,
+		segment: TrackSegment,
+		amount: number,
+	) => {
+		if (amount <= 0) return;
+		const fillH = segment.h * Math.min(amount, 1);
+		const fillY = segment.y + segment.h - fillH;
+		const inset = 1.5 * nativeScale;
+		const innerH = Math.max(0, fillH - inset * 2);
+		const shineW = segment.w * 0.2;
+		const edgeW = 3 * nativeScale;
+		const edgeInset = 2 * nativeScale;
+		const bubbleR = Math.max(1.4, 2.6 * nativeScale);
+		const progressGradient = new FillGradient({
+			textureSpace: 'local',
+			start: { x: 0, y: 1 },
+			end: { x: 0, y: 0 },
+			colorStops: [
+				{ offset: 0, color: GAZE_COLORS.fillDeep },
+				{ offset: 0.32, color: GAZE_COLORS.fillMid },
+				{ offset: 0.72, color: GAZE_COLORS.fillCore },
+				{ offset: 1, color: GAZE_COLORS.fillTop },
+			],
+		});
+		const fadeGradient = new FillGradient({
 			textureSpace: 'local',
 			start: { x: 0, y: 0 },
-			end: { x: 0, y: 1 },
+			end: { x: 1, y: 0 },
 			colorStops: [
-				{ offset: 0, color: gazeSkin.liquidTop },
-				{ offset: 0.24, color: gazeSkin.liquidMid },
-				{ offset: 1, color: gazeSkin.liquidBottom },
+				{ offset: 0, color: GAZE_COLORS.fillTop },
+				{ offset: 0.42, color: GAZE_COLORS.fillCore },
+				{ offset: 1, color: GAZE_COLORS.fillDeep },
 			],
 		});
 
-		// Each charge is its own small liquid chamber. Scaling this container from its
-		// bottom makes the meniscus climb through one step instead of filling one long bar.
-		g.roundRect(2, 2, tubeW - 4, segmentH - 4, outerRadius).fill({
-			color: gazeSkin.chamber,
-			alpha: 0.88,
+		g.rect(
+			segment.x - edgeInset,
+			fillY - edgeInset,
+			segment.w + edgeInset * 2,
+			fillH + edgeInset * 2,
+		).fill({
+			color: GAZE_COLORS.fillGlow,
+			alpha: 0.16 + fx.overcharge * 0.16,
 		});
-		g.roundRect(innerX, innerY, innerW, innerH, innerRadius).fill(liquid);
-		g.roundRect(innerX + 3, innerY + 3, innerW - 6, Math.min(5, innerH * 0.22), innerRadius).fill({
-			color: gazeSkin.meniscus,
-			alpha: 0.58,
+		g.rect(segment.x, fillY, segment.w, fillH).fill(progressGradient);
+		g.rect(segment.x, fillY, segment.w, fillH).fill({ fill: fadeGradient, alpha: 0.16 });
+		g.rect(
+			segment.x + segment.w * 0.36,
+			fillY + inset,
+			segment.w * 0.34,
+			innerH,
+		).fill({
+			color: GAZE_COLORS.fillTop,
+			alpha: 0.12,
 		});
-		g.circle(innerX + innerW * 0.3, innerY + innerH * 0.64, Math.min(3, innerW * 0.055)).fill({
-			color: gazeSkin.bubble,
-			alpha: 0.24,
+		g.rect(
+			segment.x + inset,
+			fillY + inset,
+			shineW,
+			innerH,
+		).fill({
+			color: GAZE_COLORS.edge,
+			alpha: 0.28,
 		});
-		g.circle(innerX + innerW * 0.68, innerY + innerH * 0.38, Math.min(2, innerW * 0.04)).fill({
-			color: gazeSkin.meniscus,
-			alpha: 0.36,
-		});
+		if (fillH > edgeW) {
+			g.rect(
+				segment.x + edgeInset,
+				fillY + edgeInset,
+				segment.w - edgeInset * 2,
+				edgeW * 1.35,
+			).fill({
+				color: GAZE_COLORS.fillTop,
+				alpha: 0.58,
+			});
+		}
+		if (fillH > segment.w * 1.4) {
+			g.circle(segment.x + segment.w * 0.66, fillY + fillH * 0.26, bubbleR).fill({
+				color: GAZE_COLORS.fillTop,
+				alpha: 0.24,
+			});
+			g.circle(segment.x + segment.w * 0.38, fillY + fillH * 0.58, bubbleR * 0.72).fill({
+				color: GAZE_COLORS.edge,
+				alpha: 0.18,
+			});
+			g.circle(segment.x + segment.w * 0.6, fillY + fillH * 0.78, bubbleR * 0.5).fill({
+				color: GAZE_COLORS.fillTop,
+				alpha: 0.16,
+			});
+		}
 	};
 
-	const drawFrontDividers = (g: import('pixi.js').Graphics) => {
-		for (let index = 1; index < GAZE_METER_MAX_CHARGE; index++) {
-			const y = tubeTop + index * segmentH;
-			g.roundRect(tubeX + 5, y - 2, tubeW - 10, 4, 2).fill({ color: 0xffd56b, alpha: 0.78 });
-			g.roundRect(tubeX + 10, y - 0.75, tubeW - 20, 1.5, 0.75).fill({
-				color: 0xffffff,
-				alpha: 0.62,
+	const drawMeterGlows = (g: import('pixi.js').Graphics) => {
+		const pulse = fx.burst;
+		const orbAlpha = 0.18 + pulse * 0.58;
+		const gemAlpha = pulse * 0.5;
+		const edgeAlpha = fillLead ? 0.28 + pulse * 0.5 : 0;
+
+		if (gemAlpha > 0) {
+			const gemGlow = new FillGradient({
+				type: 'radial',
+				center: { x: gemX, y: gemY },
+				innerRadius: 0,
+				outerCenter: { x: gemX, y: gemY },
+				outerRadius: gemR * 2.4,
+				colorStops: [
+					{ offset: 0, color: GAZE_COLORS.energy },
+					{ offset: 1, color: 0x000000 },
+				],
+			});
+			g.circle(gemX, gemY, gemR * 2.4).fill({ fill: gemGlow, alpha: gemAlpha });
+		}
+
+		if (orbAlpha > 0) {
+			const orbGlow = new FillGradient({
+				type: 'radial',
+				center: { x: plaqueX, y: plaqueY },
+				innerRadius: 0,
+				outerCenter: { x: plaqueX, y: plaqueY },
+				outerRadius: plaqueR * 1.7,
+				colorStops: [
+					{ offset: 0, color: GAZE_COLORS.energy },
+					{ offset: 1, color: 0x000000 },
+				],
+			});
+			g.circle(plaqueX, plaqueY, plaqueR * 1.7).fill({ fill: orbGlow, alpha: orbAlpha });
+		}
+
+		if (fillLead && edgeAlpha > 0) {
+			const edgeGlow = new FillGradient({
+				type: 'radial',
+				center: { x: fillLead.x, y: fillLead.y },
+				innerRadius: 0,
+				outerCenter: { x: fillLead.x, y: fillLead.y },
+				outerRadius: fillLead.h * 1.35,
+				colorStops: [
+					{ offset: 0, color: GAZE_COLORS.edge },
+					{ offset: 1, color: 0x000000 },
+				],
+			});
+			g.circle(fillLead.x, fillLead.y, fillLead.h * 1.35).fill({
+				fill: edgeGlow,
+				alpha: edgeAlpha,
 			});
 		}
 	};
@@ -367,87 +492,47 @@
 		<Graphics draw={drawEnergyIn} />
 		<Graphics draw={drawEnergyOut} />
 
-		<Container x={position.x} y={position.y}>
-			<Container alpha={skinAlpha.current}>
-				{#key gazeSkin.frame}
-					<!-- Static skin: frame back, then a masked dynamic fill, then the front dividers. -->
-					<Sprite key={gazeSkin.frame} anchor={0} width={gazeW} height={gazeH} />
-					<Container>
-						<Graphics draw={drawTubeMask} isMask />
-						{#each segmentFill as amount, index}
-							<Container
-								x={tubeX}
-								y={tubeTop + tubeH - index * segmentH}
-								pivot={{ x: 0, y: segmentH }}
-								scale={{ x: 1, y: amount }}
-								alpha={0.76 + fx.overcharge * 0.2}
-								blendMode="add"
-							>
-								<Graphics draw={drawSegment} />
-							</Container>
-						{/each}
-					</Container>
-					<Graphics draw={drawFrontDividers} />
+		<Container x={position.x} y={position.y} rotation={meterRotation} alpha={flying ? 0 : 1}>
+			<Graphics draw={drawTrackBackplates} />
+			<Graphics draw={drawMultiplierBackplate} />
+			{#each trackSegments as segment, index}
+				<Graphics
+					draw={(g) => drawTrackFill(g, segment, trackFill[index])}
+					alpha={0.96 + fx.overcharge * 0.04}
+				/>
+			{/each}
+			<Sprite key={LAYER_KEYS.bar} anchor={0} width={gazeW} height={gazeH} />
+			<Graphics draw={drawMeterGlows} blendMode="add" />
 
-					<!-- The Eye, glow and burst are separate sprites so they can react independently. -->
-					<Container
-						x={eyeX}
-						y={eyeY}
-						pivot={{ x: eyeX, y: eyeY }}
-						scale={fx.eyeScale}
-						alpha={eyeIdle.alpha}
-					>
-						<Sprite key={gazeSkin.eye} x={0} y={eyeArtworkOffsetY} width={gazeW} height={gazeH} />
-					</Container>
-					<Container
-						x={eyeX}
-						y={eyeY}
-						pivot={{ x: eyeX, y: eyeY }}
-						scale={fx.burstScale}
-						alpha={fx.burst}
-						blendMode="add"
-					>
-						<Sprite key={gazeSkin.glow} x={0} y={eyeArtworkOffsetY} width={gazeW} height={gazeH} />
-					</Container>
-					<Container
-						x={eyeX}
-						y={eyeY}
-						pivot={{ x: eyeX, y: eyeY }}
-						scale={fx.burstScale}
-						alpha={fx.particle}
-						blendMode="add"
-					>
-						<Sprite
-							key={gazeSkin.particle}
-							x={0}
-							y={eyeArtworkOffsetY}
-							width={gazeW}
-							height={gazeH}
-						/>
-					</Container>
-
-					{#if showMultiplier}
-						<Container
-							x={gazeW * GAZE_METER_LAYOUT.plaque.x}
-							y={gazeH * GAZE_METER_LAYOUT.plaque.y}
-							scale={fx.textScale}
-						>
-							<Text
-								y={-gazeH * 0.015}
-								anchor={0.5}
-								text={`${charge}x`}
-								style={{
-									fontFamily: 'Cinzel, Georgia, serif',
-									fontWeight: '900',
-									fontSize: gazeH * 0.08,
-									fill: GAZE_METER_MULTIPLIER_COLOR,
-									stroke: { color: 0x071a2d, width: gazeH * 0.005 },
-									dropShadow: { color: 0x000000, blur: 4, distance: 2, alpha: 0.8 },
-								}}
-							/>
-						</Container>
-					{/if}
-				{/key}
+			<Container
+				x={plaqueTextX}
+				y={plaqueTextY}
+				rotation={multiplierTextRotation}
+				scale={fx.textScale}
+			>
+				<Text
+					anchor={0.5}
+					text={String(charge)}
+					style={{
+						fontFamily: 'Georgia, "Times New Roman", serif',
+						fontWeight: '700',
+						fontSize: plaqueR * 1.34,
+						fill: 0xfff3d4,
+						align: 'center',
+						stroke: {
+							color: 0x2a0e4a,
+							width: Math.max(2, 4 * nativeScale),
+							join: 'round',
+						},
+						dropShadow: {
+							color: 0x000000,
+							alpha: 0.45,
+							blur: 3 * nativeScale,
+							distance: nativeScale,
+							angle: Math.PI / 2,
+						},
+					}}
+				/>
 			</Container>
 		</Container>
 
@@ -457,7 +542,7 @@
 				y={flyY}
 				anchor={0.5}
 				alpha={flyAlpha}
-				text={`×${charge}`}
+				text={`x${charge}`}
 				style={{
 					fontFamily: 'sans-serif',
 					fontWeight: '900',

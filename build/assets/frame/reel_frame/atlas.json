@@ -1,0 +1,74 @@
+{
+  "frames": {
+    "frame_border.png": {
+      "frame": {
+        "x": 1,
+        "y": 1,
+        "w": 825,
+        "h": 524
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 825,
+        "h": 524
+      },
+      "sourceSize": {
+        "w": 825,
+        "h": 524
+      }
+    },
+    "frame_background.png": {
+      "frame": {
+        "x": 1,
+        "y": 527,
+        "w": 494,
+        "h": 446
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 494,
+        "h": 446
+      },
+      "sourceSize": {
+        "w": 494,
+        "h": 446
+      }
+    },
+    "frame_separator.png": {
+      "frame": {
+        "x": 497,
+        "y": 527,
+        "w": 10,
+        "h": 350
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 10,
+        "h": 350
+      },
+      "sourceSize": {
+        "w": 10,
+        "h": 350
+      }
+    }
+  },
+  "meta": {
+    "app": "SpriteSheetGen",
+    "format": "RGBA8888",
+    "image": "atlas.png",
+    "size": {
+      "w": 1024,
+      "h": 1024
+    },
+    "scale": 1
+  }
+}

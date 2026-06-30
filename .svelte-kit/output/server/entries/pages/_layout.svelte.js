@@ -509,11 +509,6 @@ const stateBetDerived = {
   hasAutoBetCounter
 };
 const stateModal = { modal: null };
-const DEFAULT_VOLUME_VALUE = 75;
-const stateSound = {
-  volumeValueMusic: DEFAULT_VOLUME_VALUE,
-  volumeValueSoundEffect: DEFAULT_VOLUME_VALUE
-};
 const INFINITY_MARK = "∞";
 const AUTO_SPINS_TEXT_OPTIONS = [
   "10",
@@ -670,30 +665,40 @@ function LoadI18n($$payload, $$props) {
   $$payload.out += `<!--]-->`;
   pop();
 }
+function linear(t) {
+  return t;
+}
+function backOut(t) {
+  const s = 1.70158;
+  return --t * t * ((s + 1) * t + s) + 1;
+}
+function cubicOut(t) {
+  const f = t - 1;
+  return f * f * f + 1;
+}
 function Popup($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
   const zIndexInternal = {
     topLayer: 2,
     clickToCloseLayer: 2,
-    closeButton: 101
+    closeButton: 101,
+    contentLayer: 100
   };
   const closeModal = () => props.persistent ? void 0 : props.onclose();
+  const closeFromEscape = () => props.closeOnEscape === false ? void 0 : closeModal();
   let disabled = true;
-  $$payload.out += `<div>`;
-  props.children($$payload);
-  $$payload.out += `<!----></div> `;
-  OnHotkey($$payload, { hotkey: "Escape", onpress: closeModal });
-  $$payload.out += `<!----> <div${attr("class", to_class("pop-up-wrap", "svelte-zvizg7", { "disabled": disabled }))}${attr("style", `z-index: ${props.zIndex};`)}><div class="blur-layer svelte-zvizg7"></div> <div class="top-layer svelte-zvizg7"${attr("style", `--zIndex: ${stringify(zIndexInternal.topLayer)}`)}><div${attr("tabindex", 0)} class="click-to-close-layer svelte-zvizg7" role="button"${attr("style", `--zIndex: ${stringify(zIndexInternal.clickToCloseLayer)}`)}></div> `;
+  OnHotkey($$payload, { hotkey: "Escape", onpress: closeFromEscape });
+  $$payload.out += `<!----> <div${attr("class", to_class("pop-up-wrap", "svelte-1japga8", { "disabled": disabled }))}${attr("style", `z-index: ${props.zIndex};`)}><div class="blur-layer svelte-1japga8"></div> <div class="top-layer svelte-1japga8"${attr("style", `--zIndex: ${stringify(zIndexInternal.topLayer)}`)}><div${attr("tabindex", 0)} class="click-to-close-layer svelte-1japga8" role="button"${attr("style", `--zIndex: ${stringify(zIndexInternal.clickToCloseLayer)}`)}></div> `;
   if (!props.persistent) {
     $$payload.out += "<!--[-->";
-    $$payload.out += `<div class="close-button-wrap svelte-zvizg7"${attr("style", `--zIndex: ${stringify(zIndexInternal.closeButton)}`)}><button class="close-button svelte-zvizg7" data-test="close-button">×</button></div>`;
+    $$payload.out += `<div class="close-button-wrap svelte-1japga8"${attr("style", `--zIndex: ${stringify(zIndexInternal.closeButton)}`)}><button class="close-button svelte-1japga8" data-test="close-button">×</button></div>`;
   } else {
     $$payload.out += "<!--[!-->";
   }
-  $$payload.out += `<!--]--> `;
+  $$payload.out += `<!--]--> <div class="content-motion svelte-1japga8"${attr("style", `--zIndex: ${stringify(zIndexInternal.contentLayer)}`)}>`;
   props.children($$payload);
-  $$payload.out += `<!----></div></div>`;
+  $$payload.out += `<!----></div></div></div>`;
   pop();
 }
 function Button$1($$payload, $$props) {
@@ -750,17 +755,6 @@ function OptionsToggle($$payload, $$props) {
 }
 function is_date(obj) {
   return Object.prototype.toString.call(obj) === "[object Date]";
-}
-function linear(t) {
-  return t;
-}
-function backOut(t) {
-  const s = 1.70158;
-  return --t * t * ((s + 1) * t + s) + 1;
-}
-function cubicOut(t) {
-  const f = t - 1;
-  return f * f * f + 1;
 }
 function get_interpolator(a, b) {
   if (a === b || a !== a) return () => a;
@@ -11550,21 +11544,30 @@ const FREE_SPINS_BANNER_SIZE = { width: 1448, height: 1086 };
 const FREE_SPINS_BANNER_ASPECT = FREE_SPINS_BANNER_SIZE.width / FREE_SPINS_BANNER_SIZE.height;
 const REEL_FRAME_BASE_IMAGE_SIZE = { width: 1448, height: 1086 };
 const REEL_FRAME_FREE_SPINS_IMAGE_SIZE = { width: 1448, height: 1086 };
-const GAZE_METER_IMAGE_SIZE = { width: 481, height: 1061 };
+const GAZE_METER_IMAGE_SIZE = { width: 1254, height: 1254 };
 const GAZE_METER_MAX_CHARGE = 10;
 const GAZE_METER_MULTIPLIER_COLOR = 16770720;
 const GAZE_METER_LAYOUT = {
-  imageWidth: GAZE_METER_IMAGE_SIZE.width,
-  imageHeight: GAZE_METER_IMAGE_SIZE.height,
-  // Transparent chamber that receives the code-rendered liquid and ten segment fills.
-  inner: { left: 0.245, right: 0.755, top: 0.285, bottom: 0.84, radius: 0.08 },
-  // The sliced Eye/FX artwork is deliberately untrimmed. These are its intended display
-  // coordinates in the frame, not the centre of the atlas cell.
-  eye: { x: 0.5, y: 0.13 },
-  // Bottom panel for the dynamic Gaze multiplier.
-  plaque: { x: 0.5, y: 0.915 }
+  visibleBounds: {
+    left: 449 / 1254,
+    top: 26 / 1254,
+    right: 804 / 1254,
+    bottom: 1228 / 1254
+  },
+  // Recessed vertical track interior measured from static/assets/frame/gaze_sprite/winmeter.png.
+  trackSegments: [
+    {
+      left: 578 / 1254,
+      right: 676 / 1254,
+      top: 381 / 1254,
+      bottom: 970 / 1254,
+      radius: 49 / 589
+    }
+  ],
+  eye: { x: 626.5 / 1254, y: 214.5 / 1254 },
+  gem: { x: 626.5 / 1254, y: 1054 / 1254, radius: 48 / 1254 },
+  plaque: { x: 626.5 / 1254, y: 214.5 / 1254, radius: 92 / 1254, textDy: 0 }
 };
-const getGazeMeterDisplayWidth = (displayHeight) => displayHeight * (GAZE_METER_LAYOUT.imageWidth / GAZE_METER_LAYOUT.imageHeight);
 const REEL_Y = 0;
 const MOBILE_REEL_DISPLAY_SCALE = 1.45;
 const REEL_FRAME_BASE_DISPLAY_WIDTH = 1380;
@@ -11827,37 +11830,23 @@ const assets = {
   // replaced by Abyssal-specific art or code-drawn placeholders.
   backgroundBase: {
     type: "sprite",
-    src: new URL("../../assets/background/background-base.png", import.meta.url).href,
+    src: new URL("../../assets/background/base.webp", import.meta.url).href,
     preload: true
   },
   backgroundFs: {
     type: "sprite",
-    src: new URL("../../assets/background/background-fs.png", import.meta.url).href,
+    src: new URL("../../assets/background/freespins.webp", import.meta.url).href,
     preload: true
   },
-  // Current frame PNGs include the inner dark reel background and vertical separators.
-  reelFrameBase: {
-    type: "sprite",
-    src: new URL("../../assets/frame/reel_frame_base.png", import.meta.url).href,
-    preload: true
-  },
-  reelFrameFs: {
-    type: "sprite",
-    src: new URL("../../assets/frame/reel_frame_fs.png", import.meta.url).href,
-    preload: true
-  },
-  // Layered Gaze meter kit. The component composes its frame, Eye and FX at runtime so the
-  // ten charge steps and multiplier remain fully driven by game state.
-  gazeMeter: {
+  // Layered reel frame atlas: background panel, reel separators, and foreground border.
+  reelFrame: {
     type: "sprites",
-    src: new URL("../../assets/frame/fram/spritesheet.json", import.meta.url).href,
+    src: new URL("../../assets/frame/reel_frame/atlas.json", import.meta.url).href,
     preload: true
   },
-  // Free-spins counterpart of the Gaze kit. Its frame names are FS-prefixed in the atlas
-  // so both skins can be preloaded without replacing each other's textures.
-  gazeMeterFs: {
-    type: "sprites",
-    src: new URL("../../assets/frame/frame_fs/frame_fs.json", import.meta.url).href,
+  winMeter: {
+    type: "sprite",
+    src: new URL("../../assets/frame/gaze_sprite/winmeter.png", import.meta.url).href,
     preload: true
   },
   // Provider logo used as the buy-bonus glyph on the control bar.
@@ -12313,6 +12302,16 @@ const stateGame = {
   // Tracks whether the current spin already resolved an Eye. If charge exists and this
   // stays false by settlement, the meter drains as the intended no-Eye near miss.
   eyeResolvedThisSpin: false,
+  // Every Eye opened this spin (with its board cell + value), in reveal order. Drives the combine
+  // reveal at `eyeResolve` (gaze + each Eye → final multiplier). Reset each reveal. Ultimate has
+  // 1–5; base/feature exactly 1.
+  revealedEyes: [],
+  // The board cell of the Eye that resolved this spin — the origin the multiplier flies from
+  // when it travels to the tumble-win banner. Set at `eyeReveal`, cleared each reveal.
+  eyeResolveCell: null,
+  // True between an Eye resolving and its multiplier being applied to the tumble-win banner
+  // (consumed in `setWin`). Guards a second setWin from re-triggering the multiply.
+  eyeMultPending: false,
   // Snowball persistent multiplier `M` during a feature (driven by `setPersistentMult`).
   persistentMult: 1,
   // Keeps the game scene blurred while the free-spins congratulations banner is awaiting a press.
@@ -15127,6 +15126,9 @@ const bookEventHandlerMap = {
     }
     stateGame.gazeCharge = 0;
     stateGame.eyeResolvedThisSpin = false;
+    stateGame.eyeResolveCell = null;
+    stateGame.eyeMultPending = false;
+    stateGame.revealedEyes = [];
     eventEmitter.broadcast({ type: "gazeMeterReset" });
     eventEmitter.broadcast({ type: "gazeMeterShow" });
     eventEmitter.broadcast({ type: "eyeHide" });
@@ -15205,6 +15207,20 @@ const bookEventHandlerMap = {
       await eventEmitter.broadcastAsync({ type: "gazeMeterDrain" });
       stateGame.gazeCharge = 0;
     }
+    if (stateGame.eyeMultPending && stateGame.eyeResolveCell) {
+      stateGame.eyeMultPending = false;
+      await eventEmitter.broadcastAsync({
+        type: "tumbleWinAmountMultiply",
+        totalWin: bookEvent.amount,
+        // the combine resolves the total at the board centre, so the ×N flies from there
+        fromReel: 2.5,
+        fromRow: 3
+      });
+      stateGame.revealedEyes.forEach(({ reel, row }) => {
+        const cell = stateGame.board[reel]?.reelState.symbols[row];
+        if (cell?.rawSymbol.name === "EYE") cell.rawSymbol = { name: "EYE", eye: true };
+      });
+    }
     if (bookEvent.amount < WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER) return;
     eventEmitter.broadcast({ type: "winShow" });
     winLevelSoundsPlay({ winLevelData });
@@ -15223,6 +15239,22 @@ const bookEventHandlerMap = {
     eventEmitter.broadcast({ type: "tumbleWinAmountHide" });
   },
   // --- The Eye (end of a winning tumble sequence) -----------------------------------
+  // A fresh Eye drops onto the board mid-cascade (Ultimate). Place it CLOSED at its cell so it
+  // shows, persists through the remaining tumbles, and is there for `eyeReveal` to open. The
+  // board is on-screen at this point (the prior tumbleBoard re-showed it).
+  eyeDrop: async (bookEvent) => {
+    const cell = stateGame.board[bookEvent.position.reel]?.reelState.symbols[bookEvent.position.row];
+    if (cell) {
+      cell.rawSymbol = { name: "EYE", eye: true };
+      cell.symbolState = "land";
+      const targetY = cell.symbolY.current;
+      cell.symbolY.set(targetY - REEL_CELL_HEIGHT * 0.95, { duration: 0 });
+      void cell.symbolY.set(targetY, { duration: 260 / stateBetDerived.timeScale(), easing: backOut });
+    }
+    eventEmitter.broadcast({ type: "boardEyeImpact" });
+    eventEmitter.broadcast({ type: "reelFrameEyeLand" });
+    await waitForTimeout(440 / stateBetDerived.timeScale());
+  },
   eyeReveal: async (bookEvent) => {
     const landedEye = stateGame.board[bookEvent.position.reel]?.reelState.symbols[bookEvent.position.row];
     if (landedEye?.rawSymbol.name === "EYE") {
@@ -15233,6 +15265,13 @@ const bookEventHandlerMap = {
         startValue: bookEvent.startValue
       };
     }
+    stateGame.eyeResolveCell = { reel: bookEvent.position.reel, row: bookEvent.position.row };
+    stateGame.revealedEyes.push({
+      reel: bookEvent.position.reel,
+      row: bookEvent.position.row,
+      eyeType: bookEvent.eyeType,
+      startValue: bookEvent.startValue
+    });
     eventEmitter.broadcast({
       type: "eyeShow",
       reel: bookEvent.position.reel,
@@ -15243,17 +15282,22 @@ const bookEventHandlerMap = {
   },
   eyeResolve: async (bookEvent) => {
     stateGame.eyeResolvedThisSpin = true;
+    stateGame.eyeMultPending = true;
     await eventEmitter.broadcastAsync({ type: "gazeMeterToEye" });
     await eventEmitter.broadcastAsync({
       type: "eyeBurst",
-      totalMult: bookEvent.totalMult,
       charge: bookEvent.charge,
-      startValue: bookEvent.startValue,
-      eyeType: bookEvent.eyeType
+      totalMult: bookEvent.totalMult,
+      eyes: stateGame.revealedEyes.map((eye) => ({ ...eye }))
     });
     eventEmitter.broadcast({ type: "eyeHide" });
     stateGame.gazeCharge = 0;
     eventEmitter.broadcast({ type: "gazeMeterReset" });
+  },
+  // Ultimate only: the math breakdown (rawWin/addSum/mulProduct/finalWin) arrives right after
+  // `eyeResolve`, which already played the combine. Nothing extra to render here — `setWin` drives
+  // the banner multiply — but it must be registered so the event isn't reported as unhandled.
+  ultimateResolve: async (_bookEvent) => {
   },
   // Snowball persistent multiplier (snowball features only; absent in superspins).
   setPersistentMult: async (bookEvent) => {
@@ -15479,7 +15523,7 @@ function Sound$1($$payload, $$props) {
 function Background($$payload, $$props) {
   push();
   const context2 = getContext();
-  const IMAGE_RATIO = 1538 / 1026;
+  const IMAGE_RATIO = 2752 / 1536;
   const PARTICLES = Array.from({ length: 28 }, (_2, i) => ({
     x: i * 137 % 1e3,
     y: i * 251 % 1e3,
@@ -15578,17 +15622,24 @@ function ReelFrame($$payload, $$props) {
   const context2 = getContext();
   const feature = context2.stateGame.gameType === "freegame";
   const featureMix = new Tween(0, { duration: 620 });
-  const frame = {
-    glowColor: feature ? 16731416 : 8336895
+  const LAYER_KEYS = {
+    background: "frame_background.png",
+    separator: "frame_separator.png",
+    border: "frame_border.png"
   };
+  const LAYER_SOURCE = {
+    separator: { width: 10, height: 350 },
+    border: { width: 825, height: 524 }
+  };
+  const BORDER_INNER_WINDOW = { x: 64, y: 43, width: 696, height: 443 };
+  const BACKGROUND_BLEED = 8;
+  const frame = { glowColor: feature ? 16731416 : 8336895 };
   const frameVariants = [
     {
-      key: "reelFrameBase",
       layout: REEL_LAYOUT_BASE,
       alpha: 1 - featureMix.current
     },
     {
-      key: "reelFrameFs",
       layout: REEL_LAYOUT_FREE_SPINS,
       alpha: featureMix.current
     }
@@ -15654,8 +15705,26 @@ function ReelFrame($$payload, $$props) {
     };
   };
   const getGlintX = (layout) => layout.gridX + t * 180 % Math.max(layout.gridWidth, 1);
-  const drawOverlayMask = (g, layout) => {
-    g.rect(0, 0, layout.imageWidth, layout.imageHeight).fill(16777215).rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight).cut();
+  const getBorderPlacement = (layout) => {
+    const scaleX = layout.gridWidth / BORDER_INNER_WINDOW.width;
+    const scaleY = layout.gridHeight / BORDER_INNER_WINDOW.height;
+    return {
+      x: layout.gridX - BORDER_INNER_WINDOW.x * scaleX,
+      y: layout.gridY - BORDER_INNER_WINDOW.y * scaleY,
+      width: LAYER_SOURCE.border.width * scaleX,
+      height: LAYER_SOURCE.border.height * scaleY
+    };
+  };
+  const getSeparatorPlacement = (layout, index) => {
+    const scale = layout.gridHeight / LAYER_SOURCE.separator.height;
+    const width = LAYER_SOURCE.separator.width * scale;
+    const columnWidth = layout.gridWidth / layout.columns;
+    return {
+      x: layout.gridX + columnWidth * (index + 1) - width / 2,
+      y: layout.gridY,
+      width,
+      height: layout.gridHeight
+    };
   };
   const drawEffectMask = (g, layout) => {
     g.rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight).fill(16777215);
@@ -15678,6 +15747,8 @@ function ReelFrame($$payload, $$props) {
     g.circle(0, 0, 3).fill({ color: effectColor, alpha: 1 });
   };
   const drawDebugGrid = (g, layout) => {
+    const border = getBorderPlacement(layout);
+    g.rect(border.x, border.y, border.width, border.height).stroke({ color: 16765802, width: 2, alpha: 0.75 });
     g.rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight).stroke({ color: 16711935, width: 3, alpha: 0.9 });
     const cellWidth = layout.gridWidth / layout.columns;
     const cellHeight = layout.gridHeight / layout.rows;
@@ -15693,8 +15764,8 @@ function ReelFrame($$payload, $$props) {
   };
   const each_array = ensure_array_like(frameVariants);
   $$payload.out += `<!--[-->`;
-  for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-    let variant = each_array[$$index];
+  for (let $$index_1 = 0, $$length = each_array.length; $$index_1 < $$length; $$index_1++) {
+    let variant = each_array[$$index_1];
     const transform = getFrameTransform(variant.layout);
     Container($$payload, {
       x: transform.x,
@@ -15706,29 +15777,16 @@ function ReelFrame($$payload, $$props) {
         if (layer === "background") {
           $$payload2.out += "<!--[-->";
           Sprite($$payload2, {
-            key: variant.key,
-            width: variant.layout.imageWidth,
-            height: variant.layout.imageHeight
+            key: LAYER_KEYS.background,
+            x: variant.layout.gridX - BACKGROUND_BLEED,
+            y: variant.layout.gridY - BACKGROUND_BLEED,
+            width: variant.layout.gridWidth + BACKGROUND_BLEED * 2,
+            height: variant.layout.gridHeight + BACKGROUND_BLEED * 2
           });
         } else {
           $$payload2.out += "<!--[!-->";
-          Container($$payload2, {
-            children: ($$payload3) => {
-              Graphics($$payload3, {
-                draw: (g) => drawOverlayMask(g, variant.layout),
-                isMask: true
-              });
-              $$payload3.out += `<!----> `;
-              Sprite($$payload3, {
-                key: variant.key,
-                width: variant.layout.imageWidth,
-                height: variant.layout.imageHeight
-              });
-              $$payload3.out += `<!---->`;
-            },
-            $$slots: { default: true }
-          });
-          $$payload2.out += `<!----> `;
+          const border = getBorderPlacement(variant.layout);
+          const each_array_1 = ensure_array_like(Array.from({ length: variant.layout.columns - 1 }));
           Container($$payload2, {
             children: ($$payload3) => {
               Graphics($$payload3, {
@@ -15752,6 +15810,26 @@ function ReelFrame($$payload, $$props) {
               $$payload3.out += `<!---->`;
             },
             $$slots: { default: true }
+          });
+          $$payload2.out += `<!----> <!--[-->`;
+          for (let index = 0, $$length2 = each_array_1.length; index < $$length2; index++) {
+            each_array_1[index];
+            const separator = getSeparatorPlacement(variant.layout, index);
+            Sprite($$payload2, {
+              key: LAYER_KEYS.separator,
+              x: separator.x,
+              y: separator.y,
+              width: separator.width,
+              height: separator.height
+            });
+          }
+          $$payload2.out += `<!--]--> `;
+          Sprite($$payload2, {
+            key: LAYER_KEYS.border,
+            x: border.x,
+            y: border.y,
+            width: border.width,
+            height: border.height
           });
           $$payload2.out += `<!----> `;
           if (props.debug) {
@@ -16876,32 +16954,303 @@ function BoardDebris($$payload, $$props) {
   });
   pop();
 }
-function TumbleWinAmountWrap($$payload, $$props) {
+function TumbleWinAmount($$payload, $$props) {
   push();
-  const { $$slots, $$events, ...props } = $$props;
   const context2 = getContext();
+  const ts = () => stateBetDerived.timeScale();
+  const PANEL_H = SYMBOL_SIZE * 0.82;
+  const PANEL_W = PANEL_H * 3.9;
+  const RADIUS = PANEL_H * 0.32;
   const desktopPosition = {
     x: context2.stateGameDerived.boardLayout().width * 0.5,
-    y: -SYMBOL_SIZE * 0.8 * 0.58
+    y: -SYMBOL_SIZE * 0.56
   };
   const portraitPosition = {
     x: context2.stateGameDerived.boardLayout().width * (context2.stateGame.gameType === "basegame" ? 0.5 : 0.37),
-    y: -SYMBOL_SIZE * 0.8 * 0.68
+    y: -SYMBOL_SIZE * 0.62
   };
   const position = context2.stateLayoutDerived.isStacked() ? portraitPosition : desktopPosition;
-  const scale = context2.stateLayoutDerived.isStacked() ? 1.28 : 1;
+  const bannerScale = context2.stateLayoutDerived.isStacked() ? 1.26 : 1;
+  let show = false;
+  let amount2 = 0;
+  const displayAmount = new Tween(0);
+  const numScale = new Tween(1, { duration: 160, easing: backOut });
+  const panelFx = { flash: 0, scale: 1, glow: 0 };
+  const flyFx = {
+    x: 0,
+    y: 0,
+    scale: 0.5,
+    alpha: 0,
+    mult: 1,
+    active: false
+  };
+  let multiplyExpr = null;
+  const panelImpact = () => {
+    gsap.killTweensOf(panelFx);
+    gsap.timeline().set(panelFx, { flash: 0.95, scale: 1.2, glow: 1 }).to(panelFx, { flash: 0, duration: 0.42, ease: "power2.out" }).to(
+      panelFx,
+      {
+        scale: 1,
+        duration: 0.55,
+        ease: "elastic.out(1, 0.5)"
+      },
+      0
+    ).to(panelFx, { glow: 0, duration: 0.7, ease: "power2.out" }, 0.1);
+    context2.eventEmitter.broadcast({
+      type: "soundOnce",
+      name: "sfx_multiplier_landing"
+    });
+  };
+  const flyMultiplier = ({ mult, fromReel, fromRow }) => new Promise((resolve) => {
+    flyFx.mult = mult;
+    flyFx.active = true;
+    gsap.killTweensOf(flyFx);
+    const tl = gsap.timeline({
+      onComplete: () => {
+        flyFx.active = false;
+        resolve();
+      }
+    });
+    tl.timeScale(ts());
+    tl.set(flyFx, {
+      x: getPositionX(fromReel),
+      y: getPositionY(fromRow),
+      scale: 0.5,
+      alpha: 0
+    }).to(flyFx, {
+      alpha: 1,
+      scale: 1.2,
+      duration: 0.22,
+      ease: "back.out(2.2)"
+    }).to(
+      flyFx,
+      {
+        x: position.x,
+        y: position.y,
+        duration: 0.5,
+        ease: "power2.inOut"
+      },
+      "<0.06"
+    ).to(
+      flyFx,
+      {
+        scale: 1.7,
+        duration: 0.12,
+        ease: "power2.in"
+      },
+      "-=0.14"
+    ).add(() => panelImpact()).to(flyFx, {
+      scale: 0.2,
+      alpha: 0,
+      duration: 0.16,
+      ease: "power2.in"
+    });
+  });
+  context2.eventEmitter.subscribeOnMount({
+    tumbleWinAmountShow: () => show = true,
+    tumbleWinAmountHide: () => show = false,
+    tumbleWinAmountReset: () => {
+      amount2 = 0;
+      displayAmount.set(0, { duration: 0 });
+    },
+    tumbleWinAmountUpdate: async (emitterEvent) => {
+      if (amount2 !== emitterEvent.amount) {
+        amount2 = emitterEvent.amount;
+        emitterEvent.animate;
+        await waitForResolve((resolve) => resolve);
+      }
+    },
+    tumbleWinAmountMultiply: async (emitterEvent) => {
+      show = true;
+      const raw = amount2;
+      const mult = raw > 0 ? Math.max(1, Math.round(emitterEvent.totalWin / raw)) : 1;
+      if (mult >= 2) {
+        const rawText = bookEventAmountToCurrencyString(raw);
+        await flyMultiplier({
+          mult,
+          fromReel: emitterEvent.fromReel,
+          fromRow: emitterEvent.fromRow
+        });
+        multiplyExpr = { rawText, mult };
+        numScale.set(1.32, { duration: 0 });
+        numScale.set(1, { duration: 320 / ts(), easing: backOut });
+        await waitForTimeout(750 / ts());
+        multiplyExpr = null;
+      }
+      await waitForResolve((resolve) => {
+        amount2 = emitterEvent.totalWin;
+      });
+      await waitForTimeout(500 / ts());
+    }
+  });
+  const labelStyle = {
+    fontFamily: "Cinzel, Georgia, serif",
+    fontWeight: "700",
+    fontSize: PANEL_H * 0.17,
+    fill: 10479871,
+    letterSpacing: 2,
+    align: "center",
+    stroke: { color: 332062, width: 3 }
+  };
+  const amountStyle = {
+    fontFamily: "Cinzel, Georgia, serif",
+    fontWeight: "900",
+    fontSize: PANEL_H * 0.46,
+    fill: 16770726,
+    align: "center",
+    stroke: { color: 2757632, width: 6 },
+    dropShadow: {
+      color: 0,
+      blur: 8,
+      distance: 3,
+      alpha: 0.6
+    }
+  };
+  const exprStyle = {
+    fontFamily: "Cinzel, Georgia, serif",
+    fontWeight: "900",
+    fontSize: PANEL_H * 0.42,
+    fill: 16766826,
+    align: "center",
+    stroke: { color: 2757632, width: 6 },
+    dropShadow: {
+      color: 16756282,
+      blur: 10,
+      distance: 0,
+      alpha: 0.7
+    }
+  };
+  const multStyle = {
+    fontFamily: "Cinzel, Georgia, serif",
+    fontWeight: "900",
+    fontSize: SYMBOL_SIZE * 0.72,
+    fill: 16766826,
+    align: "center",
+    stroke: { color: 2757632, width: 7 },
+    dropShadow: {
+      color: 16756282,
+      blur: 12,
+      distance: 0,
+      alpha: 0.9
+    }
+  };
+  const drawGlow = (g) => {
+    g.roundRect(-PANEL_W / 2 - 10, -PANEL_H / 2 - 10, PANEL_W + 20, PANEL_H + 20, RADIUS + 8).fill({ color: 16764506, alpha: 0.28 });
+  };
+  const drawPanel = (g) => {
+    g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H, RADIUS).fill({ color: 395798, alpha: 0.92 });
+    g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H * 0.5, RADIUS).fill({ color: 16777215, alpha: 0.05 });
+    g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H, RADIUS).stroke({ width: 3, color: 16764762, alpha: 0.85 });
+    g.roundRect(-PANEL_W / 2 + 4, -PANEL_H / 2 + 4, PANEL_W - 8, PANEL_H - 8, RADIUS - 3).stroke({ width: 1.5, color: 2285823, alpha: 0.45 });
+  };
+  const drawFlash = (g) => {
+    g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H, RADIUS).fill({ color: 16777215 });
+  };
+  BoardContainer($$payload, {
+    children: ($$payload2) => {
+      if (flyFx.active) {
+        $$payload2.out += "<!--[-->";
+        Container($$payload2, {
+          x: flyFx.x,
+          y: flyFx.y,
+          scale: flyFx.scale,
+          alpha: flyFx.alpha,
+          children: ($$payload3) => {
+            Text($$payload3, {
+              anchor: 0.5,
+              text: `×${flyFx.mult}`,
+              style: multStyle
+            });
+          },
+          $$slots: { default: true }
+        });
+      } else {
+        $$payload2.out += "<!--[!-->";
+      }
+      $$payload2.out += `<!--]-->`;
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!----> `;
   FadeContainer($$payload, {
-    show: props.show,
+    show,
     children: ($$payload2) => {
       BoardContainer($$payload2, {
         children: ($$payload3) => {
           Container($$payload3, spread_props([
             position,
             {
-              scale,
+              scale: bannerScale,
               children: ($$payload4) => {
-                props.children($$payload4);
-                $$payload4.out += `<!---->`;
+                Container($$payload4, {
+                  scale: panelFx.scale,
+                  children: ($$payload5) => {
+                    if (panelFx.glow > 0) {
+                      $$payload5.out += "<!--[-->";
+                      Container($$payload5, {
+                        alpha: panelFx.glow,
+                        blendMode: "add",
+                        children: ($$payload6) => {
+                          Graphics($$payload6, { draw: drawGlow });
+                        },
+                        $$slots: { default: true }
+                      });
+                    } else {
+                      $$payload5.out += "<!--[!-->";
+                    }
+                    $$payload5.out += `<!--]--> `;
+                    Graphics($$payload5, { draw: drawPanel });
+                    $$payload5.out += `<!----> `;
+                    if (panelFx.flash > 0) {
+                      $$payload5.out += "<!--[-->";
+                      Container($$payload5, {
+                        alpha: panelFx.flash,
+                        blendMode: "add",
+                        children: ($$payload6) => {
+                          Graphics($$payload6, { draw: drawFlash });
+                        },
+                        $$slots: { default: true }
+                      });
+                    } else {
+                      $$payload5.out += "<!--[!-->";
+                    }
+                    $$payload5.out += `<!--]--> `;
+                    Text($$payload5, {
+                      anchor: 0.5,
+                      y: -PANEL_H * 0.27,
+                      text: "TUMBLE WIN",
+                      style: labelStyle
+                    });
+                    $$payload5.out += `<!----> `;
+                    Container($$payload5, {
+                      scale: numScale.current,
+                      y: PANEL_H * 0.1,
+                      children: ($$payload6) => {
+                        if (multiplyExpr) {
+                          $$payload6.out += "<!--[-->";
+                          ResponsiveText($$payload6, {
+                            anchor: 0.5,
+                            maxWidth: PANEL_W * 0.86,
+                            text: `${multiplyExpr.rawText}  ×${multiplyExpr.mult}`,
+                            style: exprStyle
+                          });
+                        } else {
+                          $$payload6.out += "<!--[!-->";
+                          ResponsiveText($$payload6, {
+                            anchor: 0.5,
+                            maxWidth: PANEL_W * 0.82,
+                            text: bookEventAmountToCurrencyString(displayAmount.current),
+                            style: amountStyle
+                          });
+                        }
+                        $$payload6.out += `<!--]-->`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload5.out += `<!---->`;
+                  },
+                  $$slots: { default: true }
+                });
               },
               $$slots: { default: true }
             }
@@ -16912,225 +17261,115 @@ function TumbleWinAmountWrap($$payload, $$props) {
     },
     $$slots: { default: true }
   });
-  pop();
-}
-function TumbleWinAmountFrame($$payload, $$props) {
-  push();
-  const { $$slots, $$events, ...props } = $$props;
-  const TITLE_RATIO = 532 / 143;
-  const TITLE_HEIGHT = SYMBOL_SIZE * 0.28;
-  const TITLE_SIZES = {
-    width: TITLE_HEIGHT * TITLE_RATIO,
-    height: TITLE_HEIGHT
-  };
-  const PANEL_RATIO = 1442 / 374;
-  const PANEL_HEIGHT = SYMBOL_SIZE * 0.8;
-  const PANEL_SIZES = {
-    width: PANEL_HEIGHT * PANEL_RATIO,
-    height: PANEL_HEIGHT
-  };
-  Graphics($$payload, {
-    draw: (g) => {
-      g.roundRect(-PANEL_SIZES.width / 2, -PANEL_SIZES.height / 2, PANEL_SIZES.width, PANEL_SIZES.height, 14).fill({ color: 329743, alpha: 0.78 });
-      g.roundRect(-PANEL_SIZES.width / 2, -PANEL_SIZES.height / 2, PANEL_SIZES.width, PANEL_SIZES.height, 14).stroke({ width: 2, color: 2285823, alpha: 0.6 });
-    }
-  });
-  $$payload.out += `<!----> `;
-  Container($$payload, {
-    y: -TITLE_HEIGHT * 1.2,
-    children: ($$payload2) => {
-      Graphics($$payload2, {
-        draw: (g) => {
-          g.roundRect(-TITLE_SIZES.width / 2, -TITLE_SIZES.height / 2, TITLE_SIZES.width, TITLE_SIZES.height, 8).fill({ color: 2285823, alpha: 0.9 });
-        }
-      });
-      $$payload2.out += `<!----> `;
-      Text($$payload2, {
-        anchor: 0.5,
-        y: -TITLE_HEIGHT * 0.025,
-        text: "TUMBLE WIN",
-        style: {
-          fontFamily: "sans-serif",
-          fontWeight: "800",
-          fontSize: TITLE_HEIGHT * 0.45,
-          fill: 329743
-        }
-      });
-      $$payload2.out += `<!---->`;
-    },
-    $$slots: { default: true }
-  });
-  $$payload.out += `<!----> `;
-  props.children($$payload, { frameSizes: PANEL_SIZES });
   $$payload.out += `<!---->`;
-  pop();
-}
-function TumbleWinAmountText($$payload, $$props) {
-  push();
-  const { $$slots, $$events, ...props } = $$props;
-  const amount2 = new Tween(0);
-  const scale = new Tween(1, { duration: 160, easing: backOut });
-  Container($$payload, {
-    scale: scale.current,
-    children: ($$payload2) => {
-      ResponsiveText($$payload2, {
-        anchor: 0.5,
-        maxWidth: props.width,
-        text: bookEventAmountToCurrencyString(amount2.current),
-        style: {
-          fontFamily: "sans-serif",
-          fontWeight: "800",
-          fontSize: 0.65 * SYMBOL_SIZE,
-          fill: 16765562
-        }
-      });
-    },
-    $$slots: { default: true }
-  });
-  pop();
-}
-function TumbleWinAmount($$payload, $$props) {
-  push();
-  const context2 = getContext();
-  let show = false;
-  let amount2 = 0;
-  let animate = false;
-  let oncomplete = () => {
-  };
-  context2.eventEmitter.subscribeOnMount({
-    tumbleWinAmountShow: () => show = true,
-    tumbleWinAmountHide: () => show = false,
-    tumbleWinAmountReset: () => {
-      amount2 = 0;
-      animate = false;
-      oncomplete = () => {
-      };
-    },
-    tumbleWinAmountUpdate: async (emitterEvent) => {
-      if (amount2 !== emitterEvent.amount) {
-        amount2 = emitterEvent.amount;
-        animate = emitterEvent.animate;
-        await waitForResolve((resolve) => oncomplete = resolve);
-      }
-    }
-  });
-  TumbleWinAmountWrap($$payload, {
-    show,
-    children: ($$payload2) => {
-      {
-        let children = function($$payload3, { frameSizes }) {
-          TumbleWinAmountText($$payload3, {
-            amount: amount2,
-            animate,
-            oncomplete,
-            width: frameSizes.width
-          });
-        };
-        TumbleWinAmountFrame($$payload2, { children, $$slots: { default: true } });
-      }
-    },
-    $$slots: { default: true }
-  });
   pop();
 }
 function GazeMeter($$payload, $$props) {
   push();
   const context2 = getContext();
+  const LAYER_KEYS = { bar: "winMeter" };
+  const GAZE_COLORS = {
+    fillDeep: 481960,
+    fillMid: 697599,
+    fillCore: 2676735,
+    fillTop: 13107199,
+    fillGlow: 3526655,
+    edge: 15335423,
+    energy: 13073919,
+    rim: 16777215,
+    backing: 871251,
+    backingStroke: 871251
+  };
   let show = false;
   let charge = 0;
   let sourcePositions = [];
   let eyeCell = { reel: 3, row: 3 };
   let flying = false;
-  let eyeIdle = { alpha: 0.92 };
-  let fx = {
-    eyeScale: 1,
-    burst: 0,
-    burstScale: 0.9,
-    particle: 0,
-    textScale: 1,
-    overcharge: 0
-  };
+  let fx = { burst: 0, textScale: 1, overcharge: 0 };
   const animations = /* @__PURE__ */ new Set();
-  const fill = new Tween(0, { duration: 320 });
+  const fill = new Tween(0, { duration: 520, easing: cubicOut });
   const energy = new Tween(0, { duration: 260 });
   const toEye = new Tween(0, { duration: 1 });
-  const skinAlpha = new Tween(1, { duration: 500 });
   const isMobile = context2.stateLayoutDerived.layoutType() === "portrait";
-  const gazeSkin = context2.stateGame.gameType === "freegame" ? {
-    frame: "gaze_meter_fs_frame_empty",
-    eye: "gaze_meter_fs_eye_top",
-    glow: "gaze_meter_fs_glow_soft",
-    particle: "gaze_meter_fs_particle_burst",
-    liquidTop: 16738675,
-    liquidMid: 11738925,
-    liquidBottom: 3671306,
-    chamber: 3212553,
-    meniscus: 16761801,
-    bubble: 16764112,
-    energy: 14235206,
-    rim: 16753322
-  } : {
-    frame: "gaze_meter_frame_empty",
-    eye: "gaze_meter_eye_top",
-    glow: "gaze_meter_glow_soft",
-    particle: "gaze_meter_particle_burst",
-    liquidTop: 5227743,
-    liquidMid: 2325673,
-    liquidBottom: 534854,
-    chamber: 335156,
-    meniscus: 11464447,
-    bubble: 10807545,
-    energy: 1472424,
-    rim: 4040664
-  };
-  const gazeH = BOARD_SIZES.height * (isMobile ? 0.43 : 0.78);
-  const gazeW = getGazeMeterDisplayWidth(gazeH);
+  const gazeH = isMobile ? BOARD_SIZES.width * 0.82 : BOARD_SIZES.height * 0.84;
+  const gazeW = gazeH * (GAZE_METER_IMAGE_SIZE.width / GAZE_METER_IMAGE_SIZE.height);
+  const nativeScale = gazeH / GAZE_METER_IMAGE_SIZE.height;
+  const meterRotation = isMobile ? Math.PI / 2 : 0;
+  const multiplierTextRotation = isMobile ? -Math.PI / 2 : 0;
+  const mobileArtworkLeft = gazeW * GAZE_METER_LAYOUT.visibleBounds.left;
+  const mobileArtworkCenterY = gazeH * ((GAZE_METER_LAYOUT.visibleBounds.top + GAZE_METER_LAYOUT.visibleBounds.bottom) / 2);
+  const mobileMeterTop = BOARD_SIZES.height - SYMBOL_SIZE * 0.02;
+  const desktopMeterGap = SYMBOL_SIZE * 0.22;
   const position = {
-    x: isMobile ? -gazeW * 0.1 : -gazeW - SYMBOL_SIZE * 0.5,
-    // Portrait HUD sits entirely above the reel bounds, with a small scaled gap.
-    y: isMobile ? -gazeH - SYMBOL_SIZE * 0.16 : (BOARD_SIZES.height - gazeH) / 2 - SYMBOL_SIZE * 1.3
+    x: isMobile ? BOARD_SIZES.width / 2 + mobileArtworkCenterY : -gazeW * GAZE_METER_LAYOUT.visibleBounds.right - desktopMeterGap,
+    y: isMobile ? mobileMeterTop - mobileArtworkLeft : (BOARD_SIZES.height - gazeH) / 2
   };
-  const tubeX = gazeW * GAZE_METER_LAYOUT.inner.left;
-  const tubeW = gazeW * (GAZE_METER_LAYOUT.inner.right - GAZE_METER_LAYOUT.inner.left);
-  const tubeTop = gazeH * GAZE_METER_LAYOUT.inner.top;
-  const tubeH = gazeH * (GAZE_METER_LAYOUT.inner.bottom - GAZE_METER_LAYOUT.inner.top);
-  const tubeRadius = tubeW * GAZE_METER_LAYOUT.inner.radius;
-  const segmentH = tubeH / GAZE_METER_MAX_CHARGE;
+  const trackSegments = GAZE_METER_LAYOUT.trackSegments.map((segment) => {
+    const h = gazeH * (segment.bottom - segment.top);
+    return {
+      x: gazeW * segment.left,
+      y: gazeH * segment.top,
+      w: gazeW * (segment.right - segment.left),
+      h,
+      r: h * segment.radius
+    };
+  });
+  const trackTotalH = trackSegments.reduce((total, segment) => total + segment.h, 0);
+  const trackFill = (() => {
+    let remaining = Math.min(Math.max(fill.current, 0), 1) * trackTotalH;
+    return trackSegments.map((segment) => {
+      const amount2 = Math.min(Math.max(remaining / segment.h, 0), 1);
+      remaining -= segment.h;
+      return amount2;
+    });
+  })();
   const eyeX = gazeW * GAZE_METER_LAYOUT.eye.x;
   const eyeY = gazeH * GAZE_METER_LAYOUT.eye.y;
-  const eyeArtworkOffsetY = eyeY - gazeH * 0.5;
-  const meterEnergyX = position.x + eyeX;
-  const meterEnergyY = position.y + eyeY;
-  const showMultiplier = charge > 0 && !flying;
-  const segmentFill = Array.from({ length: GAZE_METER_MAX_CHARGE }, (_2, index) => Math.min(Math.max(fill.current * GAZE_METER_MAX_CHARGE - index, 0), 1));
+  const gemX = gazeW * GAZE_METER_LAYOUT.gem.x;
+  const gemY = gazeH * GAZE_METER_LAYOUT.gem.y;
+  const gemR = gazeH * GAZE_METER_LAYOUT.gem.radius;
+  const plaqueX = gazeW * GAZE_METER_LAYOUT.plaque.x;
+  const plaqueY = gazeH * GAZE_METER_LAYOUT.plaque.y;
+  const plaqueR = gazeH * GAZE_METER_LAYOUT.plaque.radius;
+  const plaqueTextX = plaqueX;
+  const plaqueTextY = plaqueY + gazeH * GAZE_METER_LAYOUT.plaque.textDy;
+  const meterEnergyX = isMobile ? position.x - eyeY : position.x + eyeX;
+  const meterEnergyY = isMobile ? position.y + eyeX : position.y + eyeY;
+  const fillLead = (() => {
+    let remaining = Math.min(Math.max(fill.current, 0), 1) * trackTotalH;
+    let lead;
+    for (const segment of trackSegments) {
+      const height = Math.max(0, Math.min(segment.h, remaining));
+      if (height > 0.5) {
+        lead = {
+          x: segment.x + segment.w / 2,
+          y: segment.y + segment.h - height,
+          h: segment.w
+        };
+      }
+      remaining -= segment.h;
+    }
+    return lead;
+  })();
   const track = (animation) => {
     animations.add(animation);
     animation.eventCallback("onComplete", () => animations.delete(animation));
     return animation;
   };
+  const resetFx = () => {
+    Object.assign(fx, { burst: 0, textScale: 1, overcharge: 0 });
+  };
   const playChargeFx = (overcharged = false) => {
     gsap.killTweensOf(fx);
     const timeline = gsap.timeline();
     track(timeline);
-    timeline.set(fx, {
-      eyeScale: 1,
-      burst: 0,
-      burstScale: 0.86,
-      particle: 0,
-      textScale: 0.9
-    }).to(fx, {
-      eyeScale: overcharged ? 1.16 : 1.1,
+    timeline.set(fx, { burst: 0, textScale: 0.9 }).to(fx, {
       burst: 0.92,
-      burstScale: 1.08,
-      particle: 1,
       textScale: 1.12,
       duration: 0.14,
       ease: "power2.out"
     }).to(fx, {
-      eyeScale: 1,
       burst: 0,
-      burstScale: overcharged ? 1.55 : 1.35,
-      particle: 0,
       textScale: 1,
       duration: overcharged ? 0.5 : 0.32,
       ease: "power2.out"
@@ -17145,6 +17384,11 @@ function GazeMeter($$payload, $$props) {
       }));
     }
   };
+  onDestroy(() => {
+    animations.forEach((animation) => animation.kill());
+    animations.clear();
+    gsap.killTweensOf(fx);
+  });
   const setCharge = async (value) => {
     charge = value;
     await fill.set(Math.min(value / GAZE_METER_MAX_CHARGE, 1));
@@ -17157,14 +17401,7 @@ function GazeMeter($$payload, $$props) {
       sourcePositions = [];
       flying = false;
       gsap.killTweensOf(fx);
-      Object.assign(fx, {
-        eyeScale: 1,
-        burst: 0,
-        burstScale: 0.9,
-        particle: 0,
-        textScale: 1,
-        overcharge: 0
-      });
+      resetFx();
       fill.set(0, { duration: 0 });
       energy.set(0, { duration: 0 });
       toEye.set(0, { duration: 0 });
@@ -17182,9 +17419,7 @@ function GazeMeter($$payload, $$props) {
       playChargeFx(emitterEvent.charge > GAZE_METER_MAX_CHARGE);
       await energy.set(0);
     },
-    // remember where the Eye is so the connect energy knows its target
     eyeShow: (e) => eyeCell = { reel: e.reel, row: e.row },
-    // the Eye connects: launch the charge from the meter into the Eye, then drain the bar
     gazeMeterToEye: async () => {
       if (charge <= 0) return;
       flying = true;
@@ -17209,7 +17444,7 @@ function GazeMeter($$payload, $$props) {
       const sy = getPositionY(source2.row);
       const midX = sx + (meterEnergyX - sx) * 0.6;
       const midY = sy + (meterEnergyY - sy) * 0.45 - SYMBOL_SIZE * 0.35;
-      g.moveTo(sx, sy).quadraticCurveTo(midX, midY, meterEnergyX, meterEnergyY).stroke({ width: 2.4, color: gazeSkin.energy, alpha });
+      g.moveTo(sx, sy).quadraticCurveTo(midX, midY, meterEnergyX, meterEnergyY).stroke({ width: 2.4, color: GAZE_COLORS.energy, alpha });
     }
   };
   const drawEnergyOut = (g) => {
@@ -17221,7 +17456,7 @@ function GazeMeter($$payload, $$props) {
     const headY = meterEnergyY + (ey - meterEnergyY) * t - Math.sin(t * Math.PI) * SYMBOL_SIZE * 0.6;
     g.moveTo(meterEnergyX, meterEnergyY).quadraticCurveTo((meterEnergyX + ex) / 2, Math.min(meterEnergyY, ey) - SYMBOL_SIZE * 0.6, headX, headY).stroke({
       width: 3,
-      color: gazeSkin.rim,
+      color: GAZE_COLORS.rim,
       alpha: 0.5 * (1 - t * 0.4)
     });
   };
@@ -17229,37 +17464,123 @@ function GazeMeter($$payload, $$props) {
   const flyX = meterEnergyX + (getPositionX(eyeCell.reel) - meterEnergyX) * flyT;
   const flyY = meterEnergyY + (getPositionY(eyeCell.row) - meterEnergyY) * flyT - Math.sin(flyT * Math.PI) * SYMBOL_SIZE * 0.6;
   const flyAlpha = flyT < 0.82 ? 1 : Math.max(0, 1 - (flyT - 0.82) / 0.18);
-  const drawTubeMask = (g) => {
-    g.roundRect(tubeX, tubeTop, tubeW, tubeH, tubeRadius).fill(16777215);
+  const drawTrackBackplates = (g) => {
+    const inset = Math.max(1, nativeScale);
+    const strokeWidth = Math.max(1, nativeScale * 0.85);
+    const bleedX = 4 * nativeScale;
+    const bleedY = 22 * nativeScale;
+    for (const segment of trackSegments) {
+      const backingRadius = Math.max(4 * nativeScale, segment.w * 0.18);
+      g.roundRect(segment.x - bleedX, segment.y - bleedY, segment.w + bleedX * 2, segment.h + bleedY * 2, backingRadius).fill({ color: GAZE_COLORS.backing, alpha: 0.6 });
+      g.roundRect(segment.x + inset, segment.y + inset, Math.max(0, segment.w - inset * 2), Math.max(0, segment.h - inset * 2), Math.max(0, backingRadius - inset)).stroke({
+        width: strokeWidth,
+        color: GAZE_COLORS.backingStroke,
+        alpha: 0.16
+      });
+    }
   };
-  const drawSegment = (g) => {
-    const outerRadius = Math.min(10, segmentH * 0.18);
-    const innerRadius = Math.min(7, segmentH * 0.12);
-    const innerX = 8;
-    const innerY = 5;
-    const innerW = tubeW - innerX * 2;
-    const innerH = segmentH - innerY * 2;
-    const liquid = new FillGradient({
+  const drawMultiplierBackplate = (g) => {
+    g.circle(plaqueX, plaqueY, plaqueR * 1.26).fill({ color: GAZE_COLORS.backing, alpha: 0.42 });
+    g.circle(plaqueX, plaqueY, plaqueR * 1.16).stroke({
+      width: Math.max(1, nativeScale * 1.4),
+      color: GAZE_COLORS.backingStroke,
+      alpha: 0.2
+    });
+  };
+  const drawTrackFill = (g, segment, amount2) => {
+    if (amount2 <= 0) return;
+    const fillH = segment.h * Math.min(amount2, 1);
+    const fillY = segment.y + segment.h - fillH;
+    const inset = 1.5 * nativeScale;
+    const innerH = Math.max(0, fillH - inset * 2);
+    const shineW = segment.w * 0.2;
+    const edgeW = 3 * nativeScale;
+    const edgeInset = 2 * nativeScale;
+    const bubbleR = Math.max(1.4, 2.6 * nativeScale);
+    const progressGradient = new FillGradient({
       textureSpace: "local",
-      start: { x: 0, y: 0 },
-      end: { x: 0, y: 1 },
+      start: { x: 0, y: 1 },
+      end: { x: 0, y: 0 },
       colorStops: [
-        { offset: 0, color: gazeSkin.liquidTop },
-        { offset: 0.24, color: gazeSkin.liquidMid },
-        { offset: 1, color: gazeSkin.liquidBottom }
+        { offset: 0, color: GAZE_COLORS.fillDeep },
+        { offset: 0.32, color: GAZE_COLORS.fillMid },
+        { offset: 0.72, color: GAZE_COLORS.fillCore },
+        { offset: 1, color: GAZE_COLORS.fillTop }
       ]
     });
-    g.roundRect(2, 2, tubeW - 4, segmentH - 4, outerRadius).fill({ color: gazeSkin.chamber, alpha: 0.88 });
-    g.roundRect(innerX, innerY, innerW, innerH, innerRadius).fill(liquid);
-    g.roundRect(innerX + 3, innerY + 3, innerW - 6, Math.min(5, innerH * 0.22), innerRadius).fill({ color: gazeSkin.meniscus, alpha: 0.58 });
-    g.circle(innerX + innerW * 0.3, innerY + innerH * 0.64, Math.min(3, innerW * 0.055)).fill({ color: gazeSkin.bubble, alpha: 0.24 });
-    g.circle(innerX + innerW * 0.68, innerY + innerH * 0.38, Math.min(2, innerW * 0.04)).fill({ color: gazeSkin.meniscus, alpha: 0.36 });
+    const fadeGradient = new FillGradient({
+      textureSpace: "local",
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
+      colorStops: [
+        { offset: 0, color: GAZE_COLORS.fillTop },
+        { offset: 0.42, color: GAZE_COLORS.fillCore },
+        { offset: 1, color: GAZE_COLORS.fillDeep }
+      ]
+    });
+    g.rect(segment.x - edgeInset, fillY - edgeInset, segment.w + edgeInset * 2, fillH + edgeInset * 2).fill({
+      color: GAZE_COLORS.fillGlow,
+      alpha: 0.16 + fx.overcharge * 0.16
+    });
+    g.rect(segment.x, fillY, segment.w, fillH).fill(progressGradient);
+    g.rect(segment.x, fillY, segment.w, fillH).fill({ fill: fadeGradient, alpha: 0.16 });
+    g.rect(segment.x + segment.w * 0.36, fillY + inset, segment.w * 0.34, innerH).fill({ color: GAZE_COLORS.fillTop, alpha: 0.12 });
+    g.rect(segment.x + inset, fillY + inset, shineW, innerH).fill({ color: GAZE_COLORS.edge, alpha: 0.28 });
+    if (fillH > edgeW) {
+      g.rect(segment.x + edgeInset, fillY + edgeInset, segment.w - edgeInset * 2, edgeW * 1.35).fill({ color: GAZE_COLORS.fillTop, alpha: 0.58 });
+    }
+    if (fillH > segment.w * 1.4) {
+      g.circle(segment.x + segment.w * 0.66, fillY + fillH * 0.26, bubbleR).fill({ color: GAZE_COLORS.fillTop, alpha: 0.24 });
+      g.circle(segment.x + segment.w * 0.38, fillY + fillH * 0.58, bubbleR * 0.72).fill({ color: GAZE_COLORS.edge, alpha: 0.18 });
+      g.circle(segment.x + segment.w * 0.6, fillY + fillH * 0.78, bubbleR * 0.5).fill({ color: GAZE_COLORS.fillTop, alpha: 0.16 });
+    }
   };
-  const drawFrontDividers = (g) => {
-    for (let index = 1; index < GAZE_METER_MAX_CHARGE; index++) {
-      const y = tubeTop + index * segmentH;
-      g.roundRect(tubeX + 5, y - 2, tubeW - 10, 4, 2).fill({ color: 16766315, alpha: 0.78 });
-      g.roundRect(tubeX + 10, y - 0.75, tubeW - 20, 1.5, 0.75).fill({ color: 16777215, alpha: 0.62 });
+  const drawMeterGlows = (g) => {
+    const pulse = fx.burst;
+    const orbAlpha = 0.18 + pulse * 0.58;
+    const gemAlpha = pulse * 0.5;
+    const edgeAlpha = fillLead ? 0.28 + pulse * 0.5 : 0;
+    if (gemAlpha > 0) {
+      const gemGlow = new FillGradient({
+        type: "radial",
+        center: { x: gemX, y: gemY },
+        innerRadius: 0,
+        outerCenter: { x: gemX, y: gemY },
+        outerRadius: gemR * 2.4,
+        colorStops: [
+          { offset: 0, color: GAZE_COLORS.energy },
+          { offset: 1, color: 0 }
+        ]
+      });
+      g.circle(gemX, gemY, gemR * 2.4).fill({ fill: gemGlow, alpha: gemAlpha });
+    }
+    if (orbAlpha > 0) {
+      const orbGlow = new FillGradient({
+        type: "radial",
+        center: { x: plaqueX, y: plaqueY },
+        innerRadius: 0,
+        outerCenter: { x: plaqueX, y: plaqueY },
+        outerRadius: plaqueR * 1.7,
+        colorStops: [
+          { offset: 0, color: GAZE_COLORS.energy },
+          { offset: 1, color: 0 }
+        ]
+      });
+      g.circle(plaqueX, plaqueY, plaqueR * 1.7).fill({ fill: orbGlow, alpha: orbAlpha });
+    }
+    if (fillLead && edgeAlpha > 0) {
+      const edgeGlow = new FillGradient({
+        type: "radial",
+        center: { x: fillLead.x, y: fillLead.y },
+        innerRadius: 0,
+        outerCenter: { x: fillLead.x, y: fillLead.y },
+        outerRadius: fillLead.h * 1.35,
+        colorStops: [
+          { offset: 0, color: GAZE_COLORS.edge },
+          { offset: 1, color: 0 }
+        ]
+      });
+      g.circle(fillLead.x, fillLead.y, fillLead.h * 1.35).fill({ fill: edgeGlow, alpha: edgeAlpha });
     }
   };
   FadeContainer($$payload, {
@@ -17274,139 +17595,64 @@ function GazeMeter($$payload, $$props) {
           Container($$payload3, {
             x: position.x,
             y: position.y,
+            rotation: meterRotation,
+            alpha: flying ? 0 : 1,
             children: ($$payload4) => {
+              const each_array = ensure_array_like(trackSegments);
+              Graphics($$payload4, { draw: drawTrackBackplates });
+              $$payload4.out += `<!----> `;
+              Graphics($$payload4, { draw: drawMultiplierBackplate });
+              $$payload4.out += `<!----> <!--[-->`;
+              for (let index = 0, $$length = each_array.length; index < $$length; index++) {
+                let segment = each_array[index];
+                Graphics($$payload4, {
+                  draw: (g) => drawTrackFill(g, segment, trackFill[index]),
+                  alpha: 0.96 + fx.overcharge * 0.04
+                });
+              }
+              $$payload4.out += `<!--]--> `;
+              Sprite($$payload4, {
+                key: LAYER_KEYS.bar,
+                anchor: 0,
+                width: gazeW,
+                height: gazeH
+              });
+              $$payload4.out += `<!----> `;
+              Graphics($$payload4, { draw: drawMeterGlows, blendMode: "add" });
+              $$payload4.out += `<!----> `;
               Container($$payload4, {
-                alpha: skinAlpha.current,
+                x: plaqueTextX,
+                y: plaqueTextY,
+                rotation: multiplierTextRotation,
+                scale: fx.textScale,
                 children: ($$payload5) => {
-                  $$payload5.out += `<!---->`;
-                  {
-                    Sprite($$payload5, {
-                      key: gazeSkin.frame,
-                      anchor: 0,
-                      width: gazeW,
-                      height: gazeH
-                    });
-                    $$payload5.out += `<!----> `;
-                    Container($$payload5, {
-                      children: ($$payload6) => {
-                        const each_array = ensure_array_like(segmentFill);
-                        Graphics($$payload6, { draw: drawTubeMask, isMask: true });
-                        $$payload6.out += `<!----> <!--[-->`;
-                        for (let index = 0, $$length = each_array.length; index < $$length; index++) {
-                          let amount2 = each_array[index];
-                          Container($$payload6, {
-                            x: tubeX,
-                            y: tubeTop + tubeH - index * segmentH,
-                            pivot: { x: 0, y: segmentH },
-                            scale: { x: 1, y: amount2 },
-                            alpha: 0.76 + fx.overcharge * 0.2,
-                            blendMode: "add",
-                            children: ($$payload7) => {
-                              Graphics($$payload7, { draw: drawSegment });
-                            },
-                            $$slots: { default: true }
-                          });
-                        }
-                        $$payload6.out += `<!--]-->`;
+                  Text($$payload5, {
+                    anchor: 0.5,
+                    text: String(charge),
+                    style: {
+                      fontFamily: 'Georgia, "Times New Roman", serif',
+                      fontWeight: "700",
+                      fontSize: plaqueR * 1.34,
+                      fill: 16774100,
+                      align: "center",
+                      stroke: {
+                        color: 2756170,
+                        width: Math.max(2, 4 * nativeScale),
+                        join: "round"
                       },
-                      $$slots: { default: true }
-                    });
-                    $$payload5.out += `<!----> `;
-                    Graphics($$payload5, { draw: drawFrontDividers });
-                    $$payload5.out += `<!----> `;
-                    Container($$payload5, {
-                      x: eyeX,
-                      y: eyeY,
-                      pivot: { x: eyeX, y: eyeY },
-                      scale: fx.eyeScale,
-                      alpha: eyeIdle.alpha,
-                      children: ($$payload6) => {
-                        Sprite($$payload6, {
-                          key: gazeSkin.eye,
-                          x: 0,
-                          y: eyeArtworkOffsetY,
-                          width: gazeW,
-                          height: gazeH
-                        });
-                      },
-                      $$slots: { default: true }
-                    });
-                    $$payload5.out += `<!----> `;
-                    Container($$payload5, {
-                      x: eyeX,
-                      y: eyeY,
-                      pivot: { x: eyeX, y: eyeY },
-                      scale: fx.burstScale,
-                      alpha: fx.burst,
-                      blendMode: "add",
-                      children: ($$payload6) => {
-                        Sprite($$payload6, {
-                          key: gazeSkin.glow,
-                          x: 0,
-                          y: eyeArtworkOffsetY,
-                          width: gazeW,
-                          height: gazeH
-                        });
-                      },
-                      $$slots: { default: true }
-                    });
-                    $$payload5.out += `<!----> `;
-                    Container($$payload5, {
-                      x: eyeX,
-                      y: eyeY,
-                      pivot: { x: eyeX, y: eyeY },
-                      scale: fx.burstScale,
-                      alpha: fx.particle,
-                      blendMode: "add",
-                      children: ($$payload6) => {
-                        Sprite($$payload6, {
-                          key: gazeSkin.particle,
-                          x: 0,
-                          y: eyeArtworkOffsetY,
-                          width: gazeW,
-                          height: gazeH
-                        });
-                      },
-                      $$slots: { default: true }
-                    });
-                    $$payload5.out += `<!----> `;
-                    if (showMultiplier) {
-                      $$payload5.out += "<!--[-->";
-                      Container($$payload5, {
-                        x: gazeW * GAZE_METER_LAYOUT.plaque.x,
-                        y: gazeH * GAZE_METER_LAYOUT.plaque.y,
-                        scale: fx.textScale,
-                        children: ($$payload6) => {
-                          Text($$payload6, {
-                            y: -gazeH * 0.015,
-                            anchor: 0.5,
-                            text: `${charge}x`,
-                            style: {
-                              fontFamily: "Cinzel, Georgia, serif",
-                              fontWeight: "900",
-                              fontSize: gazeH * 0.08,
-                              fill: GAZE_METER_MULTIPLIER_COLOR,
-                              stroke: { color: 465453, width: gazeH * 5e-3 },
-                              dropShadow: {
-                                color: 0,
-                                blur: 4,
-                                distance: 2,
-                                alpha: 0.8
-                              }
-                            }
-                          });
-                        },
-                        $$slots: { default: true }
-                      });
-                    } else {
-                      $$payload5.out += "<!--[!-->";
+                      dropShadow: {
+                        color: 0,
+                        alpha: 0.45,
+                        blur: 3 * nativeScale,
+                        distance: nativeScale,
+                        angle: Math.PI / 2
+                      }
                     }
-                    $$payload5.out += `<!--]-->`;
-                  }
-                  $$payload5.out += `<!---->`;
+                  });
                 },
                 $$slots: { default: true }
               });
+              $$payload4.out += `<!---->`;
             },
             $$slots: { default: true }
           });
@@ -17418,7 +17664,7 @@ function GazeMeter($$payload, $$props) {
               y: flyY,
               anchor: 0.5,
               alpha: flyAlpha,
-              text: `×${charge}`,
+              text: `x${charge}`,
               style: {
                 fontFamily: "sans-serif",
                 fontWeight: "900",
@@ -17448,112 +17694,133 @@ function GazeMeter($$payload, $$props) {
 function Eye($$payload, $$props) {
   push();
   const context2 = getContext();
-  let show = false;
-  let cell = { reel: 3, row: 3 };
-  let isMul = false;
-  let resolving = false;
-  let total = 0;
-  let displayTotal = 0;
-  const eyeScale = new Tween(1, { duration: 180 });
-  const numFx = { y: 0, alpha: 0, scale: 1, flash: 0 };
-  const dimFx = { alpha: 0 };
-  const convergeFx = { progress: 0 };
-  let convergeParticles = [];
-  const animations = /* @__PURE__ */ new Set();
-  const track = (a) => {
-    animations.add(a);
-    a.eventCallback("onComplete", () => animations.delete(a));
-    return a;
+  const ts = () => stateBetDerived.timeScale();
+  const ADD_COLOR = 2285567;
+  const MUL_COLOR = 16734762;
+  const GAZE_COLOR = 10120191;
+  const TOTAL_COLOR = 16766826;
+  const center = {
+    x: BOARD_SIZES.width / 2,
+    y: BOARD_SIZES.height / 2
   };
-  context2.eventEmitter.subscribeOnMount({
-    eyeShow: (e) => {
-      cell = { reel: e.reel, row: e.row };
-      isMul = e.eyeType === "MUL";
-      e.startValue;
-      resolving = false;
-      total = 0;
-      displayTotal = 0;
-      gsap.killTweensOf(numFx);
-      Object.assign(numFx, { y: 0, alpha: 0, scale: 1, flash: 0 });
-      show = false;
+  let show = false;
+  let resolving = false;
+  let running = 0;
+  let gazeLabel = false;
+  let hasMul = false;
+  const dimFx = { alpha: 0 };
+  const centerFx = { scale: 1, flash: 0 };
+  const chip = {
+    x: 0,
+    y: 0,
+    scale: 0.5,
+    alpha: 0,
+    text: "",
+    mul: false,
+    active: false
+  };
+  const popCenter = (big = false) => {
+    gsap.killTweensOf(centerFx);
+    gsap.timeline().set(centerFx, { scale: big ? 1 : 0.9, flash: 0.85 }).to(centerFx, {
+      scale: big ? 1.55 : 1.18,
+      duration: 0.12,
+      ease: "back.out(3)"
+    }).to(centerFx, {
+      scale: 1,
+      duration: big ? 0.6 : 0.34,
+      ease: "elastic.out(1, 0.5)"
+    }).to(centerFx, { flash: 0, duration: 0.3, ease: "power2.out" }, 0);
+  };
+  const foldEye = (eye) => new Promise((resolve) => {
+    chip.text = eye.eyeType === "ADD" ? `+${eye.startValue}` : `×${eye.startValue}`;
+    chip.mul = eye.eyeType === "MUL";
+    chip.active = true;
+    gsap.killTweensOf(chip);
+    const tl = gsap.timeline({
+      onComplete: () => {
+        chip.active = false;
+        resolve();
+      }
+    });
+    tl.timeScale(ts());
+    tl.set(chip, {
+      x: getPositionX(eye.reel),
+      y: getPositionY(eye.row),
+      scale: 0.5,
+      alpha: 0
+    }).to(chip, {
+      alpha: 1,
+      scale: 1.2,
+      duration: 0.2,
+      ease: "back.out(2.2)"
+    }).to(
+      chip,
+      {
+        x: center.x,
+        y: center.y,
+        duration: 0.42,
+        ease: "power2.inOut"
+      },
+      "<0.05"
+    ).add(() => {
+      running = eye.eyeType === "ADD" ? running + eye.startValue : running * eye.startValue;
+      popCenter();
       context2.eventEmitter.broadcast({
         type: "soundOnce",
-        name: isMul ? "sfx_multiplier_explosion_b" : "sfx_multiplier_win"
+        name: eye.eyeType === "MUL" ? "sfx_multiplier_explosion_b" : "sfx_multiplier_combine_a"
       });
-      eyeScale.set(1.16, { duration: 0 });
-      eyeScale.set(1, { duration: 180, easing: backOut });
+    }).to(chip, {
+      scale: 1.7,
+      alpha: 0,
+      duration: 0.16,
+      ease: "power2.in"
+    });
+  });
+  context2.eventEmitter.subscribeOnMount({
+    eyeShow: (e) => {
+      context2.eventEmitter.broadcast({
+        type: "soundOnce",
+        name: e.eyeType === "MUL" ? "sfx_multiplier_explosion_b" : "sfx_multiplier_win"
+      });
     },
-    // the eye drops in already showing its number (+N for ADD, ×N for MUL)
-    // the eye connects: the Gaze flies up into the eye, combines (add/mult), then the
-    // resulting multiplier rises toward the payout.
     eyeBurst: async (e) => {
-      isMul = e.eyeType === "MUL";
-      e.startValue;
-      total = e.totalMult;
-      displayTotal = Math.max(0, e.charge || 0);
+      const eyes = [...e.eyes ?? []].sort((a, b) => (a.eyeType === "MUL" ? 1 : 0) - (b.eyeType === "MUL" ? 1 : 0));
+      hasMul = eyes.some((eye) => eye.eyeType === "MUL");
       resolving = true;
       show = true;
+      running = e.charge;
+      gazeLabel = true;
+      gsap.killTweensOf(dimFx);
+      gsap.to(dimFx, {
+        alpha: 0.72,
+        duration: 0.18 / ts(),
+        ease: "power2.out"
+      });
+      popCenter();
+      context2.eventEmitter.broadcast({
+        type: "soundOnce",
+        name: "sfx_multiplier_landing"
+      });
+      await waitForTimeout(450 / ts());
+      gazeLabel = false;
+      for (const eye of eyes) {
+        await foldEye(eye);
+        await waitForTimeout(120 / ts());
+      }
+      running = e.totalMult;
+      popCenter(true);
       context2.eventEmitter.broadcast({
         type: "soundOnce",
         name: "sfx_multiplier_explosion_a"
       });
+      await waitForTimeout(750 / ts());
       gsap.killTweensOf(dimFx);
-      track(gsap.timeline().to(dimFx, {
-        alpha: isMul ? 0.82 : 0.62,
-        duration: 0.14,
-        ease: "power2.out"
-      }).to(dimFx, { alpha: 0, duration: 0.5, ease: "power2.in" }, "+=0.45"));
-      const count = isMul ? 18 : 12;
-      convergeParticles = Array.from({ length: count }, (_2, i) => ({
-        angle: i / count * Math.PI * 2 + Math.random() * 0.4,
-        radius: SYMBOL_SIZE * (1.4 + Math.random() * 0.9),
-        size: SYMBOL_SIZE * (0.04 + Math.random() * 0.04)
-      }));
-      gsap.killTweensOf(convergeFx);
-      track(gsap.timeline().set(convergeFx, { progress: 0 }).to(convergeFx, {
-        progress: 1,
-        duration: 0.32,
-        ease: "power2.in"
-      }));
-      await eyeScale.set(isMul ? 1.7 : 1.55, { duration: 170, easing: backOut });
-      eyeScale.set(1, { duration: 280 });
       await new Promise((resolve) => {
-        let timeline;
-        timeline = gsap.timeline({
-          onComplete: () => {
-            animations.delete(timeline);
-            resolve();
-          }
-        });
-        animations.add(timeline);
-        timeline.set(numFx, { y: 0, alpha: 1, scale: 0.5, flash: 0 }).to(numFx, {
-          scale: 1.05,
-          duration: 0.2,
-          ease: "back.out(2.2)"
-        }).to(
-          { v: displayTotal },
-          {
-            v: total,
-            duration: 0.26,
-            ease: "power1.out",
-            onUpdate() {
-              displayTotal = Math.round(this.targets()[0].v);
-            }
-          },
-          "<"
-        ).set(numFx, { flash: 0.9 }).to(numFx, {
-          scale: isMul ? 1.5 : 1.32,
-          duration: 0.12,
-          ease: "power3.out"
-        }).to(numFx, { flash: 0, duration: 0.22, ease: "power2.out" }, "<").to(numFx, {
-          scale: 1.1,
-          duration: 0.1,
-          ease: "power1.inOut"
-        }).to(numFx, {
-          y: -SYMBOL_SIZE * 1.9,
+        gsap.to(dimFx, {
           alpha: 0,
-          duration: 0.6,
-          ease: "power2.out"
+          duration: 0.3 / ts(),
+          ease: "power2.in",
+          onComplete: resolve
         });
       });
     },
@@ -17564,24 +17831,26 @@ function Eye($$payload, $$props) {
       dimFx.alpha = 0;
     }
   });
-  const color = isMul ? 16722458 : 2285567;
-  const x = getPositionX(cell.reel);
-  const y = getPositionY(cell.row);
-  const EYE_SIZE = SYMBOL_SIZE * 1.32;
-  const numLabelX = EYE_SIZE * EYE_ASPECT * EYE_LABEL_OFFSET.x;
-  const numLabelY = EYE_SIZE * EYE_LABEL_OFFSET.y;
-  const numStyle = (size, fill) => eyeValueTextStyle({ fontSize: size, fill });
-  const drawVignette = (g) => {
-    g.rect(0, 0, BOARD_SIZES.width, BOARD_SIZES.height).fill({ color: isMul ? 1703938 : 132623, alpha: 1 });
+  const totalStyle = eyeValueTextStyle({
+    fontSize: SYMBOL_SIZE * 0.92,
+    fill: TOTAL_COLOR
+  });
+  const flashStyle = eyeValueTextStyle({ fontSize: SYMBOL_SIZE * 0.92, fill: 16777215 });
+  const gazeStyle = {
+    fontFamily: "Cinzel, Georgia, serif",
+    fontWeight: "700",
+    fontSize: SYMBOL_SIZE * 0.26,
+    fill: GAZE_COLOR,
+    letterSpacing: 3,
+    align: "center",
+    stroke: { color: 329743, width: 4 }
   };
-  const drawConverge = (g) => {
-    const p = convergeFx.progress;
-    if (p <= 0 || p >= 1) return;
-    for (const m of convergeParticles) {
-      const rad = m.radius * (1 - p);
-      const alpha = p < 0.8 ? Math.min(1, p + 0.25) : Math.max(0, (1 - p) / 0.2);
-      g.circle(Math.cos(m.angle) * rad, Math.sin(m.angle) * rad, m.size * (0.5 + p * 0.6)).fill({ color, alpha });
-    }
+  const chipStyle = eyeValueTextStyle({
+    fontSize: SYMBOL_SIZE * 0.6,
+    fill: chip.mul ? MUL_COLOR : ADD_COLOR
+  });
+  const drawVignette = (g) => {
+    g.rect(0, 0, BOARD_SIZES.width, BOARD_SIZES.height).fill({ color: hasMul ? 1310722 : 132623, alpha: 1 });
   };
   FadeContainer($$payload, {
     show,
@@ -17602,70 +17871,76 @@ function Eye($$payload, $$props) {
           }
           $$payload3.out += `<!--]--> `;
           Container($$payload3, {
-            x,
-            y,
+            x: center.x,
+            y: center.y,
             children: ($$payload4) => {
-              Container($$payload4, {
-                blendMode: "add",
-                children: ($$payload5) => {
-                  Graphics($$payload5, { draw: drawConverge });
-                },
-                $$slots: { default: true }
-              });
-              $$payload4.out += `<!----> `;
-              Container($$payload4, {
-                scale: eyeScale.current,
-                children: ($$payload5) => {
-                  AbyssalEye($$payload5, {
-                    size: EYE_SIZE,
-                    variant: isMul ? "mult" : "add",
-                    pulse: resolving,
-                    burst: resolving,
-                    idle: false
-                  });
-                },
-                $$slots: { default: true }
-              });
-              $$payload4.out += `<!----> `;
-              if (resolving) {
+              if (gazeLabel) {
                 $$payload4.out += "<!--[-->";
-                Container($$payload4, {
-                  x: numLabelX,
-                  y: numLabelY + numFx.y,
-                  alpha: numFx.alpha,
-                  scale: numFx.scale,
-                  filters: [],
-                  children: ($$payload5) => {
-                    Text($$payload5, {
-                      anchor: 0.5,
-                      text: `${displayTotal}`,
-                      style: numStyle(SYMBOL_SIZE * 0.62, isMul ? EYE_VALUE_FILL.mul : EYE_VALUE_FILL.add)
-                    });
-                    $$payload5.out += `<!----> `;
-                    if (numFx.flash > 0) {
-                      $$payload5.out += "<!--[-->";
-                      Text($$payload5, {
-                        anchor: 0.5,
-                        alpha: numFx.flash,
-                        scale: 1.25,
-                        text: `${displayTotal}`,
-                        style: numStyle(SYMBOL_SIZE * 0.62, 16777215)
-                      });
-                    } else {
-                      $$payload5.out += "<!--[!-->";
-                    }
-                    $$payload5.out += `<!--]-->`;
-                  },
-                  $$slots: { default: true }
+                Text($$payload4, {
+                  anchor: 0.5,
+                  y: -SYMBOL_SIZE * 0.62,
+                  text: "GAZE",
+                  style: gazeStyle
                 });
               } else {
                 $$payload4.out += "<!--[!-->";
               }
-              $$payload4.out += `<!--]-->`;
+              $$payload4.out += `<!--]--> `;
+              Container($$payload4, {
+                scale: centerFx.scale,
+                filters: [],
+                children: ($$payload5) => {
+                  Text($$payload5, {
+                    anchor: 0.5,
+                    text: `${running}`,
+                    style: totalStyle
+                  });
+                  $$payload5.out += `<!----> `;
+                  if (centerFx.flash > 0) {
+                    $$payload5.out += "<!--[-->";
+                    Container($$payload5, {
+                      alpha: centerFx.flash,
+                      children: ($$payload6) => {
+                        Text($$payload6, {
+                          anchor: 0.5,
+                          text: `${running}`,
+                          style: flashStyle
+                        });
+                      },
+                      $$slots: { default: true }
+                    });
+                  } else {
+                    $$payload5.out += "<!--[!-->";
+                  }
+                  $$payload5.out += `<!--]-->`;
+                },
+                $$slots: { default: true }
+              });
+              $$payload4.out += `<!---->`;
             },
             $$slots: { default: true }
           });
-          $$payload3.out += `<!---->`;
+          $$payload3.out += `<!----> `;
+          if (chip.active) {
+            $$payload3.out += "<!--[-->";
+            Container($$payload3, {
+              x: chip.x,
+              y: chip.y,
+              scale: chip.scale,
+              alpha: chip.alpha,
+              children: ($$payload4) => {
+                Text($$payload4, {
+                  anchor: 0.5,
+                  text: chip.text,
+                  style: chipStyle
+                });
+              },
+              $$slots: { default: true }
+            });
+          } else {
+            $$payload3.out += "<!--[!-->";
+          }
+          $$payload3.out += `<!--]-->`;
         },
         $$slots: { default: true }
       });
@@ -19090,180 +19365,32 @@ const drawControlGlyph = (g, key, size, options = {}) => {
     });
   }
 };
-const icons = {
-  // play triangle
-  spin: (g, s, c) => {
-    g.poly([-s * 0.22, -s * 0.34, -s * 0.22, s * 0.34, s * 0.34, 0]).fill({ color: c });
-  },
-  stop: (g, s, c) => {
-    g.roundRect(-s * 0.26, -s * 0.26, s * 0.52, s * 0.52, s * 0.08).fill({ color: c });
-  },
-  plus: (g, s, c) => {
-    const t = s * 0.16;
-    const l = s * 0.62;
-    g.roundRect(-l / 2, -t / 2, l, t, t / 2).fill({ color: c });
-    g.roundRect(-t / 2, -l / 2, t, l, t / 2).fill({ color: c });
-  },
-  minus: (g, s, c) => {
-    const t = s * 0.16;
-    const l = s * 0.62;
-    g.roundRect(-l / 2, -t / 2, l, t, t / 2).fill({ color: c });
-  },
-  // lightning bolt
-  turbo: (g, s, c) => {
-    g.poly([
-      s * 0.06,
-      -s * 0.42,
-      -s * 0.3,
-      s * 0.06,
-      -s * 0.04,
-      s * 0.06,
-      -s * 0.06,
-      s * 0.42,
-      s * 0.3,
-      -s * 0.06,
-      s * 0.04,
-      -s * 0.06
-    ]).fill({ color: c });
-  },
-  // circular arrow (autoplay)
-  auto: (g, s, c) => {
-    const r = s * 0.3;
-    g.arc(0, 0, r, Math.PI * 0.25, Math.PI * 1.75).stroke({
-      width: s * 0.12,
-      color: c,
-      cap: "round"
-    });
-    const a = Math.PI * 1.75;
-    const ax = Math.cos(a) * r;
-    const ay = Math.sin(a) * r;
-    g.poly([
-      ax + s * 0.16,
-      ay - s * 0.02,
-      ax - s * 0.04,
-      ay - s * 0.18,
-      ax - s * 0.1,
-      ay + s * 0.1
-    ]).fill({ color: c });
-  },
-  sound: (g, s, c) => {
-    g.poly([
-      -s * 0.36,
-      -s * 0.12,
-      -s * 0.16,
-      -s * 0.12,
-      s * 0,
-      -s * 0.3,
-      s * 0,
-      s * 0.3,
-      -s * 0.16,
-      s * 0.12,
-      -s * 0.36,
-      s * 0.12
-    ]).fill({ color: c });
-    g.arc(s * 0.02, 0, s * 0.22, -Math.PI / 3, Math.PI / 3).stroke({
-      width: s * 0.07,
-      color: c,
-      cap: "round"
-    });
-    g.arc(s * 0.02, 0, s * 0.34, -Math.PI / 3, Math.PI / 3).stroke({
-      width: s * 0.07,
-      color: c,
-      cap: "round"
-    });
-  },
-  soundOff: (g, s, c) => {
-    g.poly([
-      -s * 0.36,
-      -s * 0.12,
-      -s * 0.16,
-      -s * 0.12,
-      s * 0,
-      -s * 0.3,
-      s * 0,
-      s * 0.3,
-      -s * 0.16,
-      s * 0.12,
-      -s * 0.36,
-      s * 0.12
-    ]).fill({ color: c });
-    g.moveTo(s * 0.12, -s * 0.16).lineTo(s * 0.36, s * 0.16).stroke({ width: s * 0.08, color: c, cap: "round" });
-    g.moveTo(s * 0.36, -s * 0.16).lineTo(s * 0.12, s * 0.16).stroke({ width: s * 0.08, color: c, cap: "round" });
-  },
-  // hamburger
-  menu: (g, s, c) => {
-    const t = s * 0.12;
-    const l = s * 0.58;
-    for (const y of [-s * 0.22, 0, s * 0.22]) {
-      g.roundRect(-l / 2, y - t / 2, l, t, t / 2).fill({ color: c });
-    }
-  },
-  // sliders
-  settings: (g, s, c) => {
-    for (const y of [-s * 0.2, s * 0.08]) {
-      g.roundRect(-s * 0.3, y - s * 0.04, s * 0.6, s * 0.08, s * 0.04).fill({ color: c });
-    }
-    g.circle(s * 0.12, -s * 0.2, s * 0.1).fill({ color: c });
-    g.circle(-s * 0.1, s * 0.08, s * 0.1).fill({ color: c });
-  },
-  info: (g, s, c) => {
-    g.circle(0, 0, s * 0.34).stroke({ width: s * 0.075, color: c });
-    g.circle(0, -s * 0.15, s * 0.05).fill({ color: c });
-    g.roundRect(-s * 0.05, -s * 0.02, s * 0.1, s * 0.24, s * 0.03).fill({ color: c });
-  },
-  close: (g, s, c) => {
-    g.moveTo(-s * 0.22, -s * 0.22).lineTo(s * 0.22, s * 0.22).stroke({ width: s * 0.12, color: c, cap: "round" });
-    g.moveTo(s * 0.22, -s * 0.22).lineTo(-s * 0.22, s * 0.22).stroke({ width: s * 0.12, color: c, cap: "round" });
-  }
-};
 function ControlBar($$payload, $$props) {
   push();
   const context2 = getContext();
   const BAR_FONT = "Inter, Arial, sans-serif";
-  const autoPopupOptions = [
-    "10",
-    "25",
-    "50",
-    "100",
-    "250",
-    INFINITY_MARK
-  ];
   const AUTO_POPUP_SIZE = { w: 340, h: 168 };
   const BET_POPUP_COLUMNS = { desktop: 5, mobile: 3 };
   const BET_POPUP_PADDING = { x: 46, y: 48 };
-  const AUTO_CHOICE = {
-    w: 90,
-    h: 48,
-    gapX: 108,
-    gapY: 58,
-    fontSize: 18
-  };
   const BET_CHOICE = {
     w: 150,
     h: 62,
     gapX: 178,
-    gapY: 82,
-    fontSize: 26
+    gapY: 82
   };
   const BET_POPUP_SCROLL_ROWS = { popout: 3, tiny: 2 };
-  const ACTIVE_PURPLE = 10181887;
-  const ACTIVE_PURPLE_BRIGHT = 13215743;
-  const MENU_SLIDER = {
-    w: 124,
-    h: 34,
-    labelX: -100,
-    trackX: 40,
-    labelFontSize: 18
+  const ACTIVE_ACCENT = 16731991;
+  const ACTIVE_ACCENT_BRIGHT = 16773340;
+  const GLASS = {
+    bg: 531498,
+    bgDeep: 198930,
+    bgHover: 798276,
+    border: 14809855,
+    glow: 5954815,
+    shadow: 2066,
+    textDim: 14678271
   };
-  const MENU_POPUP_PANEL = { w: 290, h: 248, centerY: -92 };
-  const MENU_ACTION_BUTTON = {
-    w: 232,
-    h: 56,
-    iconX: -82,
-    labelX: -42,
-    iconSize: 38,
-    fontSize: 20
-  };
+  const MENU_POPUP_PANEL = { w: 290 };
   const BET_STEP_BUTTON = {
     hitW: 68,
     hitH: 62,
@@ -19276,12 +19403,9 @@ function ControlBar($$payload, $$props) {
   let showBetPopup = false;
   let autoSpinArmed = false;
   let betScrollRow = 0;
-  let betScrollDragging = false;
-  let betScrollMoved = false;
-  let betScrollDragStartY = 0;
-  let betScrollDragStartRow = 0;
-  let volumeSliderDragging = null;
-  let hoveredSlider = null;
+  new Tween(0, { duration: 1 });
+  new Tween(0, { duration: 1 });
+  new Tween(0, { duration: 1 });
   const LEFT_BOUNDS = { minX: -56, maxY: 56 };
   const RIGHT_BOUNDS = { maxX: 196, maxY: 50 };
   const amountPanelWidth = (text, minWidth, maxWidth, fontSize) => {
@@ -19292,11 +19416,6 @@ function ControlBar($$payload, $$props) {
     const availableWidth = panelWidth - 46;
     const target = Math.min(availableWidth * targetFill, targetWidth ?? Number.POSITIVE_INFINITY);
     const fittedSize = Math.floor(target / Math.max(text.length * 0.62, 1));
-    return Math.max(minSize, Math.min(baseSize, fittedSize));
-  };
-  const choiceFontSize = (text, chipWidth, baseSize, minSize) => {
-    const availableWidth = chipWidth - 26;
-    const fittedSize = Math.floor(availableWidth / Math.max(text.length * 0.62, 1));
     return Math.max(minSize, Math.min(baseSize, fittedSize));
   };
   const balanceText = numberToCurrencyString(stateBet$1.balanceAmount);
@@ -19543,17 +19662,6 @@ function ControlBar($$payload, $$props) {
     showBetPopup = false;
     showAutoPopup = !showAutoPopup;
   });
-  const toggleAutoSpinChoice = (option) => press(() => {
-    if (!isIdle || !stateBetDerived.isBetCostAvailable()) return;
-    if (autoSpinArmed && stateUi.autoSpinsText === option) {
-      autoSpinArmed = false;
-      showAutoPopup = false;
-      return;
-    }
-    stateUi.autoSpinsText = option;
-    autoSpinArmed = true;
-    showAutoPopup = false;
-  });
   const toggleTurbo = () => press(() => {
     if (turboDisabled) return;
     if (stateBet$1.isTurbo) {
@@ -19586,74 +19694,14 @@ function ControlBar($$payload, $$props) {
     betScrollRow = clamp(selectedRow - Math.floor(popup.visibleRows / 2), 0, popup.maxScrollRow);
     showBetPopup = !showBetPopup;
   });
-  const scrollBetOptions = (direction) => {
-    const popup = responsive.betPopup;
-    betScrollRow = clamp(betScrollRow + direction, 0, popup.maxScrollRow);
-  };
-  const startBetScrollDrag = (event2) => {
-    if (responsive.betPopup.maxScrollRow <= 0) return;
-    event2.stopPropagation();
-    betScrollDragging = true;
-    betScrollMoved = false;
-    betScrollDragStartY = event2.global.y;
-    betScrollDragStartRow = responsive.betPopup.scrollRow;
-  };
-  const updateBetScrollDrag = (event2) => {
-    if (!betScrollDragging) return;
-    event2.stopPropagation();
-    const dragDelta = betScrollDragStartY - event2.global.y;
-    if (Math.abs(dragDelta) > 8) betScrollMoved = true;
-    const rowDelta = Math.round(dragDelta / (BET_CHOICE.gapY * responsive.betPopup.scale));
-    betScrollRow = clamp(betScrollDragStartRow + rowDelta, 0, responsive.betPopup.maxScrollRow);
-  };
-  const stopBetScrollDrag = () => {
-    betScrollDragging = false;
-    betScrollMoved = false;
-  };
-  const menuLocalX = (event2) => (event2.global.x - responsive.menuPopup.x) / responsive.scale;
-  const setVolumeSliderValue = (key, event2) => {
-    event2.stopPropagation();
-    const trackLeft = MENU_SLIDER.trackX - MENU_SLIDER.w / 2;
-    const nextValue = Math.round(clamp((menuLocalX(event2) - trackLeft) / MENU_SLIDER.w, 0, 1) * 100);
-    if (key === "music") {
-      stateSound.volumeValueMusic = nextValue;
-    } else {
-      stateSound.volumeValueSoundEffect = nextValue;
-    }
-  };
-  const startVolumeSliderDrag = (key, event2) => {
-    volumeSliderDragging = key;
-    setVolumeSliderValue(key, event2);
-  };
-  const updateVolumeSliderDrag = (event2) => {
-    if (!volumeSliderDragging) return;
-    setVolumeSliderValue(volumeSliderDragging, event2);
-  };
-  const stopVolumeSliderDrag = (event2) => {
-    event2.stopPropagation();
-    volumeSliderDragging = null;
-  };
-  const wheelBetOptions = (event2) => {
-    if (responsive.betPopup.maxScrollRow <= 0) return;
-    event2.preventDefault();
-    event2.stopPropagation();
-    scrollBetOptions(event2.deltaY > 0 ? 1 : -1);
-  };
-  const chooseBetAmount = (value) => {
-    if (betScrollMoved || !isIdle) return;
-    press(() => {
-      stateBetDerived.setBetAmount(value);
-      showBetPopup = false;
-    });
-  };
   const labelStyle = {
     fontFamily: BAR_FONT,
     fontWeight: "800",
     fontSize: 17,
-    fill: 15770682,
+    fill: GLASS.textDim,
     letterSpacing: 0.8,
     dropShadow: {
-      color: 0,
+      color: GLASS.shadow,
       blur: 4,
       distance: 2,
       alpha: 0.8
@@ -19665,10 +19713,30 @@ function ControlBar($$payload, $$props) {
     fontSize: 36,
     fill: 16777215,
     dropShadow: {
-      color: 0,
-      blur: 4,
+      color: GLASS.shadow,
+      blur: 6,
       distance: 2,
-      alpha: 0.8
+      alpha: 0.78
+    }
+  };
+  const readoutLabelStyle = {
+    ...labelStyle,
+    fill: 16766896,
+    dropShadow: {
+      color: 2754320,
+      blur: 5,
+      distance: 2,
+      alpha: 0.82
+    }
+  };
+  const readoutValueStyle = {
+    ...valueStyle,
+    fill: 16777215,
+    dropShadow: {
+      color: 2754320,
+      blur: 7,
+      distance: 2,
+      alpha: 0.82
     }
   };
   const buttonScale = (pressed, hovered, disabled = false, hoverScale = 1.07, pressScale = 0.94) => {
@@ -19677,7 +19745,6 @@ function ControlBar($$payload, $$props) {
     if (hovered) return hoverScale;
     return 1;
   };
-  const displayAutoSpinText = (value) => value;
   const autoCounterText = stateBet$1.autoSpinsCounter === Infinity ? INFINITY_MARK : `${stateBet$1.autoSpinsCounter}`;
   const autoCounterFontSize = (() => {
     if (stateBet$1.autoSpinsCounter === Infinity) return 78;
@@ -19685,154 +19752,60 @@ function ControlBar($$payload, $$props) {
     if (stateBet$1.autoSpinsCounter > 9) return 68;
     return 78;
   })();
-  const menuActions = [
-    {
-      icon: "info",
-      label: "info",
-      y: -158,
-      onpress: () => press(() => stateModal.modal = { name: "gameRules" })
-    }
-  ];
-  const menuVolumeSliders = [
-    { key: "music", label: "MUSIC", y: -96 },
-    { key: "sfx", label: "SFX", y: -34 }
-  ];
-  const menuPopupPanel = { ...MENU_POPUP_PANEL };
   const drawGlassPanel = (g, w, h, radius = 24, active = false) => {
-    g.roundRect(-w / 2 + 9, -h / 2 + 14, w, h, radius).fill({ color: 0, alpha: active ? 0.32 : 0.26 });
-    g.roundRect(-w / 2, -h / 2, w, h, radius).fill({ color: 197637, alpha: active ? 0.5 : 0.4 });
-    g.roundRect(-w / 2, -h / 2, w, h * 0.5, radius).fill({ color: 16777215, alpha: active ? 0.08 : 0.045 });
-    g.roundRect(-w / 2, -h / 2, w, h, radius).stroke({
-      width: active ? 1.8 : 1.4,
-      color: 16777215,
-      alpha: active ? 0.64 : 0.36
+    const hoverBoost = active ? 1 : 0;
+    g.roundRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8, radius + 4).stroke({
+      width: active ? 7 : 5,
+      color: GLASS.glow,
+      alpha: active ? 0.2 : 0.1
     });
-  };
-  const drawPopoverPanel = (g, w, h, radius = 20, showArrow = true) => {
-    g.roundRect(-w / 2 + 10, -h / 2 + 16, w, h, radius).fill({ color: 0, alpha: 0.64 });
-    g.roundRect(-w / 2, -h / 2, w, h, radius).fill({ color: 461076, alpha: 0.96 });
-    g.roundRect(-w / 2, -h / 2, w, h * 0.48, radius).fill({ color: 2963808, alpha: 0.36 });
-    g.roundRect(-w / 2 + 8, -h / 2 + 8, w - 16, h - 16, radius - 6).fill({ color: 132365, alpha: 0.72 });
-    g.roundRect(-w / 2, -h / 2, w, h, radius).stroke({ width: 2, color: 16777215, alpha: 0.62 });
-    if (!showArrow) return;
-    g.poly(
-      [
-        -16,
-        h / 2 - 2,
-        16,
-        h / 2 - 2,
-        0,
-        h / 2 + 14
-      ],
-      true
-    ).fill({ color: 461076, alpha: 0.96 });
-    g.poly(
-      [
-        -16,
-        h / 2 - 2,
-        16,
-        h / 2 - 2,
-        0,
-        h / 2 + 14
-      ],
-      true
-    ).stroke({
-      width: 1.2,
+    g.roundRect(-w / 2, -h / 2, w, h, radius).fill({
+      color: active ? GLASS.bgHover : GLASS.bg,
+      alpha: active ? 0.48 : 0.34
+    });
+    g.roundRect(-w / 2, -h / 2 + h * 0.42, w, h * 0.58, radius).fill({ color: GLASS.bgDeep, alpha: 0.3 });
+    g.roundRect(-w / 2, -h / 2, w, h * 0.5, radius).fill({
       color: 16777215,
-      alpha: 0.34,
-      join: "round"
+      alpha: 0.06 + hoverBoost * 0.08
+    });
+    g.roundRect(-w / 2 + 7, -h / 2 + 6, w - 14, h * 0.34, Math.max(6, radius - 7)).fill({
+      color: 16777215,
+      alpha: 0.035 + hoverBoost * 0.055
+    });
+    g.roundRect(-w / 2, -h / 2, w, h, radius).stroke({
+      width: active ? 2 : 1.5,
+      color: GLASS.border,
+      alpha: active ? 0.88 : 0.62
+    });
+    g.roundRect(-w / 2 + 4, -h / 2 + 4, w - 8, h - 8, Math.max(4, radius - 5)).stroke({
+      width: 1.1,
+      color: 16777215,
+      alpha: active ? 0.3 : 0.18
     });
   };
   const drawButtonAccentRing = (g, size, color = 16727862) => {
     const w = size;
     const h = size * 0.86;
-    g.roundRect(-w / 2 - 2, -h / 2 - 2, w + 4, h + 4, 22).stroke({ width: 6, color, alpha: 0.22 });
-    g.roundRect(-w / 2 + 1, -h / 2 + 1, w - 2, h - 2, 20).stroke({ width: 2.8, color, alpha: 0.92 });
+    g.roundRect(-w / 2 - 2, -h / 2 - 2, w + 4, h + 4, 22).stroke({ width: 6, color, alpha: 0.36 });
+    g.roundRect(-w / 2 + 1, -h / 2 + 1, w - 2, h - 2, 20).stroke({ width: 2.8, color, alpha: 0.95 });
   };
   const drawPanelAccentRing = (g, w, h, radius = 24, color = 16727862) => {
-    g.roundRect(-w / 2 - 2, -h / 2 - 2, w + 4, h + 4, radius + 2).stroke({ width: 6, color, alpha: 0.2 });
+    g.roundRect(-w / 2 - 2, -h / 2 - 2, w + 4, h + 4, radius + 2).stroke({ width: 6, color, alpha: 0.24 });
     g.roundRect(-w / 2 + 1, -h / 2 + 1, w - 2, h - 2, radius - 2).stroke({ width: 2.4, color, alpha: 0.92 });
   };
   const drawPanelHoverStroke = (g, w, h, radius = 24) => {
-    g.roundRect(-w / 2, -h / 2, w, h, radius).stroke({ width: 2.8, color: 15770682, alpha: 0.94 });
+    g.roundRect(-w / 2 - 5, -h / 2 - 5, w + 10, h + 10, radius + 5).stroke({ width: 6, color: GLASS.glow, alpha: 0.28 });
+    g.roundRect(-w / 2, -h / 2, w, h, radius).stroke({ width: 2.8, color: GLASS.border, alpha: 0.96 });
   };
   const drawButtonHoverStroke = (g, size) => {
     drawPanelHoverStroke(g, size, size * 0.86, 20);
-  };
-  const drawChoiceChip = (g, w, h, selected = false, accent = 16167482) => {
-    const radius = Math.min(14, h * 0.28);
-    g.roundRect(-w / 2 + 5, -h / 2 + 7, w, h, radius).fill({
-      color: 0,
-      alpha: selected ? 0.42 : 0.34
-    });
-    g.roundRect(-w / 2, -h / 2, w, h, radius).fill({
-      color: selected ? accent : 197637,
-      alpha: selected ? 0.3 : 0.36
-    });
-    g.roundRect(-w / 2 + 7, -h / 2 + 7, w - 14, h - 14, Math.max(6, radius - 6)).fill({
-      color: 0,
-      alpha: selected ? 0.18 : 0.12
-    });
-    g.roundRect(-w / 2, -h / 2, w, h * 0.52, radius).fill({
-      color: 16777215,
-      alpha: selected ? 0.14 : 0.06
-    });
-    g.roundRect(-w / 2, -h / 2, w, h, radius).stroke({
-      width: selected ? 2.1 : 1.35,
-      color: selected ? accent : 16777215,
-      alpha: selected ? 0.88 : 0.36
-    });
-    if (!selected) return;
-    g.roundRect(-w / 2 - 2, -h / 2 - 2, w + 4, h + 4, radius + 2).stroke({ width: 4, color: accent, alpha: 0.16 });
-  };
-  const drawInfinityIcon = (g, size, selected = false) => {
-    const w = size * 0.78;
-    const h = size * 0.34;
-    const color = selected ? 16773872 : 16777215;
-    const alpha = selected ? 1 : 0.92;
-    const drawLoop = (width, strokeAlpha) => {
-      g.moveTo(-w / 2, 0).bezierCurveTo(-w / 2, -h, -w * 0.14, -h, 0, 0).bezierCurveTo(w * 0.14, h, w / 2, h, w / 2, 0).bezierCurveTo(w / 2, -h, w * 0.14, -h, 0, 0).bezierCurveTo(-w * 0.14, h, -w / 2, h, -w / 2, 0).stroke({
-        width,
-        color,
-        alpha: strokeAlpha,
-        cap: "round",
-        join: "round"
-      });
-    };
-    if (selected) drawLoop(10, 0.18);
-    drawLoop(4.8, alpha);
   };
   const drawRoundButton = (g, size, active = false, disabled = false) => {
     const w = size;
     const h = size * 0.86;
     drawGlassPanel(g, w, h, 20, active);
-    g.roundRect(-w / 2 + 9, -h / 2 + 9, w - 18, h - 18, 15).fill({
-      color: 0,
-      alpha: disabled ? 0.12 : active ? 0.18 : 0.14
-    });
-  };
-  const drawVolumeSlider = (g, value) => {
-    const percent = clamp(value / 100, 0, 1);
-    const trackLeft = -124 / 2;
-    const filledW = MENU_SLIDER.w * percent;
-    const knobX = trackLeft + filledW;
-    g.roundRect(trackLeft, -6, MENU_SLIDER.w, 12, 6).fill({ color: 0, alpha: 0.48 });
-    g.roundRect(trackLeft, -5, MENU_SLIDER.w, 10, 5).fill({ color: 1910592, alpha: 0.9 });
-    if (filledW > 0) {
-      g.roundRect(trackLeft, -5, Math.max(10, filledW), 10, 5).fill({ color: 15770682, alpha: 0.95 });
-    }
-    g.circle(knobX, 0, 15).fill({ color: 461076, alpha: 1 });
-    g.circle(knobX, 0, 11).fill({ color: 16777215, alpha: 0.94 });
-    g.circle(knobX, 0, 16).stroke({ width: 1.8, color: 15770682, alpha: 0.72 });
   };
   const drawMenuButton = (g, size, active = false) => {
-    if (active) {
-      const w = size * 1.08;
-      const h = size * 0.96;
-      g.roundRect(-w / 2 + 8, -h / 2 + 12, w, h, 24).fill({ color: 0, alpha: 0.38 });
-      g.roundRect(-w / 2, -h / 2, w, h, 24).fill({ color: 659488, alpha: 0.78 });
-      g.roundRect(-w / 2 + 8, -h / 2 + 8, w - 16, h - 16, 18).fill({ color: 15770682, alpha: 0.12 });
-    }
     drawRoundButton(g, size, active);
   };
   const drawSpinPanel = (g, size) => {
@@ -19934,14 +19907,17 @@ function ControlBar($$payload, $$props) {
                     anchor: 0.5,
                     y: -25,
                     text: "BALANCE",
-                    style: labelStyle
+                    style: readoutLabelStyle
                   });
                   $$payload5.out += `<!----> `;
                   Text($$payload5, {
                     anchor: 0.5,
                     y: 18,
                     text: balanceText,
-                    style: { ...valueStyle, fontSize: balanceValueFontSize }
+                    style: {
+                      ...readoutValueStyle,
+                      fontSize: balanceValueFontSize
+                    }
                   });
                   $$payload5.out += `<!---->`;
                 },
@@ -20057,7 +20033,7 @@ function ControlBar($$payload, $$props) {
                     draw: (g) => {
                       drawRoundButton(g, ABYSSAL_CONTROL_BAR_LAYOUT.right.autoplay.size, autoIndicatorActive || hovered);
                       if (autoIndicatorActive) {
-                        drawButtonAccentRing(g, ABYSSAL_CONTROL_BAR_LAYOUT.right.autoplay.size, ACTIVE_PURPLE);
+                        drawButtonAccentRing(g, ABYSSAL_CONTROL_BAR_LAYOUT.right.autoplay.size, ACTIVE_ACCENT);
                       }
                       if (hovered && !autoDisabled) drawButtonHoverStroke(g, ABYSSAL_CONTROL_BAR_LAYOUT.right.autoplay.size);
                     }
@@ -20067,7 +20043,7 @@ function ControlBar($$payload, $$props) {
                     draw: (g) => drawControlGlyph(g, "autoplay", responsive.controls.autoGlyph, {
                       active: autoIndicatorActive,
                       disabled: autoDisabled,
-                      color: autoIndicatorActive ? ACTIVE_PURPLE_BRIGHT : 16777215
+                      color: autoIndicatorActive ? ACTIVE_ACCENT_BRIGHT : 16777215
                     })
                   });
                   $$payload5.out += `<!---->`;
@@ -20102,7 +20078,7 @@ function ControlBar($$payload, $$props) {
                   Graphics($$payload5, {
                     draw: (g) => {
                       drawRoundButton(g, ABYSSAL_CONTROL_BAR_LAYOUT.right.turbo.size, stateBet$1.isTurbo || hovered);
-                      if (stateBet$1.isTurbo) drawButtonAccentRing(g, ABYSSAL_CONTROL_BAR_LAYOUT.right.turbo.size, ACTIVE_PURPLE);
+                      if (stateBet$1.isTurbo) drawButtonAccentRing(g, ABYSSAL_CONTROL_BAR_LAYOUT.right.turbo.size, ACTIVE_ACCENT);
                       if (hovered && !turboDisabled) drawButtonHoverStroke(g, ABYSSAL_CONTROL_BAR_LAYOUT.right.turbo.size);
                     }
                   });
@@ -20111,7 +20087,7 @@ function ControlBar($$payload, $$props) {
                     draw: (g) => drawControlGlyph(g, "turbo", responsive.controls.turboGlyph, {
                       active: stateBet$1.isTurbo,
                       disabled: turboDisabled,
-                      color: stateBet$1.isTurbo ? ACTIVE_PURPLE_BRIGHT : 16777215
+                      color: stateBet$1.isTurbo ? ACTIVE_ACCENT_BRIGHT : 16777215
                     })
                   });
                   $$payload5.out += `<!---->`;
@@ -20228,14 +20204,17 @@ function ControlBar($$payload, $$props) {
                         anchor: 0.5,
                         y: -28,
                         text: betLabelText,
-                        style: labelStyle
+                        style: readoutLabelStyle
                       });
                       $$payload6.out += `<!----> `;
                       Text($$payload6, {
                         anchor: 0.5,
                         y: 16,
                         text: betText,
-                        style: { ...valueStyle, fontSize: betValueFontSize }
+                        style: {
+                          ...readoutValueStyle,
+                          fontSize: betValueFontSize
+                        }
                       });
                       $$payload6.out += `<!---->`;
                     },
@@ -20336,390 +20315,15 @@ function ControlBar($$payload, $$props) {
         $$slots: { default: true }
       });
       $$payload2.out += `<!----> `;
-      if (showAutoPopup) {
-        $$payload2.out += "<!--[-->";
-        Container($$payload2, {
-          x: responsive.autoPopup.x,
-          y: responsive.autoPopup.y,
-          scale: responsive.autoPopup.scale,
-          zIndex: 45,
-          children: ($$payload3) => {
-            const each_array = ensure_array_like(autoPopupOptions);
-            Graphics($$payload3, {
-              draw: (g) => drawPopoverPanel(g, responsive.autoPopup.w, responsive.autoPopup.h, 22, false)
-            });
-            $$payload3.out += `<!----> `;
-            {
-              let children = function($$payload4, { center }) {
-                Rectangle$1($$payload4, {
-                  anchor: 0.5,
-                  x: center.x,
-                  y: center.y,
-                  width: responsive.autoPopup.w,
-                  height: responsive.autoPopup.h,
-                  backgroundAlpha: 1e-3
-                });
-              };
-              Button($$payload3, {
-                anchor: 0.5,
-                sizes: {
-                  width: responsive.autoPopup.w,
-                  height: responsive.autoPopup.h
-                },
-                onpress: () => {
-                },
-                children,
-                $$slots: { default: true }
-              });
-            }
-            $$payload3.out += `<!----> <!--[-->`;
-            for (let index = 0, $$length = each_array.length; index < $$length; index++) {
-              let option = each_array[index];
-              const selected = stateUi.autoSpinsText === option;
-              {
-                let children = function($$payload4, { center, hovered, pressed }) {
-                  Container($$payload4, {
-                    x: center.x,
-                    y: center.y,
-                    scale: buttonScale(pressed, hovered),
-                    children: ($$payload5) => {
-                      Graphics($$payload5, {
-                        draw: (g) => {
-                          drawChoiceChip(g, AUTO_CHOICE.w, AUTO_CHOICE.h, selected && autoSpinArmed || hovered, ACTIVE_PURPLE);
-                          if (hovered) drawPanelHoverStroke(g, AUTO_CHOICE.w, AUTO_CHOICE.h, 14);
-                        }
-                      });
-                      $$payload5.out += `<!----> `;
-                      if (option === INFINITY_MARK) {
-                        $$payload5.out += "<!--[-->";
-                        Graphics($$payload5, {
-                          draw: (g) => drawInfinityIcon(g, 44, selected && autoSpinArmed)
-                        });
-                      } else {
-                        $$payload5.out += "<!--[!-->";
-                        Text($$payload5, {
-                          anchor: 0.5,
-                          text: displayAutoSpinText(option),
-                          style: {
-                            fontFamily: BAR_FONT,
-                            fontWeight: "800",
-                            fontSize: AUTO_CHOICE.fontSize,
-                            fill: 16777215,
-                            dropShadow: {
-                              color: 0,
-                              blur: 3,
-                              distance: 1,
-                              alpha: 0.7
-                            }
-                          }
-                        });
-                      }
-                      $$payload5.out += `<!--]-->`;
-                    },
-                    $$slots: { default: true }
-                  });
-                };
-                Button($$payload3, {
-                  x: index % 3 * AUTO_CHOICE.gapX - AUTO_CHOICE.gapX,
-                  y: Math.floor(index / 3) * AUTO_CHOICE.gapY - AUTO_CHOICE.gapY / 2,
-                  anchor: 0.5,
-                  sizes: { width: AUTO_CHOICE.w, height: AUTO_CHOICE.h },
-                  onpress: () => toggleAutoSpinChoice(option),
-                  children,
-                  $$slots: { default: true }
-                });
-              }
-            }
-            $$payload3.out += `<!--]-->`;
-          },
-          $$slots: { default: true }
-        });
-      } else {
+      {
         $$payload2.out += "<!--[!-->";
       }
       $$payload2.out += `<!--]--> `;
-      if (showBetPopup) {
-        $$payload2.out += "<!--[-->";
-        Container($$payload2, {
-          x: responsive.betPopup.x,
-          y: responsive.betPopup.y,
-          scale: responsive.betPopup.scale,
-          zIndex: 46,
-          children: ($$payload3) => {
-            const firstBetOptionIndex = responsive.betPopup.scrollRow * responsive.betPopup.columns;
-            Graphics($$payload3, {
-              draw: (g) => drawPopoverPanel(g, responsive.betPopup.w, responsive.betPopup.h, 24, false)
-            });
-            $$payload3.out += `<!----> `;
-            {
-              let children = function($$payload4, { center }) {
-                Rectangle$1($$payload4, {
-                  anchor: 0.5,
-                  x: center.x,
-                  y: center.y,
-                  width: responsive.betPopup.w,
-                  height: responsive.betPopup.h,
-                  backgroundAlpha: 1e-3
-                });
-              };
-              Button($$payload3, {
-                anchor: 0.5,
-                sizes: {
-                  width: responsive.betPopup.w,
-                  height: responsive.betPopup.h
-                },
-                onpress: () => {
-                },
-                children,
-                $$slots: { default: true }
-              });
-            }
-            $$payload3.out += `<!----> `;
-            Container($$payload3, {
-              eventMode: responsive.betPopup.maxScrollRow > 0 ? "static" : "passive",
-              cursor: responsive.betPopup.maxScrollRow > 0 ? betScrollDragging ? "grabbing" : "grab" : "default",
-              onpointerdown: startBetScrollDrag,
-              onglobalpointermove: updateBetScrollDrag,
-              onpointerup: stopBetScrollDrag,
-              onpointerupoutside: stopBetScrollDrag,
-              onwheel: wheelBetOptions,
-              children: ($$payload4) => {
-                const each_array_1 = ensure_array_like(options.slice(firstBetOptionIndex, firstBetOptionIndex + responsive.betPopup.visibleRows * responsive.betPopup.columns));
-                Graphics($$payload4, {
-                  isMask: true,
-                  draw: (g) => {
-                    g.roundRect(-responsive.betPopup.w / 2 + BET_POPUP_PADDING.x * 0.55, -responsive.betPopup.h / 2 + BET_POPUP_PADDING.y * 0.6, responsive.betPopup.w - BET_POPUP_PADDING.x * 1.1, responsive.betPopup.h - BET_POPUP_PADDING.y * 1.2, 18).fill({ color: 16777215, alpha: 1 });
-                  }
-                });
-                $$payload4.out += `<!----> <!--[-->`;
-                for (let index = 0, $$length = each_array_1.length; index < $$length; index++) {
-                  let option = each_array_1[index];
-                  const selected = stateBet$1.betAmount === option;
-                  const optionText = numberToCurrencyString(option);
-                  {
-                    let children = function($$payload5, { center, hovered, pressed }) {
-                      Container($$payload5, {
-                        x: center.x,
-                        y: center.y,
-                        scale: buttonScale(pressed, hovered),
-                        children: ($$payload6) => {
-                          Graphics($$payload6, {
-                            draw: (g) => {
-                              drawChoiceChip(g, BET_CHOICE.w, BET_CHOICE.h, selected || hovered, 16167482);
-                              if (hovered) drawPanelHoverStroke(g, BET_CHOICE.w, BET_CHOICE.h, 14);
-                            }
-                          });
-                          $$payload6.out += `<!----> `;
-                          Text($$payload6, {
-                            anchor: 0.5,
-                            text: optionText,
-                            style: {
-                              fontFamily: BAR_FONT,
-                              fontWeight: "850",
-                              fontSize: choiceFontSize(optionText, BET_CHOICE.w, BET_CHOICE.fontSize, 14),
-                              fill: 16777215,
-                              dropShadow: {
-                                color: 0,
-                                blur: 3,
-                                distance: 1,
-                                alpha: 0.75
-                              }
-                            }
-                          });
-                          $$payload6.out += `<!---->`;
-                        },
-                        $$slots: { default: true }
-                      });
-                    };
-                    Button($$payload4, {
-                      x: index % responsive.betPopup.columns * BET_CHOICE.gapX - (responsive.betPopup.columns - 1) * BET_CHOICE.gapX / 2,
-                      y: Math.floor(index / responsive.betPopup.columns) * BET_CHOICE.gapY - (responsive.betPopup.visibleRows - 1) * BET_CHOICE.gapY / 2,
-                      anchor: 0.5,
-                      sizes: { width: BET_CHOICE.w, height: BET_CHOICE.h },
-                      onpress: () => chooseBetAmount(option),
-                      children,
-                      $$slots: { default: true }
-                    });
-                  }
-                }
-                $$payload4.out += `<!--]-->`;
-              },
-              $$slots: { default: true }
-            });
-            $$payload3.out += `<!----> `;
-            if (responsive.betPopup.maxScrollRow > 0) {
-              $$payload3.out += "<!--[-->";
-              Graphics($$payload3, {
-                draw: (g) => {
-                  const trackH = responsive.betPopup.h - 82;
-                  const trackX = responsive.betPopup.w / 2 - 23;
-                  const trackY = -trackH / 2;
-                  const knobH = Math.max(42, trackH * (responsive.betPopup.visibleRows / responsive.betPopup.rows));
-                  const knobTravel = Math.max(0, trackH - knobH);
-                  const knobY = trackY + knobH / 2 + knobTravel * (responsive.betPopup.scrollRow / responsive.betPopup.maxScrollRow);
-                  g.roundRect(trackX - 5, trackY, 10, trackH, 5).fill({ color: 16777215, alpha: 0.22 });
-                  g.roundRect(trackX - 3, trackY + 2, 6, trackH - 4, 3).fill({ color: 1120298, alpha: 0.72 });
-                  g.roundRect(trackX - 7, knobY - knobH / 2, 14, knobH, 7).fill({ color: 16167482, alpha: 0.94 });
-                  g.roundRect(trackX - 7, knobY - knobH / 2, 14, knobH, 7).stroke({ width: 1.2, color: 16777215, alpha: 0.52 });
-                }
-              });
-            } else {
-              $$payload3.out += "<!--[!-->";
-            }
-            $$payload3.out += `<!--]-->`;
-          },
-          $$slots: { default: true }
-        });
-      } else {
+      {
         $$payload2.out += "<!--[!-->";
       }
       $$payload2.out += `<!--]--> `;
-      if (stateUi.menuOpen) {
-        $$payload2.out += "<!--[-->";
-        Container($$payload2, {
-          x: responsive.menuPopup.x,
-          y: responsive.menuPopup.y,
-          scale: responsive.scale,
-          zIndex: 22,
-          children: ($$payload3) => {
-            const each_array_2 = ensure_array_like(menuVolumeSliders);
-            const each_array_3 = ensure_array_like(menuActions);
-            Graphics($$payload3, {
-              y: menuPopupPanel.centerY,
-              draw: (g) => drawPopoverPanel(g, menuPopupPanel.w, menuPopupPanel.h, 22, false)
-            });
-            $$payload3.out += `<!----> `;
-            {
-              let children = function($$payload4, { center }) {
-                Rectangle$1($$payload4, {
-                  anchor: 0.5,
-                  x: center.x,
-                  y: center.y,
-                  width: menuPopupPanel.w,
-                  height: menuPopupPanel.h,
-                  backgroundAlpha: 1e-3
-                });
-              };
-              Button($$payload3, {
-                y: menuPopupPanel.centerY,
-                anchor: 0.5,
-                sizes: {
-                  width: menuPopupPanel.w,
-                  height: menuPopupPanel.h
-                },
-                onpress: () => {
-                },
-                children,
-                $$slots: { default: true }
-              });
-            }
-            $$payload3.out += `<!----> <!--[-->`;
-            for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
-              let slider = each_array_2[$$index_2];
-              const value = slider.key === "music" ? stateSound.volumeValueMusic : stateSound.volumeValueSoundEffect;
-              Container($$payload3, {
-                y: slider.y,
-                eventMode: "static",
-                alpha: hoveredSlider === slider.key || volumeSliderDragging === slider.key ? 1 : 0.72,
-                cursor: volumeSliderDragging === slider.key ? "grabbing" : "pointer",
-                onpointerover: () => hoveredSlider = slider.key,
-                onpointerout: () => hoveredSlider = null,
-                onpointerdown: (event2) => startVolumeSliderDrag(slider.key, event2),
-                onglobalpointermove: updateVolumeSliderDrag,
-                onpointerup: stopVolumeSliderDrag,
-                onpointerupoutside: stopVolumeSliderDrag,
-                children: ($$payload4) => {
-                  Rectangle$1($$payload4, {
-                    anchor: 0.5,
-                    x: MENU_SLIDER.trackX,
-                    width: MENU_SLIDER.w + 38,
-                    height: MENU_SLIDER.h,
-                    backgroundAlpha: 1e-3
-                  });
-                  $$payload4.out += `<!----> `;
-                  Text($$payload4, {
-                    anchor: { x: 0, y: 0.5 },
-                    x: MENU_SLIDER.labelX,
-                    text: slider.label,
-                    style: {
-                      fontFamily: BAR_FONT,
-                      fontWeight: "850",
-                      fontSize: MENU_SLIDER.labelFontSize,
-                      fill: 16777215,
-                      dropShadow: {
-                        color: 0,
-                        blur: 3,
-                        distance: 1,
-                        alpha: 0.75
-                      }
-                    }
-                  });
-                  $$payload4.out += `<!----> `;
-                  Graphics($$payload4, {
-                    x: MENU_SLIDER.trackX,
-                    draw: (g) => drawVolumeSlider(g, value)
-                  });
-                  $$payload4.out += `<!---->`;
-                },
-                $$slots: { default: true }
-              });
-            }
-            $$payload3.out += `<!--]--> <!--[-->`;
-            for (let $$index_3 = 0, $$length = each_array_3.length; $$index_3 < $$length; $$index_3++) {
-              let item = each_array_3[$$index_3];
-              {
-                let children = function($$payload4, { center, hovered, pressed }) {
-                  Container($$payload4, {
-                    x: center.x,
-                    y: center.y,
-                    scale: buttonScale(pressed, hovered),
-                    alpha: hovered ? 1 : 0.72,
-                    children: ($$payload5) => {
-                      Graphics($$payload5, {
-                        x: MENU_ACTION_BUTTON.iconX,
-                        draw: (g) => icons[item.icon](g, MENU_ACTION_BUTTON.iconSize, 16777215)
-                      });
-                      $$payload5.out += `<!----> `;
-                      Text($$payload5, {
-                        anchor: { x: 0, y: 0.5 },
-                        x: MENU_ACTION_BUTTON.labelX,
-                        text: item.label,
-                        style: {
-                          fontFamily: BAR_FONT,
-                          fontWeight: "850",
-                          fontSize: MENU_ACTION_BUTTON.fontSize,
-                          fill: 16777215,
-                          dropShadow: {
-                            color: 0,
-                            blur: 3,
-                            distance: 1,
-                            alpha: 0.75
-                          }
-                        }
-                      });
-                      $$payload5.out += `<!---->`;
-                    },
-                    $$slots: { default: true }
-                  });
-                };
-                Button($$payload3, {
-                  y: item.y,
-                  anchor: 0.5,
-                  sizes: {
-                    width: MENU_ACTION_BUTTON.w,
-                    height: MENU_ACTION_BUTTON.h
-                  },
-                  onpress: item.onpress,
-                  children,
-                  $$slots: { default: true }
-                });
-              }
-            }
-            $$payload3.out += `<!--]-->`;
-          },
-          $$slots: { default: true }
-        });
-      } else {
+      {
         $$payload2.out += "<!--[!-->";
       }
       $$payload2.out += `<!--]--> `;
@@ -21218,6 +20822,8 @@ function BuyBonusModal($$payload, $$props) {
     $$payload.out += "<!--[-->";
     Popup($$payload, {
       zIndex: zIndex.modal,
+      closeOnEscape: false,
+      closeOnOutside: false,
       onclose: close,
       children: ($$payload2) => {
         const each_array = ensure_array_like(cards);
@@ -21460,7 +21066,7 @@ function AbyssalLoader($$payload, $$props) {
     previousCard: i18nDerived.loaderPreviousCard(),
     nextCard: i18nDerived.loaderNextCard()
   };
-  const backgroundUrl = new URL("../../assets/background/background-base.png", import.meta.url).href;
+  const backgroundUrl = new URL("../../assets/background/base.webp", import.meta.url).href;
   new URL("../../assets/fonts/Cinzel/Cinzel-VariableFont_wght.ttf", import.meta.url).href;
   const cards = [
     {

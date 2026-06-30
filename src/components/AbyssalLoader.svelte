@@ -38,7 +38,7 @@
 	// Stake's sub-path deploy and file:// (a root-absolute `/assets/...` would 403). Keep each
 	// argument a static literal — that's the form Vite leaves as a runtime resolve. Same form as
 	// game/assets.ts.
-	const backgroundUrl = new URL('../../assets/background/background-base.png', import.meta.url).href;
+	const backgroundUrl = new URL('../../assets/background/base.webp', import.meta.url).href;
 	const cinzelFontUrl = new URL(
 		'../../assets/fonts/Cinzel/Cinzel-VariableFont_wght.ttf',
 		import.meta.url,

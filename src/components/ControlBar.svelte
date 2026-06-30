@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { type FederatedPointerEvent, type FederatedWheelEvent } from 'pixi.js';
+	import { Tween } from 'svelte/motion';
+	import { cubicIn, cubicOut } from 'svelte/easing';
 
 	import { Button } from 'components-pixi';
 	import { OnHotkey } from 'components-shared';
@@ -31,8 +33,19 @@
 	const AUTO_CHOICE = { w: 90, h: 48, gapX: 108, gapY: 58, fontSize: 18 };
 	const BET_CHOICE = { w: 150, h: 62, gapX: 178, gapY: 82, fontSize: 26 };
 	const BET_POPUP_SCROLL_ROWS = { popout: 3, tiny: 2 };
-	const ACTIVE_PURPLE = 0x9b5cff;
-	const ACTIVE_PURPLE_BRIGHT = 0xc9a7ff;
+	const ACTIVE_ACCENT = 0xff4f57;
+	const ACTIVE_ACCENT_BRIGHT = 0xfff0dc;
+	const GLASS = {
+		bg: 0x081c2a,
+		bgDeep: 0x030912,
+		bgHover: 0x0c2e44,
+		border: 0xe1faff,
+		borderSoft: 0x9eefff,
+		glow: 0x5adcff,
+		glowStrong: 0x5febff,
+		shadow: 0x000812,
+		textDim: 0xdff8ff,
+	} as const;
 	const MENU_SLIDER = { w: 124, h: 34, labelX: -100, trackX: 40, labelFontSize: 18 };
 	const MENU_POPUP_PANEL = { w: 290, h: 248, centerY: -92 };
 	const MENU_ACTION_BUTTON = { w: 232, h: 56, iconX: -82, labelX: -42, iconSize: 38, fontSize: 20 };
@@ -41,6 +54,9 @@
 
 	let showAutoPopup = $state(false);
 	let showBetPopup = $state(false);
+	let renderAutoPopup = $state(false);
+	let renderBetPopup = $state(false);
+	let renderMenuPopup = $state(false);
 	let autoSpinArmed = $state(false);
 	let betScrollRow = $state(0);
 	let betScrollDragging = $state(false);
@@ -49,6 +65,15 @@
 	let betScrollDragStartRow = $state(0);
 	let volumeSliderDragging = $state<'music' | 'sfx' | null>(null);
 	let hoveredSlider = $state<'music' | 'sfx' | null>(null);
+	let autoPopupMotionId = 0;
+	let betPopupMotionId = 0;
+	let menuPopupMotionId = 0;
+
+	const POPUP_OPEN = { duration: 180, easing: cubicOut };
+	const POPUP_CLOSE = { duration: 130, easing: cubicIn };
+	const autoPopupFx = new Tween(0, { duration: 1 });
+	const betPopupFx = new Tween(0, { duration: 1 });
+	const menuPopupFx = new Tween(0, { duration: 1 });
 
 	const LEFT_BOUNDS = { minX: -56, maxX: 335, minY: -215, maxY: 56 };
 	const RIGHT_BOUNDS = { minX: -180, maxX: 196, minY: -243, maxY: 50 };
@@ -87,6 +112,24 @@
 	const betButtonOffset = $derived(Math.max(116, betPanelWidth / 2 - 42));
 	const options = $derived([...stateConfig.betAmountOptions].sort((a, b) => a - b));
 	const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+	const popupAlpha = (progress: number) => clamp(progress, 0, 1);
+	const popupScale = (progress: number) => 0.92 + popupAlpha(progress) * 0.08;
+	const popupLift = (progress: number) => (1 - popupAlpha(progress)) * 14;
+	const playPopupMotion = async (
+		open: boolean,
+		tween: Tween<number>,
+		setRendered: (value: boolean) => void,
+		token: number,
+		currentToken: () => number,
+	) => {
+		if (open) {
+			setRendered(true);
+			await tween.set(1, POPUP_OPEN);
+			return;
+		}
+		await tween.set(0, POPUP_CLOSE);
+		if (token === currentToken()) setRendered(false);
+	};
 	const betPopupSize = (columns: number, maxVisibleRows: number) => {
 		const rows = Math.max(1, Math.ceil(options.length / columns));
 		const visibleRows = Math.min(maxVisibleRows, rows);
@@ -342,6 +385,37 @@
 
 	const spinning = $derived(!isIdle);
 
+	$effect(() => {
+		const token = ++autoPopupMotionId;
+		void playPopupMotion(
+			showAutoPopup,
+			autoPopupFx,
+			(value) => (renderAutoPopup = value),
+			token,
+			() => autoPopupMotionId,
+		);
+	});
+	$effect(() => {
+		const token = ++betPopupMotionId;
+		void playPopupMotion(
+			showBetPopup,
+			betPopupFx,
+			(value) => (renderBetPopup = value),
+			token,
+			() => betPopupMotionId,
+		);
+	});
+	$effect(() => {
+		const token = ++menuPopupMotionId;
+		void playPopupMotion(
+			stateUi.menuOpen,
+			menuPopupFx,
+			(value) => (renderMenuPopup = value),
+			token,
+			() => menuPopupMotionId,
+		);
+	});
+
 	const press = (fn: () => void) => {
 		context.eventEmitter.broadcast({ type: 'soundPressGeneral' });
 		fn();
@@ -539,16 +613,26 @@
 		fontFamily: BAR_FONT,
 		fontWeight: '800',
 		fontSize: 17,
-		fill: 0xf0a43a,
+		fill: GLASS.textDim,
 		letterSpacing: 0.8,
-		dropShadow: { color: 0x000000, blur: 4, distance: 2, alpha: 0.8 },
+		dropShadow: { color: GLASS.shadow, blur: 4, distance: 2, alpha: 0.8 },
 	};
 	const valueStyle = {
 		fontFamily: BAR_FONT,
 		fontWeight: '900',
 		fontSize: 36,
 		fill: 0xffffff,
-		dropShadow: { color: 0x000000, blur: 4, distance: 2, alpha: 0.8 },
+		dropShadow: { color: GLASS.shadow, blur: 6, distance: 2, alpha: 0.78 },
+	};
+	const readoutLabelStyle = {
+		...labelStyle,
+		fill: 0xffd7b0,
+		dropShadow: { color: 0x2a0710, blur: 5, distance: 2, alpha: 0.82 },
+	};
+	const readoutValueStyle = {
+		...valueStyle,
+		fill: 0xffffff,
+		dropShadow: { color: 0x2a0710, blur: 7, distance: 2, alpha: 0.82 },
 	};
 	const buttonScale = (
 		pressed: boolean,
@@ -596,19 +680,37 @@
 		radius = 24,
 		active = false,
 	) => {
-		g.roundRect(-w / 2 + 9, -h / 2 + 14, w, h, radius).fill({
-			color: 0x000000,
-			alpha: active ? 0.32 : 0.26,
+		const hoverBoost = active ? 1 : 0;
+		g.roundRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8, radius + 4).stroke({
+			width: active ? 7 : 5,
+			color: GLASS.glow,
+			alpha: active ? 0.2 : 0.1,
 		});
-		g.roundRect(-w / 2, -h / 2, w, h, radius).fill({ color: 0x030405, alpha: active ? 0.5 : 0.4 });
+		g.roundRect(-w / 2, -h / 2, w, h, radius).fill({
+			color: active ? GLASS.bgHover : GLASS.bg,
+			alpha: active ? 0.48 : 0.34,
+		});
+		g.roundRect(-w / 2, -h / 2 + h * 0.42, w, h * 0.58, radius).fill({
+			color: GLASS.bgDeep,
+			alpha: 0.3,
+		});
 		g.roundRect(-w / 2, -h / 2, w, h * 0.5, radius).fill({
 			color: 0xffffff,
-			alpha: active ? 0.08 : 0.045,
+			alpha: 0.06 + hoverBoost * 0.08,
+		});
+		g.roundRect(-w / 2 + 7, -h / 2 + 6, w - 14, h * 0.34, Math.max(6, radius - 7)).fill({
+			color: 0xffffff,
+			alpha: 0.035 + hoverBoost * 0.055,
 		});
 		g.roundRect(-w / 2, -h / 2, w, h, radius).stroke({
-			width: active ? 1.8 : 1.4,
+			width: active ? 2 : 1.5,
+			color: GLASS.border,
+			alpha: active ? 0.88 : 0.62,
+		});
+		g.roundRect(-w / 2 + 4, -h / 2 + 4, w - 8, h - 8, Math.max(4, radius - 5)).stroke({
+			width: 1.1,
 			color: 0xffffff,
-			alpha: active ? 0.64 : 0.36,
+			alpha: active ? 0.3 : 0.18,
 		});
 	};
 
@@ -619,30 +721,27 @@
 		radius = 20,
 		showArrow = true,
 	) => {
-		g.roundRect(-w / 2 + 10, -h / 2 + 16, w, h, radius).fill({
-			color: 0x000000,
-			alpha: 0.64,
+		g.roundRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8, radius + 4).stroke({
+			width: 5,
+			color: GLASS.glow,
+			alpha: 0.12,
 		});
-		g.roundRect(-w / 2, -h / 2, w, h, radius).fill({ color: 0x070914, alpha: 0.96 });
-		g.roundRect(-w / 2, -h / 2, w, h * 0.48, radius).fill({ color: 0x2d3960, alpha: 0.36 });
-		g.roundRect(-w / 2 + 8, -h / 2 + 8, w - 16, h - 16, radius - 6).fill({
-			color: 0x02050d,
-			alpha: 0.72,
-		});
+		g.roundRect(-w / 2, -h / 2, w, h, radius).fill({ color: GLASS.bg, alpha: 0.74 });
+		g.roundRect(-w / 2, -h / 2, w, h * 0.48, radius).fill({ color: 0xffffff, alpha: 0.08 });
 		g.roundRect(-w / 2, -h / 2, w, h, radius).stroke({
 			width: 2,
-			color: 0xffffff,
-			alpha: 0.62,
+			color: GLASS.border,
+			alpha: 0.72,
 		});
 		if (!showArrow) return;
 		g.poly([-16, h / 2 - 2, 16, h / 2 - 2, 0, h / 2 + 14], true).fill({
-			color: 0x070914,
-			alpha: 0.96,
+			color: GLASS.bg,
+			alpha: 0.74,
 		});
 		g.poly([-16, h / 2 - 2, 16, h / 2 - 2, 0, h / 2 + 14], true).stroke({
 			width: 1.2,
-			color: 0xffffff,
-			alpha: 0.34,
+			color: GLASS.border,
+			alpha: 0.4,
 			join: 'round',
 		});
 	};
@@ -653,12 +752,12 @@
 		g.roundRect(-w / 2 - 2, -h / 2 - 2, w + 4, h + 4, 22).stroke({
 			width: 6,
 			color,
-			alpha: 0.22,
+			alpha: 0.36,
 		});
 		g.roundRect(-w / 2 + 1, -h / 2 + 1, w - 2, h - 2, 20).stroke({
 			width: 2.8,
 			color,
-			alpha: 0.92,
+			alpha: 0.95,
 		});
 	};
 	const drawPanelAccentRing = (
@@ -671,7 +770,7 @@
 		g.roundRect(-w / 2 - 2, -h / 2 - 2, w + 4, h + 4, radius + 2).stroke({
 			width: 6,
 			color,
-			alpha: 0.2,
+			alpha: 0.24,
 		});
 		g.roundRect(-w / 2 + 1, -h / 2 + 1, w - 2, h - 2, radius - 2).stroke({
 			width: 2.4,
@@ -685,10 +784,15 @@
 		h: number,
 		radius = 24,
 	) => {
+		g.roundRect(-w / 2 - 5, -h / 2 - 5, w + 10, h + 10, radius + 5).stroke({
+			width: 6,
+			color: GLASS.glow,
+			alpha: 0.28,
+		});
 		g.roundRect(-w / 2, -h / 2, w, h, radius).stroke({
 			width: 2.8,
-			color: 0xf0a43a,
-			alpha: 0.94,
+			color: GLASS.border,
+			alpha: 0.96,
 		});
 	};
 	const drawButtonHoverStroke = (g: import('pixi.js').Graphics, size: number) => {
@@ -703,32 +807,33 @@
 		accent = 0xf6b23a,
 	) => {
 		const radius = Math.min(14, h * 0.28);
-		g.roundRect(-w / 2 + 5, -h / 2 + 7, w, h, radius).fill({
-			color: 0x000000,
-			alpha: selected ? 0.42 : 0.34,
+		g.roundRect(-w / 2 - 2, -h / 2 - 2, w + 4, h + 4, radius + 2).stroke({
+			width: 4,
+			color: selected ? accent : GLASS.glow,
+			alpha: selected ? 0.16 : 0.08,
 		});
 		g.roundRect(-w / 2, -h / 2, w, h, radius).fill({
-			color: selected ? accent : 0x030405,
-			alpha: selected ? 0.3 : 0.36,
+			color: selected ? accent : GLASS.bg,
+			alpha: selected ? 0.24 : 0.38,
 		});
 		g.roundRect(-w / 2 + 7, -h / 2 + 7, w - 14, h - 14, Math.max(6, radius - 6)).fill({
-			color: 0x000000,
-			alpha: selected ? 0.18 : 0.12,
+			color: GLASS.bgDeep,
+			alpha: selected ? 0.24 : 0.18,
 		});
 		g.roundRect(-w / 2, -h / 2, w, h * 0.52, radius).fill({
 			color: 0xffffff,
-			alpha: selected ? 0.14 : 0.06,
+			alpha: selected ? 0.18 : 0.08,
 		});
 		g.roundRect(-w / 2, -h / 2, w, h, radius).stroke({
 			width: selected ? 2.1 : 1.35,
-			color: selected ? accent : 0xffffff,
-			alpha: selected ? 0.88 : 0.36,
+			color: selected ? accent : GLASS.border,
+			alpha: selected ? 0.88 : 0.52,
 		});
 		if (!selected) return;
 		g.roundRect(-w / 2 - 2, -h / 2 - 2, w + 4, h + 4, radius + 2).stroke({
-			width: 4,
+			width: 2.4,
 			color: accent,
-			alpha: 0.16,
+			alpha: 0.34,
 		});
 	};
 	const drawInfinityIcon = (g: import('pixi.js').Graphics, size: number, selected = false) => {
@@ -757,10 +862,6 @@
 		const w = size;
 		const h = size * 0.86;
 		drawGlassPanel(g, w, h, 20, active);
-		g.roundRect(-w / 2 + 9, -h / 2 + 9, w - 18, h - 18, 15).fill({
-			color: 0x000000,
-			alpha: disabled ? 0.12 : active ? 0.18 : 0.14,
-		});
 	};
 
 	const drawVolumeSlider = (g: import('pixi.js').Graphics, value: number) => {
@@ -770,41 +871,25 @@
 		const knobX = trackLeft + filledW;
 
 		g.roundRect(trackLeft, -6, MENU_SLIDER.w, 12, 6).fill({
-			color: 0x000000,
+			color: GLASS.shadow,
 			alpha: 0.48,
 		});
 		g.roundRect(trackLeft, -5, MENU_SLIDER.w, 10, 5).fill({
-			color: 0x1d2740,
-			alpha: 0.9,
+			color: GLASS.bgDeep,
+			alpha: 0.78,
 		});
 		if (filledW > 0) {
 			g.roundRect(trackLeft, -5, Math.max(10, filledW), 10, 5).fill({
-				color: 0xf0a43a,
+				color: GLASS.glowStrong,
 				alpha: 0.95,
 			});
 		}
-		g.circle(knobX, 0, 15).fill({ color: 0x070914, alpha: 1 });
+		g.circle(knobX, 0, 15).fill({ color: GLASS.bg, alpha: 0.95 });
 		g.circle(knobX, 0, 11).fill({ color: 0xffffff, alpha: 0.94 });
-		g.circle(knobX, 0, 16).stroke({ width: 1.8, color: 0xf0a43a, alpha: 0.72 });
+		g.circle(knobX, 0, 16).stroke({ width: 1.8, color: GLASS.border, alpha: 0.72 });
 	};
 
 	const drawMenuButton = (g: import('pixi.js').Graphics, size: number, active = false) => {
-		if (active) {
-			const w = size * 1.08;
-			const h = size * 0.96;
-			g.roundRect(-w / 2 + 8, -h / 2 + 12, w, h, 24).fill({
-				color: 0x000000,
-				alpha: 0.38,
-			});
-			g.roundRect(-w / 2, -h / 2, w, h, 24).fill({
-				color: 0x0a1020,
-				alpha: 0.78,
-			});
-			g.roundRect(-w / 2 + 8, -h / 2 + 8, w - 16, h - 16, 18).fill({
-				color: 0xf0a43a,
-				alpha: 0.12,
-			});
-		}
 		drawRoundButton(g, size, active);
 	};
 
@@ -874,12 +959,12 @@
 			{#snippet children({ center })}
 				<Container x={center.x} y={center.y} scale={responsive.controls.balanceScale}>
 					<Graphics draw={(g) => drawGlassPanel(g, balancePanelWidth, HUD.left.balance.h, 22)} />
-					<Text anchor={0.5} y={-25} text="BALANCE" style={labelStyle} />
+					<Text anchor={0.5} y={-25} text="BALANCE" style={readoutLabelStyle} />
 					<Text
 						anchor={0.5}
 						y={18}
 						text={balanceText}
-						style={{ ...valueStyle, fontSize: balanceValueFontSize }}
+						style={{ ...readoutValueStyle, fontSize: balanceValueFontSize }}
 					/>
 				</Container>
 			{/snippet}
@@ -975,7 +1060,7 @@
 						draw={(g) => {
 							drawRoundButton(g, HUD.right.autoplay.size, autoIndicatorActive || hovered);
 							if (autoIndicatorActive) {
-								drawButtonAccentRing(g, HUD.right.autoplay.size, ACTIVE_PURPLE);
+								drawButtonAccentRing(g, HUD.right.autoplay.size, ACTIVE_ACCENT);
 							}
 							if (hovered && !autoDisabled) drawButtonHoverStroke(g, HUD.right.autoplay.size);
 						}}
@@ -985,7 +1070,7 @@
 							drawControlGlyph(g, 'autoplay', responsive.controls.autoGlyph, {
 								active: autoIndicatorActive,
 								disabled: autoDisabled,
-								color: autoIndicatorActive ? ACTIVE_PURPLE_BRIGHT : 0xffffff,
+								color: autoIndicatorActive ? ACTIVE_ACCENT_BRIGHT : 0xffffff,
 							})}
 					/>
 				</Container>
@@ -1014,7 +1099,7 @@
 					<Graphics
 						draw={(g) => {
 							drawRoundButton(g, HUD.right.turbo.size, stateBet.isTurbo || hovered);
-							if (stateBet.isTurbo) drawButtonAccentRing(g, HUD.right.turbo.size, ACTIVE_PURPLE);
+							if (stateBet.isTurbo) drawButtonAccentRing(g, HUD.right.turbo.size, ACTIVE_ACCENT);
 							if (hovered && !turboDisabled) drawButtonHoverStroke(g, HUD.right.turbo.size);
 						}}
 					/>
@@ -1023,7 +1108,7 @@
 							drawControlGlyph(g, 'turbo', responsive.controls.turboGlyph, {
 								active: stateBet.isTurbo,
 								disabled: turboDisabled,
-								color: stateBet.isTurbo ? ACTIVE_PURPLE_BRIGHT : 0xffffff,
+								color: stateBet.isTurbo ? ACTIVE_ACCENT_BRIGHT : 0xffffff,
 							})}
 					/>
 				</Container>
@@ -1107,12 +1192,12 @@
 								if (hovered && isIdle) drawPanelHoverStroke(g, betPanelWidth, HUD.right.bet.h, 22);
 							}}
 						/>
-						<Text anchor={0.5} y={-28} text={betLabelText} style={labelStyle} />
+						<Text anchor={0.5} y={-28} text={betLabelText} style={readoutLabelStyle} />
 						<Text
 							anchor={0.5}
 							y={16}
 							text={betText}
-							style={{ ...valueStyle, fontSize: betValueFontSize }}
+							style={{ ...readoutValueStyle, fontSize: betValueFontSize }}
 						/>
 					</Container>
 				{/snippet}
@@ -1178,11 +1263,12 @@
 		</Container>
 	</Container>
 
-	{#if showAutoPopup}
+	{#if renderAutoPopup}
 		<Container
 			x={responsive.autoPopup.x}
-			y={responsive.autoPopup.y}
-			scale={responsive.autoPopup.scale}
+			y={responsive.autoPopup.y + popupLift(autoPopupFx.current)}
+			scale={responsive.autoPopup.scale * popupScale(autoPopupFx.current)}
+			alpha={popupAlpha(autoPopupFx.current)}
 			zIndex={45}
 		>
 			<Graphics
@@ -1223,7 +1309,7 @@
 										AUTO_CHOICE.w,
 										AUTO_CHOICE.h,
 										(selected && autoSpinArmed) || hovered,
-										ACTIVE_PURPLE,
+										GLASS.glowStrong,
 									);
 									if (hovered) drawPanelHoverStroke(g, AUTO_CHOICE.w, AUTO_CHOICE.h, 14);
 								}}
@@ -1250,11 +1336,12 @@
 		</Container>
 	{/if}
 
-	{#if showBetPopup}
+	{#if renderBetPopup}
 		<Container
 			x={responsive.betPopup.x}
-			y={responsive.betPopup.y}
-			scale={responsive.betPopup.scale}
+			y={responsive.betPopup.y + popupLift(betPopupFx.current)}
+			scale={responsive.betPopup.scale * popupScale(betPopupFx.current)}
+			alpha={popupAlpha(betPopupFx.current)}
 			zIndex={46}
 		>
 			<Graphics
@@ -1319,7 +1406,7 @@
 							<Container x={center.x} y={center.y} scale={buttonScale(pressed, hovered)}>
 								<Graphics
 									draw={(g) => {
-										drawChoiceChip(g, BET_CHOICE.w, BET_CHOICE.h, selected || hovered, 0xf6b23a);
+										drawChoiceChip(g, BET_CHOICE.w, BET_CHOICE.h, selected || hovered, 0xffffff);
 										if (hovered) drawPanelHoverStroke(g, BET_CHOICE.w, BET_CHOICE.h, 14);
 									}}
 								/>
@@ -1374,11 +1461,12 @@
 		</Container>
 	{/if}
 
-	{#if stateUi.menuOpen}
+	{#if renderMenuPopup}
 		<Container
 			x={responsive.menuPopup.x}
-			y={responsive.menuPopup.y}
-			scale={responsive.scale}
+			y={responsive.menuPopup.y + popupLift(menuPopupFx.current)}
+			scale={responsive.scale * popupScale(menuPopupFx.current)}
+			alpha={popupAlpha(menuPopupFx.current)}
 			zIndex={22}
 		>
 			<Graphics
@@ -1453,6 +1541,12 @@
 							scale={buttonScale(pressed, hovered)}
 							alpha={hovered ? 1 : 0.72}
 						>
+							<Rectangle
+								anchor={0.5}
+								width={MENU_ACTION_BUTTON.w}
+								height={MENU_ACTION_BUTTON.h}
+								backgroundAlpha={0.001}
+							/>
 							<Graphics
 								x={MENU_ACTION_BUTTON.iconX}
 								draw={(g) => icons[item.icon](g, MENU_ACTION_BUTTON.iconSize, 0xffffff)}

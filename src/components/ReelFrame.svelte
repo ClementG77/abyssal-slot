@@ -35,14 +35,22 @@
 	const feature = $derived(context.stateGame.gameType === 'freegame');
 	const featureMix = new Tween(0, { duration: 620 });
 
-	const frame = $derived({
-		key: feature ? 'reelFrameFs' : 'reelFrameBase',
-		layout: context.stateGameDerived.reelLayout(),
-		glowColor: feature ? 0xff4d18 : 0x7f35ff,
-	});
+	const LAYER_KEYS = {
+		background: 'frame_background.png',
+		separator: 'frame_separator.png',
+		border: 'frame_border.png',
+	} as const;
+	const LAYER_SOURCE = {
+		background: { width: 494, height: 446 },
+		separator: { width: 10, height: 350 },
+		border: { width: 825, height: 524 },
+	} as const;
+	const BORDER_INNER_WINDOW = { x: 64, y: 43, width: 696, height: 443 } as const;
+	const BACKGROUND_BLEED = 8;
+	const frame = $derived({ glowColor: feature ? 0xff4d18 : 0x7f35ff });
 	const frameVariants = $derived([
-		{ key: 'reelFrameBase', layout: REEL_LAYOUT_BASE, alpha: 1 - featureMix.current },
-		{ key: 'reelFrameFs', layout: REEL_LAYOUT_FREE_SPINS, alpha: featureMix.current },
+		{ layout: REEL_LAYOUT_BASE, alpha: 1 - featureMix.current },
+		{ layout: REEL_LAYOUT_FREE_SPINS, alpha: featureMix.current },
 	]);
 
 	$effect(() => {
@@ -130,11 +138,29 @@
 	const getGlintX = (layout: ReelFrameLayout) =>
 		layout.gridX + ((t * 180) % Math.max(layout.gridWidth, 1));
 
-	const drawOverlayMask = (g: import('pixi.js').Graphics, layout: ReelFrameLayout) => {
-		g.rect(0, 0, layout.imageWidth, layout.imageHeight)
-			.fill(0xffffff)
-			.rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight)
-			.cut();
+	const getBorderPlacement = (layout: ReelFrameLayout) => {
+		const scaleX = layout.gridWidth / BORDER_INNER_WINDOW.width;
+		const scaleY = layout.gridHeight / BORDER_INNER_WINDOW.height;
+
+		return {
+			x: layout.gridX - BORDER_INNER_WINDOW.x * scaleX,
+			y: layout.gridY - BORDER_INNER_WINDOW.y * scaleY,
+			width: LAYER_SOURCE.border.width * scaleX,
+			height: LAYER_SOURCE.border.height * scaleY,
+		};
+	};
+
+	const getSeparatorPlacement = (layout: ReelFrameLayout, index: number) => {
+		const scale = layout.gridHeight / LAYER_SOURCE.separator.height;
+		const width = LAYER_SOURCE.separator.width * scale;
+		const columnWidth = layout.gridWidth / layout.columns;
+
+		return {
+			x: layout.gridX + columnWidth * (index + 1) - width / 2,
+			y: layout.gridY,
+			width,
+			height: layout.gridHeight,
+		};
 	};
 
 	const drawEffectMask = (g: import('pixi.js').Graphics, layout: ReelFrameLayout) => {
@@ -168,6 +194,13 @@
 	};
 
 	const drawDebugGrid = (g: import('pixi.js').Graphics, layout: ReelFrameLayout) => {
+		const border = getBorderPlacement(layout);
+
+		g.rect(border.x, border.y, border.width, border.height).stroke({
+			color: 0xffd36a,
+			width: 2,
+			alpha: 0.75,
+		});
 		g.rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight).stroke({
 			color: 0xff00ff,
 			width: 3,
@@ -206,19 +239,13 @@
 	>
 		{#if layer === 'background'}
 			<Sprite
-				key={variant.key}
-				width={variant.layout.imageWidth}
-				height={variant.layout.imageHeight}
+				key={LAYER_KEYS.background}
+				x={variant.layout.gridX - BACKGROUND_BLEED}
+				y={variant.layout.gridY - BACKGROUND_BLEED}
+				width={variant.layout.gridWidth + BACKGROUND_BLEED * 2}
+				height={variant.layout.gridHeight + BACKGROUND_BLEED * 2}
 			/>
 		{:else}
-			<Container>
-				<Graphics draw={(g) => drawOverlayMask(g, variant.layout)} isMask />
-				<Sprite
-					key={variant.key}
-					width={variant.layout.imageWidth}
-					height={variant.layout.imageHeight}
-				/>
-			</Container>
 			<Container>
 				<Graphics draw={(g) => drawEffectMask(g, variant.layout)} isMask />
 				<Graphics
@@ -234,6 +261,24 @@
 					blendMode="add"
 				/>
 			</Container>
+			{#each Array.from({ length: variant.layout.columns - 1 }) as _, index}
+				{@const separator = getSeparatorPlacement(variant.layout, index)}
+				<Sprite
+					key={LAYER_KEYS.separator}
+					x={separator.x}
+					y={separator.y}
+					width={separator.width}
+					height={separator.height}
+				/>
+			{/each}
+			{@const border = getBorderPlacement(variant.layout)}
+			<Sprite
+				key={LAYER_KEYS.border}
+				x={border.x}
+				y={border.y}
+				width={border.width}
+				height={border.height}
+			/>
 			{#if props.debug}
 				<Graphics draw={(g) => drawDebugGrid(g, variant.layout)} />
 			{/if}

@@ -44,25 +44,34 @@ export const REEL_FRAME_BASE_IMAGE_SIZE = { width: 1448, height: 1086 };
 // window is wider and taller, so it needs its own measured source-space grid below.
 export const REEL_FRAME_FREE_SPINS_IMAGE_SIZE = { width: 1448, height: 1086 };
 
-// Source dimensions and measured artwork bounds for the layered Gaze kit. Keeping these
-// coordinates in source-space fractions lets the component scale cleanly on desktop and mobile.
-export const GAZE_METER_IMAGE_SIZE = { width: 481, height: 1061 };
+// Source dimensions and measured artwork bounds for the finished Win/Gaze meter export.
+// Coordinates are kept as source-space fractions so the component scales cleanly on every viewport.
+export const GAZE_METER_IMAGE_SIZE = { width: 1254, height: 1254 };
 export const GAZE_METER_MAX_CHARGE = 10;
 export const GAZE_METER_MULTIPLIER_COLOR = 0xffe6a0;
 export const GAZE_METER_LAYOUT = {
 	imageWidth: GAZE_METER_IMAGE_SIZE.width,
 	imageHeight: GAZE_METER_IMAGE_SIZE.height,
-	// Transparent chamber that receives the code-rendered liquid and ten segment fills.
-	inner: { left: 0.245, right: 0.755, top: 0.285, bottom: 0.84, radius: 0.08 },
-	// The sliced Eye/FX artwork is deliberately untrimmed. These are its intended display
-	// coordinates in the frame, not the centre of the atlas cell.
-	eye: { x: 0.5, y: 0.13 },
-	// Bottom panel for the dynamic Gaze multiplier.
-	plaque: { x: 0.5, y: 0.915 },
+	visibleBounds: {
+		left: 449 / 1254,
+		top: 26 / 1254,
+		right: 804 / 1254,
+		bottom: 1228 / 1254,
+	},
+	// Recessed vertical track interior measured from static/assets/frame/gaze_sprite/winmeter.png.
+	trackSegments: [
+		{
+			left: 578 / 1254,
+			right: 676 / 1254,
+			top: 381 / 1254,
+			bottom: 970 / 1254,
+			radius: 49 / 589,
+		},
+	],
+	eye: { x: 626.5 / 1254, y: 214.5 / 1254, radius: 101 / 1254 },
+	gem: { x: 626.5 / 1254, y: 1054 / 1254, radius: 48 / 1254 },
+	plaque: { x: 626.5 / 1254, y: 214.5 / 1254, radius: 92 / 1254, textDy: 0 },
 } as const;
-
-export const getGazeMeterDisplayWidth = (displayHeight: number) =>
-	displayHeight * (GAZE_METER_LAYOUT.imageWidth / GAZE_METER_LAYOUT.imageHeight);
 
 export const REEL_Y = 0;
 export const MOBILE_REEL_DISPLAY_SCALE = 1.45;
