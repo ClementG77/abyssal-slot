@@ -1,10 +1,12 @@
 <script lang="ts" module>
+	import type { Position } from '../game/types';
+
 	export type EmitterEventReelFrame =
 		| { type: 'reelFrameGlowShow' }
 		| { type: 'reelFrameGlowHide' }
 		| { type: 'reelFrameSpinLaunch' }
-		| { type: 'reelFrameScatterLand' }
-		| { type: 'reelFrameEyeLand' }
+		| { type: 'reelFrameScatterLand'; position?: Position }
+		| { type: 'reelFrameEyeLand'; position?: Position }
 		| { type: 'reelFrameScatterAnticipationStart' }
 		| { type: 'reelFrameScatterAnticipationEnd' };
 </script>
@@ -102,14 +104,30 @@
 		const elapsed = startedAt < 0 ? Infinity : (now - startedAt) / 1000;
 		return elapsed < duration ? Math.max(0, 1 - elapsed / duration) : 0;
 	};
+	const mixColor = (from: number, to: number, amount: number) => {
+		const mix = Math.max(0, Math.min(1, amount));
+		const fromR = (from >> 16) & 0xff;
+		const fromG = (from >> 8) & 0xff;
+		const fromB = from & 0xff;
+		const toR = (to >> 16) & 0xff;
+		const toG = (to >> 8) & 0xff;
+		const toB = to & 0xff;
+		const r = Math.round(fromR + (toR - fromR) * mix);
+		const g = Math.round(fromG + (toG - fromG) * mix);
+		const b = Math.round(fromB + (toB - fromB) * mix);
+
+		return (r << 16) | (g << 8) | b;
+	};
 	const launchEnergy = $derived(getBurstEnergy(launchStartedAt, 0.62));
 	const scatterEnergy = $derived(getBurstEnergy(scatterStartedAt, 0.52));
 	const eyeEnergy = $derived(getBurstEnergy(eyeStartedAt, 0.76));
+	const eyeColorPopEnergy = $derived(getBurstEnergy(eyeStartedAt, 0.18));
 	const specialEnergy = $derived(Math.max(scatterEnergy, eyeEnergy));
 	const effectEnergy = $derived(Math.max(launchEnergy, specialEnergy));
 	const effectColor = $derived(
 		eyeEnergy > scatterEnergy ? 0xd866ff : scatterEnergy > 0 ? 0x4cecff : frame.glowColor,
 	);
+	const borderTint = $derived(mixColor(0xffffff, 0xd866ff, eyeColorPopEnergy));
 	const launchMotion = $derived(launchEnergy > 0 ? Math.sin((1 - launchEnergy) * Math.PI) : 0);
 	const scatterAnticipationProgress = $derived.by(() => {
 		if (scatterAnticipationReleasedAt >= 0) {
@@ -278,6 +296,7 @@
 				y={border.y}
 				width={border.width}
 				height={border.height}
+				tint={borderTint}
 			/>
 			{#if props.debug}
 				<Graphics draw={(g) => drawDebugGrid(g, variant.layout)} />

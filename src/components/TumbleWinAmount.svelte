@@ -14,15 +14,15 @@
 	import { Tween } from 'svelte/motion';
 	import { backOut } from 'svelte/easing';
 
-	import { Container, Graphics, Text } from 'pixi-svelte';
-	import { ResponsiveText, FadeContainer } from 'components-pixi';
+	import { BitmapText, Container, Graphics, Sprite } from 'pixi-svelte';
+	import { ResponsiveBitmapText, FadeContainer } from 'components-pixi';
 	import { stateBetDerived } from 'state-shared';
 	import { waitForResolve, waitForTimeout } from 'utils-shared/wait';
 	import { bookEventAmountToCurrencyString } from 'utils-shared/amount';
 
 	import BoardContainer from './BoardContainer.svelte';
 	import { getContext } from '../game/context';
-	import { SYMBOL_SIZE } from '../game/constants';
+	import { SYMBOL_SIZE, abyssalBitmapStyle } from '../game/constants';
 	import { getPositionX, getPositionY } from '../game/utils';
 
 	const context = getContext();
@@ -31,23 +31,26 @@
 	// ---- panel geometry --------------------------------------------------------------------
 	const PANEL_H = SYMBOL_SIZE * 0.82;
 	const PANEL_W = PANEL_H * 3.9;
-	const RADIUS = PANEL_H * 0.32;
+	const BANNER_SIZE = PANEL_W;
+	const INNER_W = BANNER_SIZE * 0.73;
+	const INNER_H = BANNER_SIZE * 0.2;
+	const INNER_RADIUS = INNER_H * 0.22;
 
 	// Sits just above the reels, centred. Nudged left in the feature so it clears the snowball.
 	const desktopPosition = $derived({
 		x: context.stateGameDerived.boardLayout().width * 0.5,
-		y: -SYMBOL_SIZE * 0.56,
+		y: -SYMBOL_SIZE * 0.74,
 	});
 	const portraitPosition = $derived({
 		x:
 			context.stateGameDerived.boardLayout().width *
 			(context.stateGame.gameType === 'basegame' ? 0.5 : 0.37),
-		y: -SYMBOL_SIZE * 0.62,
+		y: -SYMBOL_SIZE * 0.8,
 	});
 	const position = $derived(
 		context.stateLayoutDerived.isStacked() ? portraitPosition : desktopPosition,
 	);
-	const bannerScale = $derived(context.stateLayoutDerived.isStacked() ? 1.26 : 1);
+	const bannerScale = $derived(context.stateLayoutDerived.isStacked() ? 1.18 : 1);
 
 	// ---- state -----------------------------------------------------------------------------
 	let show = $state(false);
@@ -124,18 +127,24 @@
 		});
 
 	context.eventEmitter.subscribeOnMount({
-		tumbleWinAmountShow: () => (show = true),
+		tumbleWinAmountShow: () => (show = amount > 0),
 		tumbleWinAmountHide: () => (show = false),
 		tumbleWinAmountReset: () => {
+			show = false;
 			amount = 0;
 			animate = false;
 			oncomplete = () => {};
 			displayAmount.set(0, { duration: 0 });
 		},
 		tumbleWinAmountUpdate: async (emitterEvent) => {
+			if (emitterEvent.amount <= 0) {
+				show = false;
+				return;
+			}
 			if (amount !== emitterEvent.amount) {
 				amount = emitterEvent.amount;
 				animate = emitterEvent.animate;
+				show = true;
 				await waitForResolve((resolve) => (oncomplete = resolve));
 			}
 		},
@@ -145,7 +154,11 @@
 			const mult = raw > 0 ? Math.max(1, Math.round(emitterEvent.totalWin / raw)) : 1;
 			if (mult >= 2) {
 				const rawText = bookEventAmountToCurrencyString(raw);
-				await flyMultiplier({ mult, fromReel: emitterEvent.fromReel, fromRow: emitterEvent.fromRow });
+				await flyMultiplier({
+					mult,
+					fromReel: emitterEvent.fromReel,
+					fromRow: emitterEvent.fromRow,
+				});
 				// the token lands → the display reads "raw × mult" with a punch, holds, then resolves
 				multiplyExpr = { rawText, mult };
 				numScale.set(1.32, { duration: 0 });
@@ -164,79 +177,28 @@
 		},
 	});
 
-	// ---- styles (branded "minted" type, matches the Eye / Win values) ----------------------
-	const labelStyle = {
-		fontFamily: 'Cinzel, Georgia, serif',
-		fontWeight: '700',
-		fontSize: PANEL_H * 0.17,
-		fill: 0x9fe8ff,
-		letterSpacing: 2,
-		align: 'center',
-		stroke: { color: 0x05111e, width: 3 },
-	} as const;
-	const amountStyle = {
-		fontFamily: 'Cinzel, Georgia, serif',
-		fontWeight: '900',
-		fontSize: PANEL_H * 0.46,
-		fill: 0xffe6a6,
-		align: 'center',
-		stroke: { color: 0x2a1400, width: 6 },
-		dropShadow: { color: 0x000000, blur: 8, distance: 3, alpha: 0.6 },
-	} as const;
-	const exprStyle = {
-		fontFamily: 'Cinzel, Georgia, serif',
-		fontWeight: '900',
-		fontSize: PANEL_H * 0.42,
-		fill: 0xffd76a,
-		align: 'center',
-		stroke: { color: 0x2a1400, width: 6 },
-		dropShadow: { color: 0xffae3a, blur: 10, distance: 0, alpha: 0.7 },
-	} as const;
-	const multStyle = {
-		fontFamily: 'Cinzel, Georgia, serif',
-		fontWeight: '900',
-		fontSize: SYMBOL_SIZE * 0.72,
-		fill: 0xffd76a,
-		align: 'center',
-		stroke: { color: 0x2a1400, width: 7 },
-		dropShadow: { color: 0xffae3a, blur: 12, distance: 0, alpha: 0.9 },
-	} as const;
+	// ---- styles (the branded AbyssalBitmap face — gold fill/outline baked into the glyphs).
+	// Sized down vs the old Cinzel styles: the bitmap glyphs run wider and carry their own
+	// outline, so they fill the plate at a smaller nominal size.
+	const labelStyle = abyssalBitmapStyle({ fontSize: PANEL_H * 0.17, letterSpacing: 2 });
+	const amountStyle = abyssalBitmapStyle({ fontSize: PANEL_H * 0.38 });
+	const exprStyle = abyssalBitmapStyle({ fontSize: PANEL_H * 0.33 });
+	const multStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.6 });
 
-	// ---- panel drawing ---------------------------------------------------------------------
+	// ---- banner overlays -------------------------------------------------------------------
 	const drawGlow = (g: import('pixi.js').Graphics) => {
 		g.roundRect(
-			-PANEL_W / 2 - 10,
-			-PANEL_H / 2 - 10,
-			PANEL_W + 20,
-			PANEL_H + 20,
-			RADIUS + 8,
+			-INNER_W / 2 - 12,
+			-INNER_H / 2 - 12,
+			INNER_W + 24,
+			INNER_H + 24,
+			INNER_RADIUS + 10,
 		).fill({ color: 0xffce5a, alpha: 0.28 });
 	};
-	const drawPanel = (g: import('pixi.js').Graphics) => {
-		// glassy base
-		g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H, RADIUS).fill({
-			color: 0x060a16,
-			alpha: 0.92,
-		});
-		// top sheen
-		g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H * 0.5, RADIUS).fill({
-			color: 0xffffff,
-			alpha: 0.05,
-		});
-		// gold rim + inner cyan line
-		g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H, RADIUS).stroke({
-			width: 3,
-			color: 0xffcf5a,
-			alpha: 0.85,
-		});
-		g.roundRect(-PANEL_W / 2 + 4, -PANEL_H / 2 + 4, PANEL_W - 8, PANEL_H - 8, RADIUS - 3).stroke({
-			width: 1.5,
-			color: 0x22e0ff,
-			alpha: 0.45,
-		});
-	};
 	const drawFlash = (g: import('pixi.js').Graphics) => {
-		g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H, RADIUS).fill({ color: 0xffffff });
+		g.roundRect(-INNER_W / 2, -INNER_H / 2, INNER_W, INNER_H, INNER_RADIUS).fill({
+			color: 0xffffff,
+		});
 	};
 </script>
 
@@ -244,7 +206,7 @@
 <BoardContainer>
 	{#if flyFx.active}
 		<Container x={flyFx.x} y={flyFx.y} scale={flyFx.scale} alpha={flyFx.alpha}>
-			<Text anchor={0.5} text={`×${flyFx.mult}`} style={multStyle} />
+			<BitmapText anchor={0.5} text={`×${flyFx.mult}`} style={multStyle} />
 		</Container>
 	{/if}
 </BoardContainer>
@@ -259,27 +221,27 @@
 						<Graphics draw={drawGlow} />
 					</Container>
 				{/if}
-				<Graphics draw={drawPanel} />
+				<Sprite anchor={0.5} key="tumbleWin" width={BANNER_SIZE} height={BANNER_SIZE} />
 				{#if panelFx.flash > 0}
 					<Container alpha={panelFx.flash} blendMode="add">
 						<Graphics draw={drawFlash} />
 					</Container>
 				{/if}
 
-				<Text anchor={0.5} y={-PANEL_H * 0.27} text="TUMBLE WIN" style={labelStyle} />
-				<Container scale={numScale.current} y={PANEL_H * 0.1}>
+				<BitmapText anchor={0.5} y={-PANEL_H * 0.2} text="TUMBLE WIN" style={labelStyle} />
+				<Container scale={numScale.current} y={PANEL_H * 0.16}>
 					{#if multiplyExpr}
 						<!-- "raw × mult" — the equation, before it resolves into the counted final -->
-						<ResponsiveText
+						<ResponsiveBitmapText
 							anchor={0.5}
-							maxWidth={PANEL_W * 0.86}
+							maxWidth={INNER_W * 0.92}
 							text={`${multiplyExpr.rawText}  ×${multiplyExpr.mult}`}
 							style={exprStyle}
 						/>
 					{:else}
-						<ResponsiveText
+						<ResponsiveBitmapText
 							anchor={0.5}
-							maxWidth={PANEL_W * 0.82}
+							maxWidth={INNER_W * 0.9}
 							text={bookEventAmountToCurrencyString(displayAmount.current)}
 							style={amountStyle}
 						/>

@@ -11,6 +11,9 @@ export type RawSymbol = {
 	eye?: boolean;
 	eyeType?: EyeType;
 	startValue?: number;
+	// client-only: set the moment the Eye's combine chip departs to the board centre — the
+	// number leaves with the chip and the plain EMPTY eye art remains on the cell.
+	spent?: boolean;
 };
 export type BetMode = keyof typeof config.betModes;
 export type GameType = keyof typeof config.paddingReels;

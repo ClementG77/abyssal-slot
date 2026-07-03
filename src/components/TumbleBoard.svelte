@@ -20,12 +20,13 @@
 	import { backOut } from 'svelte/easing';
 
 	import { BoardContext } from 'components-shared';
-	import { stateBetDerived } from 'state-shared';
+	import { stateBet, stateBetDerived } from 'state-shared';
 	import { waitForResolve, waitForTimeout } from 'utils-shared/wait';
 
 	import TumbleBoardBase from './TumbleBoardBase.svelte';
 	import BoardContainer from './BoardContainer.svelte';
 	import BoardMask from './BoardMask.svelte';
+	import { REEL_CELL_HEIGHT, SPIN_OPTIONS_DEFAULT, SPIN_OPTIONS_FAST } from '../game/constants';
 	import { getPaddedRowIndex, getSymbolInfo, getSymbolY } from '../game/utils';
 	import { getContext } from '../game/context';
 
@@ -33,7 +34,15 @@
 
 	let show = $state(false);
 
-	const createTumbleSymbol = ({ initY, rawSymbol }: { initY: number; rawSymbol: RawSymbol }) => {
+	const createTumbleSymbol = ({
+		initY,
+		rawSymbol,
+		isRefill = false,
+	}: {
+		initY: number;
+		rawSymbol: RawSymbol;
+		isRefill?: boolean;
+	}) => {
 		const symbolY = new Tween(initY);
 		const oncomplete = () => {};
 
@@ -42,6 +51,7 @@
 			rawSymbol,
 			symbolState: 'static' as const,
 			oncomplete,
+			isRefill,
 		});
 
 		return tumbleSymbol;
@@ -53,7 +63,7 @@
 
 			const tumbleReelAdding = addingReel.map((rawSymbol, symbolIndex) => {
 				const initY = getSymbolY(symbolIndex - 1 - addingReel.length);
-				return createTumbleSymbol({ initY, rawSymbol });
+				return createTumbleSymbol({ initY, rawSymbol, isRefill: true });
 			});
 
 			return tumbleReelAdding;
@@ -98,8 +108,7 @@
 						{
 							reel: position.reel,
 							row: position.row,
-							color: getSymbolInfo({ rawSymbol: tumbleSymbol.rawSymbol, state: 'explosion' })
-								.color,
+							color: getSymbolInfo({ rawSymbol: tumbleSymbol.rawSymbol, state: 'explosion' }).color,
 						},
 					];
 				}),
@@ -128,30 +137,57 @@
 			// column at once.
 			const COLUMN_STAGGER = 80;
 			const ts = stateBetDerived.timeScale();
+			const spinOptions = stateBet.isTurbo ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
 			const getPromises = () =>
 				context.stateGameDerived.tumbleBoardCombined().map(async (tumbleReel, reelIndex) => {
 					if (reelIndex > 0) await waitForTimeout((reelIndex * COLUMN_STAGGER) / ts);
+					const reelLengthInBoard = tumbleReel.length - 2;
 
 					await Promise.all(
 						tumbleReel.map(async (tumbleSymbol, symbolIndex) => {
-							const targetY = getSymbolY(symbolIndex - 1); // Refer to initTumbleBoardBase
+							const symbolIndexOfBoard = symbolIndex - 1; // Refer to initTumbleBoardBase
+							const targetY = getSymbolY(symbolIndexOfBoard);
 							if (targetY === tumbleSymbol.symbolY.current) return;
 
-							await tumbleSymbol.symbolY.set(targetY, { duration: 200, easing: backOut });
-
+							const distance = targetY - tumbleSymbol.symbolY.current;
+							const delay =
+								spinOptions.symbolFallInInterval * (reelLengthInBoard - symbolIndexOfBoard);
+							const bounceDistance = REEL_CELL_HEIGHT * spinOptions.symbolFallInBounceSizeMulti;
+							const bounceDuration = bounceDistance / spinOptions.symbolFallInBounceSpeed;
+							const landDuration = Math.max(
+								0,
+								(distance - bounceDistance) / spinOptions.symbolFallInSpeed,
+							);
 							const isInner = symbolIndex > 0 && symbolIndex < tumbleReel.length - 1;
-							// The Eye only animates on its real land (the initial drop). During cascade
-							// refills it just slides into place — no bounce, no re-trigger.
-							if (isInner && tumbleSymbol.rawSymbol.name !== 'EYE') {
+							const isExistingEye = tumbleSymbol.rawSymbol.name === 'EYE' && !tumbleSymbol.isRefill;
+							let landComplete: Promise<void> | undefined;
+
+							await tumbleSymbol.symbolY.set(targetY - bounceDistance, {
+								duration: landDuration,
+								delay,
+							});
+
+							// Land reactions fire at the same contact point as the first board draw.
+							if (isInner && !isExistingEye) {
 								tumbleSymbol.symbolState = 'land';
-								context.stateGameDerived.onSymbolLand({ rawSymbol: tumbleSymbol.rawSymbol });
-								await waitForResolve((resolve) => {
+								context.stateGameDerived.onSymbolLand({
+									rawSymbol: tumbleSymbol.rawSymbol,
+									reel: reelIndex,
+									row: symbolIndexOfBoard,
+								});
+								landComplete = waitForResolve((resolve) => {
 									tumbleSymbol.oncomplete = () => {
 										tumbleSymbol.symbolState = 'static';
 										resolve();
 									};
 								});
 							}
+
+							await tumbleSymbol.symbolY.set(targetY, {
+								duration: bounceDuration,
+								easing: backOut,
+							});
+							await landComplete;
 						}),
 					);
 				});

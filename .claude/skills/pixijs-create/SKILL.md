@@ -1,6 +1,6 @@
 ---
 name: pixijs-create
-description: "Use this skill when scaffolding a new PixiJS v8 project with the create-pixi CLI or adding PixiJS to an existing project. Covers npm/yarn/pnpm/bun create commands, interactive vs non-interactive flows, bundler vs creation template categories, available template presets (bundler-vite, bundler-webpack, bundler-esbuild, bundler-import-map, creation-web, framework-react, extension-default), Node version requirements, `npm install pixi.js` for existing projects, post-scaffold dev flow, and the Vite top-level-await production-build gotcha. Triggers on: create pixi.js, npm create, npm install pixi.js, scaffold, template, bundler-vite, bundler-webpack, creation-web, framework-react, new project, existing project, getting started, quick start."
+description: 'Use this skill when scaffolding a new PixiJS v8 project with the create-pixi CLI or adding PixiJS to an existing project. Covers npm/yarn/pnpm/bun create commands, interactive vs non-interactive flows, bundler vs creation template categories, available template presets (bundler-vite, bundler-webpack, bundler-esbuild, bundler-import-map, creation-web, framework-react, extension-default), Node version requirements, `npm install pixi.js` for existing projects, post-scaffold dev flow, and the Vite top-level-await production-build gotcha. Triggers on: create pixi.js, npm create, npm install pixi.js, scaffold, template, bundler-vite, bundler-webpack, creation-web, framework-react, new project, existing project, getting started, quick start.'
 license: MIT
 ---
 
@@ -172,11 +172,9 @@ npm create pixi.js@latest my-game -- --template bundler-vite
 
 npm 7+ consumes flags after the package spec unless you pass `--` to forward them. Without the separator, the CLI ignores `--template` and drops back to the interactive prompt. Yarn, pnpm, and bun don't need the separator.
 
-
 ### [MEDIUM] Running with an old Node version
 
 PixiJS requires Node 18+ or 20+. Some templates (framework-react, creation-web) expect a newer Node for their tooling. Upgrade Node before re-running the CLI if you see an "engines" warning from your package manager.
-
 
 ### [MEDIUM] Top-level `await app.init()` broken in Vite production builds
 
@@ -191,14 +189,13 @@ Wrap the init in an async IIFE instead:
 
 ```ts
 (async () => {
-  const app = new Application();
-  await app.init({ resizeTo: window });
-  document.body.appendChild(app.canvas);
+	const app = new Application();
+	await app.init({ resizeTo: window });
+	document.body.appendChild(app.canvas);
 })();
 ```
 
 Upgrading Vite past 6.0.6 also resolves it, but the IIFE pattern is safe on every version and matches the PixiJS quick-start guide.
-
 
 ## API Reference
 

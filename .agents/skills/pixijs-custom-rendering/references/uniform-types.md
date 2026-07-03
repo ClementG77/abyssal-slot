@@ -29,11 +29,11 @@ All supported PixiJS v8 uniform types for use with `UniformGroup`. These type st
 For arrays of a type, use the `size` property instead of array syntax in the type:
 
 ```ts
-import { UniformGroup } from "pixi.js";
+import { UniformGroup } from 'pixi.js';
 
 // Array of 10 vec4 values
 const uniforms = new UniformGroup({
-  uColors: { value: new Float32Array(40), type: "vec4<f32>", size: 10 },
+	uColors: { value: new Float32Array(40), type: 'vec4<f32>', size: 10 },
 });
 ```
 
@@ -44,11 +44,11 @@ Using `array<vec4<f32>, 10>` in the type field will throw an error directing you
 ### Scalars
 
 ```ts
-import { UniformGroup } from "pixi.js";
+import { UniformGroup } from 'pixi.js';
 
 const uniforms = new UniformGroup({
-  uTime: { value: 0, type: "f32" },
-  uIndex: { value: 0, type: "i32" },
+	uTime: { value: 0, type: 'f32' },
+	uIndex: { value: 0, type: 'i32' },
 });
 
 uniforms.uniforms.uTime = 1.5;
@@ -58,25 +58,25 @@ uniforms.uniforms.uIndex = 3;
 ### Vectors
 
 ```ts
-import { UniformGroup } from "pixi.js";
+import { UniformGroup } from 'pixi.js';
 
 const uniforms = new UniformGroup({
-  uPosition: { value: new Float32Array([100, 200]), type: "vec2<f32>" },
-  uDirection: { value: new Float32Array([0, 1, 0]), type: "vec3<f32>" },
-  uColor: { value: new Float32Array([1, 0, 0, 1]), type: "vec4<f32>" },
-  uGridSize: { value: new Int32Array([16, 16]), type: "vec2<i32>" },
+	uPosition: { value: new Float32Array([100, 200]), type: 'vec2<f32>' },
+	uDirection: { value: new Float32Array([0, 1, 0]), type: 'vec3<f32>' },
+	uColor: { value: new Float32Array([1, 0, 0, 1]), type: 'vec4<f32>' },
+	uGridSize: { value: new Int32Array([16, 16]), type: 'vec2<i32>' },
 });
 ```
 
 ### Matrices
 
 ```ts
-import { UniformGroup, Matrix } from "pixi.js";
+import { UniformGroup, Matrix } from 'pixi.js';
 
 const uniforms = new UniformGroup({
-  uTransform: { value: new Matrix(), type: "mat3x3<f32>" },
-  uProjection: { value: new Float32Array(16), type: "mat4x4<f32>" },
-  uRotation: { value: new Float32Array(4), type: "mat2x2<f32>" },
+	uTransform: { value: new Matrix(), type: 'mat3x3<f32>' },
+	uProjection: { value: new Float32Array(16), type: 'mat4x4<f32>' },
+	uRotation: { value: new Float32Array(4), type: 'mat2x2<f32>' },
 });
 ```
 
@@ -92,4 +92,3 @@ When using `{ ubo: true }` on a UniformGroup:
 - Samplers and textures cannot be placed in UBOs
 - Field names and order must exactly match the shader's uniform block declaration
 - The resource key in the shader must match the UBO block name
-

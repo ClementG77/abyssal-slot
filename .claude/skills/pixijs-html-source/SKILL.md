@@ -1,6 +1,6 @@
 ---
 name: pixijs-html-source
-description: "Use this skill when rendering live HTML/DOM elements (or frozen snapshots of them) as PixiJS v8 textures via the EXPERIMENTAL HTML-in-Canvas browser APIs. Covers the pixi.js/html-source side-effect import, feature-detection with canvas.requestPaint, HTMLSource for a live, repainting element kept interactive in the browser (autoLayout/autoUpdate/autoRequestPaint, requestPaint, isReady, the direct-child-of-canvas + layoutsubtree requirement), ElementImageSource for an immutable captureElementImage() snapshot (autoClose, ready immediately), using the source on a Sprite/Texture/Mesh, fallback-only auto-detection via Texture.from at priority -10, and destroy/cleanup. Triggers on: HTMLSource, ElementImageSource, pixi.js/html-source, requestPaint, captureElementImage, ElementImage, layoutsubtree, autoRequestPaint, autoUpdate, autoClose, HTML in canvas, render DOM to texture, HTMLSourceOptions, ElementImageSourceOptions, HTMLSourceCanvas, experimental."
+description: 'Use this skill when rendering live HTML/DOM elements (or frozen snapshots of them) as PixiJS v8 textures via the EXPERIMENTAL HTML-in-Canvas browser APIs. Covers the pixi.js/html-source side-effect import, feature-detection with canvas.requestPaint, HTMLSource for a live, repainting element kept interactive in the browser (autoLayout/autoUpdate/autoRequestPaint, requestPaint, isReady, the direct-child-of-canvas + layoutsubtree requirement), ElementImageSource for an immutable captureElementImage() snapshot (autoClose, ready immediately), using the source on a Sprite/Texture/Mesh, fallback-only auto-detection via Texture.from at priority -10, and destroy/cleanup. Triggers on: HTMLSource, ElementImageSource, pixi.js/html-source, requestPaint, captureElementImage, ElementImage, layoutsubtree, autoRequestPaint, autoUpdate, autoClose, HTML in canvas, render DOM to texture, HTMLSourceOptions, ElementImageSourceOptions, HTMLSourceCanvas, experimental.'
 license: MIT
 ---
 
@@ -8,21 +8,21 @@ license: MIT
 
 > These sources rely on the experimental HTML-in-Canvas browser proposal and are marked EXPERIMENTAL in PixiJS v8. The browser API must be enabled or the texture uploader throws on first render; feature-detect with `canvas.requestPaint` before relying on it. The API may change between minor releases.
 
-Assumes familiarity with `pixijs-scene-sprite` and textures. These are texture *sources*, not display objects: wrap them in a `Sprite` (or `Texture`/`Mesh`) to put them on screen. Not available in Web Workers; a worker has no DOM to capture.
+Assumes familiarity with `pixijs-scene-sprite` and textures. These are texture _sources_, not display objects: wrap them in a `Sprite` (or `Texture`/`Mesh`) to put them on screen. Not available in Web Workers; a worker has no DOM to capture.
 
 ## Quick Start
 
 ```ts
-import "pixi.js/html-source";
-import { Application, Sprite } from "pixi.js";
-import { HTMLSource } from "pixi.js/html-source";
+import 'pixi.js/html-source';
+import { Application, Sprite } from 'pixi.js';
+import { HTMLSource } from 'pixi.js/html-source';
 
 const app = new Application();
 await app.init({ resizeTo: window });
 document.body.appendChild(app.canvas);
 
 // The element must be a direct child of the Pixi canvas.
-const form = document.createElement("form");
+const form = document.createElement('form');
 form.innerHTML = '<input value="still editable" />';
 app.canvas.appendChild(form);
 
@@ -35,7 +35,7 @@ sprite.position.set(app.screen.width / 2, app.screen.height / 2);
 app.stage.addChild(sprite);
 ```
 
-**Related skills:** `pixijs-scene-sprite` (display the texture), `pixijs-scene-mesh` (map onto geometry, `PerspectiveMesh`), `pixijs-scene-dom-container` (the opposite: overlay HTML *above* the canvas, outside the GPU pipeline), `pixijs-assets` (texture sources vs the loader/cache), `pixijs-environments` (no DOM in Web Workers).
+**Related skills:** `pixijs-scene-sprite` (display the texture), `pixijs-scene-mesh` (map onto geometry, `PerspectiveMesh`), `pixijs-scene-dom-container` (the opposite: overlay HTML _above_ the canvas, outside the GPU pipeline), `pixijs-assets` (texture sources vs the loader/cache), `pixijs-environments` (no DOM in Web Workers).
 
 ## Constructor options
 
@@ -43,28 +43,28 @@ Both sources extend `TextureSource`, so all `TextureSourceOptions` (`resolution`
 
 `HTMLSourceOptions` (live element):
 
-| Option             | Type               | Default | Description                                                                                                                                              |
-| ------------------ | ------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `resource`         | `Element`          | —       | Required. The live DOM element to render. Must be a direct child of the owning canvas, or the constructor throws.                                         |
-| `canvas`           | `HTMLSourceCanvas` | —       | The canvas that owns the element's layout subtree. Inferred from `resource.parentElement` when the element is a direct canvas child; pass it when inference is not possible. |
+| Option             | Type               | Default | Description                                                                                                                                                                                  |
+| ------------------ | ------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resource`         | `Element`          | —       | Required. The live DOM element to render. Must be a direct child of the owning canvas, or the constructor throws.                                                                            |
+| `canvas`           | `HTMLSourceCanvas` | —       | The canvas that owns the element's layout subtree. Inferred from `resource.parentElement` when the element is a direct canvas child; pass it when inference is not possible.                 |
 | `autoLayout`       | `boolean`          | `true`  | Set the `layoutsubtree` attribute on the owning canvas. The browser only lays out and paints canvas children when it is present. Set `false` if you write `<canvas layoutsubtree>` yourself. |
-| `autoUpdate`       | `boolean`          | `true`  | Listen for the canvas `paint` event and re-upload when the element repaints. Set `false` for a static, captured-once texture.                             |
-| `autoRequestPaint` | `boolean`          | `true`  | Request one initial paint after construction. Set `false` and call `source.requestPaint()` yourself each frame for continuous animation.                  |
+| `autoUpdate`       | `boolean`          | `true`  | Listen for the canvas `paint` event and re-upload when the element repaints. Set `false` for a static, captured-once texture.                                                                |
+| `autoRequestPaint` | `boolean`          | `true`  | Request one initial paint after construction. Set `false` and call `source.requestPaint()` yourself each frame for continuous animation.                                                     |
 
 `ElementImageSourceOptions` (immutable snapshot):
 
-| Option       | Type           | Default | Description                                                                                                                            |
-| ------------ | -------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `resource`   | `ElementImage` | —       | Required. A snapshot from `canvas.captureElementImage(element)`.                                                                        |
-| `autoClose`  | `boolean`      | `false` | Call `snapshot.close()` when the source is destroyed. Leave `false` when the snapshot is shared with other sources, or you risk a use-after-free. |
+| Option      | Type           | Default | Description                                                                                                                                       |
+| ----------- | -------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resource`  | `ElementImage` | —       | Required. A snapshot from `canvas.captureElementImage(element)`.                                                                                  |
+| `autoClose` | `boolean`      | `false` | Call `snapshot.close()` when the source is destroyed. Leave `false` when the snapshot is shared with other sources, or you risk a use-after-free. |
 
 ## Core Patterns
 
 ### Setup and the side-effect import
 
 ```ts
-import "pixi.js/html-source";
-import { HTMLSource, ElementImageSource } from "pixi.js/html-source";
+import 'pixi.js/html-source';
+import { HTMLSource, ElementImageSource } from 'pixi.js/html-source';
 ```
 
 `pixi.js/html-source` calls `extensions.add(...)` to register `HTMLSource`, `ElementImageSource`, and their WebGL/WebGPU uploaders. Without it, the renderer has no `'html'` uploader and these sources never render. The classes are exported from `pixi.js/html-source`, not `pixi.js`.
@@ -76,12 +76,12 @@ Importing a named export from `pixi.js/html-source` also triggers the side effec
 The HTML-in-Canvas API is gated behind a browser flag. Feature-detect before relying on it:
 
 ```ts
-import type { HTMLSourceCanvas } from "pixi.js/html-source";
+import type { HTMLSourceCanvas } from 'pixi.js/html-source';
 
 const canvas = app.canvas as HTMLSourceCanvas;
 
 if (canvas.requestPaint) {
-  // HTML-in-Canvas is available.
+	// HTML-in-Canvas is available.
 }
 ```
 
@@ -90,7 +90,7 @@ Cast `app.canvas` to `HTMLSourceCanvas` for the typed `requestPaint` and `captur
 ### Live element with HTMLSource
 
 ```ts
-const form = document.createElement("form");
+const form = document.createElement('form');
 app.canvas.appendChild(form); // direct child of the canvas
 
 const source = new HTMLSource({ resource: form });
@@ -106,8 +106,8 @@ const source = new HTMLSource({ resource: clock, autoRequestPaint: false });
 const sprite = Sprite.from(source);
 
 app.ticker.add(() => {
-  clock.textContent = new Date().toLocaleTimeString();
-  source.requestPaint(); // re-snapshot the DOM this frame
+	clock.textContent = new Date().toLocaleTimeString();
+	source.requestPaint(); // re-snapshot the DOM this frame
 });
 ```
 
@@ -116,8 +116,8 @@ The browser only repaints canvas children on demand. For an element whose conten
 ### Immutable snapshot with ElementImageSource
 
 ```ts
-import { ElementImageSource } from "pixi.js/html-source";
-import type { HTMLSourceCanvas } from "pixi.js/html-source";
+import { ElementImageSource } from 'pixi.js/html-source';
+import type { HTMLSourceCanvas } from 'pixi.js/html-source';
 
 const canvas = app.canvas as HTMLSourceCanvas;
 const snapshot = canvas.captureElementImage!(element);
@@ -133,12 +133,12 @@ const sprite = Sprite.from(source);
 Both sources are normal `TextureSource`s. Wrap them with `Sprite.from(source)` / `Texture.from(source)`, frame or slice them into sub-textures, or map them onto a mesh:
 
 ```ts
-import { Rectangle, Texture } from "pixi.js";
+import { Rectangle, Texture } from 'pixi.js';
 
 // A 64x64 slice of the rendered element.
 const chunk = new Texture({
-  source,
-  frame: new Rectangle(0, 0, 64, 64),
+	source,
+	frame: new Rectangle(0, 0, 64, 64),
 });
 
 // Mapped onto geometry (e.g. a perspective warp).
@@ -161,15 +161,15 @@ A generic HTML element or an `ElementImage` passed to `Texture.from`/`Sprite.fro
 Wrong:
 
 ```ts
-import { HTMLSource } from "pixi.js/html-source";
+import { HTMLSource } from 'pixi.js/html-source';
 // ...but never importing the side effect, in a build that tree-shakes it away
 ```
 
 Correct:
 
 ```ts
-import "pixi.js/html-source";
-import { HTMLSource } from "pixi.js/html-source";
+import 'pixi.js/html-source';
+import { HTMLSource } from 'pixi.js/html-source';
 ```
 
 The `'html'` uploaders are registered by the side-effect import. Without it, the source has no uploader and the texture never renders.
@@ -181,7 +181,7 @@ The HTML-in-Canvas proposal is not shipped by default. If the API is disabled, t
 ```ts
 const canvas = app.canvas as HTMLSourceCanvas;
 if (!canvas.requestPaint) {
-  // Fall back to a static image, DOMContainer overlay, or a message.
+	// Fall back to a static image, DOMContainer overlay, or a message.
 }
 ```
 

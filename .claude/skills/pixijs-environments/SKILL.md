@@ -1,6 +1,6 @@
 ---
 name: pixijs-environments
-description: "Use this skill when running PixiJS v8 outside a standard browser: Web Workers, OffscreenCanvas, Node/SSR, or CSP-restricted contexts. Covers DOMAdapter.set, BrowserAdapter, WebWorkerAdapter, custom Adapter interface, pixi.js/unsafe-eval for strict CSP. Triggers on: DOMAdapter, BrowserAdapter, WebWorkerAdapter, Web Worker, OffscreenCanvas, Node, headless, SSR, CSP, unsafe-eval, Adapter."
+description: 'Use this skill when running PixiJS v8 outside a standard browser: Web Workers, OffscreenCanvas, Node/SSR, or CSP-restricted contexts. Covers DOMAdapter.set, BrowserAdapter, WebWorkerAdapter, custom Adapter interface, pixi.js/unsafe-eval for strict CSP. Triggers on: DOMAdapter, BrowserAdapter, WebWorkerAdapter, Web Worker, OffscreenCanvas, Node, headless, SSR, CSP, unsafe-eval, Adapter.'
 license: MIT
 ---
 
@@ -13,19 +13,19 @@ license: MIT
 DOMAdapter.set(WebWorkerAdapter);
 
 self.onmessage = async (event) => {
-  const app = new Application();
-  await app.init({
-    canvas: event.data.canvas,
-    width: 800,
-    height: 600,
-  });
+	const app = new Application();
+	await app.init({
+		canvas: event.data.canvas,
+		width: 800,
+		height: 600,
+	});
 };
 ```
 
 For CSP contexts that block `unsafe-eval`, import the polyfill before any renderer init:
 
 ```ts
-import "pixi.js/unsafe-eval";
+import 'pixi.js/unsafe-eval';
 ```
 
 **Related skills:** `pixijs-application` (standard browser init), `pixijs-migration-v8` (settings removal, adapter changes).
@@ -38,29 +38,29 @@ Transfer an OffscreenCanvas from the main thread, then initialize PixiJS in the 
 
 ```ts
 // main.ts
-const canvas = document.createElement("canvas");
+const canvas = document.createElement('canvas');
 canvas.width = 800;
 canvas.height = 600;
 document.body.appendChild(canvas);
 
 const offscreen = canvas.transferControlToOffscreen();
-const worker = new Worker("worker.ts", { type: "module" });
+const worker = new Worker('worker.ts', { type: 'module' });
 worker.postMessage({ canvas: offscreen }, [offscreen]);
 ```
 
 ```ts
 // worker.ts
-import { Application, DOMAdapter, WebWorkerAdapter } from "pixi.js";
+import { Application, DOMAdapter, WebWorkerAdapter } from 'pixi.js';
 
 DOMAdapter.set(WebWorkerAdapter);
 
 self.onmessage = async (event) => {
-  const app = new Application();
-  await app.init({
-    canvas: event.data.canvas,
-    width: 800,
-    height: 600,
-  });
+	const app = new Application();
+	await app.init({
+		canvas: event.data.canvas,
+		width: 800,
+		height: 600,
+	});
 };
 ```
 
@@ -77,8 +77,8 @@ Features that do **not** work inside a Web Worker (no DOM access):
 Instead of importing `pixi.js`, you can pull in a curated bundle for each environment:
 
 ```ts
-import "pixi.js/browser"; // accessibility, dom, events, spritesheet, rendering, filters
-import "pixi.js/webworker"; // spritesheet, rendering, filters (no DOM-only modules)
+import 'pixi.js/browser'; // accessibility, dom, events, spritesheet, rendering, filters
+import 'pixi.js/webworker'; // spritesheet, rendering, filters (no DOM-only modules)
 ```
 
 `pixi.js/webworker` deliberately omits `accessibility`, `dom`, and `events` because they require the DOM. Use these subpath entries when you want static, synchronous module registration instead of relying on `loadEnvironmentExtensions` to dynamic-import the right set at renderer init.
@@ -86,7 +86,7 @@ import "pixi.js/webworker"; // spritesheet, rendering, filters (no DOM-only modu
 ### loadEnvironmentExtensions
 
 ```ts
-import { loadEnvironmentExtensions } from "pixi.js";
+import { loadEnvironmentExtensions } from 'pixi.js';
 
 await loadEnvironmentExtensions(false); // false = load defaults; true = skip
 ```
@@ -98,8 +98,8 @@ await loadEnvironmentExtensions(false); // false = load defaults; true = skip
 PixiJS uses `new Function()` internally for shader compilation and uniform syncing. In Content Security Policy environments that block `unsafe-eval`, import the polyfill:
 
 ```ts
-import "pixi.js/unsafe-eval";
-import { Application } from "pixi.js";
+import 'pixi.js/unsafe-eval';
+import { Application } from 'pixi.js';
 
 const app = new Application();
 await app.init({ width: 800, height: 600 });
@@ -114,21 +114,21 @@ The `pixi.js/unsafe-eval` import replaces eval-based code generation with static
 For non-standard environments (Node.js, headless testing, SSR), implement the full Adapter interface:
 
 ```ts
-import { DOMAdapter } from "pixi.js";
-import type { Adapter } from "pixi.js";
-import { createCanvas, Image } from "canvas";
-import { DOMParser } from "@xmldom/xmldom";
+import { DOMAdapter } from 'pixi.js';
+import type { Adapter } from 'pixi.js';
+import { createCanvas, Image } from 'canvas';
+import { DOMParser } from '@xmldom/xmldom';
 
 const HeadlessAdapter: Adapter = {
-  createCanvas: (width, height) => createCanvas(width ?? 0, height ?? 0),
-  createImage: () => new Image(),
-  getCanvasRenderingContext2D: () => CanvasRenderingContext2D,
-  getWebGLRenderingContext: () => WebGLRenderingContext,
-  getNavigator: () => ({ userAgent: "HeadlessAdapter", gpu: null }),
-  getBaseUrl: () => "file://",
-  getFontFaceSet: () => null,
-  fetch: (url, options) => fetch(url, options),
-  parseXML: (xml) => new DOMParser().parseFromString(xml, "text/xml"),
+	createCanvas: (width, height) => createCanvas(width ?? 0, height ?? 0),
+	createImage: () => new Image(),
+	getCanvasRenderingContext2D: () => CanvasRenderingContext2D,
+	getWebGLRenderingContext: () => WebGLRenderingContext,
+	getNavigator: () => ({ userAgent: 'HeadlessAdapter', gpu: null }),
+	getBaseUrl: () => 'file://',
+	getFontFaceSet: () => null,
+	fetch: (url, options) => fetch(url, options),
+	parseXML: (xml) => new DOMParser().parseFromString(xml, 'text/xml'),
 };
 
 DOMAdapter.set(HeadlessAdapter);
@@ -139,7 +139,7 @@ The Adapter interface requires these methods: `createCanvas`, `createImage`, `ge
 ### Checking the current adapter
 
 ```ts
-import { DOMAdapter } from "pixi.js";
+import { DOMAdapter } from 'pixi.js';
 
 const adapter = DOMAdapter.get();
 const canvas = adapter.createCanvas(256, 256);
@@ -170,27 +170,25 @@ await app.init({ width: 800, height: 600 });
 
 `DOMAdapter.set()` must be called before `app.init()` in non-browser environments. PixiJS reads the adapter during `app.init()` when the renderer is created. `new Application()` itself only creates the stage Container and does not read the adapter.
 
-
 ### [HIGH] Using document or Image directly
 
 Wrong:
 
 ```ts
 const img = new Image();
-img.src = "texture.png";
+img.src = 'texture.png';
 ```
 
 Correct:
 
 ```ts
-import { DOMAdapter } from "pixi.js";
+import { DOMAdapter } from 'pixi.js';
 
 const img = DOMAdapter.get().createImage();
-img.src = "texture.png";
+img.src = 'texture.png';
 ```
 
 All DOM access in PixiJS goes through DOMAdapter. Direct use of `document`, `Image`, or other browser globals breaks Web Worker and SSR compatibility.
-
 
 ### [HIGH] CSP unsafe-eval import name confusion
 
@@ -198,7 +196,7 @@ Wrong:
 
 ```ts
 // CSP environment, omitting the import
-import { Application } from "pixi.js";
+import { Application } from 'pixi.js';
 // Throws: "Current environment does not allow unsafe-eval,
 // please use pixi.js/unsafe-eval module to enable support."
 ```
@@ -206,33 +204,31 @@ import { Application } from "pixi.js";
 Correct:
 
 ```ts
-import "pixi.js/unsafe-eval";
-import { Application } from "pixi.js";
+import 'pixi.js/unsafe-eval';
+import { Application } from 'pixi.js';
 ```
 
 The `pixi.js/unsafe-eval` import removes the need for `eval()` / `new Function()` in shader compilation. Despite the name suggesting it enables unsafe eval, it does the opposite: it installs static polyfills so PixiJS works under strict CSP.
 
 PixiJS detects CSP blocking at renderer init and throws the error above. The browser may also log its own CSP violation before PixiJS reports; both point to the same fix.
 
-
 ### [HIGH] Using old settings.ADAPTER pattern
 
 Wrong:
 
 ```ts
-import { settings, WebWorkerAdapter } from "pixi.js";
+import { settings, WebWorkerAdapter } from 'pixi.js';
 settings.ADAPTER = WebWorkerAdapter;
 ```
 
 Correct:
 
 ```ts
-import { DOMAdapter, WebWorkerAdapter } from "pixi.js";
+import { DOMAdapter, WebWorkerAdapter } from 'pixi.js';
 DOMAdapter.set(WebWorkerAdapter);
 ```
 
 The `settings` object was removed in v8. All adapter configuration uses `DOMAdapter.set()`.
-
 
 ## API Reference
 

@@ -1,6 +1,6 @@
 ---
 name: pixijs-scene-sprite
-description: "Use this skill when drawing images in PixiJS v8. Covers Sprite with anchor/tint/texture, AnimatedSprite for frame animation, NineSliceSprite for resizable UI panels, TilingSprite for scrolling/repeating backgrounds. Triggers on: Sprite, AnimatedSprite, NineSliceSprite, TilingSprite, Sprite.from, anchor, tint, tilePosition, animationSpeed, gotoAndPlay, leftWidth, topHeight, constructor options, SpriteOptions, AnimatedSpriteOptions, NineSliceSpriteOptions, TilingSpriteOptions."
+description: 'Use this skill when drawing images in PixiJS v8. Covers Sprite with anchor/tint/texture, AnimatedSprite for frame animation, NineSliceSprite for resizable UI panels, TilingSprite for scrolling/repeating backgrounds. Triggers on: Sprite, AnimatedSprite, NineSliceSprite, TilingSprite, Sprite.from, anchor, tint, tilePosition, animationSpeed, gotoAndPlay, leftWidth, topHeight, constructor options, SpriteOptions, AnimatedSpriteOptions, NineSliceSpriteOptions, TilingSpriteOptions.'
 license: MIT
 ---
 
@@ -11,12 +11,12 @@ Assumes familiarity with `pixijs-scene-core-concepts`. All sprite classes are le
 ## Quick Start
 
 ```ts
-const texture = await Assets.load("bunny.png");
+const texture = await Assets.load('bunny.png');
 
 const sprite = new Sprite({
-  texture,
-  anchor: 0.5,
-  tint: 0xff8888,
+	texture,
+	anchor: 0.5,
+	tint: 0xff8888,
 });
 sprite.x = app.screen.width / 2;
 sprite.y = app.screen.height / 2;
@@ -71,17 +71,16 @@ Once a texture is loaded, modifying its `frame` or swapping its source does not 
 Wrong:
 
 ```ts
-const texture = Texture.from("https://example.com/image.png");
+const texture = Texture.from('https://example.com/image.png');
 ```
 
 Correct:
 
 ```ts
-const texture = await Assets.load("https://example.com/image.png");
+const texture = await Assets.load('https://example.com/image.png');
 ```
 
 `Texture.from()` only reads the cache in v8. Use `Assets.load()` first; its return value is the texture.
-
 
 ### [HIGH] Confusing anchor and pivot
 
@@ -99,16 +98,13 @@ sprite.anchor.set(0.5);
 
 `anchor` shifts only the draw origin. `pivot` shifts the transform origin AND the visual position, causing the sprite to move unexpectedly.
 
-
 ### [HIGH] Old `NineSlicePlane` name
 
 `NineSlicePlane` was renamed to `NineSliceSprite` in v8 and switched to an options-object constructor: `new NineSliceSprite({ texture, leftWidth, topHeight, rightWidth, bottomHeight })`.
 
-
 ### [MEDIUM] Adding children to a sprite
 
 `Sprite`, `NineSliceSprite`, and `TilingSprite` all set `allowChildren = false`. Wrap in a `Container` to group sprites with other content.
-
 
 ## API Reference
 

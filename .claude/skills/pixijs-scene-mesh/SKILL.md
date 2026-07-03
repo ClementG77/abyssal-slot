@@ -1,6 +1,6 @@
 ---
 name: pixijs-scene-mesh
-description: "Use this skill when rendering custom geometry in PixiJS v8. Covers Mesh with MeshGeometry (positions, uvs, indices, topology), MeshSimple for per-frame vertex animation, MeshPlane for subdivided deformation, MeshRope for path-following textures, PerspectiveMesh for 2.5D corners. Triggers on: Mesh, MeshGeometry, MeshSimple, MeshPlane, MeshRope, PerspectiveMesh, positions, uvs, indices, topology, setCorners, constructor options, MeshOptions, MeshPlaneOptions, MeshRopeOptions, SimpleMeshOptions, PerspectivePlaneOptions."
+description: 'Use this skill when rendering custom geometry in PixiJS v8. Covers Mesh with MeshGeometry (positions, uvs, indices, topology), MeshSimple for per-frame vertex animation, MeshPlane for subdivided deformation, MeshRope for path-following textures, PerspectiveMesh for 2.5D corners. Triggers on: Mesh, MeshGeometry, MeshSimple, MeshPlane, MeshRope, PerspectiveMesh, positions, uvs, indices, topology, setCorners, constructor options, MeshOptions, MeshPlaneOptions, MeshRopeOptions, SimpleMeshOptions, PerspectivePlaneOptions.'
 license: MIT
 ---
 
@@ -11,19 +11,19 @@ Assumes familiarity with `pixijs-scene-core-concepts`. Meshes are leaf nodes; th
 ## Quick Start
 
 ```ts
-const texture = await Assets.load("pattern.png");
+const texture = await Assets.load('pattern.png');
 
 const geometry = new MeshGeometry({
-  positions: new Float32Array([0, 0, 100, 0, 100, 100, 0, 100]),
-  uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
-  indices: new Uint32Array([0, 1, 2, 0, 2, 3]),
-  topology: "triangle-list",
+	positions: new Float32Array([0, 0, 100, 0, 100, 100, 0, 100]),
+	uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
+	indices: new Uint32Array([0, 1, 2, 0, 2, 3]),
+	topology: 'triangle-list',
 });
 
 const mesh = new Mesh({
-  geometry,
-  texture,
-  roundPixels: false,
+	geometry,
+	texture,
+	roundPixels: false,
 });
 app.stage.addChild(mesh);
 ```
@@ -77,19 +77,18 @@ A mesh batches (combines with other draw calls) only if it uses `MeshGeometry`, 
 Wrong:
 
 ```ts
-import { SimpleRope } from "pixi.js";
+import { SimpleRope } from 'pixi.js';
 const rope = new SimpleRope(texture, points);
 ```
 
 Correct:
 
 ```ts
-import { MeshRope } from "pixi.js";
+import { MeshRope } from 'pixi.js';
 const rope = new MeshRope({ texture, points });
 ```
 
 Renamed in v8: `SimpleMesh` → `MeshSimple`, `SimplePlane` → `MeshPlane`, `SimpleRope` → `MeshRope`. All switched to options-object constructors.
-
 
 ### [HIGH] Positional constructor args for `MeshGeometry`
 
@@ -103,15 +102,14 @@ Correct:
 
 ```ts
 const geom = new MeshGeometry({
-  positions: vertices,
-  uvs,
-  indices,
-  topology: "triangle-list",
+	positions: vertices,
+	uvs,
+	indices,
+	topology: 'triangle-list',
 });
 ```
 
 v8 uses an options object. Note the property is `positions`, not `vertices`; the `vertices` name is only used by `MeshSimple`.
-
 
 ### [MEDIUM] Adding children to a mesh
 
@@ -129,7 +127,6 @@ group.addChild(mesh, otherMesh);
 ```
 
 `Mesh` sets `allowChildren = false`. Adding children logs a deprecation warning. Group meshes inside a plain `Container`.
-
 
 ## API Reference
 

@@ -77,6 +77,15 @@
 			.to(centerFx, { flash: 0, duration: 0.3, ease: 'power2.out' }, 0);
 	};
 
+	// The multiplier leaves the eye WITH the chip: the moment the chip departs, mark the board
+	// eye spent — its number disappears (with the Symbol's pulse) and the plain empty eye stays.
+	const spendBoardEye = (eye: ComboEye) => {
+		const cell = context.stateGame.board[eye.reel]?.reelState.symbols[eye.row];
+		if (cell?.rawSymbol.name === 'EYE') {
+			cell.rawSymbol = { ...cell.rawSymbol, spent: true };
+		}
+	};
+
 	// fold one Eye into the running value: its chip flies from its board cell into the centre, then
 	// the value updates (ADD → +start, MUL → ×start) with a punch.
 	const foldEye = (eye: ComboEye) =>
@@ -94,6 +103,8 @@
 			tl.timeScale(ts());
 			tl.set(chip, { x: getPositionX(eye.reel), y: getPositionY(eye.row), scale: 0.5, alpha: 0 })
 				.to(chip, { alpha: 1, scale: 1.2, duration: 0.2, ease: 'back.out(2.2)' })
+				// the chip is fully formed — the multiplier has left the eye (the empty eye remains)
+				.add(() => spendBoardEye(eye))
 				.to(chip, { x: center.x, y: center.y, duration: 0.42, ease: 'power2.inOut' }, '<0.05')
 				.add(() => {
 					running = eye.eyeType === 'ADD' ? running + eye.startValue : running * eye.startValue;
@@ -161,7 +172,9 @@
 		},
 	});
 
-	const totalStyle = $derived(eyeValueTextStyle({ fontSize: SYMBOL_SIZE * 0.92, fill: TOTAL_COLOR }));
+	const totalStyle = $derived(
+		eyeValueTextStyle({ fontSize: SYMBOL_SIZE * 0.92, fill: TOTAL_COLOR }),
+	);
 	const flashStyle = $derived(eyeValueTextStyle({ fontSize: SYMBOL_SIZE * 0.92, fill: 0xffffff }));
 	const gazeStyle = {
 		fontFamily: 'Cinzel, Georgia, serif',

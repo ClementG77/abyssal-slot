@@ -10,11 +10,11 @@ PixiJS v8 ships three renderers: `WebGPURenderer` (fastest where available), `We
 const app = new Application();
 
 await app.init({
-  preference: ["webgpu", "webgl"],
-  width: 800,
-  height: 600,
-  background: 0x222233,
-  antialias: true,
+	preference: ['webgpu', 'webgl'],
+	width: 800,
+	height: 600,
+	background: 0x222233,
+	antialias: true,
 });
 
 document.body.appendChild(app.canvas);
@@ -28,16 +28,16 @@ document.body.appendChild(app.canvas);
 
 ```ts
 // Single string: try webgpu first, fall back through defaults
-await app.init({ preference: "webgpu" });
+await app.init({ preference: 'webgpu' });
 
 // Array: only try listed backends in order
-await app.init({ preference: ["webgpu", "webgl"] });
+await app.init({ preference: ['webgpu', 'webgl'] });
 
 // Array acts as a blocklist; anything not listed is excluded
-await app.init({ preference: ["webgl"] }); // never uses webgpu or canvas
+await app.init({ preference: ['webgl'] }); // never uses webgpu or canvas
 
 // Force canvas (legacy-only environments)
-await app.init({ preference: ["canvas"] });
+await app.init({ preference: ['canvas'] });
 ```
 
 A string form falls through to defaults if the preferred backend isn't available. An array form excludes any backend not in the list, even if the preferred one fails.
@@ -46,11 +46,11 @@ A string form falls through to defaults if the preferred backend isn't available
 
 ```ts
 await app.init({
-  width: 800,
-  height: 600,
-  webgpu: { antialias: true, powerPreference: "high-performance" },
-  webgl: { antialias: true, premultipliedAlpha: false },
-  canvasOptions: { backgroundAlpha: 0 },
+	width: 800,
+	height: 600,
+	webgpu: { antialias: true, powerPreference: 'high-performance' },
+	webgl: { antialias: true, premultipliedAlpha: false },
+	canvasOptions: { backgroundAlpha: 0 },
 });
 ```
 
@@ -68,7 +68,7 @@ Writing a custom renderable means implementing a `RenderPipe`, a `BatchableX` cl
 ### Direct renderer construction
 
 ```ts
-import { WebGLRenderer } from "pixi.js";
+import { WebGLRenderer } from 'pixi.js';
 
 const renderer = new WebGLRenderer();
 await renderer.init({ width: 800, height: 600 });
@@ -86,16 +86,16 @@ renderer.render(app.stage);
 
 // options form: control clearing, transform, or a render target
 renderer.render({
-  container: app.stage,
-  clear: true,
-  transform: new Matrix(),
+	container: app.stage,
+	clear: true,
+	transform: new Matrix(),
 });
 
 // render into a specific mip level of a RenderTexture
 renderer.render({
-  container: myContainer,
-  target: renderTexture,
-  mipLevel: 1,
+	container: myContainer,
+	target: renderTexture,
+	mipLevel: 1,
 });
 ```
 
@@ -132,8 +132,8 @@ Releases GPU resources, systems, pipes, and event listeners. A destroyed rendere
 await app.init({ autoStart: false, width: 800, height: 600 });
 
 function frame() {
-  app.renderer.render(app.stage);
-  requestAnimationFrame(frame);
+	app.renderer.render(app.stage);
+	requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 ```
@@ -152,11 +152,11 @@ After `init`, `app.renderer` is the concrete class. Use `app.renderer.name` (a s
 
 ```ts
 if (await isWebGPUSupported()) {
-  // ok to prefer webgpu
+	// ok to prefer webgpu
 }
 
 if (isWebGLSupported()) {
-  // ok to prefer webgl
+	// ok to prefer webgl
 }
 ```
 
@@ -169,22 +169,20 @@ Both helpers are exported from `pixi.js`. Useful if you want to tell the user wh
 Wrong:
 
 ```ts
-await app.init({ preference: ["webgpu"] });
+await app.init({ preference: ['webgpu'] });
 ```
 
 Correct:
 
 ```ts
-await app.init({ preference: ["webgpu", "webgl"] });
+await app.init({ preference: ['webgpu', 'webgl'] });
 ```
 
 WebGPU is not yet available on all browsers. An array-form preference of only `['webgpu']` will fail init on unsupported browsers (no fallback). Always include `'webgl'` as a fallback unless you've verified WebGPU support upstream.
 
-
 ### [MEDIUM] Assuming CanvasRenderer supports everything
 
 CanvasRenderer does not support filters, masks beyond basic clipping, compressed textures, or custom shaders. It's intended as a last-resort for environments that can't run WebGL. If you need full feature parity, target WebGL or WebGPU.
-
 
 ### [MEDIUM] Calling render before init
 
@@ -205,7 +203,6 @@ app.renderer.render(app.stage);
 ```
 
 `app.renderer` is populated only after `init()` resolves. Any access before that is `undefined`.
-
 
 ## API Reference
 

@@ -1,6 +1,6 @@
 ---
 name: pixijs-core-concepts
-description: "Use this skill when understanding how PixiJS v8 renders frames: the systems-and-pipes renderer, the render loop, and how the library adapts to different environments. Covers WebGLRenderer/WebGPURenderer/CanvasRenderer selection, renderer.render() pipeline, environment detection, and pointers to per-topic deep dives. Triggers on: renderer, WebGL, WebGPU, Canvas, render loop, render pipeline, systems, environments, autoDetectRenderer."
+description: 'Use this skill when understanding how PixiJS v8 renders frames: the systems-and-pipes renderer, the render loop, and how the library adapts to different environments. Covers WebGLRenderer/WebGPURenderer/CanvasRenderer selection, renderer.render() pipeline, environment detection, and pointers to per-topic deep dives. Triggers on: renderer, WebGL, WebGPU, Canvas, render loop, render pipeline, systems, environments, autoDetectRenderer.'
 license: MIT
 ---
 
@@ -12,7 +12,7 @@ Foundational model for how PixiJS v8 gets pixels on the screen: the renderer dec
 console.log(app.renderer.name); // 'webgl' | 'webgpu' | 'canvas'
 
 app.ticker.add((ticker) => {
-  sprite.rotation += 0.01 * ticker.deltaTime;
+	sprite.rotation += 0.01 * ticker.deltaTime;
 });
 
 const tex = app.renderer.extract.texture({ target: app.stage });
@@ -104,7 +104,7 @@ The adapter abstracts DOM calls the renderer makes during construction (canvas c
 Wrong:
 
 ```ts
-await app.init({ preference: "webgpu" });
+await app.init({ preference: 'webgpu' });
 // assume WebGPU is active
 useWebGPUOnlyFeature(app.renderer);
 ```
@@ -112,9 +112,9 @@ useWebGPUOnlyFeature(app.renderer);
 Correct:
 
 ```ts
-await app.init({ preference: "webgpu" });
-if (app.renderer.name === "webgpu") {
-  useWebGPUOnlyFeature(app.renderer);
+await app.init({ preference: 'webgpu' });
+if (app.renderer.name === 'webgpu') {
+	useWebGPUOnlyFeature(app.renderer);
 }
 ```
 

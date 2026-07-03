@@ -7,11 +7,11 @@ PixiJS loads two kinds of fonts through `Assets`: web fonts (TTF/OTF/WOFF/WOFF2)
 ### Quick Start
 
 ```ts
-await Assets.load("fonts/titan-one.woff2");
+await Assets.load('fonts/titan-one.woff2');
 
 const text = new Text({
-  text: "Hello world",
-  style: { fontFamily: "Titan One", fontSize: 48 },
+	text: 'Hello world',
+	style: { fontFamily: 'Titan One', fontSize: 48 },
 });
 ```
 
@@ -32,17 +32,17 @@ By default, the family name is the filename without extension, with dashes and u
 
 ```ts
 await Assets.load({
-  alias: "hero-font",
-  src: "fonts/hero.woff2",
-  data: {
-    family: "HeroFont",
-    weights: ["normal", "bold"],
-    style: "italic",
-    display: "swap",
-    unicodeRange: "U+0000-00FF",
-    stretch: "expanded",
-    featureSettings: '"liga" 1',
-  },
+	alias: 'hero-font',
+	src: 'fonts/hero.woff2',
+	data: {
+		family: 'HeroFont',
+		weights: ['normal', 'bold'],
+		style: 'italic',
+		display: 'swap',
+		unicodeRange: 'U+0000-00FF',
+		stretch: 'expanded',
+		featureSettings: '"liga" 1',
+	},
 });
 ```
 
@@ -63,11 +63,11 @@ Fields on `data` map directly to FontFace descriptors:
 
 ```ts
 await Assets.load({
-  src: "fonts/inter.woff2",
-  data: {
-    family: "Inter",
-    weights: ["400", "700"],
-  },
+	src: 'fonts/inter.woff2',
+	data: {
+		family: 'Inter',
+		weights: ['400', '700'],
+	},
 });
 ```
 
@@ -82,13 +82,13 @@ A single URL registers as multiple weights. Use when your font file contains a v
 ### Quick Start
 
 ```ts
-import "pixi.js/text-bitmap";
+import 'pixi.js/text-bitmap';
 
-await Assets.load("fonts/arial.fnt");
+await Assets.load('fonts/arial.fnt');
 
 const text = new BitmapText({
-  text: "Score: 9999",
-  style: { fontFamily: "Arial", fontSize: 32 },
+	text: 'Score: 9999',
+	style: { fontFamily: 'Arial', fontSize: 32 },
 });
 ```
 
@@ -107,7 +107,7 @@ The parser sniffs the content to pick between text and XML automatically.
 
 ```ts
 // my-font.fnt references my-font_0.png, my-font_1.png
-await Assets.load("fonts/my-font.fnt");
+await Assets.load('fonts/my-font.fnt');
 ```
 
 Bitmap fonts reference page images by filename in the `.fnt` data. The parser resolves these relative to the `.fnt` URL and loads them automatically. Any search params on the `.fnt` URL (e.g. cache busting) propagate to the page texture URLs.
@@ -119,9 +119,9 @@ The parser detects distance field metadata in the `.fnt` file and enables `linea
 ### Accessing the BitmapFont instance
 
 ```ts
-await Assets.load({ alias: "arial", src: "fonts/arial.fnt" });
+await Assets.load({ alias: 'arial', src: 'fonts/arial.fnt' });
 
-const font = Assets.get("arial");
+const font = Assets.get('arial');
 console.log(font.chars);
 console.log(font.fontFamily);
 ```
@@ -134,14 +134,14 @@ If your font URL lacks an extension, force the loader:
 
 ```ts
 await Assets.load({
-  src: "https://cdn.example.com/fonts/abc123",
-  parser: "web-font",
-  data: { family: "Hero", weights: ["400", "700"] },
+	src: 'https://cdn.example.com/fonts/abc123',
+	parser: 'web-font',
+	data: { family: 'Hero', weights: ['400', '700'] },
 });
 
 await Assets.load({
-  src: "https://cdn.example.com/fonts/hero-bmfont",
-  parser: "bitmap-font",
+	src: 'https://cdn.example.com/fonts/hero-bmfont',
+	parser: 'bitmap-font',
 });
 ```
 
@@ -154,48 +154,45 @@ See the main `SKILL.md` section on "Forcing a parser with `parser`" for the full
 Wrong:
 
 ```ts
-import { Assets, BitmapText } from "pixi.js";
-await Assets.load("arial.fnt");
-const text = new BitmapText({ text: "Hi", style: { fontFamily: "Arial" } });
+import { Assets, BitmapText } from 'pixi.js';
+await Assets.load('arial.fnt');
+const text = new BitmapText({ text: 'Hi', style: { fontFamily: 'Arial' } });
 app.stage.addChild(text);
 ```
 
 Correct:
 
 ```ts
-import "pixi.js/text-bitmap";
-import { Assets, BitmapText } from "pixi.js";
-await Assets.load("arial.fnt");
-const text = new BitmapText({ text: "Hi", style: { fontFamily: "Arial" } });
+import 'pixi.js/text-bitmap';
+import { Assets, BitmapText } from 'pixi.js';
+await Assets.load('arial.fnt');
+const text = new BitmapText({ text: 'Hi', style: { fontFamily: 'Arial' } });
 app.stage.addChild(text);
 ```
 
 `Assets.load('arial.fnt')` succeeds in the default bundle and returns a `BitmapFont`, but `'pixi.js/text-bitmap'` registers the `CanvasBitmapTextPipe` and `BitmapTextPipe`. Without it, `BitmapText` renders nothing or errors at render time.
-
 
 ### [HIGH] Using Text before the font is loaded
 
 Wrong:
 
 ```ts
-const text = new Text({ text: "Hi", style: { fontFamily: "Hero" } });
-Assets.load("fonts/hero.woff2");
+const text = new Text({ text: 'Hi', style: { fontFamily: 'Hero' } });
+Assets.load('fonts/hero.woff2');
 ```
 
 Correct:
 
 ```ts
-await Assets.load("fonts/hero.woff2");
-const text = new Text({ text: "Hi", style: { fontFamily: "Hero" } });
+await Assets.load('fonts/hero.woff2');
+const text = new Text({ text: 'Hi', style: { fontFamily: 'Hero' } });
 ```
 
 The browser falls back to a system font if the named family isn't registered yet, then the `Text` is cached at that fallback style. Reloading the font doesn't repaint existing Text objects.
 
-
 ### [MEDIUM] Family name mismatch
 
 If you don't pass `data.family`, the family name is derived from the filename. `my_hero_font.woff` becomes `'My Hero Font'`; use exactly that string in your `TextStyle.fontFamily`, or set `data.family` to an explicit value.
-
 
 ## API Reference
 

@@ -26,17 +26,24 @@
 	const pad = $derived(Math.round(26 * scale));
 	const fontSize = $derived(Math.round(18 * scale));
 
-	const nameStyle = $derived({
+	const baseTextStyle = $derived({
 		fontFamily: FONT,
 		fontWeight: '600' as const,
 		fontSize,
-		fill: C.textDim,
 		letterSpacing: 4,
+	});
+	const timeStyle = $derived({
+		...baseTextStyle,
+		fill: 0xd8fbff,
+	});
+	const nameStyle = $derived({
+		...baseTextStyle,
+		fill: 0xffdf91,
 	});
 </script>
 
 <Container>
-	<Text x={pad} y={pad} anchor={{ x: 0, y: 0 }} alpha={0.85} text={timeText} style={nameStyle} />
+	<Text x={pad} y={pad} anchor={{ x: 0, y: 0 }} alpha={0.95} text={timeText} style={timeStyle} />
 	<Text
 		x={canvas.width - pad}
 		y={pad}

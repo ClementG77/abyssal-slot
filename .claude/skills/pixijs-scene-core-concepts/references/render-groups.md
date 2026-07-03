@@ -11,10 +11,10 @@ const hud = new Container({ isRenderGroup: true });
 app.stage.addChild(world, hud);
 
 for (let i = 0; i < 5000; i++) {
-  const bunny = new Sprite(bunnyTexture);
-  bunny.x = Math.random() * 2000;
-  bunny.y = Math.random() * 2000;
-  world.addChild(bunny);
+	const bunny = new Sprite(bunnyTexture);
+	bunny.x = Math.random() * 2000;
+	bunny.y = Math.random() * 2000;
+	world.addChild(bunny);
 }
 
 world.x = 100; // applied once on the GPU, not 5000 times on the CPU
@@ -96,12 +96,11 @@ Wrong:
 
 ```ts
 for (const enemy of enemies) {
-  enemy.enableRenderGroup();
+	enemy.enableRenderGroup();
 }
 ```
 
 Each render group has its own instruction set and can't batch with other groups. A scene with many small render groups generates many separate draw buckets, which is slower than a single batched draw. Apply render groups at a coarse level (world, HUD), not per-entity.
-
 
 ### [HIGH] Nesting many render groups
 
@@ -127,11 +126,9 @@ section.addChild(tile);
 
 Deep nesting of render groups multiplies the instruction set overhead. Pick a single level (usually one per "subsystem") and let the children be normal containers.
 
-
 ### [MEDIUM] Constantly adding/removing from a render group
 
 If the sub-tree structure changes every frame (not just child transforms), the render group's instruction set is rebuilt each time, negating the performance benefit. Render groups help stable structures with animated children; not dynamic structures.
-
 
 ## API Reference
 

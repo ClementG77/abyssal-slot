@@ -147,99 +147,112 @@
 		<Container x={layout.width * 0.5} y={layout.height - BAR_H * 0.5 - 36}>
 			<Graphics draw={drawBar} />
 
-		<!-- REPLAY badge (top center) -->
-		<Container y={-BAR_H * 0.5 + 24}>
-			<Graphics
-				draw={(g) => {
-					g.roundRect(-58, -14, 116, 28, 8).fill({ color: C.purpleBright, alpha: 0.92 });
-				}}
-			/>
-			<Text
-				anchor={0.5}
-				text="REPLAY"
-				style={{ fontFamily: FONT, fontWeight: '900', fontSize: 14, fill: C.white, letterSpacing: 3 }}
-			/>
-		</Container>
-
-		<!-- BET (left) -->
-		<Container x={-BAR_W / 2 + 44} y={18}>
-			<Text anchor={{ x: 0, y: 0.5 }} y={-16} text="BET" style={labelStyle} />
-			<Text anchor={{ x: 0, y: 0.5 }} y={16} text={betText} style={valueStyle} />
-		</Container>
-
-		<!-- WIN (right) -->
-		<Container x={BAR_W / 2 - 44} y={18}>
-			<Text anchor={{ x: 1, y: 0.5 }} y={-16} text="WIN" style={labelStyle} />
-			<Text
-				anchor={{ x: 1, y: 0.5 }}
-				y={16}
-				text={winText}
-				style={{ ...valueStyle, fill: C.amber }}
-			/>
-		</Container>
-
-		<!-- center: PLAY / PLAY AGAIN button, or loading/error status -->
-		{#if showButton}
-			<Container y={16}>
-				<Button anchor={0.5} sizes={{ width: BTN_W, height: BTN_H }} onpress={play}>
-					{#snippet children({ center, hovered, pressed })}
-						<Container x={center.x} y={center.y} scale={pressed ? 0.97 : hovered ? 1.03 : 1}>
-							<Rectangle
-								anchor={0.5}
-								width={BTN_W}
-								height={BTN_H}
-								backgroundColor={0x000000}
-								backgroundAlpha={0.001}
-							/>
-							<Graphics
-								draw={(g) => {
-									g.roundRect(-BTN_W / 2, -BTN_H / 2, BTN_W, BTN_H, BTN_H / 2).fill({
-										color: hovered ? C.purpleBright : C.violet,
-									});
-									g.roundRect(-BTN_W / 2, -BTN_H / 2, BTN_W, BTN_H, BTN_H / 2).stroke({
-										width: 2,
-										color: C.white,
-										alpha: 0.5,
-									});
-									g.poly([-BTN_W / 2 + 40, -16, -BTN_W / 2 + 40, 16, -BTN_W / 2 + 64, 0]).fill(C.white);
-								}}
-							/>
-							<Text
-								anchor={0.5}
-								x={16}
-								text={buttonLabel}
-								style={{
-									fontFamily: FONT,
-									fontWeight: '900',
-									fontSize: 26,
-									fill: C.white,
-									letterSpacing: 1,
-								}}
-							/>
-						</Container>
-					{/snippet}
-				</Button>
+			<!-- REPLAY badge (top center) -->
+			<Container y={-BAR_H * 0.5 + 24}>
+				<Graphics
+					draw={(g) => {
+						g.roundRect(-58, -14, 116, 28, 8).fill({ color: C.purpleBright, alpha: 0.92 });
+					}}
+				/>
+				<Text
+					anchor={0.5}
+					text="REPLAY"
+					style={{
+						fontFamily: FONT,
+						fontWeight: '900',
+						fontSize: 14,
+						fill: C.white,
+						letterSpacing: 3,
+					}}
+				/>
 			</Container>
-		{:else if statusText}
-			<Text
-				anchor={0.5}
-				y={16}
-				text={statusText}
-				style={{
-					fontFamily: FONT,
-					fontWeight: '800',
-					fontSize: 20,
-					fill: status === 'error' ? C.ember : C.textDim,
-					letterSpacing: 1,
-				}}
-			/>
-		{/if}
+
+			<!-- BET (left) -->
+			<Container x={-BAR_W / 2 + 44} y={18}>
+				<Text anchor={{ x: 0, y: 0.5 }} y={-16} text="BET" style={labelStyle} />
+				<Text anchor={{ x: 0, y: 0.5 }} y={16} text={betText} style={valueStyle} />
+			</Container>
+
+			<!-- WIN (right) -->
+			<Container x={BAR_W / 2 - 44} y={18}>
+				<Text anchor={{ x: 1, y: 0.5 }} y={-16} text="WIN" style={labelStyle} />
+				<Text
+					anchor={{ x: 1, y: 0.5 }}
+					y={16}
+					text={winText}
+					style={{ ...valueStyle, fill: C.amber }}
+				/>
+			</Container>
+
+			<!-- center: PLAY / PLAY AGAIN button, or loading/error status -->
+			{#if showButton}
+				<Container y={16}>
+					<Button anchor={0.5} sizes={{ width: BTN_W, height: BTN_H }} onpress={play}>
+						{#snippet children({ center, hovered, pressed })}
+							<Container x={center.x} y={center.y} scale={pressed ? 0.97 : hovered ? 1.03 : 1}>
+								<Rectangle
+									anchor={0.5}
+									width={BTN_W}
+									height={BTN_H}
+									backgroundColor={0x000000}
+									backgroundAlpha={0.001}
+								/>
+								<Graphics
+									draw={(g) => {
+										g.roundRect(-BTN_W / 2, -BTN_H / 2, BTN_W, BTN_H, BTN_H / 2).fill({
+											color: hovered ? C.purpleBright : C.violet,
+										});
+										g.roundRect(-BTN_W / 2, -BTN_H / 2, BTN_W, BTN_H, BTN_H / 2).stroke({
+											width: 2,
+											color: C.white,
+											alpha: 0.5,
+										});
+										g.poly([-BTN_W / 2 + 40, -16, -BTN_W / 2 + 40, 16, -BTN_W / 2 + 64, 0]).fill(
+											C.white,
+										);
+									}}
+								/>
+								<Text
+									anchor={0.5}
+									x={16}
+									text={buttonLabel}
+									style={{
+										fontFamily: FONT,
+										fontWeight: '900',
+										fontSize: 26,
+										fill: C.white,
+										letterSpacing: 1,
+									}}
+								/>
+							</Container>
+						{/snippet}
+					</Button>
+				</Container>
+			{:else if statusText}
+				<Text
+					anchor={0.5}
+					y={16}
+					text={statusText}
+					style={{
+						fontFamily: FONT,
+						fontWeight: '800',
+						fontSize: 20,
+						fill: status === 'error' ? C.ember : C.textDim,
+						letterSpacing: 1,
+					}}
+				/>
+			{/if}
 		</Container>
 	</FadeContainer>
 
 	<!-- speed/turbo toggle: stays visible the whole time so the replay can be sped up mid-play -->
 	<Container x={layout.width - 96} y={layout.height - BAR_H * 0.5 - 36}>
-		<Button anchor={0.5} sizes={{ width: 76, height: 76 }} onpress={toggleTurbo} disabled={turboDisabled}>
+		<Button
+			anchor={0.5}
+			sizes={{ width: 76, height: 76 }}
+			onpress={toggleTurbo}
+			disabled={turboDisabled}
+		>
 			{#snippet children({ center, hovered, pressed })}
 				<Container
 					x={center.x}
@@ -275,7 +288,13 @@
 			anchor={0.5}
 			y={54}
 			text="SPEED"
-			style={{ fontFamily: FONT, fontWeight: '800', fontSize: 12, fill: C.textDim, letterSpacing: 1.5 }}
+			style={{
+				fontFamily: FONT,
+				fontWeight: '800',
+				fontSize: 12,
+				fill: C.textDim,
+				letterSpacing: 1.5,
+			}}
 		/>
 	</Container>
 </MainContainer>

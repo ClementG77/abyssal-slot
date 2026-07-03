@@ -1,6 +1,6 @@
 ---
 name: pixijs-scene-core-concepts
-description: "Use this skill when reasoning about the PixiJS v8 scene graph as a whole: how containers, leaves, transforms, and render order fit together. Covers leaf vs container distinction, local/world coordinates, culling, render groups, sortable children, masking, RenderLayer, constructor options shared by every scene node, and which leaf skill covers which display object. Triggers on: scene graph, display list, Container, Sprite, Graphics, Text, Mesh, ParticleContainer, DOMContainer, GifSprite, masking, render group, RenderLayer, world transform, constructor options, ContainerOptions."
+description: 'Use this skill when reasoning about the PixiJS v8 scene graph as a whole: how containers, leaves, transforms, and render order fit together. Covers leaf vs container distinction, local/world coordinates, culling, render groups, sortable children, masking, RenderLayer, constructor options shared by every scene node, and which leaf skill covers which display object. Triggers on: scene graph, display list, Container, Sprite, Graphics, Text, Mesh, ParticleContainer, DOMContainer, GifSprite, masking, render group, RenderLayer, world transform, constructor options, ContainerOptions.'
 license: MIT
 ---
 
@@ -12,7 +12,7 @@ This skill is the shared mental model referenced by all `pixijs-scene-*` leaves.
 const world = new Container({ isRenderGroup: true });
 app.stage.addChild(world);
 
-const hero = new Container({ label: "hero" });
+const hero = new Container({ label: 'hero' });
 hero.addChild(new Sprite(bodyTexture));
 hero.addChild(new Sprite(faceTexture));
 world.addChild(hero);
@@ -140,18 +140,18 @@ In v8 leaves (`Sprite`, `Graphics`, `Text`, `Mesh`, `ParticleContainer`, `DOMCon
 Wrong:
 
 ```ts
-import { DisplayObject } from "pixi.js"; // no such export in v8
+import { DisplayObject } from 'pixi.js'; // no such export in v8
 function moveNode(node: DisplayObject) {
-  node.x += 1;
+	node.x += 1;
 }
 ```
 
 Correct:
 
 ```ts
-import { Container } from "pixi.js";
+import { Container } from 'pixi.js';
 function moveNode(node: Container) {
-  node.x += 1;
+	node.x += 1;
 }
 ```
 
@@ -164,7 +164,7 @@ Wrong:
 ```ts
 const world = new Container();
 for (let i = 0; i < 5000; i++) {
-  world.addChild(new Sprite(texture));
+	world.addChild(new Sprite(texture));
 }
 app.stage.addChild(world);
 ```
@@ -174,7 +174,7 @@ Correct:
 ```ts
 const world = new Container({ isRenderGroup: true });
 for (let i = 0; i < 5000; i++) {
-  world.addChild(new Sprite(texture));
+	world.addChild(new Sprite(texture));
 }
 app.stage.addChild(world);
 ```

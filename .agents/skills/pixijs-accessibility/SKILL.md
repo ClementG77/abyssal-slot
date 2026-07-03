@@ -1,6 +1,6 @@
 ---
 name: pixijs-accessibility
-description: "Use this skill when adding screen reader and keyboard navigation to PixiJS v8 apps. Covers AccessibilitySystem options (enabledByDefault, debug, activateOnTab, deactivateOnMouseMove), per-container accessibility properties, shadow DOM overlay, mobile touch-hook activation. Triggers on: accessibility, a11y, screen reader, ARIA, keyboard navigation, tab order, AccessibilitySystem, accessibleTitle, accessibleHint, tabIndex, accessibleChildren."
+description: 'Use this skill when adding screen reader and keyboard navigation to PixiJS v8 apps. Covers AccessibilitySystem options (enabledByDefault, debug, activateOnTab, deactivateOnMouseMove), per-container accessibility properties, shadow DOM overlay, mobile touch-hook activation. Triggers on: accessibility, a11y, screen reader, ARIA, keyboard navigation, tab order, AccessibilitySystem, accessibleTitle, accessibleHint, tabIndex, accessibleChildren.'
 license: MIT
 ---
 
@@ -9,17 +9,17 @@ Enable screen reader and keyboard navigation via PixiJS's AccessibilitySystem. T
 ## Quick Start
 
 ```ts
-const button = new Sprite(await Assets.load("button.png"));
+const button = new Sprite(await Assets.load('button.png'));
 button.accessible = true;
-button.accessibleTitle = "Play game";
-button.accessibleHint = "Starts a new game session";
-button.eventMode = "static";
+button.accessibleTitle = 'Play game';
+button.accessibleHint = 'Starts a new game session';
+button.eventMode = 'static';
 button.tabIndex = 0;
 app.stage.addChild(button);
 
 app.renderer.accessibility.setAccessibilityEnabled(true);
 
-button.on("pointertap", () => startGame());
+button.on('pointertap', () => startGame());
 ```
 
 **Related skills:** `pixijs-events` (pointer/tap handlers), `pixijs-scene-dom-container` (HTML elements on canvas), `pixijs-application` (init options).
@@ -35,21 +35,21 @@ button.on("pointertap", () => startGame());
 ### Container accessible properties
 
 ```ts
-import { Container, Sprite } from "pixi.js";
+import { Container, Sprite } from 'pixi.js';
 
 const container = new Container();
 container.accessible = true;
-container.accessibleTitle = "Navigation menu";
-container.accessibleHint = "Contains links to other pages";
-container.eventMode = "static"; // required for custom tabIndex to apply
+container.accessibleTitle = 'Navigation menu';
+container.accessibleHint = 'Contains links to other pages';
+container.eventMode = 'static'; // required for custom tabIndex to apply
 container.tabIndex = 0;
-container.accessibleType = "div"; // defaults to 'button'
+container.accessibleType = 'div'; // defaults to 'button'
 
 const sprite = new Sprite();
 sprite.accessible = true;
-sprite.accessibleTitle = "Close dialog";
-sprite.accessibleText = "X"; // text content of the shadow div
-sprite.eventMode = "static";
+sprite.accessibleTitle = 'Close dialog';
+sprite.accessibleText = 'X'; // text content of the shadow div
+sprite.eventMode = 'static';
 sprite.tabIndex = 1;
 ```
 
@@ -70,15 +70,15 @@ Give each accessible container a `tabIndex` to control the order assistive tech 
 
 ```ts
 menuButton.accessible = true;
-menuButton.eventMode = "static";
+menuButton.eventMode = 'static';
 menuButton.tabIndex = 1;
 
 playButton.accessible = true;
-playButton.eventMode = "static";
+playButton.eventMode = 'static';
 playButton.tabIndex = 2;
 
 settingsButton.accessible = true;
-settingsButton.eventMode = "static";
+settingsButton.eventMode = 'static';
 settingsButton.tabIndex = 3;
 ```
 
@@ -87,7 +87,7 @@ settingsButton.tabIndex = 3;
 ### Programmatic control
 
 ```ts
-import { Application } from "pixi.js";
+import { Application } from 'pixi.js';
 
 const app = new Application();
 await app.init({ width: 800, height: 600 });
@@ -101,19 +101,19 @@ console.log(app.renderer.accessibility.isMobileAccessibility);
 
 // Full init options:
 await app.init({
-  accessibilityOptions: {
-    enabledByDefault: true, // activate immediately (default: false)
-    debug: true, // makes overlay divs visible (default: false)
-    activateOnTab: true, // Tab key activates system (default: true)
-    deactivateOnMouseMove: false, // stay active when mouse moves (default: true)
-  },
+	accessibilityOptions: {
+		enabledByDefault: true, // activate immediately (default: false)
+		debug: true, // makes overlay divs visible (default: false)
+		activateOnTab: true, // Tab key activates system (default: true)
+		deactivateOnMouseMove: false, // stay active when mouse moves (default: true)
+	},
 });
 ```
 
 The system can also be configured via static defaults before creating the Application:
 
 ```ts
-import { AccessibilitySystem, Application } from "pixi.js";
+import { AccessibilitySystem, Application } from 'pixi.js';
 
 AccessibilitySystem.defaultOptions.enabledByDefault = true;
 AccessibilitySystem.defaultOptions.deactivateOnMouseMove = false;
@@ -125,17 +125,17 @@ await app.init();
 ### Handling accessible interactions
 
 ```ts
-import { Sprite } from "pixi.js";
+import { Sprite } from 'pixi.js';
 
 const button = new Sprite();
-button.eventMode = "static";
+button.eventMode = 'static';
 button.accessible = true;
-button.accessibleTitle = "Submit form";
+button.accessibleTitle = 'Submit form';
 button.tabIndex = 0;
 
 // Screen readers trigger click/tap events through the shadow DOM element
-button.on("pointertap", () => {
-  submitForm();
+button.on('pointertap', () => {
+	submitForm();
 });
 ```
 
@@ -150,9 +150,9 @@ The AccessibilitySystem does not create its DOM overlay until the user presses T
 ```ts
 const app = new Application();
 await app.init({
-  accessibilityOptions: {
-    enabledByDefault: true,
-  },
+	accessibilityOptions: {
+		enabledByDefault: true,
+	},
 });
 ```
 
@@ -163,7 +163,6 @@ app.renderer.accessibility.setAccessibilityEnabled(true);
 ```
 
 Without one of these, automated accessibility testing tools will not find the overlay elements.
-
 
 ### [MEDIUM] Setting accessible without accessibleTitle
 
@@ -180,12 +179,11 @@ Correct:
 ```ts
 const sprite = new Sprite();
 sprite.accessible = true;
-sprite.accessibleTitle = "Play button";
-sprite.accessibleHint = "Click to start the game";
+sprite.accessibleTitle = 'Play button';
+sprite.accessibleHint = 'Click to start the game';
 ```
 
 A container with `accessible = true` but no `accessibleTitle` or `accessibleHint` gets a fallback title of `"container {tabIndex}"`. Screen readers will announce this generic label with no useful context. Always provide at least `accessibleTitle`.
-
 
 ### [MEDIUM] Accessibility deactivates when moving mouse
 
@@ -193,27 +191,25 @@ By default, `deactivateOnMouseMove` is `true`. Any mouse movement after Tab-acti
 
 ```ts
 await app.init({
-  accessibilityOptions: {
-    deactivateOnMouseMove: false,
-  },
+	accessibilityOptions: {
+		deactivateOnMouseMove: false,
+	},
 });
 ```
-
 
 ### [MEDIUM] Not importing accessibility extension in custom builds
 
 When using `skipExtensionImports: true` for a custom build, the accessibility extension is not automatically registered. You must import it explicitly:
 
 ```ts
-import "pixi.js/accessibility";
-import { Application } from "pixi.js";
+import 'pixi.js/accessibility';
+import { Application } from 'pixi.js';
 
 const app = new Application();
 await app.init({ skipExtensionImports: true });
 ```
 
 Without this import, `app.renderer.accessibility` will be undefined and no shadow DOM layer will be created.
-
 
 ## API Reference
 

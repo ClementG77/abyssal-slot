@@ -1,13 +1,13 @@
 # Abyssal — Frontend Production Roadmap & Requirements
 
 The single source of truth for taking the **Abyssal** slot from finished math to a
-launched, RGS-integrated game on Stake Engine. It is a *companion* to
+launched, RGS-integrated game on Stake Engine. It is a _companion_ to
 [ABYSSAL_FRONTEND_GUIDE.md](ABYSSAL_FRONTEND_GUIDE.md) (the math/event contract) and
 [ABYSSAL_MATH_SPEC.md](ABYSSAL_MATH_SPEC.md) (the design spec).
 
-- **This file** = *how we build the client* — stack, architecture, RGS wiring, the
+- **This file** = _how we build the client_ — stack, architecture, RGS wiring, the
   component/event map, the build/deploy pipeline, and a phased checklist roadmap.
-- **The Frontend Guide** = *what the math emits* — the exact event vocabulary, payloads,
+- **The Frontend Guide** = _what the math emits_ — the exact event vocabulary, payloads,
   paytable, and per-spin ordering the client must render.
 
 > Reference architecture: the official [`StakeEngine/web-sdk`](https://github.com/StakeEngine/web-sdk)
@@ -19,6 +19,7 @@ launched, RGS-integrated game on Stake Engine. It is a *companion* to
 ## 0. TL;DR — what "done" means
 
 A static web build (HTML + JS + assets, no server) that:
+
 1. Authenticates a player session against the RGS from URL query params.
 2. Presents bet controls for all five modes (base, ante, bonus, superspins, superbonus).
 3. Calls `play`, receives a **book**, and **renders its event list in order** (no client RNG).
@@ -34,22 +35,22 @@ A static web build (HTML + JS + assets, no server) that:
 
 We adopt the web-sdk stack as-is. Don't fight it; it's what the platform expects.
 
-| Layer | Choice | Notes |
-|-------|--------|-------|
-| UI framework | **Svelte 5** (runes) | reactive components |
-| Renderer | **PixiJS 8** via `pixi-svelte` | WebGL canvas; declarative Pixi |
-| Monorepo | **TurboRepo** + **pnpm** | `--filter=abyssal` per-app commands |
-| State machine | **XState** (`utils-xstate`) | bet lifecycle: idle/bet/autobet/resume |
-| Event bus | `utils-event-emitter` | decouples book logic from rendering |
-| Layout | `utils-layout` | responsive canvas, mobile/tablet/desktop |
-| Audio | **Howler.js** (`utils-sound`) | sfx + music |
-| i18n | **Lingui** (`config-lingui`) | currency + social-casino text |
-| Testing/dev | **Storybook** | per-event and per-book story harness |
-| Build | **Vite** + **SvelteKit** (static adapter) | output is a static site |
+| Layer         | Choice                                    | Notes                                    |
+| ------------- | ----------------------------------------- | ---------------------------------------- |
+| UI framework  | **Svelte 5** (runes)                      | reactive components                      |
+| Renderer      | **PixiJS 8** via `pixi-svelte`            | WebGL canvas; declarative Pixi           |
+| Monorepo      | **TurboRepo** + **pnpm**                  | `--filter=abyssal` per-app commands      |
+| State machine | **XState** (`utils-xstate`)               | bet lifecycle: idle/bet/autobet/resume   |
+| Event bus     | `utils-event-emitter`                     | decouples book logic from rendering      |
+| Layout        | `utils-layout`                            | responsive canvas, mobile/tablet/desktop |
+| Audio         | **Howler.js** (`utils-sound`)             | sfx + music                              |
+| i18n          | **Lingui** (`config-lingui`)              | currency + social-casino text            |
+| Testing/dev   | **Storybook**                             | per-event and per-book story harness     |
+| Build         | **Vite** + **SvelteKit** (static adapter) | output is a static site                  |
 
 **Pinned tooling:** Node **22.16.0**, pnpm **10.5.0** (match the SDK or builds drift).
 
-**Hard rule from the platform:** the game must compile to a **static website**. You *may*
+**Hard rule from the platform:** the game must compile to a **static website**. You _may_
 use a different framework, but you lose the SDK's RGS plumbing, UI kit, and review-tested
 patterns. Recommendation: **use the SDK.**
 
@@ -82,13 +83,15 @@ This is the heart of the architecture. Memorize it.
 ```
 
 Two non-negotiables:
-- **Order matters.** Events are replayed **sequentially**; the book's order *is* the
+
+- **Order matters.** Events are replayed **sequentially**; the book's order _is_ the
   choreography. Never parallelize across events.
 - **No game logic on the client.** The outcome is predetermined in the book. The client
-  only *interprets and animates* it. The Eye "build-up and reveal" is a replay.
+  only _interprets and animates_ it. The Eye "build-up and reveal" is a replay.
 
 ### Task-breakdown principle
-A single book event is decomposed into several *atomic* `emitterEvents`, each owned by a
+
+A single book event is decomposed into several _atomic_ `emitterEvents`, each owned by a
 component and independently testable in Storybook. Example for our `tumbleBoard`:
 
 ```
@@ -98,7 +101,7 @@ bookEvent: tumbleBoard
        → tumbleSlideDown → tumbleRefill → tumbleSettle
 ```
 
-Build each atomic step in isolation, then chain them. This is *the* way to stay sane on
+Build each atomic step in isolation, then chain them. This is _the_ way to stay sane on
 complex mechanics (the Eye, the snowball).
 
 ---
@@ -111,47 +114,53 @@ launch URL. (Endpoints/units below per the
 `utils-fetcher` / `Authenticate.svelte` wrap all of this — reuse them.)
 
 ### Launch URL query params (read on boot)
+
 `rgs_url`, `sessionID`, `lang`, `currency`, `mode`, `device`, and for replay:
 `replay=true`, `game`, `version`, `event`.
 
 ### Endpoints
 
-| Endpoint | When | Body | Returns |
-|----------|------|------|---------|
-| `POST /wallet/authenticate` | on boot (must be first) | `{ sessionID }` | `balance`, `config` (minBet, maxBet, stepBet, defaultBetLevel, betLevels), `round` (active or last) |
-| `POST /wallet/balance` | periodic / on focus | `{ sessionID }` | `balance` |
-| `POST /wallet/play` | on spin/buy | `{ sessionID, amount, mode }` | `balance` (debited), `round` (contains the **book**) |
-| `POST /bet/event` | during play (optional) | `{ sessionID, event }` | `event` — checkpoints progress for disconnect recovery |
-| `POST /wallet/end-round` | after a winning round resolves | `{ sessionID }` | `balance` (credited) |
+| Endpoint                    | When                           | Body                          | Returns                                                                                             |
+| --------------------------- | ------------------------------ | ----------------------------- | --------------------------------------------------------------------------------------------------- |
+| `POST /wallet/authenticate` | on boot (must be first)        | `{ sessionID }`               | `balance`, `config` (minBet, maxBet, stepBet, defaultBetLevel, betLevels), `round` (active or last) |
+| `POST /wallet/balance`      | periodic / on focus            | `{ sessionID }`               | `balance`                                                                                           |
+| `POST /wallet/play`         | on spin/buy                    | `{ sessionID, amount, mode }` | `balance` (debited), `round` (contains the **book**)                                                |
+| `POST /bet/event`           | during play (optional)         | `{ sessionID, event }`        | `event` — checkpoints progress for disconnect recovery                                              |
+| `POST /wallet/end-round`    | after a winning round resolves | `{ sessionID }`               | `balance` (credited)                                                                                |
 
 ### Round lifecycle
-1. **authenticate** → if `round` is **active**, *resume it* (don't start fresh).
+
+1. **authenticate** → if `round` is **active**, _resume it_ (don't start fresh).
 2. **play(amount, mode)** → debits, returns the book to render.
 3. **(event)** → optional progress checkpoints (good for long free-spin features).
 4. **end-round** → credits winnings. **Call timing depends on outcome:**
    - **No win (0×):** do **not** call end-round.
    - **Single-round win:** call **immediately** on settlement; update displayed balance
-     *after* the win animation finishes.
+     _after_ the win animation finishes.
    - **Feature/bonus win:** call **after the final feature animation** completes.
 
 ### Money units — three different scales, do not mix them up
-| Scale | 1.00× bet = | Where |
-|-------|-------------|-------|
-| **API amount** | `1,000,000` | every RGS `amount`/`balance` (6 dp precision) |
-| **Book amount** | `100` | every value inside book events (cents-of-bet) |
-| **Display** | `× betAmount` | what the player sees |
+
+| Scale           | 1.00× bet =   | Where                                         |
+| --------------- | ------------- | --------------------------------------------- |
+| **API amount**  | `1,000,000`   | every RGS `amount`/`balance` (6 dp precision) |
+| **Book amount** | `100`         | every value inside book events (cents-of-bet) |
+| **Display**     | `× betAmount` | what the player sees                          |
 
 Conversions (the SDK exposes these as constants):
+
 - `API_AMOUNT_MULTIPLIER = 1_000_000`, `BOOK_AMOUNT_MULTIPLIER = 100`.
 - Book `amount: 852` → `8.52× bet` → `(852/100) × betAmount` in currency.
 - Max win `1,500,000` book-cents = `15,000× bet`.
 
 ### Bet sizing
+
 `player debit = baseBet × modeCostMultiplier`. The mode cost multipliers are baked into the
 math (`base 1.0, ante 1.25, bonus 100, superspins 20, superbonus 500`) and surfaced via
 `index.json`. Base bet must be within `[minBet, maxBet]` and divisible by `stepBet`.
 
 ### Error codes to handle
+
 `400`: `ERR_VAL` (bad request), `ERR_IPB` (insufficient balance), `ERR_IS` (invalid/expired
 session), `ERR_ATE` (auth fail), `ERR_GLE` (gambling limits), `ERR_LOC` (geo).
 `500`: `ERR_GEN`, `ERR_MAINTENANCE`. Map each to a user-facing message; `ERR_IPB` and
@@ -204,24 +213,24 @@ This is the contract the client implements. Each row: the **book event** (from
 broadcasts (atomic steps), and the **owning component(s)**. Implement every one of these in
 `bookEventHandlerMap.ts` and add each to `typesBookEvent.ts`.
 
-| Book event | Payload (key fields) | Emitter steps (handler broadcasts) | Owner component(s) |
-|------------|---------------------|------------------------------------|--------------------|
-| `reveal` | `board`, `paddingPositions`, `gameType`, `anticipation` | `boardSettle`, `anticipationShow` (if scatter tease) | Board, Anticipations |
-| `winInfo` | `totalWin`, `wins[{symbol,count,win,positions,meta}]` | `winShow`, `winAmountShow(per cluster)`, `winCount` | Win, WinAmounts, WinCoins |
-| `updateTumbleWin` | `amount` | `tumbleWinUpdate` | TumbleWinAmount |
-| `gazeStep` | `fromPositions`, `charge` | `gazeFlow(fromPositions)`, `gazeMeterUpdate(charge)` | GazeMeter |
-| `tumbleBoard` | `explodingSymbols`, `newSymbols` | `tumbleExplode`, `tumbleRemoveExploded`, `tumbleSlideDown`, `tumbleRefill`, `tumbleSettle` | TumbleBoard |
-| `eyeReveal` | `position`, `eyeType`, `startValue` | `eyeShow(position)`, `eyeFlip(type,startValue)` | Eye |
-| `eyeResolve` | `charge`, `eyeType`, `startValue`, `totalMult` | `eyeCharge(charge)`, `eyeResolveBurst(totalMult)` | Eye, GazeMeter |
-| `setPersistentMult` | `mult` | `snowballShow`, `snowballUpdate(mult)` | PersistentMultiplier |
-| `setWin` | `amount`, `winLevel` | `winSettle(amount)`, `winLevelPlay(winLevel)` | WinPresentation, WinCounter |
-| `setTotalWin` | `amount` | `totalWinUpdate(amount)` | WinCounter / HUD |
-| `wincap` | `amount` | `winCapTrigger` | WinCapCelebration |
-| `finalWin` | `amount`, `capped` | `roundSettle(amount)`, `winCapCelebrate` (if `capped`) | WinCounter, WinCapCelebration |
-| `freeSpinTrigger` | `totalFs`, `positions` | `freeSpinIntroShow(totalFs)`, `transitionToFree` | FreeSpinIntro, Transition |
-| `freeSpinRetrigger` | `totalFs`, `positions` | `freeSpinRetriggerShow`, `freeSpinCounterUpdate(totalFs)` | FreeSpinAnimation, FreeSpinCounter |
-| `updateFreeSpin` | `amount`(current), `total` | `freeSpinCounterUpdate(current,total)` | FreeSpinCounter |
-| `freeSpinEnd` | `amount`, `winLevel` | `freeSpinOutroShow(amount)`, `transitionToBase` | FreeSpinOutro, Transition |
+| Book event          | Payload (key fields)                                    | Emitter steps (handler broadcasts)                                                         | Owner component(s)                 |
+| ------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------- |
+| `reveal`            | `board`, `paddingPositions`, `gameType`, `anticipation` | `boardSettle`, `anticipationShow` (if scatter tease)                                       | Board, Anticipations               |
+| `winInfo`           | `totalWin`, `wins[{symbol,count,win,positions,meta}]`   | `winShow`, `winAmountShow(per cluster)`, `winCount`                                        | Win, WinAmounts, WinCoins          |
+| `updateTumbleWin`   | `amount`                                                | `tumbleWinUpdate`                                                                          | TumbleWinAmount                    |
+| `gazeStep`          | `fromPositions`, `charge`                               | `gazeFlow(fromPositions)`, `gazeMeterUpdate(charge)`                                       | GazeMeter                          |
+| `tumbleBoard`       | `explodingSymbols`, `newSymbols`                        | `tumbleExplode`, `tumbleRemoveExploded`, `tumbleSlideDown`, `tumbleRefill`, `tumbleSettle` | TumbleBoard                        |
+| `eyeReveal`         | `position`, `eyeType`, `startValue`                     | `eyeShow(position)`, `eyeFlip(type,startValue)`                                            | Eye                                |
+| `eyeResolve`        | `charge`, `eyeType`, `startValue`, `totalMult`          | `eyeCharge(charge)`, `eyeResolveBurst(totalMult)`                                          | Eye, GazeMeter                     |
+| `setPersistentMult` | `mult`                                                  | `snowballShow`, `snowballUpdate(mult)`                                                     | PersistentMultiplier               |
+| `setWin`            | `amount`, `winLevel`                                    | `winSettle(amount)`, `winLevelPlay(winLevel)`                                              | WinPresentation, WinCounter        |
+| `setTotalWin`       | `amount`                                                | `totalWinUpdate(amount)`                                                                   | WinCounter / HUD                   |
+| `wincap`            | `amount`                                                | `winCapTrigger`                                                                            | WinCapCelebration                  |
+| `finalWin`          | `amount`, `capped`                                      | `roundSettle(amount)`, `winCapCelebrate` (if `capped`)                                     | WinCounter, WinCapCelebration      |
+| `freeSpinTrigger`   | `totalFs`, `positions`                                  | `freeSpinIntroShow(totalFs)`, `transitionToFree`                                           | FreeSpinIntro, Transition          |
+| `freeSpinRetrigger` | `totalFs`, `positions`                                  | `freeSpinRetriggerShow`, `freeSpinCounterUpdate(totalFs)`                                  | FreeSpinAnimation, FreeSpinCounter |
+| `updateFreeSpin`    | `amount`(current), `total`                              | `freeSpinCounterUpdate(current,total)`                                                     | FreeSpinCounter                    |
+| `freeSpinEnd`       | `amount`, `winLevel`                                    | `freeSpinOutroShow(amount)`, `transitionToBase`                                            | FreeSpinOutro, Transition          |
 
 > Snowball note: `setPersistentMult` only appears in snowball modes (base/ante feature,
 > bonus, superbonus) — **never in superspins** (single spin, no snowball). The handler must
@@ -229,7 +238,7 @@ broadcasts (atomic steps), and the **owning component(s)**. Implement every one 
 
 > Near-miss note: most winning spins emit `gazeStep` (charge builds) but **no** `eyeReveal`
 > (no Eye landed) — the discarded charge is the intended tension. The GazeMeter component
-> must animate the *loss* of charge when a spin resolves without an `eyeReveal`.
+> must animate the _loss_ of charge when a spin resolves without an `eyeReveal`.
 
 ---
 
@@ -239,17 +248,20 @@ Adapted from `apps/scatter/src/components`. ✅ = reuse scatter near-as-is, 🔶
 🆕 = Abyssal-specific build.
 
 **Board & symbols**
+
 - 🔶 `Game.svelte` — root; composes everything
 - 🔶 `Board`, `BoardBase`, `BoardContainer`, `BoardFrame`, `BoardMask` — 6×5 grid (+padding)
 - 🔶 `Symbol`, `SymbolSprite`, `SymbolSpine*`, `ReelSymbol`, `SymbolWrap` — symbol rendering
 - ✅ `Anticipation`, `Anticipations` — scatter anticipation on near-trigger
 
 **Cascades & wins**
+
 - 🔶 `TumbleBoard`, `TumbleBoardBase`, `TumbleSymbol` — explode/drop/refill
 - 🔶 `TumbleWinAmount*` (Frame/Text/Wrap), `ClusterWinAmount(s)` — per-cluster win labels
 - 🔶 `Win`, `WinAnimation`, `WinCoins` — win celebration + coin shower
 
 **The Eye & multipliers** (the signature work)
+
 - 🆕 `Eye.svelte` — the EYE symbol on board: idle gaze, reveal (ADD/MUL + startValue),
   resolve burst that applies `totalMult`. (Start from scatter's `MultiplierSymbol`/
   `GlobalMultiplier` but it's largely bespoke — this is the brand moment.)
@@ -258,15 +270,18 @@ Adapted from `apps/scatter/src/components`. ✅ = reuse scatter near-as-is, 🔶
 - 🔶 `PersistentMultiplier.svelte` — the snowball `M` (adapt `MultiplierTotal`).
 
 **Free spins**
+
 - 🔶 `FreeSpinIntro`, `FreeSpinOutro`, `FreeSpinCounter`, `FreeSpinAnimation`
 - 🔶 `Transition`, `TransitionAnimation` — base↔free swap
 
 **Lifecycle / shell**
+
 - ✅ `LoadingScreen`, `Background`, `ResumeBet`, `PressToContinue`
 - ✅ `EnableGameActor`, `EnableSound`, `Sound`
 - 🔶 `WinCapCelebration.svelte` (🆕-ish) — the 15,000× max-win moment
 
 **UI** (from `components-ui-pixi` / `components-ui-html`, themed)
+
 - Bet display, bet +/- & levels, spin button, autobet, turbo
 - **Buy buttons** — bonus (100×), superspins (20×), superbonus (500×) + confirm modals
 - Ante toggle (1.25×)
@@ -277,6 +292,7 @@ Adapted from `apps/scatter/src/components`. ✅ = reuse scatter near-as-is, 🔶
 ## 7. Asset checklist
 
 **Symbols** (idle + win + explode states; spine or spritesheet):
+
 - Highs: H1 Anglerfish, H2 Nautilus, H3 Diving Helmet, H4 Jellyfish
 - Lows: L1–L4 gems (cyan/teal/sapphire/violet)
 - Specials: **W Pearl (wild)**, **S Conch (scatter)**, **EYE The Eye** (idle gaze + ADD
@@ -311,6 +327,7 @@ pnpm run build --filter=abyssal
 ```
 
 **Launch on Stake Engine:**
+
 1. Log in to the dashboard (engine.stake.com).
 2. Game → **Files** → upload the build folder **and** the math upload set from
    `games/abyssal/library/publish_files/` (`books_<mode>.jsonl.zst`,
@@ -321,7 +338,7 @@ pnpm run build --filter=abyssal
 
 > ⚠️ Math/frontend version coupling: the on-disk books still need the **post-rename re-sim**
 > (event strings `gazeStep/eyeReveal/eyeResolve` are baked into books). Upload only books
-> regenerated *after* the rename, or the client's handlers won't match the events. See the
+> regenerated _after_ the rename, or the client's handlers won't match the events. See the
 > design-locks memo / run command below.
 
 ---
@@ -329,12 +346,14 @@ pnpm run build --filter=abyssal
 ## 9. Phased roadmap (the checklist)
 
 ### Phase 0 — Foundations
+
 - [ ] Fork/clone web-sdk; pin Node 22.16.0 / pnpm 10.5.0; `pnpm install`.
 - [ ] Copy `apps/scatter` → `apps/abyssal`; rename package; `--filter=abyssal` runs.
 - [ ] **Re-sim the math** with the renamed events; copy `publish_files/` locally.
 - [ ] Wire `typesBookEvent.ts` to the full Abyssal event union (§5).
 
 ### Phase 1 — RGS plumbing
+
 - [ ] Reuse `Authenticate` + `utils-fetcher`: authenticate → balance → config.
 - [ ] Bet controls bound to `minBet/maxBet/stepBet/betLevels`; mode multipliers correct.
 - [ ] `play` → receive book → run `playBookEvents`. `end-round` timing per §3.
@@ -342,34 +361,40 @@ pnpm run build --filter=abyssal
 - [ ] Map all error codes to UX.
 
 ### Phase 2 — Core spin (base mode)
+
 - [ ] `reveal` → board with padding; symbol rendering incl. wild/scatter/EYE flags.
 - [ ] Cascade loop: `winInfo` → `updateTumbleWin` → `gazeStep` → `tumbleBoard` (atomic steps).
 - [ ] `setWin`/`setTotalWin`/`finalWin`; `winLevel` celebration tiers.
 - [ ] Losing spin path (reveal → 0 settle).
 
 ### Phase 3 — The Eye (signature feature)
+
 - [ ] `GazeMeter`: fill per `gazeStep`; **drain on no-Eye resolve** (near-miss).
 - [ ] `Eye`: `eyeReveal` (ADD/MUL + startValue) → `eyeResolve` burst applying `totalMult`.
 - [ ] Verify ADD vs MUL math visually matches `totalMult`.
 
 ### Phase 4 — Free spins + snowball
+
 - [ ] `freeSpinTrigger` (≥4 scatter) → intro + transition; `updateFreeSpin` counter.
 - [ ] `setPersistentMult` snowball badge climbs; applies to subsequent wins.
 - [ ] `freeSpinRetrigger` (≥3 scatter); `freeSpinEnd` outro + total; 50-spin cap holds.
 
 ### Phase 5 — Buy modes
+
 - [ ] Buy buttons + confirm modals: bonus (100×), superspins (20×), superbonus (500×).
 - [ ] Ante toggle (1.25×).
 - [ ] Superspins: single guaranteed-Eye spin, **no** snowball (handle missing `setPersistentMult`).
 - [ ] Superbonus: charge +2 cadence, MUL-common pacing.
 
 ### Phase 6 — Win-cap & polish
+
 - [ ] `wincap` + `finalWin{capped:true}` → 15,000× celebration; round halts after.
 - [ ] Audio pass; turbo/autobet; responsive (mobile/tablet/desktop via `utils-layout`).
 - [ ] Social-casino text variants (`social=true`); i18n + currency formatting.
 - [ ] Rules/paytable modal mirrors [ABYSSAL_FRONTEND_GUIDE.md §3](ABYSSAL_FRONTEND_GUIDE.md).
 
 ### Phase 7 — QA, review & launch
+
 - [ ] Storybook stories: every mode `book/random` + every `bookEvent/<type>` in isolation.
 - [ ] Force-file QA: drive specific outcomes via `library/forces/force.json`
       (`symbol:"eye"`, `chargeNoEye`, `scatter`, `criteria:"wincap"`).
@@ -409,19 +434,20 @@ from real books pulled out of `books_<mode>.jsonl.zst` so stories match producti
 
 ## 12. Reference index
 
-| Need | Go to |
-|------|-------|
-| Exact event payloads & per-spin order | [ABYSSAL_FRONTEND_GUIDE.md](ABYSSAL_FRONTEND_GUIDE.md) §6–§8 |
-| Paytable, modes, constants | [ABYSSAL_FRONTEND_GUIDE.md](ABYSSAL_FRONTEND_GUIDE.md) §3, §5, §10 |
-| Game-review scenario IDs | [ABYSSAL_FRONTEND_GUIDE.md](ABYSSAL_FRONTEND_GUIDE.md) §11 + `games/abyssal/find_scenarios.py` |
-| Math stats report (RTP, min/max win, volatility, unique payouts, win distribution, Eye/feature metrics) | `python games/abyssal/analyze_math.py [--books] [--json out.json]` |
-| Design rationale / locked decisions | [ABYSSAL_MATH_SPEC.md](ABYSSAL_MATH_SPEC.md) |
-| AI art pipeline, style bible, asset list, VFX/juice checklist | [ABYSSAL_ART_PIPELINE.md](ABYSSAL_ART_PIPELINE.md) |
-| SDK source & examples | https://github.com/StakeEngine/web-sdk (`apps/scatter`) |
-| RGS API contract | https://stakeengine.github.io/math-sdk/rgs_docs/RGS/ |
-| Upload set | `games/abyssal/library/publish_files/` |
+| Need                                                                                                    | Go to                                                                                          |
+| ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Exact event payloads & per-spin order                                                                   | [ABYSSAL_FRONTEND_GUIDE.md](ABYSSAL_FRONTEND_GUIDE.md) §6–§8                                   |
+| Paytable, modes, constants                                                                              | [ABYSSAL_FRONTEND_GUIDE.md](ABYSSAL_FRONTEND_GUIDE.md) §3, §5, §10                             |
+| Game-review scenario IDs                                                                                | [ABYSSAL_FRONTEND_GUIDE.md](ABYSSAL_FRONTEND_GUIDE.md) §11 + `games/abyssal/find_scenarios.py` |
+| Math stats report (RTP, min/max win, volatility, unique payouts, win distribution, Eye/feature metrics) | `python games/abyssal/analyze_math.py [--books] [--json out.json]`                             |
+| Design rationale / locked decisions                                                                     | [ABYSSAL_MATH_SPEC.md](ABYSSAL_MATH_SPEC.md)                                                   |
+| AI art pipeline, style bible, asset list, VFX/juice checklist                                           | [ABYSSAL_ART_PIPELINE.md](ABYSSAL_ART_PIPELINE.md)                                             |
+| SDK source & examples                                                                                   | https://github.com/StakeEngine/web-sdk (`apps/scatter`)                                        |
+| RGS API contract                                                                                        | https://stakeengine.github.io/math-sdk/rgs_docs/RGS/                                           |
+| Upload set                                                                                              | `games/abyssal/library/publish_files/`                                                         |
 
 **Re-sim command (run from repo root):**
+
 ```powershell
 Remove-Item -Recurse -Force games/abyssal/library -ErrorAction SilentlyContinue
 $env:PYTHONPATH = (Get-Location); $env:ABYSSAL_THREADS = "8"; python games/abyssal/run.py

@@ -5,12 +5,12 @@ The core image-drawing leaf. Displays a single `Texture` at a transform. Use `Sp
 ## Quick Start
 
 ```ts
-const texture = await Assets.load("bunny.png");
+const texture = await Assets.load('bunny.png');
 
 const sprite = new Sprite({
-  texture,
-  anchor: 0.5,
-  tint: 0xff8888,
+	texture,
+	anchor: 0.5,
+	tint: 0xff8888,
 });
 sprite.x = app.screen.width / 2;
 sprite.y = app.screen.height / 2;
@@ -29,18 +29,18 @@ Position is set after construction because `app.screen.width / 2` depends on the
 ```ts
 const fromTexture = new Sprite(texture);
 
-const fromCache = Sprite.from("bunny.png");
+const fromCache = Sprite.from('bunny.png');
 
 const fromCanvasNoCache = Sprite.from(canvas, true);
 
 const withOptions = new Sprite({
-  texture,
-  anchor: 0.5,
-  x: 100,
-  y: 200,
-  tint: 0xffcc00,
-  alpha: 0.8,
-  roundPixels: true,
+	texture,
+	anchor: 0.5,
+	x: 100,
+	y: 200,
+	tint: 0xffcc00,
+	alpha: 0.8,
+	roundPixels: true,
 });
 ```
 
@@ -125,19 +125,18 @@ v8 removed event-based change notification. Set `texture.dynamic = true` once, t
 Wrong:
 
 ```ts
-const texture = Texture.from("https://example.com/image.png");
+const texture = Texture.from('https://example.com/image.png');
 const sprite = new Sprite(texture);
 ```
 
 Correct:
 
 ```ts
-const texture = await Assets.load("https://example.com/image.png");
+const texture = await Assets.load('https://example.com/image.png');
 const sprite = new Sprite(texture);
 ```
 
 In v8, `Texture.from()` only retrieves from the cache. It does not fetch. Use `Assets.load()` first; its return value is the texture, so you don't need a separate `Texture.from()` call.
-
 
 ### [HIGH] Confusing anchor with pivot
 
@@ -155,7 +154,6 @@ sprite.anchor.set(0.5);
 
 `anchor` is normalized `[0, 1]` and shifts where the texture draws without offsetting position. `pivot` is in pixel space and offsets both the transform origin and the rendered position. For centering a sprite, always use `anchor`.
 
-
 ### [MEDIUM] Adding children to a Sprite
 
 Wrong:
@@ -172,7 +170,6 @@ group.addChild(sprite, childSprite);
 ```
 
 `Sprite` sets `allowChildren = false`. Adding children logs a deprecation warning and will become a hard error. Group leaves inside a `Container`.
-
 
 ## API Reference
 

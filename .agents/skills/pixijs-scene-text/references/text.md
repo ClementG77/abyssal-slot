@@ -6,22 +6,22 @@ The primary text renderer in PixiJS v8. Rasterizes strings to an off-screen canv
 
 ```ts
 const text = new Text({
-  text: "Hello PixiJS",
-  style: {
-    fontFamily: "Arial",
-    fontSize: 36,
-    fill: 0xffffff,
-    stroke: { color: "#4a1850", width: 5 },
-    dropShadow: {
-      color: "#000000",
-      blur: 4,
-      distance: 6,
-      angle: Math.PI / 6,
-    },
-  },
-  anchor: 0.5,
-  x: 400,
-  y: 40,
+	text: 'Hello PixiJS',
+	style: {
+		fontFamily: 'Arial',
+		fontSize: 36,
+		fill: 0xffffff,
+		stroke: { color: '#4a1850', width: 5 },
+		dropShadow: {
+			color: '#000000',
+			blur: 4,
+			distance: 6,
+			angle: Math.PI / 6,
+		},
+	},
+	anchor: 0.5,
+	x: 400,
+	y: 40,
 });
 
 app.stage.addChild(text);
@@ -32,21 +32,21 @@ Text is a leaf (`allowChildren = false`). It uses an options-object constructor;
 ## Construction
 
 ```ts
-const minimal = new Text({ text: "Hello" });
+const minimal = new Text({ text: 'Hello' });
 
 const styled = new Text({
-  text: "Styled Text",
-  style: { fontSize: 24, fill: 0xff1010 },
-  anchor: 0.5,
-  resolution: 2,
-  roundPixels: true,
+	text: 'Styled Text',
+	style: { fontSize: 24, fill: 0xff1010 },
+	anchor: 0.5,
+	resolution: 2,
+	roundPixels: true,
 });
 
 const crisp = new Text({
-  text: "Crisp Text",
-  style: { fontSize: 32 },
-  textureStyle: { scaleMode: "nearest" },
-  autoGenerateMipmaps: true,
+	text: 'Crisp Text',
+	style: { fontSize: 32 },
+	textureStyle: { scaleMode: 'nearest' },
+	autoGenerateMipmaps: true,
 });
 ```
 
@@ -74,28 +74,28 @@ The `style` field is a rich nested type; the rest of this document covers its ke
 
 ```ts
 const styled = new Text({
-  text: "Styled",
-  style: {
-    fontFamily: "Arial",
-    fontSize: 32,
-    fontWeight: "bold",
-    fontStyle: "italic",
-    fill: 0xff1010,
-    stroke: { color: "#4a1850", width: 5 },
-    dropShadow: {
-      color: "#000000",
-      blur: 4,
-      distance: 6,
-      angle: Math.PI / 6,
-      alpha: 0.8,
-    },
-    align: "center",
-    wordWrap: true,
-    wordWrapWidth: 300,
-    lineHeight: 45,
-    letterSpacing: 2,
-    padding: 4,
-  },
+	text: 'Styled',
+	style: {
+		fontFamily: 'Arial',
+		fontSize: 32,
+		fontWeight: 'bold',
+		fontStyle: 'italic',
+		fill: 0xff1010,
+		stroke: { color: '#4a1850', width: 5 },
+		dropShadow: {
+			color: '#000000',
+			blur: 4,
+			distance: 6,
+			angle: Math.PI / 6,
+			alpha: 0.8,
+		},
+		align: 'center',
+		wordWrap: true,
+		wordWrapWidth: 300,
+		lineHeight: 45,
+		letterSpacing: 2,
+		padding: 4,
+	},
 });
 ```
 
@@ -121,15 +121,15 @@ Key TextStyle properties:
 
 ```ts
 const alert = new Text({
-  text: "<red>Warning:</red> system <b>overloaded</b>",
-  style: {
-    fontSize: 24,
-    fill: 0xffffff,
-    tagStyles: {
-      red: { fill: 0xff0000 },
-      b: { fontWeight: "bold" },
-    },
-  },
+	text: '<red>Warning:</red> system <b>overloaded</b>',
+	style: {
+		fontSize: 24,
+		fill: 0xffffff,
+		tagStyles: {
+			red: { fill: 0xff0000 },
+			b: { fontWeight: 'bold' },
+		},
+	},
 });
 ```
 
@@ -139,13 +139,13 @@ Tags are parsed only when `tagStyles` has entries; without entries, `<` is treat
 
 ```ts
 await Assets.load({
-  src: "my-font.woff2",
-  data: { family: "MyFont" },
+	src: 'my-font.woff2',
+	data: { family: 'MyFont' },
 });
 
 const text = new Text({
-  text: "Custom Font",
-  style: { fontFamily: "MyFont", fontSize: 36, fill: 0xffffff },
+	text: 'Custom Font',
+	style: { fontFamily: 'MyFont', fontSize: 36, fill: 0xffffff },
 });
 ```
 
@@ -153,8 +153,8 @@ Supported formats: `woff2` (preferred), `woff`, `ttf`, `otf`. The `data` object 
 
 ```ts
 await Assets.load({
-  src: "titan-one.woff",
-  data: { family: "Titan One", weights: ["normal", "bold"] },
+	src: 'titan-one.woff',
+	data: { family: 'Titan One', weights: ['normal', 'bold'] },
 });
 ```
 
@@ -162,10 +162,10 @@ await Assets.load({
 
 ```ts
 const sharp = new Text({
-  text: "Crisp on retina",
-  style: { fontSize: 36, fill: 0xffffff },
-  resolution: 2,
-  autoGenerateMipmaps: true,
+	text: 'Crisp on retina',
+	style: { fontSize: 36, fill: 0xffffff },
+	resolution: 2,
+	autoGenerateMipmaps: true,
 });
 ```
 
@@ -176,10 +176,10 @@ const sharp = new Text({
 
 ```ts
 app.ticker.add(() => {
-  const next = `Score: ${score}`;
-  if (scoreText.text !== next) {
-    scoreText.text = next;
-  }
+	const next = `Score: ${score}`;
+	if (scoreText.text !== next) {
+		scoreText.text = next;
+	}
 });
 ```
 
@@ -188,35 +188,35 @@ Guard text updates with an equality check when using `Text` for live values. Eve
 ### Gradient and pattern fills
 
 ```ts
-import { FillGradient } from "pixi.js";
+import { FillGradient } from 'pixi.js';
 
 const gradient = new FillGradient({
-  end: { x: 0, y: 1 },
-  colorStops: [
-    { color: 0xff0000, offset: 0 },
-    { color: 0x0000ff, offset: 1 },
-  ],
+	end: { x: 0, y: 1 },
+	colorStops: [
+		{ color: 0xff0000, offset: 0 },
+		{ color: 0x0000ff, offset: 1 },
+	],
 });
 
 const title = new Text({
-  text: "Gradient",
-  style: { fontSize: 64, fill: gradient },
+	text: 'Gradient',
+	style: { fontSize: 64, fill: gradient },
 });
 ```
 
 For a texture fill, pass a `FillPattern`. Its constructor takes an options object; the legacy positional form `new FillPattern(texture, repetition)` is also accepted.
 
 ```ts
-import { Assets, FillPattern } from "pixi.js";
+import { Assets, FillPattern } from 'pixi.js';
 
 const pattern = new FillPattern({
-  texture: await Assets.load("bricks.png"),
-  repetition: "repeat",
+	texture: await Assets.load('bricks.png'),
+	repetition: 'repeat',
 });
 
 const label = new Text({
-  text: "PixiJS",
-  style: { fontSize: 64, fill: pattern },
+	text: 'PixiJS',
+	style: { fontSize: 64, fill: pattern },
 });
 ```
 
@@ -232,38 +232,36 @@ Wrong:
 
 ```ts
 app.ticker.add(() => {
-  scoreText.text = `Score: ${score}`;
+	scoreText.text = `Score: ${score}`;
 });
 ```
 
 Correct:
 
 ```ts
-const scoreText = new BitmapText({ text: "Score: 0", style });
+const scoreText = new BitmapText({ text: 'Score: 0', style });
 app.ticker.add(() => {
-  scoreText.text = `Score: ${score}`;
+	scoreText.text = `Score: ${score}`;
 });
 ```
 
 Every `Text` update re-rasterizes the full string and uploads a new texture. At 60fps this burns frame budget. Use `BitmapText` for values that change per-frame, or at minimum guard with an equality check against the previous string.
-
 
 ### [HIGH] Using positional constructor args
 
 Wrong:
 
 ```ts
-const text = new Text("Hello", { fontSize: 24 });
+const text = new Text('Hello', { fontSize: 24 });
 ```
 
 Correct:
 
 ```ts
-const text = new Text({ text: "Hello", style: { fontSize: 24 } });
+const text = new Text({ text: 'Hello', style: { fontSize: 24 } });
 ```
 
 v8 `Text` uses an options object. The v7 `(string, style)` signature is not supported.
-
 
 ### [MEDIUM] Stroke or shadow getting clipped at edges
 
@@ -271,8 +269,8 @@ Wrong:
 
 ```ts
 const text = new Text({
-  text: "Hello",
-  style: { stroke: { color: "red", width: 10 } },
+	text: 'Hello',
+	style: { stroke: { color: 'red', width: 10 } },
 });
 ```
 
@@ -280,13 +278,12 @@ Correct:
 
 ```ts
 const text = new Text({
-  text: "Hello",
-  style: { stroke: { color: "red", width: 10 }, padding: 10 },
+	text: 'Hello',
+	style: { stroke: { color: 'red', width: 10 }, padding: 10 },
 });
 ```
 
 The underlying canvas is sized from the text metrics; heavy strokes or drop-shadows render past those bounds and get clipped. Add `padding` to the style to enlarge the texture.
-
 
 ## API Reference
 

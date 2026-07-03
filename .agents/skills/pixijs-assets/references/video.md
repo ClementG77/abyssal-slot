@@ -7,7 +7,7 @@ Supported extensions: `.mp4`, `.m4v`, `.webm`, `.ogg`, `.ogv`, `.h264`, `.avi`, 
 ## Quick Start
 
 ```ts
-const videoTex = await Assets.load("intro.mp4");
+const videoTex = await Assets.load('intro.mp4');
 const sprite = new Sprite(videoTex);
 app.stage.addChild(sprite);
 ```
@@ -20,16 +20,16 @@ The returned texture wraps a `VideoSource`. The video starts playing automatical
 
 ```ts
 const texture = await Assets.load({
-  src: "city.mp4",
-  data: {
-    autoPlay: false,
-    loop: true,
-    muted: true,
-    preload: true,
-    playsinline: true,
-    updateFPS: 30,
-    alphaMode: "premultiply-alpha-on-upload",
-  },
+	src: 'city.mp4',
+	data: {
+		autoPlay: false,
+		loop: true,
+		muted: true,
+		preload: true,
+		playsinline: true,
+		updateFPS: 30,
+		alphaMode: 'premultiply-alpha-on-upload',
+	},
 });
 ```
 
@@ -52,11 +52,11 @@ const texture = await Assets.load({
 
 ```ts
 Assets.add({
-  alias: "clip",
-  src: "clip.{webm,mp4}",
+	alias: 'clip',
+	src: 'clip.{webm,mp4}',
 });
 
-const texture = await Assets.load("clip");
+const texture = await Assets.load('clip');
 ```
 
 List multiple formats so the resolver picks the first one the browser supports. WebM and MP4 together cover all current browsers.
@@ -65,12 +65,12 @@ List multiple formats so the resolver picks the first one the browser supports. 
 
 ```ts
 const texture = await Assets.load({
-  src: "ad.mp4",
-  data: {
-    muted: true,
-    playsinline: true,
-    autoPlay: true,
-  },
+	src: 'ad.mp4',
+	data: {
+		muted: true,
+		playsinline: true,
+		autoPlay: true,
+	},
 });
 ```
 
@@ -80,14 +80,14 @@ iOS and mobile Chrome only autoplay muted, inline video. Set both `muted: true` 
 
 ```ts
 const texture = await Assets.load({
-  src: "boss-fight.mp4",
-  data: { autoPlay: false, preload: true },
+	src: 'boss-fight.mp4',
+	data: { autoPlay: false, preload: true },
 });
 
 const videoSource = texture.source as VideoSource;
 
-startButton.on("pointertap", () => {
-  videoSource.resource.play();
+startButton.on('pointertap', () => {
+	videoSource.resource.play();
 });
 ```
 
@@ -97,8 +97,8 @@ With `autoPlay: false`, grab the underlying `VideoSource` from `texture.source` 
 
 ```ts
 await Assets.load({
-  src: "background.mp4",
-  data: { updateFPS: 15 },
+	src: 'background.mp4',
+	data: { updateFPS: 15 },
 });
 ```
 
@@ -110,9 +110,9 @@ If your video URL lacks an extension (e.g., a CDN signed URL or a blob), the loa
 
 ```ts
 const texture = await Assets.load({
-  src: "https://cdn.example.com/stream/abc123",
-  parser: "video",
-  data: { mime: "video/mp4" },
+	src: 'https://cdn.example.com/stream/abc123',
+	parser: 'video',
+	data: { mime: 'video/mp4' },
 });
 ```
 
@@ -125,30 +125,27 @@ See the main `SKILL.md` section on "Forcing a parser with `parser`" for the full
 Wrong:
 
 ```ts
-await Assets.load({ src: "ad.mp4", data: { autoPlay: true } });
+await Assets.load({ src: 'ad.mp4', data: { autoPlay: true } });
 ```
 
 Correct:
 
 ```ts
 await Assets.load({
-  src: "ad.mp4",
-  data: { autoPlay: true, muted: true, playsinline: true },
+	src: 'ad.mp4',
+	data: { autoPlay: true, muted: true, playsinline: true },
 });
 ```
 
 Mobile browsers block autoplay with sound. The promise resolves, but the video stays frozen on frame 0 until the user interacts.
 
-
 ### [MEDIUM] Expecting sprite.texture to update itself
 
 The `Sprite` reflects the current video frame automatically because `VideoSource` re-uploads on every render. You don't need to call `update()` yourself. If playback looks frozen, check that the underlying video element is actually playing (`videoSource.resource.paused` should be `false`).
 
-
 ### [MEDIUM] Missing CORS for cross-origin video
 
 Video served from another origin without `Access-Control-Allow-Origin` headers taints the canvas and most WebGL operations (`readPixels`, snapshots) fail silently. Either serve with CORS headers or pass `data: { crossorigin: false }` and accept that the texture can't be extracted.
-
 
 ## API Reference
 

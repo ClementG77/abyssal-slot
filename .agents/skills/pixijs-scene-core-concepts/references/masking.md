@@ -6,7 +6,7 @@ Clip display objects with PixiJS masks. PixiJS supports four mask types: AlphaMa
 
 ```ts
 const photoGroup = new Container();
-photoGroup.addChild(new Sprite(await Assets.load("photo.png")));
+photoGroup.addChild(new Sprite(await Assets.load('photo.png')));
 
 const mask = new Graphics().circle(100, 100, 80).fill(0xffffff);
 photoGroup.mask = mask;
@@ -50,11 +50,11 @@ The mask Graphics should be a child of the masked container (or share the same c
 ### Alpha mask (Sprite-based)
 
 ```ts
-const maskTexture = await Assets.load("gradient-mask.png");
+const maskTexture = await Assets.load('gradient-mask.png');
 const maskSprite = new Sprite(maskTexture);
 
 const photoGroup = new Container();
-photoGroup.addChild(new Sprite(await Assets.load("photo.png")));
+photoGroup.addChild(new Sprite(await Assets.load('photo.png')));
 photoGroup.mask = maskSprite;
 photoGroup.addChild(maskSprite);
 ```
@@ -66,11 +66,11 @@ Alpha masks use the **red channel** of the sprite texture by default to control 
 By default, sprite (alpha) masks read the red channel. If your mask texture uses transparency instead (e.g., a PNG with an alpha gradient), switch to the alpha channel via `setMask`:
 
 ```ts
-const maskSprite = new Sprite(await Assets.load("alpha-gradient.png"));
+const maskSprite = new Sprite(await Assets.load('alpha-gradient.png'));
 
 const photoGroup = new Container();
-photoGroup.addChild(new Sprite(await Assets.load("photo.png")));
-photoGroup.setMask({ mask: maskSprite, channel: "alpha" });
+photoGroup.addChild(new Sprite(await Assets.load('photo.png')));
+photoGroup.setMask({ mask: maskSprite, channel: 'alpha' });
 photoGroup.addChild(maskSprite);
 ```
 
@@ -86,9 +86,9 @@ const container = new Container();
 container.setMask({ mask: holeMask, inverse: true });
 container.addChild(holeMask);
 
-const maskSprite = new Sprite(await Assets.load("mask.png"));
+const maskSprite = new Sprite(await Assets.load('mask.png'));
 const photoGroup = new Container();
-photoGroup.addChild(new Sprite(await Assets.load("photo.png")));
+photoGroup.addChild(new Sprite(await Assets.load('photo.png')));
 photoGroup.setMask({ mask: maskSprite, inverse: true });
 photoGroup.addChild(maskSprite);
 ```

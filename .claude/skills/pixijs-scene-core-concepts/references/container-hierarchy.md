@@ -5,15 +5,15 @@ The PixiJS scene graph is a tree of `Container` subclasses rooted at `app.stage`
 ## Quick Start
 
 ```ts
-const world = new Container({ label: "world" });
+const world = new Container({ label: 'world' });
 app.stage.addChild(world);
 
-const hero = new Container({ label: "hero" });
+const hero = new Container({ label: 'hero' });
 hero.addChild(new Sprite(bodyTexture));
 hero.addChild(new Sprite(weaponTexture));
 world.addChild(hero);
 
-const enemies = new Container({ label: "enemies" });
+const enemies = new Container({ label: 'enemies' });
 world.addChild(enemies);
 
 enemies.addChild(new Sprite(enemyTexture), new Sprite(enemyTexture));
@@ -61,12 +61,12 @@ const count = parent.children.length;
 const first = parent.getChildAt(0);
 const index = parent.getChildIndex(child);
 
-const hero = parent.getChildByLabel("hero");
-const heroDeep = parent.getChildByLabel("weapon", true); // recursive
+const hero = parent.getChildByLabel('hero');
+const heroDeep = parent.getChildByLabel('weapon', true); // recursive
 
-const enemies = parent.getChildrenByLabel("enemy");
+const enemies = parent.getChildrenByLabel('enemy');
 const waves = parent.getChildrenByLabel(/^wave-\d+/);
-const buttonsDeep = parent.getChildrenByLabel("button", true);
+const buttonsDeep = parent.getChildrenByLabel('button', true);
 ```
 
 `label` can be a `string` or a `RegExp` (e.g., `parent.getChildByLabel(/^hero-/)`). `getChildByLabel` returns the first match; `getChildrenByLabel` returns every match. Both walk the immediate children and recurse when the second argument is `true`. For more complex queries, iterate `parent.children` manually.
@@ -75,11 +75,11 @@ const buttonsDeep = parent.getChildrenByLabel("button", true);
 
 ```ts
 for (const child of parent.children) {
-  child.alpha = 0.5;
+	child.alpha = 0.5;
 }
 
 parent.children.forEach((child, i) => {
-  child.y = i * 32;
+	child.y = i * 32;
 });
 ```
 
@@ -118,11 +118,11 @@ branch.destroy({ children: true });
 ### Label-based tree navigation
 
 ```ts
-const panel = new Container({ label: "panel" });
-panel.addChild(new Container({ label: "header" }));
-panel.addChild(new Container({ label: "body" }));
+const panel = new Container({ label: 'panel' });
+panel.addChild(new Container({ label: 'header' }));
+panel.addChild(new Container({ label: 'body' }));
 
-const header = panel.getChildByLabel("header");
+const header = panel.getChildByLabel('header');
 ```
 
 Use `label` for debug tooling and light-weight tree navigation. Don't use it for hot-path code; the `getChildByLabel` walk is O(n) per call.
@@ -134,33 +134,33 @@ Containers emit events for hierarchy changes, visibility changes, and destructio
 **Parent-side events** fire on the container whose children changed:
 
 ```ts
-group.on("childAdded", (child, parent, index) => {
-  /* ... */
+group.on('childAdded', (child, parent, index) => {
+	/* ... */
 });
-group.on("childRemoved", (child, parent, index) => {
-  /* ... */
+group.on('childRemoved', (child, parent, index) => {
+	/* ... */
 });
 ```
 
 **Child-side events** fire on the child itself when its parent changes:
 
 ```ts
-sprite.on("added", (parent) => {
-  /* ... */
+sprite.on('added', (parent) => {
+	/* ... */
 });
-sprite.on("removed", (oldParent) => {
-  /* ... */
+sprite.on('removed', (oldParent) => {
+	/* ... */
 });
 ```
 
 **Property and lifecycle events:**
 
 ```ts
-container.on("visibleChanged", (visible) => {
-  /* ... */
+container.on('visibleChanged', (visible) => {
+	/* ... */
 });
-container.on("destroyed", (container) => {
-  /* ... */
+container.on('destroyed', (container) => {
+	/* ... */
 });
 ```
 
@@ -185,7 +185,6 @@ group.addChild(sprite, otherSprite);
 
 Sprite, Graphics, Text, Mesh, ParticleContainer, DOMContainer, and GifSprite all set `allowChildren = false`. Adding children logs a deprecation warning and will become a hard error. Use a plain `Container` to group.
 
-
 ### [HIGH] Destroying the parent without `children: true`
 
 Wrong:
@@ -202,14 +201,13 @@ levelContainer.destroy({ children: true });
 
 Plain `destroy()` only removes the parent. Its children become orphans; still in memory, still referencing textures. For a clean teardown, always pass `{ children: true }`, and include `texture: true` / `textureSource: true` when you also want to release GPU memory.
 
-
 ### [MEDIUM] Mutating `children` during iteration
 
 Wrong:
 
 ```ts
 parent.children.forEach((child) => {
-  if (shouldRemove(child)) parent.removeChild(child);
+	if (shouldRemove(child)) parent.removeChild(child);
 });
 ```
 
@@ -217,12 +215,11 @@ Correct:
 
 ```ts
 for (const child of [...parent.children]) {
-  if (shouldRemove(child)) parent.removeChild(child);
+	if (shouldRemove(child)) parent.removeChild(child);
 }
 ```
 
 `removeChild` splices the array, shifting indices. Iterating the live array misses elements or processes some twice. Snapshot before iterating.
-
 
 ## API Reference
 

@@ -1,6 +1,6 @@
 ---
 name: pixijs-performance
-description: "Use this skill when profiling or optimizing a PixiJS v8 app for FPS, draw calls, or GPU memory. Covers destroy patterns (cacheAsTexture(false), releaseGlobalResources), GCSystem and TextureGCSystem, PrepareSystem, object pooling, batching rules, BitmapText for dynamic text, culling (Culler, CullerPlugin, cullable, cullArea), resolution/antialias tradeoffs. Triggers on: FPS, jank, draw calls, batching, object pool, GCSystem, PrepareSystem, Culler, cacheAsTexture, memory leak, destroy patterns."
+description: 'Use this skill when profiling or optimizing a PixiJS v8 app for FPS, draw calls, or GPU memory. Covers destroy patterns (cacheAsTexture(false), releaseGlobalResources), GCSystem and TextureGCSystem, PrepareSystem, object pooling, batching rules, BitmapText for dynamic text, culling (Culler, CullerPlugin, cullable, cullArea), resolution/antialias tradeoffs. Triggers on: FPS, jank, draw calls, batching, object pool, GCSystem, PrepareSystem, Culler, cacheAsTexture, memory leak, destroy patterns.'
 license: MIT
 ---
 
@@ -14,7 +14,7 @@ container.updateCacheTexture();
 container.cacheAsTexture(false);
 container.destroy({ children: true });
 
-import { CullerPlugin, extensions } from "pixi.js";
+import { CullerPlugin, extensions } from 'pixi.js';
 extensions.add(CullerPlugin);
 
 offscreenContainer.cullable = true;
@@ -32,9 +32,9 @@ await app.init({ gcMaxUnusedTime: 60_000, gcFrequency: 30_000 });
 ### Proper destroy with cleanup
 
 ```ts
-import { Sprite, Assets } from "pixi.js";
+import { Sprite, Assets } from 'pixi.js';
 
-const texture = await Assets.load("character.png");
+const texture = await Assets.load('character.png');
 const sprite = new Sprite(texture);
 
 // Destroy sprite only (preserve texture for reuse)
@@ -47,7 +47,7 @@ sprite.destroy({ children: true, texture: true, textureSource: true });
 When done with a loaded asset entirely:
 
 ```ts
-Assets.unload("character.png");
+Assets.unload('character.png');
 ```
 
 This removes it from the cache and unloads the GPU resource.
@@ -55,7 +55,7 @@ This removes it from the cache and unloads the GPU resource.
 ### Application destroy/recreate cycle
 
 ```ts
-import { Application } from "pixi.js";
+import { Application } from 'pixi.js';
 
 // Correct destroy that cleans global pools
 app.destroy({ releaseGlobalResources: true });
@@ -71,14 +71,14 @@ Without `releaseGlobalResources: true`, pooled objects (batches, textures) from 
 PixiJS auto-collects unused textures and GPU resources via `GCSystem`. Defaults: checks every 30 seconds, removes resources idle for 60 seconds. These are time-based (milliseconds).
 
 ```ts
-import { Application } from "pixi.js";
+import { Application } from 'pixi.js';
 
 const app = new Application();
 
 await app.init({
-  gcActive: true,
-  gcMaxUnusedTime: 120000, // idle time before cleanup in ms (default: 60000)
-  gcFrequency: 60000, // check interval in ms (default: 30000)
+	gcActive: true,
+	gcMaxUnusedTime: 120000, // idle time before cleanup in ms (default: 60000)
+	gcFrequency: 60000, // check interval in ms (default: 30000)
 });
 ```
 
@@ -93,8 +93,8 @@ texture.source.unload(); // immediate GPU memory release
 Upload textures and graphics to GPU before rendering to avoid first-frame hitches:
 
 ```ts
-import "pixi.js/prepare";
-import { Application, Assets } from "pixi.js";
+import 'pixi.js/prepare';
+import { Application, Assets } from 'pixi.js';
 
 const app = new Application();
 await app.init();
@@ -102,7 +102,7 @@ await app.init();
 // Don't render until assets are uploaded
 app.stop();
 
-const texture = await Assets.load("large-scene.png");
+const texture = await Assets.load('large-scene.png');
 
 // Upload to GPU ahead of time
 await app.renderer.prepare.upload(app.stage);
@@ -131,7 +131,7 @@ app.start();
 - Combining with masks is fragile (see the masking skill)
 
 ```ts
-import { Container, Sprite } from "pixi.js";
+import { Container, Sprite } from 'pixi.js';
 
 const panel = new Container();
 // ... add many static children ...
@@ -156,39 +156,39 @@ panel.destroy();
 Reuse objects by changing their properties instead of destroy/recreate:
 
 ```ts
-import { Sprite, Container, Texture } from "pixi.js";
+import { Sprite, Container, Texture } from 'pixi.js';
 
 class BulletPool {
-  private _pool: Sprite[] = [];
-  private _container: Container;
+	private _pool: Sprite[] = [];
+	private _container: Container;
 
-  constructor(container: Container) {
-    this._container = container;
-  }
+	constructor(container: Container) {
+		this._container = container;
+	}
 
-  public get(texture: Texture): Sprite {
-    let bullet = this._pool.pop();
+	public get(texture: Texture): Sprite {
+		let bullet = this._pool.pop();
 
-    if (!bullet) {
-      bullet = new Sprite(texture);
-      this._container.addChild(bullet);
-    }
+		if (!bullet) {
+			bullet = new Sprite(texture);
+			this._container.addChild(bullet);
+		}
 
-    bullet.texture = texture;
-    bullet.position.set(0, 0);
-    bullet.rotation = 0;
-    bullet.scale.set(1);
-    bullet.alpha = 1;
-    bullet.tint = 0xffffff;
-    bullet.blendMode = "normal";
-    bullet.visible = true;
-    return bullet;
-  }
+		bullet.texture = texture;
+		bullet.position.set(0, 0);
+		bullet.rotation = 0;
+		bullet.scale.set(1);
+		bullet.alpha = 1;
+		bullet.tint = 0xffffff;
+		bullet.blendMode = 'normal';
+		bullet.visible = true;
+		return bullet;
+	}
 
-  public release(bullet: Sprite): void {
-    bullet.visible = false;
-    this._pool.push(bullet);
-  }
+	public release(bullet: Sprite): void {
+		bullet.visible = false;
+		this._pool.push(bullet);
+	}
 }
 ```
 
@@ -206,7 +206,7 @@ PixiJS batches similar consecutive objects into single draw calls. Batch breaks 
 Optimize draw order:
 
 ```ts
-import { Sprite, Graphics, Container } from "pixi.js";
+import { Sprite, Graphics, Container } from 'pixi.js';
 
 // 4 draw calls: type alternates
 const bad = new Container();
@@ -228,15 +228,15 @@ Same principle applies to blend modes: `screen/normal/screen/normal` = 4 draws; 
 ### Spritesheets over individual textures
 
 ```ts
-import { Assets, Sprite } from "pixi.js";
+import { Assets, Sprite } from 'pixi.js';
 
 // Load a spritesheet (single texture atlas)
-const sheet = await Assets.load("game-atlas.json");
+const sheet = await Assets.load('game-atlas.json');
 
 // All frames share one GPU texture; enables batching
-const hero = new Sprite(sheet.textures["hero.png"]);
-const enemy = new Sprite(sheet.textures["enemy.png"]);
-const coin = new Sprite(sheet.textures["coin.png"]);
+const hero = new Sprite(sheet.textures['hero.png']);
+const enemy = new Sprite(sheet.textures['enemy.png']);
+const coin = new Sprite(sheet.textures['coin.png']);
 ```
 
 Individual textures each require their own GPU upload and break batches when the texture limit is exceeded. Spritesheets consolidate many frames into one atlas texture.
@@ -248,21 +248,21 @@ Use `@0.5x` filename suffix on half-resolution sheets so PixiJS auto-scales them
 Text and HTMLText re-render to a canvas and re-upload to the GPU on every change. Never update them per frame unconditionally:
 
 ```ts
-import { BitmapText, Text } from "pixi.js";
+import { BitmapText, Text } from 'pixi.js';
 
 // Wrong: re-renders canvas + GPU upload every frame
 app.ticker.add(() => {
-  scoreText.text = `Score: ${score}`;
+	scoreText.text = `Score: ${score}`;
 });
 
 // Correct: use BitmapText for frequently changing content
 const scoreText = new BitmapText({
-  text: "Score: 0",
-  style: { fontFamily: "Arial", fontSize: 24, fill: 0xffffff },
+	text: 'Score: 0',
+	style: { fontFamily: 'Arial', fontSize: 24, fill: 0xffffff },
 });
 
 app.ticker.add(() => {
-  scoreText.text = `Score: ${score}`;
+	scoreText.text = `Score: ${score}`;
 });
 ```
 
@@ -272,10 +272,10 @@ If you must use canvas Text, guard updates so they only happen when the value ch
 
 ```ts
 app.ticker.add(() => {
-  const next = `Score: ${score}`;
-  if (scoreText.text !== next) {
-    scoreText.text = next;
-  }
+	const next = `Score: ${score}`;
+	if (scoreText.text !== next) {
+		scoreText.text = next;
+	}
 });
 ```
 
@@ -286,7 +286,7 @@ Text resolution matches the renderer resolution by default. Lower it independent
 Graphics objects are fastest when their shape doesn't change (transforms, alpha, and tint are fine). Small Graphics (under ~100 points) are batched like Sprites. Complex Graphics with hundreds of shapes are slow; convert them to textures instead:
 
 ```ts
-import { Graphics, Sprite } from "pixi.js";
+import { Graphics, Sprite } from 'pixi.js';
 
 const complex = new Graphics();
 // ... draw complex shape ...
@@ -301,7 +301,7 @@ const sprite = new Sprite(texture);
 PixiJS skips rendering objects outside the visible area when `cullable` is set. Disabled by default because it trades CPU cost (bounds checking) for GPU savings. Culling only runs when the `CullerPlugin` is registered:
 
 ```ts
-import { extensions, CullerPlugin, Culler, Rectangle } from "pixi.js";
+import { extensions, CullerPlugin, Culler, Rectangle } from 'pixi.js';
 
 extensions.add(CullerPlugin); // before Application.init
 
@@ -324,15 +324,15 @@ Culler.shared.cull(app.stage, app.renderer.screen);
 ### Resolution and antialias tradeoffs
 
 ```ts
-import { Application } from "pixi.js";
+import { Application } from 'pixi.js';
 
 const app = new Application();
 
 // Mobile-friendly: lower resolution, no antialias
 await app.init({
-  resolution: 1,
-  antialias: false,
-  backgroundAlpha: 1, // opaque background is faster
+	resolution: 1,
+	antialias: false,
+	backgroundAlpha: 1, // opaque background is faster
 });
 ```
 
@@ -342,23 +342,23 @@ await app.init({
 
 ```ts
 function staggerDestroy(textures: Texture[], perFrame: number = 5): void {
-  let index = 0;
-  const ticker = app.ticker;
+	let index = 0;
+	const ticker = app.ticker;
 
-  const destroy = () => {
-    const end = Math.min(index + perFrame, textures.length);
+	const destroy = () => {
+		const end = Math.min(index + perFrame, textures.length);
 
-    for (let i = index; i < end; i++) {
-      textures[i].destroy(true);
-    }
-    index = end;
+		for (let i = index; i < end; i++) {
+			textures[i].destroy(true);
+		}
+		index = end;
 
-    if (index >= textures.length) {
-      ticker.remove(destroy);
-    }
-  };
+		if (index >= textures.length) {
+			ticker.remove(destroy);
+		}
+	};
 
-  ticker.add(destroy);
+	ticker.add(destroy);
 }
 ```
 
@@ -385,8 +385,8 @@ Destroying while the render pipeline still holds a reference causes null-pointer
 
 ```ts
 app.ticker.addOnce(() => {
-  parent.removeChild(sprite);
-  sprite.destroy();
+	parent.removeChild(sprite);
+	sprite.destroy();
 });
 ```
 
@@ -410,7 +410,6 @@ const newApp = new Application();
 
 Without this flag, stale pooled batches and textures from the old app persist in global pools and get reused by the new app, causing flickering and visual corruption.
 
-
 ### [HIGH] Interleaving object types in scene graph
 
 `sprite / graphic / sprite / graphic` = 4 draw calls.
@@ -418,16 +417,13 @@ Without this flag, stale pooled batches and textures from the old app persist in
 
 Group same object types together in the child order to minimize batch breaks. Same applies to blend mode ordering.
 
-
 ### [HIGH] Destroying and recreating objects instead of recycling
 
 Destroy/recreate is expensive: it deallocates GPU resources, triggers garbage collection, and requires fresh GPU uploads. Reuse objects by updating `texture`, `position`, `visible`, and other properties. Use an object pool pattern for frequently spawned/despawned entities.
 
-
 ### [HIGH] Loading many individual textures instead of spritesheets
 
 Each separate texture consumes its own GPU memory slot and breaks batching when the per-batch texture limit is reached. Spritesheets consolidate textures into atlases. Also avoid textures exceeding 4096px on either axis, as they fail on some mobile GPUs.
-
 
 ### [HIGH] Updating Text or HTMLText every frame
 

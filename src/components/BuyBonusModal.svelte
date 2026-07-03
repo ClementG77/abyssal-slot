@@ -212,7 +212,12 @@
 						<div class="bm-panel">
 							<div class="bm-bolts">
 								{#each BOLTS as i}
-									<svg class="bolt" class:on={i < volatilityOf(m)} viewBox="0 0 24 24" aria-hidden="true">
+									<svg
+										class="bolt"
+										class:on={i < volatilityOf(m)}
+										viewBox="0 0 24 24"
+										aria-hidden="true"
+									>
 										<path d="M13 2 4 14h6l-1 8 9-12h-6z" />
 									</svg>
 								{/each}
@@ -234,7 +239,11 @@
 									ACTIVATE
 								</button>
 							{:else}
-								<button class="bm-action buy" disabled={!affordable(m)} onclick={() => openConfirm(m)}>
+								<button
+									class="bm-action buy"
+									disabled={!affordable(m)}
+									onclick={() => openConfirm(m)}
+								>
 									{affordable(m) ? 'BUY' : 'LOW FUNDS'}
 								</button>
 							{/if}
@@ -242,7 +251,6 @@
 					</div>
 				{/each}
 			</div>
-
 		</div>
 	</Popup>
 
@@ -391,7 +399,7 @@
 		// fixed width so the row overflows (and scrolls) on small screens instead of shrinking.
 		// kept small enough that all 5 modes are visible at once on desktop / tablet.
 		flex: 0 0 auto;
-		width: clamp(7rem, 24vw, 9rem);
+		width: clamp(7rem, 24vw, 11rem);
 		display: flex;
 		flex-direction: column;
 		border-radius: 0.85rem;

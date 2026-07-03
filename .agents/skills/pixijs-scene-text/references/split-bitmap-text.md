@@ -5,26 +5,26 @@ The bitmap counterpart to `SplitText`. Wraps a `BitmapText` and exposes `lines`,
 ## Quick Start
 
 ```ts
-import { BitmapFont, SplitBitmapText } from "pixi.js";
+import { BitmapFont, SplitBitmapText } from 'pixi.js';
 
 BitmapFont.install({
-  name: "GameFont",
-  style: { fontFamily: "Arial", fontSize: 48 },
+	name: 'GameFont',
+	style: { fontFamily: 'Arial', fontSize: 48 },
 });
 
 const split = new SplitBitmapText({
-  text: "Fast Animate",
-  style: { fontFamily: "GameFont", fontSize: 48 },
-  charAnchor: { x: 0.5, y: 1 },
+	text: 'Fast Animate',
+	style: { fontFamily: 'GameFont', fontSize: 48 },
+	charAnchor: { x: 0.5, y: 1 },
 });
 
 app.stage.addChild(split);
 
 split.chars.forEach((char, i) => {
-  char.onRender = () => {
-    const t = performance.now() / 200 + i;
-    char.y = Math.sin(t) * 5;
-  };
+	char.onRender = () => {
+		const t = performance.now() / 200 + i;
+		char.y = Math.sin(t) * 5;
+	};
 });
 ```
 
@@ -34,19 +34,19 @@ The API mirrors `SplitText` exactly; the only difference is the underlying text 
 
 ```ts
 const minimal = new SplitBitmapText({
-  text: "Hello World",
-  style: { fontFamily: "GameFont", fontSize: 32 },
+	text: 'Hello World',
+	style: { fontFamily: 'GameFont', fontSize: 32 },
 });
 
 const full = new SplitBitmapText({
-  text: "Fast\nPer-char",
-  style: { fontFamily: "GameFont", fontSize: 48, fill: 0xffffff },
-  autoSplit: true,
-  lineAnchor: 0.5,
-  wordAnchor: { x: 0, y: 0.5 },
-  charAnchor: { x: 0.5, y: 1 },
-  x: 100,
-  y: 200,
+	text: 'Fast\nPer-char',
+	style: { fontFamily: 'GameFont', fontSize: 48, fill: 0xffffff },
+	autoSplit: true,
+	lineAnchor: 0.5,
+	wordAnchor: { x: 0, y: 0.5 },
+	charAnchor: { x: 0.5, y: 1 },
+	x: 100,
+	y: 200,
 });
 ```
 
@@ -73,13 +73,13 @@ All `Container` options (`position`, `scale`, `tint`, `label`, `filters`, `zInde
 
 ```ts
 split.lines.forEach((line) => {
-  line.alpha = 0.9;
+	line.alpha = 0.9;
 });
 split.words.forEach((word) => {
-  word.scale.set(1.1);
+	word.scale.set(1.1);
 });
 split.chars.forEach((char) => {
-  char.rotation = 0.05;
+	char.rotation = 0.05;
 });
 ```
 
@@ -89,11 +89,11 @@ Each `lines[i]`, `words[i]`, `chars[i]` is a Container wrapping a `BitmapText` i
 
 ```ts
 const split = new SplitBitmapText({
-  text: "Wave motion",
-  style: { fontFamily: "GameFont", fontSize: 48 },
-  lineAnchor: 0.5,
-  wordAnchor: { x: 0, y: 0.5 },
-  charAnchor: { x: 0.5, y: 1 },
+	text: 'Wave motion',
+	style: { fontFamily: 'GameFont', fontSize: 48 },
+	lineAnchor: 0.5,
+	wordAnchor: { x: 0, y: 0.5 },
+	charAnchor: { x: 0.5, y: 1 },
 });
 ```
 
@@ -103,15 +103,15 @@ Same normalized 0–1 anchors as `SplitText`: line, word, and char containers ea
 
 ```ts
 split.chars.forEach((char, i) => {
-  char.alpha = 0;
+	char.alpha = 0;
 });
 
 let elapsed = 0;
 app.ticker.add((ticker) => {
-  elapsed += ticker.deltaMS;
-  split.chars.forEach((char, i) => {
-    if (elapsed > i * 50) char.alpha = Math.min(char.alpha + 0.05, 1);
-  });
+	elapsed += ticker.deltaMS;
+	split.chars.forEach((char, i) => {
+		if (elapsed > i * 50) char.alpha = Math.min(char.alpha + 0.05, 1);
+	});
 });
 ```
 
@@ -121,8 +121,8 @@ Reveal characters one at a time. Because each char is a cheap BitmapText, this s
 
 ```ts
 const label = new BitmapText({
-  text: "Press start",
-  style: { fontFamily: "GameFont", fontSize: 32 },
+	text: 'Press start',
+	style: { fontFamily: 'GameFont', fontSize: 32 },
 });
 
 const animatable = SplitBitmapText.from(label);
@@ -133,7 +133,7 @@ const animatable = SplitBitmapText.from(label);
 ### Updating content
 
 ```ts
-split.text = "New string";
+split.text = 'New string';
 ```
 
 `autoSplit` (default `true`) rebuilds the segment arrays on every text/style change. Per-segment animations attached via `onRender` persist across re-splits as long as you re-apply them in the update step.
@@ -146,8 +146,8 @@ Wrong:
 
 ```ts
 const split = new SplitBitmapText({
-  text: "Hello",
-  style: { fontFamily: "Arial", fontSize: 48 },
+	text: 'Hello',
+	style: { fontFamily: 'Arial', fontSize: 48 },
 });
 ```
 
@@ -157,27 +157,24 @@ Correct:
 
 ```ts
 BitmapFont.install({
-  name: "GameFont",
-  style: { fontFamily: "Arial", fontSize: 48 },
+	name: 'GameFont',
+	style: { fontFamily: 'Arial', fontSize: 48 },
 });
 const split = new SplitBitmapText({
-  text: "Hello",
-  style: { fontFamily: "GameFont", fontSize: 48 },
+	text: 'Hello',
+	style: { fontFamily: 'GameFont', fontSize: 48 },
 });
 ```
 
 Pre-installation avoids first-render latency and gives you control over the atlas.
 
-
 ### [MEDIUM] Expecting CJK or emoji support
 
 `SplitBitmapText` inherits BitmapText's limitations: the glyph atlas must contain every character, and very large character sets exceed GPU texture size. For per-character animation on CJK or emoji-heavy text, use `SplitText` (which accepts the performance cost) or pre-generate a targeted atlas covering only the characters you'll use.
 
-
 ### [MEDIUM] Missing glyphs silently dropped
 
 If a character isn't in the font atlas, its segment is skipped and no error is thrown. Array indices may not line up one-to-one with source character positions if glyphs are missing. Always test your font against the full string content.
-
 
 ## API Reference
 

@@ -22,13 +22,13 @@ Current detected image dimensions:
 
 ```ts
 const REEL_FRAME_BASE_IMAGE_SIZE = {
-  width: 1448,
-  height: 1086,
+	width: 1448,
+	height: 1086,
 };
 
 const REEL_FRAME_FREE_SPINS_IMAGE_SIZE = {
-  width: 1448,
-  height: 1086,
+	width: 1448,
+	height: 1086,
 };
 ```
 
@@ -125,10 +125,10 @@ y = 0 at the top of the reel frame image
 The playable grid is a rectangle inside that image:
 
 ```ts
-gridX
-gridY
-gridWidth
-gridHeight
+gridX;
+gridY;
+gridWidth;
+gridHeight;
 ```
 
 Then each symbol cell is:
@@ -148,8 +148,8 @@ symbolY = gridY + row * cellHeight + cellHeight / 2;
 Where:
 
 ```ts
-col = 0, 1, 2, 3, 4, 5;
-row = 0, 1, 2, 3, 4;
+((col = 0), 1, 2, 3, 4, 5);
+((row = 0), 1, 2, 3, 4);
 ```
 
 ---
@@ -164,20 +164,20 @@ Because the frame border is decorative and irregular, these values may need fina
 
 ```ts
 export const REEL_LAYOUT_BASE = {
-  imageWidth: 1448,
-  imageHeight: 1086,
+	imageWidth: 1448,
+	imageHeight: 1086,
 
-  columns: 6,
-  rows: 5,
+	columns: 6,
+	rows: 5,
 
-  // Inner playable reel area, in local image coordinates.
-  // Tune these with the debug grid if needed.
-  gridX: Math.round(1448 * 0.105),
-  gridY: Math.round(1086 * 0.155),
-  gridWidth: Math.round(1448 * 0.790),
-  gridHeight: Math.round(1086 * 0.720),
+	// Inner playable reel area, in local image coordinates.
+	// Tune these with the debug grid if needed.
+	gridX: Math.round(1448 * 0.105),
+	gridY: Math.round(1086 * 0.155),
+	gridWidth: Math.round(1448 * 0.79),
+	gridHeight: Math.round(1086 * 0.72),
 
-  symbolFill: 0.86,
+	symbolFill: 0.86,
 };
 ```
 
@@ -185,15 +185,15 @@ Approximate resolved values:
 
 ```ts
 export const REEL_LAYOUT_BASE_APPROX = {
-  imageWidth: 1448,
-  imageHeight: 1086,
-  columns: 6,
-  rows: 5,
-  gridX: 152,
-  gridY: 168,
-  gridWidth: 1144,
-  gridHeight: 782,
-  symbolFill: 0.86,
+	imageWidth: 1448,
+	imageHeight: 1086,
+	columns: 6,
+	rows: 5,
+	gridX: 152,
+	gridY: 168,
+	gridWidth: 1144,
+	gridHeight: 782,
+	symbolFill: 0.86,
 };
 ```
 
@@ -201,20 +201,20 @@ export const REEL_LAYOUT_BASE_APPROX = {
 
 ```ts
 export const REEL_LAYOUT_FREE_SPINS = {
-  imageWidth: 1448,
-  imageHeight: 1086,
+	imageWidth: 1448,
+	imageHeight: 1086,
 
-  columns: 6,
-  rows: 5,
+	columns: 6,
+	rows: 5,
 
-  // Inner playable reel area, in local image coordinates.
-  // Tune these with the debug grid if needed.
-  gridX: Math.round(1448 * 0.105),
-  gridY: Math.round(1086 * 0.155),
-  gridWidth: Math.round(1448 * 0.790),
-  gridHeight: Math.round(1086 * 0.720),
+	// Inner playable reel area, in local image coordinates.
+	// Tune these with the debug grid if needed.
+	gridX: Math.round(1448 * 0.105),
+	gridY: Math.round(1086 * 0.155),
+	gridWidth: Math.round(1448 * 0.79),
+	gridHeight: Math.round(1086 * 0.72),
 
-  symbolFill: 0.86,
+	symbolFill: 0.86,
 };
 ```
 
@@ -222,15 +222,15 @@ Approximate resolved values:
 
 ```ts
 export const REEL_LAYOUT_FREE_SPINS_APPROX = {
-  imageWidth: 1448,
-  imageHeight: 1086,
-  columns: 6,
-  rows: 5,
-  gridX: 152,
-  gridY: 168,
-  gridWidth: 1144,
-  gridHeight: 782,
-  symbolFill: 0.86,
+	imageWidth: 1448,
+	imageHeight: 1086,
+	columns: 6,
+	rows: 5,
+	gridX: 152,
+	gridY: 168,
+	gridWidth: 1144,
+	gridHeight: 782,
+	symbolFill: 0.86,
 };
 ```
 
@@ -280,20 +280,17 @@ Then resize like this:
 
 ```ts
 function resize() {
-  const screenWidth = wrapper.clientWidth;
-  const screenHeight = wrapper.clientHeight;
+	const screenWidth = wrapper.clientWidth;
+	const screenHeight = wrapper.clientHeight;
 
-  app.renderer.resize(screenWidth, screenHeight);
+	app.renderer.resize(screenWidth, screenHeight);
 
-  const scale = Math.min(
-    screenWidth / GAME_WIDTH,
-    screenHeight / GAME_HEIGHT
-  );
+	const scale = Math.min(screenWidth / GAME_WIDTH, screenHeight / GAME_HEIGHT);
 
-  rootContainer.scale.set(scale);
+	rootContainer.scale.set(scale);
 
-  rootContainer.x = (screenWidth - GAME_WIDTH * scale) / 2;
-  rootContainer.y = (screenHeight - GAME_HEIGHT * scale) / 2;
+	rootContainer.x = (screenWidth - GAME_WIDTH * scale) / 2;
+	rootContainer.y = (screenHeight - GAME_HEIGHT * scale) / 2;
 }
 ```
 
@@ -317,11 +314,11 @@ For your current frame proportions, start with:
 ```ts
 const REEL_DISPLAY_WIDTH = 1320;
 const REEL_DISPLAY_HEIGHT =
-  REEL_DISPLAY_WIDTH * (REEL_LAYOUT_BASE.imageHeight / REEL_LAYOUT_BASE.imageWidth);
+	REEL_DISPLAY_WIDTH * (REEL_LAYOUT_BASE.imageHeight / REEL_LAYOUT_BASE.imageWidth);
 
 const REEL_POSITION = {
-  x: (GAME_WIDTH - REEL_DISPLAY_WIDTH) / 2,
-  y: 150,
+	x: (GAME_WIDTH - REEL_DISPLAY_WIDTH) / 2,
+	y: 150,
 };
 ```
 
@@ -341,182 +338,168 @@ The reel frame container should scale all internal coordinates from the original
 This version works directly with the single current PNG frame assets.
 
 ```ts
-import {
-  Assets,
-  Container,
-  Sprite,
-  Texture,
-  Graphics,
-} from "pixi.js";
+import { Assets, Container, Sprite, Texture, Graphics } from 'pixi.js';
 
 export type ReelFrameLayout = {
-  imageWidth: number;
-  imageHeight: number;
+	imageWidth: number;
+	imageHeight: number;
 
-  columns: number;
-  rows: number;
+	columns: number;
+	rows: number;
 
-  gridX: number;
-  gridY: number;
-  gridWidth: number;
-  gridHeight: number;
+	gridX: number;
+	gridY: number;
+	gridWidth: number;
+	gridHeight: number;
 
-  symbolFill?: number;
+	symbolFill?: number;
 };
 
 type ReelFrameOptions = {
-  framePath: string;
-  symbolPaths: Record<string, string>;
-  layout: ReelFrameLayout;
+	framePath: string;
+	symbolPaths: Record<string, string>;
+	layout: ReelFrameLayout;
 };
 
 export class ReelFrameContainer extends Container {
-  private frame!: Sprite;
-  private symbolsContainer!: Container;
-  private symbolMask!: Graphics;
+	private frame!: Sprite;
+	private symbolsContainer!: Container;
+	private symbolMask!: Graphics;
 
-  private symbolTextures: Record<string, Texture> = {};
+	private symbolTextures: Record<string, Texture> = {};
 
-  private options: ReelFrameOptions;
-  private layout: ReelFrameLayout;
+	private options: ReelFrameOptions;
+	private layout: ReelFrameLayout;
 
-  private scaleRatio = 1;
+	private scaleRatio = 1;
 
-  constructor(options: ReelFrameOptions) {
-    super();
-    this.options = options;
-    this.layout = options.layout;
-  }
+	constructor(options: ReelFrameOptions) {
+		super();
+		this.options = options;
+		this.layout = options.layout;
+	}
 
-  async init() {
-    const frameTexture = await Assets.load<Texture>(this.options.framePath);
+	async init() {
+		const frameTexture = await Assets.load<Texture>(this.options.framePath);
 
-    this.frame = new Sprite(frameTexture);
-    this.frame.width = this.layout.imageWidth;
-    this.frame.height = this.layout.imageHeight;
-    this.addChild(this.frame);
+		this.frame = new Sprite(frameTexture);
+		this.frame.width = this.layout.imageWidth;
+		this.frame.height = this.layout.imageHeight;
+		this.addChild(this.frame);
 
-    const loadedSymbols = await Promise.all(
-      Object.entries(this.options.symbolPaths).map(async ([id, path]) => {
-        const texture = await Assets.load<Texture>(path);
-        return [id, texture] as const;
-      })
-    );
+		const loadedSymbols = await Promise.all(
+			Object.entries(this.options.symbolPaths).map(async ([id, path]) => {
+				const texture = await Assets.load<Texture>(path);
+				return [id, texture] as const;
+			}),
+		);
 
-    for (const [id, texture] of loadedSymbols) {
-      this.symbolTextures[id] = texture;
-    }
+		for (const [id, texture] of loadedSymbols) {
+			this.symbolTextures[id] = texture;
+		}
 
-    this.symbolsContainer = new Container();
-    this.addChild(this.symbolsContainer);
+		this.symbolsContainer = new Container();
+		this.addChild(this.symbolsContainer);
 
-    this.symbolMask = new Graphics();
-    this.drawMask();
-    this.addChild(this.symbolMask);
+		this.symbolMask = new Graphics();
+		this.drawMask();
+		this.addChild(this.symbolMask);
 
-    this.symbolsContainer.mask = this.symbolMask;
-  }
+		this.symbolsContainer.mask = this.symbolMask;
+	}
 
-  setDisplayWidth(width: number) {
-    this.scaleRatio = width / this.layout.imageWidth;
+	setDisplayWidth(width: number) {
+		this.scaleRatio = width / this.layout.imageWidth;
 
-    this.scale.set(this.scaleRatio);
-  }
+		this.scale.set(this.scaleRatio);
+	}
 
-  setGrid(grid: string[][]) {
-    this.symbolsContainer.removeChildren();
+	setGrid(grid: string[][]) {
+		this.symbolsContainer.removeChildren();
 
-    const cellWidth = this.layout.gridWidth / this.layout.columns;
-    const cellHeight = this.layout.gridHeight / this.layout.rows;
+		const cellWidth = this.layout.gridWidth / this.layout.columns;
+		const cellHeight = this.layout.gridHeight / this.layout.rows;
 
-    for (let row = 0; row < this.layout.rows; row++) {
-      for (let col = 0; col < this.layout.columns; col++) {
-        const symbolId = grid[row]?.[col];
-        if (!symbolId) continue;
+		for (let row = 0; row < this.layout.rows; row++) {
+			for (let col = 0; col < this.layout.columns; col++) {
+				const symbolId = grid[row]?.[col];
+				if (!symbolId) continue;
 
-        const texture = this.symbolTextures[symbolId];
+				const texture = this.symbolTextures[symbolId];
 
-        if (!texture) {
-          console.warn(`Missing texture for symbol: ${symbolId}`);
-          continue;
-        }
+				if (!texture) {
+					console.warn(`Missing texture for symbol: ${symbolId}`);
+					continue;
+				}
 
-        const symbol = new Sprite(texture);
-        symbol.anchor.set(0.5);
+				const symbol = new Sprite(texture);
+				symbol.anchor.set(0.5);
 
-        symbol.x = this.layout.gridX + col * cellWidth + cellWidth / 2;
-        symbol.y = this.layout.gridY + row * cellHeight + cellHeight / 2;
+				symbol.x = this.layout.gridX + col * cellWidth + cellWidth / 2;
+				symbol.y = this.layout.gridY + row * cellHeight + cellHeight / 2;
 
-        this.fitSymbolToCell(symbol, symbolId, cellWidth, cellHeight);
+				this.fitSymbolToCell(symbol, symbolId, cellWidth, cellHeight);
 
-        this.symbolsContainer.addChild(symbol);
-      }
-    }
-  }
+				this.symbolsContainer.addChild(symbol);
+			}
+		}
+	}
 
-  getCellCenter(col: number, row: number) {
-    const cellWidth = this.layout.gridWidth / this.layout.columns;
-    const cellHeight = this.layout.gridHeight / this.layout.rows;
+	getCellCenter(col: number, row: number) {
+		const cellWidth = this.layout.gridWidth / this.layout.columns;
+		const cellHeight = this.layout.gridHeight / this.layout.rows;
 
-    return {
-      x: this.layout.gridX + col * cellWidth + cellWidth / 2,
-      y: this.layout.gridY + row * cellHeight + cellHeight / 2,
-    };
-  }
+		return {
+			x: this.layout.gridX + col * cellWidth + cellWidth / 2,
+			y: this.layout.gridY + row * cellHeight + cellHeight / 2,
+		};
+	}
 
-  private fitSymbolToCell(
-    symbol: Sprite,
-    symbolId: string,
-    cellWidth: number,
-    cellHeight: number
-  ) {
-    const fill = this.getSymbolFill(symbolId);
+	private fitSymbolToCell(symbol: Sprite, symbolId: string, cellWidth: number, cellHeight: number) {
+		const fill = this.getSymbolFill(symbolId);
 
-    const maxWidth = cellWidth * fill;
-    const maxHeight = cellHeight * fill;
+		const maxWidth = cellWidth * fill;
+		const maxHeight = cellHeight * fill;
 
-    const scale = Math.min(
-      maxWidth / symbol.texture.width,
-      maxHeight / symbol.texture.height
-    );
+		const scale = Math.min(maxWidth / symbol.texture.width, maxHeight / symbol.texture.height);
 
-    symbol.scale.set(scale);
-  }
+		symbol.scale.set(scale);
+	}
 
-  private getSymbolFill(symbolId: string) {
-    if (symbolId === "scatter") return 0.94;
-    if (symbolId === "add_eye") return 0.86;
-    if (symbolId === "mult_eye") return 0.86;
-    if (symbolId.startsWith("H")) return 0.88;
-    if (symbolId.startsWith("L")) return 0.80;
+	private getSymbolFill(symbolId: string) {
+		if (symbolId === 'scatter') return 0.94;
+		if (symbolId === 'add_eye') return 0.86;
+		if (symbolId === 'mult_eye') return 0.86;
+		if (symbolId.startsWith('H')) return 0.88;
+		if (symbolId.startsWith('L')) return 0.8;
 
-    return this.layout.symbolFill ?? 0.86;
-  }
+		return this.layout.symbolFill ?? 0.86;
+	}
 
-  private drawMask() {
-    this.symbolMask.clear();
+	private drawMask() {
+		this.symbolMask.clear();
 
-    this.symbolMask.rect(
-      this.layout.gridX,
-      this.layout.gridY,
-      this.layout.gridWidth,
-      this.layout.gridHeight
-    );
+		this.symbolMask.rect(
+			this.layout.gridX,
+			this.layout.gridY,
+			this.layout.gridWidth,
+			this.layout.gridHeight,
+		);
 
-    this.symbolMask.fill(0xffffff);
-  }
+		this.symbolMask.fill(0xffffff);
+	}
 
-  async setFrame(framePath: string, layout: ReelFrameLayout) {
-    const frameTexture = await Assets.load<Texture>(framePath);
+	async setFrame(framePath: string, layout: ReelFrameLayout) {
+		const frameTexture = await Assets.load<Texture>(framePath);
 
-    this.frame.texture = frameTexture;
-    this.layout = layout;
+		this.frame.texture = frameTexture;
+		this.layout = layout;
 
-    this.frame.width = layout.imageWidth;
-    this.frame.height = layout.imageHeight;
+		this.frame.width = layout.imageWidth;
+		this.frame.height = layout.imageHeight;
 
-    this.drawMask();
-  }
+		this.drawMask();
+	}
 }
 ```
 
@@ -526,24 +509,24 @@ export class ReelFrameContainer extends Container {
 
 ```ts
 const SYMBOL_PATHS = {
-  H1_anglerfish: "/assets/abyssal/symbols/H1_anglerfish.png",
-  H2_nautilus: "/assets/abyssal/symbols/H2_nautilus.png",
-  H3_diving_helmet: "/assets/abyssal/symbols/H3_diving_helmet.png",
-  H4_jellyfish: "/assets/abyssal/symbols/H4_jellyfish.png",
-  L1_red_gem: "/assets/abyssal/symbols/L1_red_gem.png",
-  L2_green_gem: "/assets/abyssal/symbols/L2_green_gem.png",
-  L3_blue_gem: "/assets/abyssal/symbols/L3_blue_gem.png",
-  L4_purple_gem: "/assets/abyssal/symbols/L4_purple_gem.png",
-  L5_yellow_gem: "/assets/abyssal/symbols/L5_yellow_gem.png",
-  scatter: "/assets/abyssal/symbols/scatter.png",
-  add_eye: "/assets/abyssal/symbols/add_eye.png",
-  mult_eye: "/assets/abyssal/symbols/mult_eye.png",
+	H1_anglerfish: '/assets/abyssal/symbols/H1_anglerfish.png',
+	H2_nautilus: '/assets/abyssal/symbols/H2_nautilus.png',
+	H3_diving_helmet: '/assets/abyssal/symbols/H3_diving_helmet.png',
+	H4_jellyfish: '/assets/abyssal/symbols/H4_jellyfish.png',
+	L1_red_gem: '/assets/abyssal/symbols/L1_red_gem.png',
+	L2_green_gem: '/assets/abyssal/symbols/L2_green_gem.png',
+	L3_blue_gem: '/assets/abyssal/symbols/L3_blue_gem.png',
+	L4_purple_gem: '/assets/abyssal/symbols/L4_purple_gem.png',
+	L5_yellow_gem: '/assets/abyssal/symbols/L5_yellow_gem.png',
+	scatter: '/assets/abyssal/symbols/scatter.png',
+	add_eye: '/assets/abyssal/symbols/add_eye.png',
+	mult_eye: '/assets/abyssal/symbols/mult_eye.png',
 };
 
 const reelFrame = new ReelFrameContainer({
-  framePath: "/assets/abyssal/frames/reel_frame_base.png",
-  symbolPaths: SYMBOL_PATHS,
-  layout: REEL_LAYOUT_BASE_APPROX,
+	framePath: '/assets/abyssal/frames/reel_frame_base.png',
+	symbolPaths: SYMBOL_PATHS,
+	layout: REEL_LAYOUT_BASE_APPROX,
 });
 
 await reelFrame.init();
@@ -551,10 +534,7 @@ await reelFrame.init();
 const displayWidth = 1320;
 reelFrame.setDisplayWidth(displayWidth);
 
-reelFrame.position.set(
-  (GAME_WIDTH - displayWidth) / 2,
-  150
-);
+reelFrame.position.set((GAME_WIDTH - displayWidth) / 2, 150);
 
 rootContainer.addChild(reelFrame);
 ```
@@ -563,21 +543,18 @@ Set symbols:
 
 ```ts
 reelFrame.setGrid([
-  ["H1_anglerfish", "H2_nautilus", "H3_diving_helmet", "L1_red_gem", "L3_blue_gem", "H4_jellyfish"],
-  ["L1_red_gem", "L2_green_gem", "L3_blue_gem", "L4_purple_gem", "add_eye", "L5_yellow_gem"],
-  ["L5_yellow_gem", "L4_purple_gem", "scatter", "H2_nautilus", "mult_eye", "L3_blue_gem"],
-  ["H1_anglerfish", "H2_nautilus", "L1_red_gem", "L3_blue_gem", "L4_purple_gem", "H4_jellyfish"],
-  ["L5_yellow_gem", "H3_diving_helmet", "L2_green_gem", "scatter", "L1_red_gem", "L3_blue_gem"],
+	['H1_anglerfish', 'H2_nautilus', 'H3_diving_helmet', 'L1_red_gem', 'L3_blue_gem', 'H4_jellyfish'],
+	['L1_red_gem', 'L2_green_gem', 'L3_blue_gem', 'L4_purple_gem', 'add_eye', 'L5_yellow_gem'],
+	['L5_yellow_gem', 'L4_purple_gem', 'scatter', 'H2_nautilus', 'mult_eye', 'L3_blue_gem'],
+	['H1_anglerfish', 'H2_nautilus', 'L1_red_gem', 'L3_blue_gem', 'L4_purple_gem', 'H4_jellyfish'],
+	['L5_yellow_gem', 'H3_diving_helmet', 'L2_green_gem', 'scatter', 'L1_red_gem', 'L3_blue_gem'],
 ]);
 ```
 
 Switch to free spins:
 
 ```ts
-await reelFrame.setFrame(
-  "/assets/abyssal/frames/reel_frame_fs.png",
-  REEL_LAYOUT_FREE_SPINS_APPROX
-);
+await reelFrame.setFrame('/assets/abyssal/frames/reel_frame_fs.png', REEL_LAYOUT_FREE_SPINS_APPROX);
 
 reelFrame.setGrid(newFreeSpinsGrid);
 ```
@@ -589,41 +566,41 @@ reelFrame.setGrid(newFreeSpinsGrid);
 Use this while tuning your layout.
 
 ```ts
-import { Container, Graphics } from "pixi.js";
-import type { ReelFrameLayout } from "./ReelFrameContainer";
+import { Container, Graphics } from 'pixi.js';
+import type { ReelFrameLayout } from './ReelFrameContainer';
 
 export function drawDebugGrid(container: Container, layout: ReelFrameLayout) {
-  const g = new Graphics();
+	const g = new Graphics();
 
-  g.rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight);
-  g.stroke({
-    color: 0xff00ff,
-    width: 3,
-    alpha: 0.9,
-  });
+	g.rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight);
+	g.stroke({
+		color: 0xff00ff,
+		width: 3,
+		alpha: 0.9,
+	});
 
-  const cellWidth = layout.gridWidth / layout.columns;
-  const cellHeight = layout.gridHeight / layout.rows;
+	const cellWidth = layout.gridWidth / layout.columns;
+	const cellHeight = layout.gridHeight / layout.rows;
 
-  for (let c = 1; c < layout.columns; c++) {
-    const x = layout.gridX + c * cellWidth;
-    g.moveTo(x, layout.gridY);
-    g.lineTo(x, layout.gridY + layout.gridHeight);
-  }
+	for (let c = 1; c < layout.columns; c++) {
+		const x = layout.gridX + c * cellWidth;
+		g.moveTo(x, layout.gridY);
+		g.lineTo(x, layout.gridY + layout.gridHeight);
+	}
 
-  for (let r = 1; r < layout.rows; r++) {
-    const y = layout.gridY + r * cellHeight;
-    g.moveTo(layout.gridX, y);
-    g.lineTo(layout.gridX + layout.gridWidth, y);
-  }
+	for (let r = 1; r < layout.rows; r++) {
+		const y = layout.gridY + r * cellHeight;
+		g.moveTo(layout.gridX, y);
+		g.lineTo(layout.gridX + layout.gridWidth, y);
+	}
 
-  g.stroke({
-    color: 0x00ffff,
-    width: 1,
-    alpha: 0.65,
-  });
+	g.stroke({
+		color: 0x00ffff,
+		width: 1,
+		alpha: 0.65,
+	});
 
-  container.addChild(g);
+	container.addChild(g);
 }
 ```
 
@@ -643,97 +620,91 @@ Remove the debug grid after tuning.
 
 ```svelte
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-  import { Application, Container, Sprite, Assets, Texture } from "pixi.js";
-  import { ReelFrameContainer } from "./ReelFrameContainer";
-  import {
-    REEL_LAYOUT_BASE_APPROX,
-    REEL_LAYOUT_FREE_SPINS_APPROX,
-  } from "./reelLayouts";
+	import { onMount, onDestroy } from 'svelte';
+	import { Application, Container, Sprite, Assets, Texture } from 'pixi.js';
+	import { ReelFrameContainer } from './ReelFrameContainer';
+	import { REEL_LAYOUT_BASE_APPROX, REEL_LAYOUT_FREE_SPINS_APPROX } from './reelLayouts';
 
-  const GAME_WIDTH = 1920;
-  const GAME_HEIGHT = 1080;
+	const GAME_WIDTH = 1920;
+	const GAME_HEIGHT = 1080;
 
-  let wrapper: HTMLDivElement;
+	let wrapper: HTMLDivElement;
 
-  let app: Application;
-  let rootContainer: Container;
-  let reelFrame: ReelFrameContainer;
+	let app: Application;
+	let rootContainer: Container;
+	let reelFrame: ReelFrameContainer;
 
-  onMount(async () => {
-    app = new Application();
+	onMount(async () => {
+		app = new Application();
 
-    await app.init({
-      width: GAME_WIDTH,
-      height: GAME_HEIGHT,
-      backgroundAlpha: 0,
-      antialias: true,
-      resolution: window.devicePixelRatio || 1,
-      autoDensity: true,
-    });
+		await app.init({
+			width: GAME_WIDTH,
+			height: GAME_HEIGHT,
+			backgroundAlpha: 0,
+			antialias: true,
+			resolution: window.devicePixelRatio || 1,
+			autoDensity: true,
+		});
 
-    wrapper.appendChild(app.canvas);
+		wrapper.appendChild(app.canvas);
 
-    rootContainer = new Container();
-    app.stage.addChild(rootContainer);
+		rootContainer = new Container();
+		app.stage.addChild(rootContainer);
 
-    // Add background here if needed.
+		// Add background here if needed.
 
-    reelFrame = new ReelFrameContainer({
-      framePath: "/assets/abyssal/frames/reel_frame_base.png",
-      symbolPaths: SYMBOL_PATHS,
-      layout: REEL_LAYOUT_BASE_APPROX,
-    });
+		reelFrame = new ReelFrameContainer({
+			framePath: '/assets/abyssal/frames/reel_frame_base.png',
+			symbolPaths: SYMBOL_PATHS,
+			layout: REEL_LAYOUT_BASE_APPROX,
+		});
 
-    await reelFrame.init();
+		await reelFrame.init();
 
-    const displayWidth = 1320;
-    reelFrame.setDisplayWidth(displayWidth);
-    reelFrame.position.set((GAME_WIDTH - displayWidth) / 2, 150);
+		const displayWidth = 1320;
+		reelFrame.setDisplayWidth(displayWidth);
+		reelFrame.position.set((GAME_WIDTH - displayWidth) / 2, 150);
 
-    rootContainer.addChild(reelFrame);
+		rootContainer.addChild(reelFrame);
 
-    resize();
-    window.addEventListener("resize", resize);
-  });
+		resize();
+		window.addEventListener('resize', resize);
+	});
 
-  onDestroy(() => {
-    window.removeEventListener("resize", resize);
-    app?.destroy(true);
-  });
+	onDestroy(() => {
+		window.removeEventListener('resize', resize);
+		app?.destroy(true);
+	});
 
-  function resize() {
-    if (!app || !rootContainer || !wrapper) return;
+	function resize() {
+		if (!app || !rootContainer || !wrapper) return;
 
-    const screenWidth = wrapper.clientWidth;
-    const screenHeight = wrapper.clientHeight;
+		const screenWidth = wrapper.clientWidth;
+		const screenHeight = wrapper.clientHeight;
 
-    app.renderer.resize(screenWidth, screenHeight);
+		app.renderer.resize(screenWidth, screenHeight);
 
-    const scale = Math.min(
-      screenWidth / GAME_WIDTH,
-      screenHeight / GAME_HEIGHT
-    );
+		const scale = Math.min(screenWidth / GAME_WIDTH, screenHeight / GAME_HEIGHT);
 
-    rootContainer.scale.set(scale);
-    rootContainer.x = (screenWidth - GAME_WIDTH * scale) / 2;
-    rootContainer.y = (screenHeight - GAME_HEIGHT * scale) / 2;
-  }
+		rootContainer.scale.set(scale);
+		rootContainer.x = (screenWidth - GAME_WIDTH * scale) / 2;
+		rootContainer.y = (screenHeight - GAME_HEIGHT * scale) / 2;
+	}
 </script>
 
 <div bind:this={wrapper} class="game-wrapper"></div>
 
 <style>
-  .game-wrapper {
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background: black;
-  }
+	.game-wrapper {
+		width: 100vw;
+		height: 100vh;
+		overflow: hidden;
+		background: black;
+	}
 
-  .game-wrapper :global(canvas) {
-    display: block;
-  }
+	.game-wrapper :global(canvas) {
+		display: block;
+	}
 </style>
 ```
 

@@ -6,23 +6,23 @@ A container that splits a canvas `Text` render into independently-animatable `li
 
 ```ts
 const split = new SplitText({
-  text: "Animate Me",
-  style: { fontSize: 48, fill: 0xffffff },
-  charAnchor: { x: 0.5, y: 1 },
+	text: 'Animate Me',
+	style: { fontSize: 48, fill: 0xffffff },
+	charAnchor: { x: 0.5, y: 1 },
 });
 
 app.stage.addChild(split);
 
 split.chars.forEach((char, i) => {
-  char.alpha = 0;
-  char.y = -40;
-  const delay = i * 80;
-  setTimeout(() => {
-    app.ticker.add(() => {
-      char.alpha = Math.min(char.alpha + 0.05, 1);
-      char.y += (0 - char.y) * 0.1;
-    });
-  }, delay);
+	char.alpha = 0;
+	char.y = -40;
+	const delay = i * 80;
+	setTimeout(() => {
+		app.ticker.add(() => {
+			char.alpha = Math.min(char.alpha + 0.05, 1);
+			char.y += (0 - char.y) * 0.1;
+		});
+	}, delay);
 });
 ```
 
@@ -32,20 +32,20 @@ split.chars.forEach((char, i) => {
 
 ```ts
 const minimal = new SplitText({
-  text: "Hello World",
-  style: { fontSize: 32, fill: 0xffffff },
+	text: 'Hello World',
+	style: { fontSize: 32, fill: 0xffffff },
 });
 
 const full = new SplitText({
-  text: "Animate\nEvery Character",
-  style: { fontSize: 48, fill: "white", stroke: { color: "black", width: 2 } },
-  autoSplit: true,
-  lineAnchor: 0.5,
-  wordAnchor: { x: 0, y: 0.5 },
-  charAnchor: { x: 0.5, y: 1 },
-  x: 100,
-  y: 200,
-  alpha: 0.8,
+	text: 'Animate\nEvery Character',
+	style: { fontSize: 48, fill: 'white', stroke: { color: 'black', width: 2 } },
+	autoSplit: true,
+	lineAnchor: 0.5,
+	wordAnchor: { x: 0, y: 0.5 },
+	charAnchor: { x: 0.5, y: 1 },
+	x: 100,
+	y: 200,
+	alpha: 0.8,
 });
 ```
 
@@ -72,13 +72,13 @@ All `Container` options (`position`, `scale`, `tint`, `label`, `filters`, `zInde
 
 ```ts
 split.lines.forEach((line) => {
-  line.alpha = 0.8;
+	line.alpha = 0.8;
 });
 split.words.forEach((word) => {
-  word.rotation = 0.1;
+	word.rotation = 0.1;
 });
 split.chars.forEach((char) => {
-  char.scale.set(1.2);
+	char.scale.set(1.2);
 });
 ```
 
@@ -88,11 +88,11 @@ split.chars.forEach((char) => {
 
 ```ts
 const split = new SplitText({
-  text: "Wave",
-  style: { fontSize: 64, fill: 0xffffff },
-  lineAnchor: 0.5,
-  wordAnchor: { x: 0, y: 0.5 },
-  charAnchor: { x: 0.5, y: 1 },
+	text: 'Wave',
+	style: { fontSize: 64, fill: 0xffffff },
+	lineAnchor: 0.5,
+	wordAnchor: { x: 0, y: 0.5 },
+	charAnchor: { x: 0.5, y: 1 },
 });
 ```
 
@@ -106,10 +106,10 @@ Setting these once at construction time ensures rotations and scales pivot aroun
 
 ```ts
 split.chars.forEach((char, i) => {
-  char.onRender = () => {
-    const t = performance.now() / 200 + i;
-    char.y = Math.sin(t) * 5;
-  };
+	char.onRender = () => {
+		const t = performance.now() / 200 + i;
+		char.y = Math.sin(t) * 5;
+	};
 });
 ```
 
@@ -118,7 +118,7 @@ Using each character's `onRender` hook avoids one global ticker callback. Each c
 ### Auto-split on change
 
 ```ts
-split.text = "New text";
+split.text = 'New text';
 ```
 
 With `autoSplit = true` (default), reassigning `text` or `style` re-splits and rebuilds the segment arrays. Set `autoSplit = false` to batch multiple changes before calling `split.split()` manually (see `pixijs-scene-text` source).
@@ -126,7 +126,7 @@ With `autoSplit = true` (default), reassigning `text` or `style` re-splits and r
 ### Constructing from an existing Text
 
 ```ts
-const plain = new Text({ text: "Convert me", style: { fontSize: 32 } });
+const plain = new Text({ text: 'Convert me', style: { fontSize: 32 } });
 const converted = SplitText.from(plain);
 ```
 
@@ -137,7 +137,6 @@ const converted = SplitText.from(plain);
 ### [HIGH] Many SplitText instances with long strings
 
 Each character is a full `Text` instance with its own canvas rasterization and GPU texture. A 40-character `SplitText` creates 40 text renders at construction time. For long strings, use `SplitBitmapText`; it wraps `BitmapText` instead, so each character reuses the glyph atlas.
-
 
 ### [MEDIUM] Modifying `chars` array directly
 
@@ -150,16 +149,14 @@ split.chars.push(extraChar);
 Correct:
 
 ```ts
-split.text = split.text + "extra";
+split.text = split.text + 'extra';
 ```
 
 `chars`, `words`, and `lines` are managed arrays. Pushing to them is ignored and will be overwritten on the next auto-split. Always update via the `text` property and let the class rebuild segments.
 
-
 ### [MEDIUM] Expecting segments before the first render
 
 When `autoSplit` is true, splitting happens lazily on first property read or render. If you need segments immediately after construction, access `chars` (or call `split.split()` manually) once before iterating.
-
 
 ## API Reference
 

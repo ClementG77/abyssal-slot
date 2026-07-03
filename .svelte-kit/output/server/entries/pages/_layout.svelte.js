@@ -112,6 +112,11 @@ function loop(callback) {
   };
 }
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
+function html(value) {
+  var html2 = String(value ?? "");
+  var open = "<!---->";
+  return open + html2 + "<!---->";
+}
 function onDestroy(fn) {
   var context2 = (
     /** @type {Component} */
@@ -6278,6 +6283,14 @@ function Sprite($$payload, $$props) {
   $$payload.out += `<!---->`;
   pop();
 }
+function BitmapText($$payload, $$props) {
+  push();
+  const { $$slots, $$events, ...props } = $$props;
+  const parentContext = getContextParent();
+  const bitmapText = new PIXI$1.BitmapText({ text: props.text, style: props.style });
+  parentContext.addToParent(bitmapText);
+  pop();
+}
 /*!
  * @barvynkoa/particle-emitter - v6.0.0
  * Compiled Mon, 27 May 2024 12:15:21 UTC
@@ -7945,6 +7958,32 @@ function FadeContainer($$payload, $$props) {
   }
   $$payload.out += `<!--]-->`;
   pop();
+}
+function ResponsiveBitmapText($$payload, $$props) {
+  const { maxWidth, $$slots, $$events, ...textProps } = $$props;
+  let baseSizes = { width: 0 };
+  const responsiveScale = maxWidth / (baseSizes.width || 1);
+  Container($$payload, {
+    visible: false,
+    children: ($$payload2) => {
+      BitmapText($$payload2, spread_props([
+        textProps,
+        { onresize: (sizes) => baseSizes = sizes }
+      ]));
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!----> `;
+  Container($$payload, {
+    children: ($$payload2) => {
+      BitmapText($$payload2, spread_props([
+        textProps,
+        { scale: Math.min(responsiveScale, 1) }
+      ]));
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!---->`;
 }
 function ResponsiveText($$payload, $$props) {
   const { maxWidth, $$slots, $$events, ...textProps } = $$props;
@@ -11546,7 +11585,6 @@ const REEL_FRAME_BASE_IMAGE_SIZE = { width: 1448, height: 1086 };
 const REEL_FRAME_FREE_SPINS_IMAGE_SIZE = { width: 1448, height: 1086 };
 const GAZE_METER_IMAGE_SIZE = { width: 1254, height: 1254 };
 const GAZE_METER_MAX_CHARGE = 10;
-const GAZE_METER_MULTIPLIER_COLOR = 16770720;
 const GAZE_METER_LAYOUT = {
   visibleBounds: {
     left: 449 / 1254,
@@ -11692,13 +11730,26 @@ const getSymbolFill = (symbolName) => {
   if (symbolName.startsWith("L")) return 0.74;
   return REEL_LAYOUT_BASE.symbolFill;
 };
+const ABYSSAL_FONT_FAMILY = "AbyssalBitmap";
+const abyssalBitmapStyle = ({
+  fontSize,
+  letterSpacing
+}) => ({
+  fontFamily: ABYSSAL_FONT_FAMILY,
+  fontSize,
+  align: "center",
+  ...letterSpacing !== void 0 ? { letterSpacing } : {}
+});
 const EYE_FRAME = {
-  close: "CLOSE_EYE",
-  add: "ADD_EYE",
-  mult: "MULT_EYE"
+  close: "EYE_PURPLE_CLOSE",
+  add: "EYE_ADD_ACTIVE",
+  mult: "EYE_MULT_ACTIVE",
+  addEmpty: "EYE_ADD_EMPTY",
+  multEmpty: "EYE_MULT_EMPTY"
 };
-const EYE_ASPECT = 393 / 415;
-const EYE_LABEL_OFFSET = { x: -0.025, y: -0.041 };
+const EYE_ASPECT = 495 / 501;
+const EYE_LABEL_OFFSET = { x: 0, y: 0.015 };
+const EYE_LABEL_OFFSET_PLAQUE = { x: 0, y: 0.36 };
 const EYE_VALUE_FILL = { add: 14679039, mul: 16770669 };
 const eyeValueTextStyle = ({
   fontSize,
@@ -11713,17 +11764,17 @@ const eyeValueTextStyle = ({
   dropShadow: { color: 0, blur: 4, distance: 2, alpha: 0.8 }
 });
 const SYMBOL_SOURCE_SIZES = {
-  H1: { width: 393, height: 415 },
-  H2: { width: 393, height: 415 },
-  H3: { width: 393, height: 415 },
-  H4: { width: 393, height: 415 },
-  L1: { width: 393, height: 415 },
-  L2: { width: 393, height: 415 },
-  L3: { width: 393, height: 415 },
-  L4: { width: 393, height: 415 },
-  L5: { width: 393, height: 415 },
-  S: { width: 393, height: 415 },
-  EYE: { width: 393, height: 415 }
+  H1: { width: 495, height: 501 },
+  H2: { width: 495, height: 501 },
+  H3: { width: 495, height: 501 },
+  H4: { width: 495, height: 501 },
+  L1: { width: 495, height: 501 },
+  L2: { width: 495, height: 501 },
+  L3: { width: 495, height: 501 },
+  L4: { width: 495, height: 501 },
+  L5: { width: 495, height: 501 },
+  S: { width: 495, height: 501 },
+  EYE: { width: 495, height: 501 }
 };
 const INITIAL_SYMBOL_STATE = "static";
 const SYMBOL_COLORS = {
@@ -11855,11 +11906,11 @@ const assets = {
     src: new URL("../../assets/provider_logo.png", import.meta.url).href,
     preload: true
   },
-  // TexturePacker symbol atlas. Frames are addressed by name, such as `H1` / `SCATTER` /
-  // `ADD_EYE` / `MULT_EYE` / `CLOSE_EYE`.
+  // TexturePacker symbol atlas. Frames are addressed by name, such as `H1` / `SCATTER` and the
+  // Eye set (`EYE_PURPLE_CLOSE`, `EYE_ADD_ACTIVE`/`EYE_MULT_ACTIVE`, `EYE_ADD_EMPTY`/`EYE_MULT_EMPTY`).
   symbols: {
     type: "sprites",
-    src: new URL("../../assets/symbols/eye/eye.json", import.meta.url).href,
+    src: new URL("../../assets/symbols/symbol_black/spritesheet.json", import.meta.url).href,
     preload: true
   },
   bigWin: {
@@ -11882,14 +11933,43 @@ const assets = {
     src: new URL("../../assets/wins/max_win.png", import.meta.url).href,
     preload: true
   },
-  freeSpinsBanner: {
+  tumbleWin: {
     type: "sprite",
-    src: new URL("../../assets/wins/freespins.png", import.meta.url).href,
+    src: new URL("../../assets/wins/tumble_win.png", import.meta.url).href,
+    preload: true
+  },
+  freeSpinIntro: {
+    type: "sprite",
+    src: new URL("../../assets/wins/freespin_intro.png", import.meta.url).href,
+    preload: true
+  },
+  freeSpinOutro: {
+    type: "sprite",
+    src: new URL("../../assets/wins/freespin_outro.png", import.meta.url).href,
+    preload: true
+  },
+  freeSpinsCount: {
+    type: "sprite",
+    src: new URL("../../assets/wins/freespins_count.png", import.meta.url).href,
+    preload: true
+  },
+  totalMultBanner: {
+    type: "sprite",
+    src: new URL("../../assets/wins/total_mult.png", import.meta.url).href,
     preload: true
   },
   freeSpinsRetrigger: {
     type: "sprite",
-    src: new URL("../../assets/wins/retrigger.png", import.meta.url).href,
+    src: new URL("../../assets/wins/freespin_retrigger.png", import.meta.url).href,
+    preload: true
+  },
+  // Branded gold "minted" bitmap font (face name `AbyssalBitmap`). BMFont .fnt + sibling PNG page;
+  // Pixi installs it on load, then <BitmapText style={{ fontFamily: ABYSSAL_FONT_FAMILY }}> uses it.
+  // Glyph coverage is UPPERCASE-only: A–Z 0–9 space $ £ € × x , . ! ? % + - # & * < = > @ _ |
+  // — notably NO '/' and no lowercase (except 'x'). Keep on-screen strings inside that set.
+  abyssalFont: {
+    type: "font",
+    src: new URL("../../assets/fonts/abyssal_bitmap_font_package/abyssal_font.fnt", import.meta.url).href,
     preload: true
   }
 };
@@ -11993,7 +12073,11 @@ function createReelForCascading(reelOptions) {
       const landDuration = (distance - bounceDistance) / reelState.spinOptions().symbolFallInSpeed;
       await reelSymbol.symbolY.set(newSymbolY - bounceDistance, { duration: landDuration, delay });
       reelSymbol.symbolState = "land";
-      reelOptions.onSymbolLand({ rawSymbol: reelSymbol.rawSymbol });
+      reelOptions.onSymbolLand({
+        rawSymbol: reelSymbol.rawSymbol,
+        reel: reelOptions.reelIndex,
+        row: reelSymbol.symbolIndexOfBoard
+      });
       if (reelSymbol.symbolIndexOfBoard === reelLengthInBoard - 1) {
         onSpinFinishing();
       }
@@ -12257,16 +12341,35 @@ const winLevelMap = {
     animation: { intro: "max_win_intro", idle: "max_win_idle", outro: "max_win_exit" }
   }
 };
-const onSymbolLand = ({ rawSymbol }) => {
+const getScatterLandSoundIndex = (scatterCount) => {
+  if (scatterCount > 5) return 5;
+  if (scatterCount < 1) return 1;
+  return scatterCount;
+};
+const getVisibleLandPosition = ({ reel, row }) => {
+  const position = reel === void 0 || row === void 0 ? void 0 : { reel, row };
+  const isVisiblePosition = position === void 0 || position.reel >= 0 && position.reel < BOARD_DIMENSIONS.x && position.row >= 0 && position.row < BOARD_DIMENSIONS.y;
+  return isVisiblePosition ? position : void 0;
+};
+const onSymbolLand = ({ rawSymbol, reel, row }) => {
+  const position = getVisibleLandPosition({ reel, row });
+  if (reel !== void 0 && row !== void 0 && position === void 0) return;
   if (rawSymbol.name === "S") {
-    eventEmitter.broadcast({ type: "reelFrameScatterLand" });
+    const scatterCountAfterLand = stateGame.scatterCounter + 1;
+    eventEmitter.broadcast({ type: "reelFrameScatterLand", position });
     eventEmitter.broadcast({ type: "soundScatterCounterIncrease" });
+    if (scatterCountAfterLand >= 4 && stateGame.scatterAnticipating) {
+      eventEmitter.broadcast({ type: "reelFrameScatterAnticipationEnd" });
+    }
     eventEmitter.broadcast({
       type: "soundOnce",
-      name: SCATTER_LAND_SOUND_MAP[scatterLandIndex()]
+      name: SCATTER_LAND_SOUND_MAP[getScatterLandSoundIndex(scatterCountAfterLand)]
     });
   }
-  if (rawSymbol.name === "EYE") eventEmitter.broadcast({ type: "reelFrameEyeLand" });
+  if (rawSymbol.name === "EYE") {
+    eventEmitter.broadcast({ type: "boardEyeImpact", position });
+    eventEmitter.broadcast({ type: "reelFrameEyeLand", position });
+  }
 };
 const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
   const reel = createReelForCascading({
@@ -12280,8 +12383,6 @@ const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
         name: "sfx_reel_stop_1",
         forcePlay: !stateBet$1.isTurbo
       });
-      const reelHasEye = board[reelIndex].reelState.symbols.some((reelSymbol) => reelSymbol.rawSymbol.name === "EYE");
-      if (reelHasEye) eventEmitter.broadcast({ type: "boardEyeImpact" });
     },
     onSymbolLand
   });
@@ -12339,11 +12440,7 @@ const tumbleBoardCombined = () => {
   });
   return tumbleBoardCombined2;
 };
-const scatterLandIndex = () => {
-  if (stateGame.scatterCounter > 5) return 5;
-  if (stateGame.scatterCounter < 1) return 1;
-  return stateGame.scatterCounter;
-};
+const scatterLandIndex = () => getScatterLandSoundIndex(stateGame.scatterCounter);
 const { enhanceBoard } = createEnhanceBoard();
 const enhancedBoard = enhanceBoard({ board: stateGame.board });
 const speedUpCurrentSpin = () => {
@@ -12520,6 +12617,7 @@ const i18nDerived = {
   ...i18nDerived$2,
   home: () => stateI18nDerived.translate("HOME"),
   notTranslated: () => stateI18nDerived.translate("NOT TRANSLATED"),
+  gameInfo: (key) => stateI18nDerived.translate(`GAME_INFO_${key}`),
   loaderSubtitle: () => stateI18nDerived.translate("LOADER_SUBTITLE"),
   loaderLogo: () => stateI18nDerived.translate("LOADER_LOGO"),
   loaderCard1Title: () => stateI18nDerived.translate("LOADER_CARD_1_TITLE"),
@@ -15109,6 +15207,11 @@ const winLevelSoundsStop = () => {
   }
   eventEmitter.broadcastAsync({ type: "uiShow" });
 };
+const resetCompletedBuyMode = () => {
+  if (stateBetDerived.activeBetMode()?.type === "buy") {
+    stateBet$1.activeBetModeKey = "BASE";
+  }
+};
 const animateSymbols = async ({ positions }) => {
   eventEmitter.broadcast({ type: "boardShow" });
   await eventEmitter.broadcastAsync({
@@ -15173,14 +15276,11 @@ const bookEventHandlerMap = {
       charge: bookEvent.charge
     });
   },
-  // Instant scatter pay (4 = 3×, 5 = 5×, 6 = 100× the bet). The amount is already rolled into
-  // the round's running totals (setTotalWin / finalWin); here we celebrate it.
-  scatterPay: async (bookEvent) => {
-    await eventEmitter.broadcastAsync({
-      type: "scatterPayShow",
-      count: bookEvent.count,
-      amount: bookEvent.amount
-    });
+  // Instant scatter pay (4 = 3×, 5 = 5×, 6 = 100× the bet). No dedicated celebration: the
+  // amount is already rolled into the round's running totals (setTotalWin / finalWin), the
+  // trigger moment is owned by scatterCelebrate → free-spins intro, and 20×+ totals still get
+  // the Win presentation via setWin. Registered so the event isn't reported as unhandled.
+  scatterPay: async (_bookEvent) => {
   },
   tumbleBoard: async (bookEvent) => {
     eventEmitter.broadcast({ type: "boardHide" });
@@ -15218,7 +15318,9 @@ const bookEventHandlerMap = {
       });
       stateGame.revealedEyes.forEach(({ reel, row }) => {
         const cell = stateGame.board[reel]?.reelState.symbols[row];
-        if (cell?.rawSymbol.name === "EYE") cell.rawSymbol = { name: "EYE", eye: true };
+        if (cell?.rawSymbol.name === "EYE") {
+          cell.rawSymbol = { ...cell.rawSymbol, spent: true };
+        }
       });
     }
     if (bookEvent.amount < WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER) return;
@@ -15243,17 +15345,23 @@ const bookEventHandlerMap = {
   // shows, persists through the remaining tumbles, and is there for `eyeReveal` to open. The
   // board is on-screen at this point (the prior tumbleBoard re-showed it).
   eyeDrop: async (bookEvent) => {
-    const cell = stateGame.board[bookEvent.position.reel]?.reelState.symbols[bookEvent.position.row];
-    if (cell) {
-      cell.rawSymbol = { name: "EYE", eye: true };
-      cell.symbolState = "land";
-      const targetY = cell.symbolY.current;
-      cell.symbolY.set(targetY - REEL_CELL_HEIGHT * 0.95, { duration: 0 });
-      void cell.symbolY.set(targetY, { duration: 260 / stateBetDerived.timeScale(), easing: backOut });
-    }
-    eventEmitter.broadcast({ type: "boardEyeImpact" });
-    eventEmitter.broadcast({ type: "reelFrameEyeLand" });
-    await waitForTimeout(440 / stateBetDerived.timeScale());
+    const { position } = bookEvent;
+    const cell = stateGame.board[position.reel]?.reelState.symbols[position.row];
+    if (!cell) return;
+    cell.rawSymbol = { name: "EYE", eye: true };
+    cell.symbolState = "static";
+    const targetY = cell.symbolY.current;
+    cell.symbolY.set(targetY - REEL_CELL_HEIGHT * 0.95, { duration: 0 });
+    await cell.symbolY.set(targetY, {
+      duration: 260 / stateBetDerived.timeScale(),
+      easing: backOut
+    });
+    stateGameDerived.onSymbolLand({
+      rawSymbol: cell.rawSymbol,
+      reel: position.reel,
+      row: position.row
+    });
+    await waitForTimeout(180 / stateBetDerived.timeScale());
   },
   eyeReveal: async (bookEvent) => {
     const landedEye = stateGame.board[bookEvent.position.reel]?.reelState.symbols[bookEvent.position.row];
@@ -15279,6 +15387,7 @@ const bookEventHandlerMap = {
       eyeType: bookEvent.eyeType,
       startValue: bookEvent.startValue
     });
+    await waitForTimeout(700 / stateBetDerived.timeScale());
   },
   eyeResolve: async (bookEvent) => {
     stateGame.eyeResolvedThisSpin = true;
@@ -15373,6 +15482,7 @@ const bookEventHandlerMap = {
     eventEmitter.broadcast({ type: "tumbleWinAmountHide" });
     await eventEmitter.broadcastAsync({ type: "freeSpinExitCover" });
     stateGame.gameType = "basegame";
+    resetCompletedBuyMode();
     await eventEmitter.broadcastAsync({ type: "freeSpinExitReveal" });
     await eventEmitter.broadcastAsync({ type: "uiShow" });
   },
@@ -15530,7 +15640,23 @@ function Background($$payload, $$props) {
     r: 1.4 + i % 5 * 0.7,
     speed: 0.018 + i % 7 * 6e-3,
     alpha: 0.14 + i % 4 * 0.05,
-    phase: i * 0.77
+    phase: i * 0.77,
+    depth: 0.45 + i % 6 * 0.12
+  }));
+  const BUBBLES = Array.from({ length: 10 }, (_2, i) => ({
+    x: (i * 211 + 90) % 1e3,
+    y: (i * 307 + 140) % 1e3,
+    r: 3.5 + i % 4 * 1.6,
+    speed: 0.028 + i % 5 * 8e-3,
+    alpha: 0.08 + i % 3 * 0.025,
+    phase: i * 1.13,
+    wander: 18 + i % 4 * 10
+  }));
+  const CAUSTIC_BANDS = Array.from({ length: 5 }, (_2, i) => ({
+    y: 0.12 + i * 0.115,
+    phase: i * 1.71,
+    amp: 7 + i % 3 * 4,
+    alpha: 0.018 + i * 4e-3
   }));
   let t = 0;
   const sizes = context2.stateLayoutDerived.canvasSizes();
@@ -15566,13 +15692,66 @@ function Background($$payload, $$props) {
       g.moveTo(x, top).lineTo(x + w, top).lineTo(x + w * 2.6, height * 0.8).lineTo(x - w * 1.4, height * 0.8).fill({ color, alpha: 0.04 * pulse });
     }
   };
+  const drawAmbientGlow = (g) => {
+    const { width, height } = sizes;
+    const color = feature ? 6282495 : 7163135;
+    const pulse = 0.55 + Math.sin(t * 0.22) * 0.45;
+    const sidePulse = 0.55 + Math.cos(t * 0.18 + 1.3) * 0.45;
+    g.ellipse(width * 0.52, height * (0.08 + Math.sin(t * 0.11) * 0.015), width * 0.42, height * 0.16).fill({ color, alpha: 0.032 + pulse * 0.026 });
+    g.ellipse(width * (0.22 + Math.sin(t * 0.07) * 0.015), height * 0.64, width * 0.22, height * 0.24).fill({
+      color: 2224837,
+      alpha: feature ? 0.022 + sidePulse * 0.015 : 0.014
+    });
+    g.ellipse(width * (0.82 + Math.cos(t * 0.08) * 0.018), height * 0.55, width * 0.2, height * 0.2).fill({
+      color: 10447871,
+      alpha: feature ? 0.012 : 0.018 + sidePulse * 0.012
+    });
+  };
+  const drawCaustics = (g) => {
+    const { width, height } = sizes;
+    const color = feature ? 14220287 : 12889855;
+    const segmentCount = 12;
+    for (const [i, band] of CAUSTIC_BANDS.entries()) {
+      g.beginPath();
+      const baseY = height * band.y + Math.sin(t * 0.13 + band.phase) * height * 0.012;
+      for (let segment = 0; segment <= segmentCount; segment++) {
+        const x = segment / segmentCount * width;
+        const wave = Math.sin(segment * 1.35 + t * 0.32 + band.phase) * band.amp + Math.sin(segment * 0.7 - t * 0.19 + i) * band.amp * 0.55;
+        if (segment === 0) g.moveTo(x, baseY + wave);
+        else g.lineTo(x, baseY + wave);
+      }
+      const pulse = 0.55 + Math.sin(t * 0.48 + band.phase) * 0.45;
+      g.stroke({
+        width: 1 + i % 2 * 0.6,
+        color,
+        alpha: band.alpha * pulse
+      });
+    }
+  };
   const drawParticles = (g) => {
     const { width, height } = sizes;
     for (const p of PARTICLES) {
-      const px = (p.x / 1e3 * width + Math.sin(t * 0.21 + p.phase) * 26) % width;
-      const py = (p.y / 1e3 * height - t * height * p.speed) % height + height * 0.02;
+      const px = (p.x / 1e3 * width + Math.sin(t * 0.21 + p.phase) * 26 * p.depth) % width;
+      const py = (p.y / 1e3 * height - t * height * p.speed * p.depth) % height + height * 0.02;
       const pulse = 0.65 + Math.sin(t * 1.1 + p.phase) * 0.35;
-      g.circle(px, py < 0 ? py + height : py, p.r * pulse).fill({ color: 14350847, alpha: p.alpha });
+      g.circle(px, py < 0 ? py + height : py, p.r * p.depth * pulse).fill({
+        color: 14350847,
+        alpha: p.alpha * (0.65 + p.depth * 0.35)
+      });
+    }
+  };
+  const drawBubbles = (g) => {
+    const { width, height } = sizes;
+    const color = feature ? 14876159 : 13358847;
+    const travelRange = height * 1.12;
+    for (const bubble of BUBBLES) {
+      const px = (bubble.x / 1e3 * width + Math.sin(t * 0.42 + bubble.phase) * bubble.wander + width) % width;
+      const travel = (t * height * bubble.speed + bubble.y / 1e3 * travelRange) % travelRange;
+      const py = height * 1.04 - travel;
+      const pulse = 0.75 + Math.sin(t * 0.9 + bubble.phase) * 0.25;
+      const radius = bubble.r * pulse;
+      g.circle(px, py, radius).stroke({ width: 1, color, alpha: bubble.alpha });
+      g.circle(px - radius * 0.3, py - radius * 0.35, Math.max(0.9, radius * 0.18)).fill({ color: 16777215, alpha: bubble.alpha * 0.55 });
     }
   };
   Rectangle$1($$payload, spread_props([
@@ -15604,12 +15783,19 @@ function Background($$payload, $$props) {
     zIndex: -2
   });
   $$payload.out += `<!----> `;
+  Graphics($$payload, { draw: drawAmbientGlow, zIndex: -1.98 });
+  $$payload.out += `<!----> `;
   Graphics($$payload, { draw: drawGodRays, zIndex: -1.95 });
+  $$payload.out += `<!----> `;
+  Graphics($$payload, { draw: drawCaustics, zIndex: -1.9 });
   $$payload.out += `<!----> `;
   Container($$payload, {
     zIndex: -1.8,
     children: ($$payload2) => {
       Graphics($$payload2, { draw: drawParticles });
+      $$payload2.out += `<!----> `;
+      Graphics($$payload2, { draw: drawBubbles });
+      $$payload2.out += `<!---->`;
     },
     $$slots: { default: true }
   });
@@ -15674,12 +15860,27 @@ function ReelFrame($$payload, $$props) {
     const elapsed = startedAt < 0 ? Infinity : (now2 - startedAt) / 1e3;
     return elapsed < duration ? Math.max(0, 1 - elapsed / duration) : 0;
   };
+  const mixColor = (from, to, amount2) => {
+    const mix = Math.max(0, Math.min(1, amount2));
+    const fromR = from >> 16 & 255;
+    const fromG = from >> 8 & 255;
+    const fromB = from & 255;
+    const toR = to >> 16 & 255;
+    const toG = to >> 8 & 255;
+    const toB = to & 255;
+    const r = Math.round(fromR + (toR - fromR) * mix);
+    const g = Math.round(fromG + (toG - fromG) * mix);
+    const b = Math.round(fromB + (toB - fromB) * mix);
+    return r << 16 | g << 8 | b;
+  };
   const launchEnergy = getBurstEnergy(launchStartedAt, 0.62);
   const scatterEnergy = getBurstEnergy(scatterStartedAt, 0.52);
   const eyeEnergy = getBurstEnergy(eyeStartedAt, 0.76);
+  const eyeColorPopEnergy = getBurstEnergy(eyeStartedAt, 0.18);
   const specialEnergy = Math.max(scatterEnergy, eyeEnergy);
   const effectEnergy = Math.max(launchEnergy, specialEnergy);
   const effectColor = eyeEnergy > scatterEnergy ? 14182143 : scatterEnergy > 0 ? 5041407 : frame.glowColor;
+  const borderTint = mixColor(16777215, 14182143, eyeColorPopEnergy);
   const launchMotion = launchEnergy > 0 ? Math.sin((1 - launchEnergy) * Math.PI) : 0;
   const scatterAnticipationProgress = (() => {
     if (scatterAnticipationReleasedAt >= 0) {
@@ -15829,7 +16030,8 @@ function ReelFrame($$payload, $$props) {
             x: border.x,
             y: border.y,
             width: border.width,
-            height: border.height
+            height: border.height,
+            tint: borderTint
           });
           $$payload2.out += `<!----> `;
           if (props.debug) {
@@ -15985,7 +16187,8 @@ function AbyssalEye($$payload, $$props) {
   const EYE_COLORS = {
     add: 2285567,
     mult: 16722458,
-    close: 4172031,
+    close: 10120191,
+    // the dormant eye art is purple (EYE_PURPLE_CLOSE)
     charged: 10106367,
     warning: 16755234,
     idle: 4172031
@@ -15993,24 +16196,29 @@ function AbyssalEye($$payload, $$props) {
   const { $$slots, $$events, ...props } = $$props;
   const width = props.size * EYE_ASPECT;
   const height = props.size;
-  const variant = props.variant ?? (props.preset === "mult" ? "mult" : props.preset === "close" ? "close" : "add");
-  const frame = EYE_FRAME[variant];
-  const effectColor = EYE_COLORS[props.preset ?? variant];
-  const labelX = width * EYE_LABEL_OFFSET.x;
-  const labelY = props.textY ?? height * EYE_LABEL_OFFSET.y;
-  const isMultiplierEye = variant === "mult";
+  props.variant ?? (props.preset === "mult" ? "mult" : props.preset === "close" ? "close" : "add");
+  let displayVariant = props.variant ?? (props.preset === "mult" ? "mult" : props.preset === "close" ? "close" : "add");
+  const frame = EYE_FRAME[displayVariant];
+  const baseColorKey = (v) => v === "addEmpty" ? "add" : v === "multEmpty" ? "mult" : v;
+  const effectColor = EYE_COLORS[props.preset ?? baseColorKey(displayVariant)];
+  const isActiveVariant = displayVariant === "add" || displayVariant === "mult";
+  const labelOffset = isActiveVariant ? EYE_LABEL_OFFSET_PLAQUE : EYE_LABEL_OFFSET;
+  const labelX = width * labelOffset.x;
+  const labelY = props.textY ?? height * labelOffset.y;
+  const isMultiplierEye = displayVariant === "mult" || displayVariant === "multEmpty";
   const intensity = Math.min(Math.max(props.intensity ?? 0, 0), 1);
   const labelStyle = props.textStyle ?? eyeValueTextStyle({
-    fontSize: props.size * 0.5,
+    fontSize: props.size * (isActiveVariant ? 0.17 : 0.36),
     fill: isMultiplierEye ? EYE_VALUE_FILL.mul : EYE_VALUE_FILL.add
   });
-  const maxLabelWidth = width * 0.72;
+  const maxLabelWidth = width * (isActiveVariant ? 0.52 : 0.6);
   const labelFitScale = (() => {
     if (!props.text) return 1;
     const measured = CanvasTextMetrics.measureText(props.text, new TextStyle(labelStyle));
     return Math.min(1, maxLabelWidth / Math.max(measured.width, 1));
   })();
   const idleFx = { alpha: 1 };
+  const flipFx = { scaleX: 1 };
   const pulseFx = { scale: 1, textScale: 1, flashAlpha: 0 };
   const burstFx = { alpha: 0, scale: 0.55, glow: 0 };
   const landingFx = { x: 0, y: 0, scale: 1, rotation: 0 };
@@ -16069,6 +16277,10 @@ function AbyssalEye($$payload, $$props) {
       if (props.showCore !== false) {
         $$payload2.out += "<!--[-->";
         Container($$payload2, {
+          scale: {
+            x: flipFx.scaleX,
+            y: 1 + Math.max(0, 1 - flipFx.scaleX) * 0.07
+          },
           children: ($$payload3) => {
             Sprite($$payload3, {
               key: frame,
@@ -16133,7 +16345,7 @@ function AbyssalEye($$payload, $$props) {
         $$slots: { default: true }
       });
       $$payload2.out += `<!----> `;
-      if (props.text) {
+      if (props.text && displayVariant !== "close") {
         $$payload2.out += "<!--[-->";
         Text($$payload2, {
           anchor: 0.5,
@@ -16181,9 +16393,10 @@ function Symbol$1($$payload, $$props) {
     // Leviathan scatter
   };
   const frame = SYMBOL_FRAME[props.rawSymbol.name];
-  const eyeNumber = props.rawSymbol.name === "EYE" && props.rawSymbol.eyeType && props.rawSymbol.startValue !== void 0 ? `${props.rawSymbol.startValue}` : void 0;
+  const eyeNumber = props.rawSymbol.name === "EYE" && props.rawSymbol.eyeType && !props.rawSymbol.spent && props.rawSymbol.startValue !== void 0 ? `${props.rawSymbol.startValue}` : void 0;
   const isUnresolvedEye = props.rawSymbol.name === "EYE" && !props.rawSymbol.eyeType;
-  const isResolvedEye = props.rawSymbol.name === "EYE" && !!props.rawSymbol.eyeType;
+  const isSpentEye = props.rawSymbol.name === "EYE" && !!props.rawSymbol.eyeType && !!props.rawSymbol.spent;
+  const isResolvedEye = props.rawSymbol.name === "EYE" && !!props.rawSymbol.eyeType && !props.rawSymbol.spent;
   const symbolSize = (() => {
     const sourceSize = SYMBOL_SOURCE_SIZES[props.rawSymbol.name];
     const fill = getSymbolFill(props.rawSymbol.name);
@@ -16200,19 +16413,28 @@ function Symbol$1($$payload, $$props) {
   const PAD = SYMBOL_SIZE * 0.06;
   const scale = new Tween(1, { duration: 120 });
   const alpha = new Tween(1, { duration: 120 });
-  const isEye = isUnresolvedEye || isResolvedEye;
+  const isEye = isUnresolvedEye || isResolvedEye || isSpentEye;
+  const eyeVariant = isUnresolvedEye ? "close" : props.rawSymbol.eyeType === "MUL" ? "multEmpty" : "addEmpty";
   const winFx = { glow: 0, squashX: 1, squashY: 1 };
   const boomFx = { flash: 0 };
   const elecFx = { t: 0, glow: 0 };
   const isScatter = props.rawSymbol.name === "S";
   const electricOn = !isEye && !isScatter && (props.state === "win" || props.state === "postWinStatic");
-  const scatterFx = { breathe: 1, flare: 0, ring: 0, connect: 0 };
+  const scatterFx = {
+    breathe: 1,
+    flare: 0,
+    ring: 0,
+    connect: 0,
+    rays: 0
+  };
+  const scatterAmb = { t: 0 };
   isScatter && (props.state === "win" || props.state === "postWinStatic");
   onDestroy(() => {
     gsap.killTweensOf(winFx);
     gsap.killTweensOf(boomFx);
     gsap.killTweensOf(elecFx);
     gsap.killTweensOf(scatterFx);
+    gsap.killTweensOf(scatterAmb);
   });
   let gazeIntensity = 0;
   context2.eventEmitter.subscribeOnMount({
@@ -16294,6 +16516,70 @@ function Symbol$1($$payload, $$props) {
       alpha: (1 - p) * 0.9
     });
   };
+  const drawScatterGlow = (g) => {
+    const base = Math.max(symbolSize.width, symbolSize.height) * 0.56;
+    const anticipating = context2.stateGame.scatterAnticipating;
+    const shimmer = 0.8 + Math.sin(scatterAmb.t * 1.7) * 0.2;
+    const boost = anticipating ? 1.9 : 1;
+    const steps = 4;
+    for (let i = steps; i >= 1; i--) {
+      const f = i / steps;
+      g.circle(0, 0, base * (0.45 + f * 0.75) * scatterFx.breathe).fill({
+        color: 16763236,
+        alpha: 0.028 * (1.25 - f) * shimmer * boost
+      });
+    }
+  };
+  const SPARKLE_COUNT = 7;
+  const drawScatterSparkles = (g) => {
+    const t = scatterAmb.t;
+    const base = Math.max(symbolSize.width, symbolSize.height);
+    for (let i = 0; i < SPARKLE_COUNT; i++) {
+      const angle = t * 0.45 + i * Math.PI * 2 / SPARKLE_COUNT;
+      const orbit = base * (0.5 + Math.sin(t * 0.8 + i * 2.1) * 0.05);
+      const x = Math.cos(angle) * orbit;
+      const y = Math.sin(angle) * orbit * 0.86;
+      const twinkle = 0.5 + 0.5 * Math.sin(t * 3.1 + i * 1.9);
+      const s = base * 0.028 * (0.5 + twinkle);
+      g.poly([
+        { x, y: y - s * 1.7 },
+        { x: x + s * 0.4, y },
+        { x, y: y + s * 1.7 },
+        { x: x - s * 0.4, y }
+      ]).fill({ color: 16771504, alpha: 0.2 + twinkle * 0.7 });
+      g.poly([
+        { x: x - s * 1.2, y },
+        { x, y: y + s * 0.35 },
+        { x: x + s * 1.2, y },
+        { x, y: y - s * 0.35 }
+      ]).fill({ color: 16774872, alpha: 0.15 + twinkle * 0.5 });
+    }
+  };
+  const RAY_COUNT = 8;
+  const drawScatterRays = (g) => {
+    const p = scatterFx.rays;
+    if (p <= 0 || p >= 1) return;
+    const base = Math.max(symbolSize.width, symbolSize.height) * 0.5;
+    const len = base * (0.9 + p * 1.5);
+    const spread = 0.09;
+    for (let i = 0; i < RAY_COUNT; i++) {
+      const angle = i * Math.PI * 2 / RAY_COUNT + p * 0.35 + 0.4;
+      g.poly([
+        {
+          x: Math.cos(angle - spread) * base * 0.5,
+          y: Math.sin(angle - spread) * base * 0.5
+        },
+        {
+          x: Math.cos(angle) * len,
+          y: Math.sin(angle) * len
+        },
+        {
+          x: Math.cos(angle + spread) * base * 0.5,
+          y: Math.sin(angle + spread) * base * 0.5
+        }
+      ]).fill({ color: 16768906, alpha: (1 - p) * 0.55 });
+    }
+  };
   Container($$payload, {
     x: props.x,
     y: props.y,
@@ -16303,166 +16589,180 @@ function Symbol$1($$payload, $$props) {
     },
     alpha: alpha.current,
     children: ($$payload2) => {
-      if (isResolvedEye) {
+      if (isEye) {
         $$payload2.out += "<!--[-->";
         AbyssalEye($$payload2, {
           size: eyeSize,
-          variant: props.rawSymbol.eyeType === "MUL" ? "mult" : "add",
+          variant: eyeVariant,
           text: eyeNumber,
           land: props.state === "land",
-          reveal: Boolean(eyeNumber),
-          pulse: props.state === "land",
-          intensity: gazeIntensity
+          pulse: props.state === "land" || isSpentEye,
+          intensity: isSpentEye ? 0 : gazeIntensity
         });
       } else {
         $$payload2.out += "<!--[!-->";
-        if (isUnresolvedEye) {
+        if (electricOn) {
           $$payload2.out += "<!--[-->";
-          AbyssalEye($$payload2, {
-            size: eyeSize,
-            variant: "close",
-            land: props.state === "land",
-            reveal: false,
-            pulse: false,
-            intensity: gazeIntensity
+          Container($$payload2, {
+            blendMode: "add",
+            children: ($$payload3) => {
+              Graphics($$payload3, { draw: drawElectric });
+            },
+            $$slots: { default: true }
           });
         } else {
           $$payload2.out += "<!--[!-->";
-          if (electricOn) {
+        }
+        $$payload2.out += `<!--]--> `;
+        if (frame) {
+          $$payload2.out += "<!--[-->";
+          if (isScatter) {
             $$payload2.out += "<!--[-->";
             Container($$payload2, {
               blendMode: "add",
               children: ($$payload3) => {
-                Graphics($$payload3, { draw: drawElectric });
+                Graphics($$payload3, { draw: drawScatterGlow });
               },
               $$slots: { default: true }
             });
-          } else {
-            $$payload2.out += "<!--[!-->";
-          }
-          $$payload2.out += `<!--]--> `;
-          if (frame) {
-            $$payload2.out += "<!--[-->";
-            if (isScatter) {
+            $$payload2.out += `<!----> `;
+            if (scatterFx.rays > 0 && scatterFx.rays < 1) {
               $$payload2.out += "<!--[-->";
-              if (scatterFx.connect > 0) {
-                $$payload2.out += "<!--[-->";
-                Sprite($$payload2, {
-                  key: frame,
-                  anchor: 0.5,
-                  width: symbolSize.width * 1.16 * scatterFx.breathe,
-                  height: symbolSize.height * 1.16 * scatterFx.breathe,
-                  alpha: scatterFx.connect * 0.55,
-                  tint: 16770726,
-                  blendMode: "add"
-                });
-              } else {
-                $$payload2.out += "<!--[!-->";
-              }
-              $$payload2.out += `<!--]--> `;
+              Container($$payload2, {
+                blendMode: "add",
+                children: ($$payload3) => {
+                  Graphics($$payload3, { draw: drawScatterRays });
+                },
+                $$slots: { default: true }
+              });
+            } else {
+              $$payload2.out += "<!--[!-->";
+            }
+            $$payload2.out += `<!--]--> `;
+            if (scatterFx.connect > 0) {
+              $$payload2.out += "<!--[-->";
+              Sprite($$payload2, {
+                key: frame,
+                anchor: 0.5,
+                width: symbolSize.width * 1.16 * scatterFx.breathe,
+                height: symbolSize.height * 1.16 * scatterFx.breathe,
+                alpha: scatterFx.connect * 0.55,
+                tint: 16770726,
+                blendMode: "add"
+              });
+            } else {
+              $$payload2.out += "<!--[!-->";
+            }
+            $$payload2.out += `<!--]--> `;
+            Sprite($$payload2, {
+              key: frame,
+              anchor: 0.5,
+              width: symbolSize.width * scatterFx.breathe,
+              height: symbolSize.height * scatterFx.breathe
+            });
+            $$payload2.out += `<!----> `;
+            if (scatterFx.flare > 0) {
+              $$payload2.out += "<!--[-->";
               Sprite($$payload2, {
                 key: frame,
                 anchor: 0.5,
                 width: symbolSize.width * scatterFx.breathe,
-                height: symbolSize.height * scatterFx.breathe
-              });
-              $$payload2.out += `<!----> `;
-              if (scatterFx.flare > 0) {
-                $$payload2.out += "<!--[-->";
-                Sprite($$payload2, {
-                  key: frame,
-                  anchor: 0.5,
-                  width: symbolSize.width * scatterFx.breathe,
-                  height: symbolSize.height * scatterFx.breathe,
-                  alpha: scatterFx.flare,
-                  tint: 16777215,
-                  blendMode: "add"
-                });
-              } else {
-                $$payload2.out += "<!--[!-->";
-              }
-              $$payload2.out += `<!--]--> `;
-              if (scatterFx.ring > 0 && scatterFx.ring < 1) {
-                $$payload2.out += "<!--[-->";
-                Container($$payload2, {
-                  blendMode: "add",
-                  children: ($$payload3) => {
-                    Graphics($$payload3, { draw: drawScatterRing });
-                  },
-                  $$slots: { default: true }
-                });
-              } else {
-                $$payload2.out += "<!--[!-->";
-              }
-              $$payload2.out += `<!--]-->`;
-            } else {
-              $$payload2.out += "<!--[!-->";
-              Sprite($$payload2, {
-                key: frame,
-                anchor: 0.5,
-                width: symbolSize.width,
-                height: symbolSize.height
-              });
-            }
-            $$payload2.out += `<!--]-->`;
-          } else {
-            $$payload2.out += "<!--[!-->";
-            Graphics($$payload2, { draw });
-            $$payload2.out += `<!----> `;
-            Text($$payload2, {
-              anchor: 0.5,
-              text: info.label,
-              style: {
-                fontFamily: "sans-serif",
-                fontWeight: "700",
-                fontSize: SYMBOL_SIZE * (info.label.length > 2 ? 0.24 : 0.34),
-                fill: isSpecial ? info.glow : 329743
-              }
-            });
-            $$payload2.out += `<!---->`;
-          }
-          $$payload2.out += `<!--]--> `;
-          if (winFx.glow > 0 && frame) {
-            $$payload2.out += "<!--[-->";
-            Sprite($$payload2, {
-              key: frame,
-              anchor: 0.5,
-              width: symbolSize.width * 1.12,
-              height: symbolSize.height * 1.12,
-              alpha: winFx.glow,
-              tint: 16777215,
-              blendMode: "add"
-            });
-          } else {
-            $$payload2.out += "<!--[!-->";
-          }
-          $$payload2.out += `<!--]--> `;
-          if (boomFx.flash > 0) {
-            $$payload2.out += "<!--[-->";
-            if (frame) {
-              $$payload2.out += "<!--[-->";
-              Sprite($$payload2, {
-                key: frame,
-                anchor: 0.5,
-                width: symbolSize.width,
-                height: symbolSize.height,
-                alpha: boomFx.flash,
+                height: symbolSize.height * scatterFx.breathe,
+                alpha: scatterFx.flare,
                 tint: 16777215,
                 blendMode: "add"
               });
             } else {
               $$payload2.out += "<!--[!-->";
-              Graphics($$payload2, {
-                alpha: boomFx.flash,
-                blendMode: "add",
-                draw: (g) => g.roundRect(-symbolSize.width / 2 + PAD, -symbolSize.height / 2 + PAD, symbolSize.width - PAD * 2, symbolSize.height - PAD * 2, 14).fill({ color: 16777215 })
-              });
             }
-            $$payload2.out += `<!--]-->`;
+            $$payload2.out += `<!--]--> `;
+            if (scatterFx.ring > 0 && scatterFx.ring < 1) {
+              $$payload2.out += "<!--[-->";
+              Container($$payload2, {
+                blendMode: "add",
+                children: ($$payload3) => {
+                  Graphics($$payload3, { draw: drawScatterRing });
+                },
+                $$slots: { default: true }
+              });
+            } else {
+              $$payload2.out += "<!--[!-->";
+            }
+            $$payload2.out += `<!--]--> `;
+            Container($$payload2, {
+              blendMode: "add",
+              children: ($$payload3) => {
+                Graphics($$payload3, { draw: drawScatterSparkles });
+              },
+              $$slots: { default: true }
+            });
+            $$payload2.out += `<!---->`;
           } else {
             $$payload2.out += "<!--[!-->";
+            Sprite($$payload2, {
+              key: frame,
+              anchor: 0.5,
+              width: symbolSize.width,
+              height: symbolSize.height
+            });
           }
           $$payload2.out += `<!--]-->`;
+        } else {
+          $$payload2.out += "<!--[!-->";
+          Graphics($$payload2, { draw });
+          $$payload2.out += `<!----> `;
+          Text($$payload2, {
+            anchor: 0.5,
+            text: info.label,
+            style: {
+              fontFamily: "sans-serif",
+              fontWeight: "700",
+              fontSize: SYMBOL_SIZE * (info.label.length > 2 ? 0.24 : 0.34),
+              fill: isSpecial ? info.glow : 329743
+            }
+          });
+          $$payload2.out += `<!---->`;
+        }
+        $$payload2.out += `<!--]--> `;
+        if (winFx.glow > 0 && frame) {
+          $$payload2.out += "<!--[-->";
+          Sprite($$payload2, {
+            key: frame,
+            anchor: 0.5,
+            width: symbolSize.width * 1.12,
+            height: symbolSize.height * 1.12,
+            alpha: winFx.glow,
+            tint: 16777215,
+            blendMode: "add"
+          });
+        } else {
+          $$payload2.out += "<!--[!-->";
+        }
+        $$payload2.out += `<!--]--> `;
+        if (boomFx.flash > 0) {
+          $$payload2.out += "<!--[-->";
+          if (frame) {
+            $$payload2.out += "<!--[-->";
+            Sprite($$payload2, {
+              key: frame,
+              anchor: 0.5,
+              width: symbolSize.width,
+              height: symbolSize.height,
+              alpha: boomFx.flash,
+              tint: 16777215,
+              blendMode: "add"
+            });
+          } else {
+            $$payload2.out += "<!--[!-->";
+            Graphics($$payload2, {
+              alpha: boomFx.flash,
+              blendMode: "add",
+              draw: (g) => g.roundRect(-symbolSize.width / 2 + PAD, -symbolSize.height / 2 + PAD, symbolSize.width - PAD * 2, symbolSize.height - PAD * 2, 14).fill({ color: 16777215 })
+            });
+          }
+          $$payload2.out += `<!--]-->`;
+        } else {
+          $$payload2.out += "<!--[!-->";
         }
         $$payload2.out += `<!--]-->`;
       }
@@ -16514,7 +16814,10 @@ function ReelSymbol($$payload, $$props) {
         rawSymbol: props.reelSymbol.rawSymbol,
         oncomplete: () => {
           if (props.reelSymbol.symbolState === "win") props.reelSymbol.oncomplete();
-          if (props.reelSymbol.symbolState === "land") props.reelSymbol.symbolState = "static";
+          if (props.reelSymbol.symbolState === "land") {
+            props.reelSymbol.oncomplete();
+            props.reelSymbol.symbolState = "static";
+          }
         }
       });
     },
@@ -16740,7 +17043,7 @@ function TumbleBoard($$payload, $$props) {
   push();
   const context2 = getContext();
   let show = false;
-  const createTumbleSymbol = ({ initY, rawSymbol }) => {
+  const createTumbleSymbol = ({ initY, rawSymbol, isRefill = false }) => {
     const symbolY = new Tween(initY);
     const oncomplete = () => {
     };
@@ -16748,7 +17051,8 @@ function TumbleBoard($$payload, $$props) {
       symbolY,
       rawSymbol,
       symbolState: "static",
-      oncomplete
+      oncomplete,
+      isRefill
     };
     return tumbleSymbol;
   };
@@ -16757,7 +17061,7 @@ function TumbleBoard($$payload, $$props) {
       const addingReel = addingBoard[reelIndex] ?? [];
       const tumbleReelAdding = addingReel.map((rawSymbol, symbolIndex) => {
         const initY = getSymbolY(symbolIndex - 1 - addingReel.length);
-        return createTumbleSymbol({ initY, rawSymbol });
+        return createTumbleSymbol({ initY, rawSymbol, isRefill: true });
       });
       return tumbleReelAdding;
     });
@@ -16817,23 +17121,39 @@ function TumbleBoard($$payload, $$props) {
     tumbleBoardSlideDown: async () => {
       const COLUMN_STAGGER = 80;
       const ts = stateBetDerived.timeScale();
+      const spinOptions = stateBet$1.isTurbo ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
       const getPromises = () => context2.stateGameDerived.tumbleBoardCombined().map(async (tumbleReel, reelIndex) => {
         if (reelIndex > 0) await waitForTimeout(reelIndex * COLUMN_STAGGER / ts);
+        const reelLengthInBoard = tumbleReel.length - 2;
         await Promise.all(tumbleReel.map(async (tumbleSymbol, symbolIndex) => {
-          const targetY = getSymbolY(symbolIndex - 1);
+          const symbolIndexOfBoard = symbolIndex - 1;
+          const targetY = getSymbolY(symbolIndexOfBoard);
           if (targetY === tumbleSymbol.symbolY.current) return;
-          await tumbleSymbol.symbolY.set(targetY, { duration: 200, easing: backOut });
+          const distance = targetY - tumbleSymbol.symbolY.current;
+          const delay = spinOptions.symbolFallInInterval * (reelLengthInBoard - symbolIndexOfBoard);
+          const bounceDistance = REEL_CELL_HEIGHT * spinOptions.symbolFallInBounceSizeMulti;
+          const bounceDuration = bounceDistance / spinOptions.symbolFallInBounceSpeed;
+          const landDuration = Math.max(0, (distance - bounceDistance) / spinOptions.symbolFallInSpeed);
           const isInner = symbolIndex > 0 && symbolIndex < tumbleReel.length - 1;
-          if (isInner && tumbleSymbol.rawSymbol.name !== "EYE") {
+          const isExistingEye = tumbleSymbol.rawSymbol.name === "EYE" && !tumbleSymbol.isRefill;
+          let landComplete;
+          await tumbleSymbol.symbolY.set(targetY - bounceDistance, { duration: landDuration, delay });
+          if (isInner && !isExistingEye) {
             tumbleSymbol.symbolState = "land";
-            context2.stateGameDerived.onSymbolLand({ rawSymbol: tumbleSymbol.rawSymbol });
-            await waitForResolve((resolve) => {
+            context2.stateGameDerived.onSymbolLand({
+              rawSymbol: tumbleSymbol.rawSymbol,
+              reel: reelIndex,
+              row: symbolIndexOfBoard
+            });
+            landComplete = waitForResolve((resolve) => {
               tumbleSymbol.oncomplete = () => {
                 tumbleSymbol.symbolState = "static";
                 resolve();
               };
             });
           }
+          await tumbleSymbol.symbolY.set(targetY, { duration: bounceDuration, easing: backOut });
+          await landComplete;
         }));
       });
       await Promise.all(getPromises());
@@ -16960,17 +17280,20 @@ function TumbleWinAmount($$payload, $$props) {
   const ts = () => stateBetDerived.timeScale();
   const PANEL_H = SYMBOL_SIZE * 0.82;
   const PANEL_W = PANEL_H * 3.9;
-  const RADIUS = PANEL_H * 0.32;
+  const BANNER_SIZE = PANEL_W;
+  const INNER_W = BANNER_SIZE * 0.73;
+  const INNER_H = BANNER_SIZE * 0.2;
+  const INNER_RADIUS = INNER_H * 0.22;
   const desktopPosition = {
     x: context2.stateGameDerived.boardLayout().width * 0.5,
-    y: -SYMBOL_SIZE * 0.56
+    y: -SYMBOL_SIZE * 0.74
   };
   const portraitPosition = {
     x: context2.stateGameDerived.boardLayout().width * (context2.stateGame.gameType === "basegame" ? 0.5 : 0.37),
-    y: -SYMBOL_SIZE * 0.62
+    y: -SYMBOL_SIZE * 0.8
   };
   const position = context2.stateLayoutDerived.isStacked() ? portraitPosition : desktopPosition;
-  const bannerScale = context2.stateLayoutDerived.isStacked() ? 1.26 : 1;
+  const bannerScale = context2.stateLayoutDerived.isStacked() ? 1.18 : 1;
   let show = false;
   let amount2 = 0;
   const displayAmount = new Tween(0);
@@ -17047,16 +17370,22 @@ function TumbleWinAmount($$payload, $$props) {
     });
   });
   context2.eventEmitter.subscribeOnMount({
-    tumbleWinAmountShow: () => show = true,
+    tumbleWinAmountShow: () => show = amount2 > 0,
     tumbleWinAmountHide: () => show = false,
     tumbleWinAmountReset: () => {
+      show = false;
       amount2 = 0;
       displayAmount.set(0, { duration: 0 });
     },
     tumbleWinAmountUpdate: async (emitterEvent) => {
+      if (emitterEvent.amount <= 0) {
+        show = false;
+        return;
+      }
       if (amount2 !== emitterEvent.amount) {
         amount2 = emitterEvent.amount;
         emitterEvent.animate;
+        show = true;
         await waitForResolve((resolve) => resolve);
       }
     },
@@ -17083,68 +17412,15 @@ function TumbleWinAmount($$payload, $$props) {
       await waitForTimeout(500 / ts());
     }
   });
-  const labelStyle = {
-    fontFamily: "Cinzel, Georgia, serif",
-    fontWeight: "700",
-    fontSize: PANEL_H * 0.17,
-    fill: 10479871,
-    letterSpacing: 2,
-    align: "center",
-    stroke: { color: 332062, width: 3 }
-  };
-  const amountStyle = {
-    fontFamily: "Cinzel, Georgia, serif",
-    fontWeight: "900",
-    fontSize: PANEL_H * 0.46,
-    fill: 16770726,
-    align: "center",
-    stroke: { color: 2757632, width: 6 },
-    dropShadow: {
-      color: 0,
-      blur: 8,
-      distance: 3,
-      alpha: 0.6
-    }
-  };
-  const exprStyle = {
-    fontFamily: "Cinzel, Georgia, serif",
-    fontWeight: "900",
-    fontSize: PANEL_H * 0.42,
-    fill: 16766826,
-    align: "center",
-    stroke: { color: 2757632, width: 6 },
-    dropShadow: {
-      color: 16756282,
-      blur: 10,
-      distance: 0,
-      alpha: 0.7
-    }
-  };
-  const multStyle = {
-    fontFamily: "Cinzel, Georgia, serif",
-    fontWeight: "900",
-    fontSize: SYMBOL_SIZE * 0.72,
-    fill: 16766826,
-    align: "center",
-    stroke: { color: 2757632, width: 7 },
-    dropShadow: {
-      color: 16756282,
-      blur: 12,
-      distance: 0,
-      alpha: 0.9
-    }
-  };
+  const labelStyle = abyssalBitmapStyle({ fontSize: PANEL_H * 0.17, letterSpacing: 2 });
+  const amountStyle = abyssalBitmapStyle({ fontSize: PANEL_H * 0.38 });
+  const exprStyle = abyssalBitmapStyle({ fontSize: PANEL_H * 0.33 });
+  const multStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.6 });
   const drawGlow = (g) => {
-    g.roundRect(-PANEL_W / 2 - 10, -PANEL_H / 2 - 10, PANEL_W + 20, PANEL_H + 20, RADIUS + 8).fill({ color: 16764506, alpha: 0.28 });
-  };
-  const drawPanel = (g) => {
-    g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H, RADIUS).fill({ color: 395798, alpha: 0.92 });
-    g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H * 0.5, RADIUS).fill({ color: 16777215, alpha: 0.05 });
-    g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H, RADIUS).stroke({ width: 3, color: 16764762, alpha: 0.85 });
-    g.roundRect(-PANEL_W / 2 + 4, -PANEL_H / 2 + 4, PANEL_W - 8, PANEL_H - 8, RADIUS - 3).stroke({ width: 1.5, color: 2285823, alpha: 0.45 });
+    g.roundRect(-INNER_W / 2 - 12, -INNER_H / 2 - 12, INNER_W + 24, INNER_H + 24, INNER_RADIUS + 10).fill({ color: 16764506, alpha: 0.28 });
   };
   const drawFlash = (g) => {
-    g.roundRect(-PANEL_W / 2, -PANEL_H / 2, PANEL_W, PANEL_H, RADIUS).fill({ color: 16777215 });
+    g.roundRect(-INNER_W / 2, -INNER_H / 2, INNER_W, INNER_H, INNER_RADIUS).fill({ color: 16777215 });
   };
   BoardContainer($$payload, {
     children: ($$payload2) => {
@@ -17156,7 +17432,7 @@ function TumbleWinAmount($$payload, $$props) {
           scale: flyFx.scale,
           alpha: flyFx.alpha,
           children: ($$payload3) => {
-            Text($$payload3, {
+            BitmapText($$payload3, {
               anchor: 0.5,
               text: `×${flyFx.mult}`,
               style: multStyle
@@ -17199,7 +17475,12 @@ function TumbleWinAmount($$payload, $$props) {
                       $$payload5.out += "<!--[!-->";
                     }
                     $$payload5.out += `<!--]--> `;
-                    Graphics($$payload5, { draw: drawPanel });
+                    Sprite($$payload5, {
+                      anchor: 0.5,
+                      key: "tumbleWin",
+                      width: BANNER_SIZE,
+                      height: BANNER_SIZE
+                    });
                     $$payload5.out += `<!----> `;
                     if (panelFx.flash > 0) {
                       $$payload5.out += "<!--[-->";
@@ -17215,30 +17496,30 @@ function TumbleWinAmount($$payload, $$props) {
                       $$payload5.out += "<!--[!-->";
                     }
                     $$payload5.out += `<!--]--> `;
-                    Text($$payload5, {
+                    BitmapText($$payload5, {
                       anchor: 0.5,
-                      y: -PANEL_H * 0.27,
+                      y: -PANEL_H * 0.2,
                       text: "TUMBLE WIN",
                       style: labelStyle
                     });
                     $$payload5.out += `<!----> `;
                     Container($$payload5, {
                       scale: numScale.current,
-                      y: PANEL_H * 0.1,
+                      y: PANEL_H * 0.16,
                       children: ($$payload6) => {
                         if (multiplyExpr) {
                           $$payload6.out += "<!--[-->";
-                          ResponsiveText($$payload6, {
+                          ResponsiveBitmapText($$payload6, {
                             anchor: 0.5,
-                            maxWidth: PANEL_W * 0.86,
+                            maxWidth: INNER_W * 0.92,
                             text: `${multiplyExpr.rawText}  ×${multiplyExpr.mult}`,
                             style: exprStyle
                           });
                         } else {
                           $$payload6.out += "<!--[!-->";
-                          ResponsiveText($$payload6, {
+                          ResponsiveBitmapText($$payload6, {
                             anchor: 0.5,
-                            maxWidth: PANEL_W * 0.82,
+                            maxWidth: INNER_W * 0.9,
                             text: bookEventAmountToCurrencyString(displayAmount.current),
                             style: amountStyle
                           });
@@ -17276,20 +17557,41 @@ function GazeMeter($$payload, $$props) {
     fillGlow: 3526655,
     edge: 15335423,
     energy: 13073919,
-    rim: 16777215,
     backing: 871251,
     backingStroke: 871251
   };
   let show = false;
   let charge = 0;
-  let sourcePositions = [];
-  let eyeCell = { reel: 3, row: 3 };
+  let orbs = [];
   let flying = false;
+  let flightValue = 0;
   let fx = { burst: 0, textScale: 1, overcharge: 0 };
   const animations = /* @__PURE__ */ new Set();
   const fill = new Tween(0, { duration: 520, easing: cubicOut });
-  const energy = new Tween(0, { duration: 260 });
-  const toEye = new Tween(0, { duration: 1 });
+  const orbFlight = new Tween(0, { duration: 1 });
+  const toCenter = new Tween(0, { duration: 1 });
+  const liquid = { t: 0 };
+  const progressGradient = new FillGradient({
+    textureSpace: "local",
+    start: { x: 0, y: 1 },
+    end: { x: 0, y: 0 },
+    colorStops: [
+      { offset: 0, color: GAZE_COLORS.fillDeep },
+      { offset: 0.32, color: GAZE_COLORS.fillMid },
+      { offset: 0.72, color: GAZE_COLORS.fillCore },
+      { offset: 1, color: GAZE_COLORS.fillTop }
+    ]
+  });
+  const fadeGradient = new FillGradient({
+    textureSpace: "local",
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 0 },
+    colorStops: [
+      { offset: 0, color: GAZE_COLORS.fillTop },
+      { offset: 0.42, color: GAZE_COLORS.fillCore },
+      { offset: 1, color: GAZE_COLORS.fillDeep }
+    ]
+  });
   const isMobile = context2.stateLayoutDerived.layoutType() === "portrait";
   const gazeH = isMobile ? BOARD_SIZES.width * 0.82 : BOARD_SIZES.height * 0.84;
   const gazeW = gazeH * (GAZE_METER_IMAGE_SIZE.width / GAZE_METER_IMAGE_SIZE.height);
@@ -17398,72 +17700,97 @@ function GazeMeter($$payload, $$props) {
     gazeMeterHide: () => show = false,
     gazeMeterReset: () => {
       charge = 0;
-      sourcePositions = [];
+      orbs = [];
+      orbFlight.set(0, { duration: 0 });
       flying = false;
+      toCenter.set(0, { duration: 0 });
       gsap.killTweensOf(fx);
       resetFx();
-      fill.set(0, { duration: 0 });
-      energy.set(0, { duration: 0 });
-      toEye.set(0, { duration: 0 });
+      fill.set(0, { duration: 360 });
     },
     gazeMeterFill: async (emitterEvent) => {
       show = true;
-      sourcePositions = emitterEvent.fromPositions;
       context2.eventEmitter.broadcast({
         type: "soundOnce",
         name: "sfx_reel_stop_1",
         forcePlay: !stateBetDerived.isContinuousBet()
       });
-      energy.set(1, { duration: 0 });
+      const ts = stateBetDerived.timeScale();
+      orbs = emitterEvent.fromPositions.slice(0, 10).map((position2) => ({
+        sx: getPositionX(position2.reel),
+        sy: getPositionY(position2.row),
+        wobble: (Math.random() - 0.5) * SYMBOL_SIZE * 0.9
+      }));
+      orbFlight.set(0, { duration: 0 });
+      await orbFlight.set(1, { duration: (420 + orbs.length * 55) / ts });
+      orbs = [];
       await setCharge(emitterEvent.charge);
       playChargeFx(emitterEvent.charge > GAZE_METER_MAX_CHARGE);
-      await energy.set(0);
     },
-    eyeShow: (e) => eyeCell = { reel: e.reel, row: e.row },
     gazeMeterToEye: async () => {
       if (charge <= 0) return;
+      flightValue = charge;
+      charge = 0;
       flying = true;
-      toEye.set(0, { duration: 0 });
-      await toEye.set(1, { duration: 540, easing: cubicOut });
-      await fill.set(0, { duration: 300 });
+      toCenter.set(0, { duration: 0 });
+      void fill.set(0, { duration: 420 });
+      await toCenter.set(1, { duration: 520, easing: cubicOut });
       flying = false;
-      toEye.set(0, { duration: 0 });
     },
     gazeMeterDrain: async () => {
       await fill.set(0, { duration: 420 });
       await waitForResolve((resolve) => setTimeout(resolve, 120));
       charge = 0;
-      sourcePositions = [];
+      orbs = [];
     }
   });
-  const drawEnergyIn = (g) => {
-    if (energy.current <= 0) return;
-    const alpha = energy.current * 0.5;
-    for (const source2 of sourcePositions.slice(0, 18)) {
-      const sx = getPositionX(source2.reel);
-      const sy = getPositionY(source2.row);
-      const midX = sx + (meterEnergyX - sx) * 0.6;
-      const midY = sy + (meterEnergyY - sy) * 0.45 - SYMBOL_SIZE * 0.35;
-      g.moveTo(sx, sy).quadraticCurveTo(midX, midY, meterEnergyX, meterEnergyY).stroke({ width: 2.4, color: GAZE_COLORS.energy, alpha });
-    }
-  };
-  const drawEnergyOut = (g) => {
-    if (!flying) return;
-    const t = toEye.current;
-    const ex = getPositionX(eyeCell.reel);
-    const ey = getPositionY(eyeCell.row);
-    const headX = meterEnergyX + (ex - meterEnergyX) * t;
-    const headY = meterEnergyY + (ey - meterEnergyY) * t - Math.sin(t * Math.PI) * SYMBOL_SIZE * 0.6;
-    g.moveTo(meterEnergyX, meterEnergyY).quadraticCurveTo((meterEnergyX + ex) / 2, Math.min(meterEnergyY, ey) - SYMBOL_SIZE * 0.6, headX, headY).stroke({
-      width: 3,
-      color: GAZE_COLORS.rim,
-      alpha: 0.5 * (1 - t * 0.4)
+  const ORB_TRAVEL_FRACTION = 0.6;
+  const drawOrbs = (g) => {
+    const t = orbFlight.current;
+    if (t <= 0 || orbs.length === 0) return;
+    const count = orbs.length;
+    const stagger = count > 1 ? (1 - ORB_TRAVEL_FRACTION) / (count - 1) : 0;
+    const baseR = SYMBOL_SIZE * 0.09;
+    orbs.forEach((orb, index) => {
+      const p = Math.min(Math.max((t - index * stagger) / ORB_TRAVEL_FRACTION, 0), 1);
+      if (p <= 0 || p >= 1) return;
+      const cx = (orb.sx + meterEnergyX) / 2;
+      const cy = Math.min(orb.sy, meterEnergyY) - SYMBOL_SIZE * 0.45 + orb.wobble;
+      const u = 1 - p;
+      const x = u * u * orb.sx + 2 * u * p * cx + p * p * meterEnergyX;
+      const y = u * u * orb.sy + 2 * u * p * cy + p * p * meterEnergyY;
+      const appear = Math.min(p / 0.12, 1);
+      const r = baseR * appear * (1 - p * 0.35);
+      const pt = Math.max(p - 0.12, 0);
+      const ut = 1 - pt;
+      const tailX = ut * ut * orb.sx + 2 * ut * pt * cx + pt * pt * meterEnergyX;
+      const tailY = ut * ut * orb.sy + 2 * ut * pt * cy + pt * pt * meterEnergyY;
+      g.moveTo(tailX, tailY).lineTo(x, y).stroke({
+        width: r * 0.9,
+        color: GAZE_COLORS.energy,
+        alpha: 0.35 * appear
+      });
+      g.circle(x, y, r * 2.4).fill({
+        color: GAZE_COLORS.energy,
+        alpha: 0.16 * appear
+      });
+      g.circle(x, y, r * 1.4).fill({
+        color: GAZE_COLORS.fillCore,
+        alpha: 0.5 * appear
+      });
+      g.circle(x, y, r * 0.7).fill({
+        color: GAZE_COLORS.fillTop,
+        alpha: 0.95 * appear
+      });
     });
   };
-  const flyT = toEye.current;
-  const flyX = meterEnergyX + (getPositionX(eyeCell.reel) - meterEnergyX) * flyT;
-  const flyY = meterEnergyY + (getPositionY(eyeCell.row) - meterEnergyY) * flyT - Math.sin(flyT * Math.PI) * SYMBOL_SIZE * 0.6;
-  const flyAlpha = flyT < 0.82 ? 1 : Math.max(0, 1 - (flyT - 0.82) / 0.18);
+  const CENTER_X = BOARD_SIZES.width / 2;
+  const CENTER_Y = BOARD_SIZES.height / 2;
+  const flyT = toCenter.current;
+  const flyX = meterEnergyX + (CENTER_X - meterEnergyX) * flyT;
+  const flyY = meterEnergyY + (CENTER_Y - meterEnergyY) * flyT - Math.sin(flyT * Math.PI) * SYMBOL_SIZE * 0.5;
+  const flyScale = 0.75 + flyT * 0.55;
+  const flyAlpha = flyT < 0.85 ? 1 : Math.max(0, 1 - (flyT - 0.85) / 0.15);
   const drawTrackBackplates = (g) => {
     const inset = Math.max(1, nativeScale);
     const strokeWidth = Math.max(1, nativeScale * 0.85);
@@ -17494,45 +17821,56 @@ function GazeMeter($$payload, $$props) {
     const inset = 1.5 * nativeScale;
     const innerH = Math.max(0, fillH - inset * 2);
     const shineW = segment.w * 0.2;
-    const edgeW = 3 * nativeScale;
     const edgeInset = 2 * nativeScale;
-    const bubbleR = Math.max(1.4, 2.6 * nativeScale);
-    const progressGradient = new FillGradient({
-      textureSpace: "local",
-      start: { x: 0, y: 1 },
-      end: { x: 0, y: 0 },
-      colorStops: [
-        { offset: 0, color: GAZE_COLORS.fillDeep },
-        { offset: 0.32, color: GAZE_COLORS.fillMid },
-        { offset: 0.72, color: GAZE_COLORS.fillCore },
-        { offset: 1, color: GAZE_COLORS.fillTop }
-      ]
-    });
-    const fadeGradient = new FillGradient({
-      textureSpace: "local",
-      start: { x: 0, y: 0 },
-      end: { x: 1, y: 0 },
-      colorStops: [
-        { offset: 0, color: GAZE_COLORS.fillTop },
-        { offset: 0.42, color: GAZE_COLORS.fillCore },
-        { offset: 1, color: GAZE_COLORS.fillDeep }
-      ]
-    });
+    const t = liquid.t;
+    const maxAmp = Math.max(0, fillY - segment.y - inset);
+    const waveAmp = Math.min(nativeScale * (1.7 + fx.burst * 5.5), maxAmp);
+    const waveK = Math.PI * 2 / (segment.w * 0.85);
+    const surfaceY = (x) => fillY + Math.sin(x * waveK + t * 3.1) * waveAmp;
+    const steps = 9;
+    const surface = [];
+    for (let s = 0; s <= steps; s++) {
+      const x = segment.x + segment.w * s / steps;
+      surface.push({ x, y: surfaceY(x) });
+    }
+    const body = [
+      ...surface,
+      {
+        x: segment.x + segment.w,
+        y: segment.y + segment.h
+      },
+      { x: segment.x, y: segment.y + segment.h }
+    ];
     g.rect(segment.x - edgeInset, fillY - edgeInset, segment.w + edgeInset * 2, fillH + edgeInset * 2).fill({
       color: GAZE_COLORS.fillGlow,
       alpha: 0.16 + fx.overcharge * 0.16
     });
-    g.rect(segment.x, fillY, segment.w, fillH).fill(progressGradient);
-    g.rect(segment.x, fillY, segment.w, fillH).fill({ fill: fadeGradient, alpha: 0.16 });
+    g.poly(body).fill(progressGradient);
+    g.poly(body).fill({ fill: fadeGradient, alpha: 0.16 });
+    g.moveTo(surface[0].x, surface[0].y);
+    for (let s = 1; s < surface.length; s++) g.lineTo(surface[s].x, surface[s].y);
+    g.stroke({
+      width: Math.max(1.5, 2.4 * nativeScale),
+      color: GAZE_COLORS.fillTop,
+      alpha: 0.55 + fx.burst * 0.4
+    });
     g.rect(segment.x + segment.w * 0.36, fillY + inset, segment.w * 0.34, innerH).fill({ color: GAZE_COLORS.fillTop, alpha: 0.12 });
     g.rect(segment.x + inset, fillY + inset, shineW, innerH).fill({ color: GAZE_COLORS.edge, alpha: 0.28 });
-    if (fillH > edgeW) {
-      g.rect(segment.x + edgeInset, fillY + edgeInset, segment.w - edgeInset * 2, edgeW * 1.35).fill({ color: GAZE_COLORS.fillTop, alpha: 0.58 });
-    }
-    if (fillH > segment.w * 1.4) {
-      g.circle(segment.x + segment.w * 0.66, fillY + fillH * 0.26, bubbleR).fill({ color: GAZE_COLORS.fillTop, alpha: 0.24 });
-      g.circle(segment.x + segment.w * 0.38, fillY + fillH * 0.58, bubbleR * 0.72).fill({ color: GAZE_COLORS.edge, alpha: 0.18 });
-      g.circle(segment.x + segment.w * 0.6, fillY + fillH * 0.78, bubbleR * 0.5).fill({ color: GAZE_COLORS.fillTop, alpha: 0.16 });
+    if (fillH > segment.w * 0.5) {
+      const bubbleR = Math.max(1.4, 2.6 * nativeScale);
+      for (let i = 0; i < 6; i++) {
+        const speed = (10 + i % 3 * 6) * nativeScale;
+        const travel = (t * speed + i * 37 * nativeScale) % Math.max(1, fillH - inset * 2);
+        const by = segment.y + segment.h - inset - travel;
+        const bx = segment.x + segment.w * (0.2 + 0.6 * (i * 0.618 % 1)) + Math.sin(t * 1.8 + i * 2.1) * segment.w * 0.07;
+        const nearSurface = Math.min(1, (by - fillY) / (segment.w * 0.4));
+        if (nearSurface <= 0) continue;
+        const r = bubbleR * (0.45 + i * 0.7 % 1 * 0.55);
+        g.circle(bx, by, r).fill({
+          color: GAZE_COLORS.fillTop,
+          alpha: 0.22 * nearSurface
+        });
+      }
     }
   };
   const drawMeterGlows = (g) => {
@@ -17588,15 +17926,18 @@ function GazeMeter($$payload, $$props) {
     children: ($$payload2) => {
       BoardContainer($$payload2, {
         children: ($$payload3) => {
-          Graphics($$payload3, { draw: drawEnergyIn });
-          $$payload3.out += `<!----> `;
-          Graphics($$payload3, { draw: drawEnergyOut });
+          Container($$payload3, {
+            blendMode: "add",
+            children: ($$payload4) => {
+              Graphics($$payload4, { draw: drawOrbs });
+            },
+            $$slots: { default: true }
+          });
           $$payload3.out += `<!----> `;
           Container($$payload3, {
             x: position.x,
             y: position.y,
             rotation: meterRotation,
-            alpha: flying ? 0 : 1,
             children: ($$payload4) => {
               const each_array = ensure_array_like(trackSegments);
               Graphics($$payload4, { draw: drawTrackBackplates });
@@ -17620,64 +17961,45 @@ function GazeMeter($$payload, $$props) {
               $$payload4.out += `<!----> `;
               Graphics($$payload4, { draw: drawMeterGlows, blendMode: "add" });
               $$payload4.out += `<!----> `;
-              Container($$payload4, {
-                x: plaqueTextX,
-                y: plaqueTextY,
-                rotation: multiplierTextRotation,
-                scale: fx.textScale,
-                children: ($$payload5) => {
-                  Text($$payload5, {
-                    anchor: 0.5,
-                    text: String(charge),
-                    style: {
-                      fontFamily: 'Georgia, "Times New Roman", serif',
-                      fontWeight: "700",
-                      fontSize: plaqueR * 1.34,
-                      fill: 16774100,
-                      align: "center",
-                      stroke: {
-                        color: 2756170,
-                        width: Math.max(2, 4 * nativeScale),
-                        join: "round"
-                      },
-                      dropShadow: {
-                        color: 0,
-                        alpha: 0.45,
-                        blur: 3 * nativeScale,
-                        distance: nativeScale,
-                        angle: Math.PI / 2
-                      }
-                    }
-                  });
-                },
-                $$slots: { default: true }
-              });
-              $$payload4.out += `<!---->`;
+              if (charge > 0) {
+                $$payload4.out += "<!--[-->";
+                Container($$payload4, {
+                  x: plaqueTextX,
+                  y: plaqueTextY,
+                  rotation: multiplierTextRotation,
+                  scale: fx.textScale,
+                  children: ($$payload5) => {
+                    BitmapText($$payload5, {
+                      anchor: 0.5,
+                      text: String(charge),
+                      style: abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })
+                    });
+                  },
+                  $$slots: { default: true }
+                });
+              } else {
+                $$payload4.out += "<!--[!-->";
+              }
+              $$payload4.out += `<!--]-->`;
             },
             $$slots: { default: true }
           });
           $$payload3.out += `<!----> `;
           if (flying) {
             $$payload3.out += "<!--[-->";
-            Text($$payload3, {
+            Container($$payload3, {
               x: flyX,
               y: flyY,
-              anchor: 0.5,
+              scale: flyScale,
               alpha: flyAlpha,
-              text: `x${charge}`,
-              style: {
-                fontFamily: "sans-serif",
-                fontWeight: "900",
-                fontSize: SYMBOL_SIZE * 0.34,
-                fill: GAZE_METER_MULTIPLIER_COLOR,
-                stroke: { color: 2755919, width: 5 },
-                dropShadow: {
-                  color: 0,
-                  blur: 4,
-                  distance: 2,
-                  alpha: 0.8
-                }
-              }
+              children: ($$payload4) => {
+                BitmapText($$payload4, {
+                  anchor: 0.5,
+                  text: `${flightValue}`,
+                  style: abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.42 })
+                });
+              },
+              $$slots: { default: true }
             });
           } else {
             $$payload3.out += "<!--[!-->";
@@ -17731,6 +18053,12 @@ function Eye($$payload, $$props) {
       ease: "elastic.out(1, 0.5)"
     }).to(centerFx, { flash: 0, duration: 0.3, ease: "power2.out" }, 0);
   };
+  const spendBoardEye = (eye) => {
+    const cell = context2.stateGame.board[eye.reel]?.reelState.symbols[eye.row];
+    if (cell?.rawSymbol.name === "EYE") {
+      cell.rawSymbol = { ...cell.rawSymbol, spent: true };
+    }
+  };
   const foldEye = (eye) => new Promise((resolve) => {
     chip.text = eye.eyeType === "ADD" ? `+${eye.startValue}` : `×${eye.startValue}`;
     chip.mul = eye.eyeType === "MUL";
@@ -17753,7 +18081,7 @@ function Eye($$payload, $$props) {
       scale: 1.2,
       duration: 0.2,
       ease: "back.out(2.2)"
-    }).to(
+    }).add(() => spendBoardEye(eye)).to(
       chip,
       {
         x: center.x,
@@ -17949,63 +18277,6 @@ function Eye($$payload, $$props) {
   });
   pop();
 }
-function PersistentMultiplier($$payload, $$props) {
-  push();
-  const context2 = getContext();
-  let show = false;
-  let mult = 1;
-  const pop$1 = new Tween(1, { duration: 160 });
-  context2.eventEmitter.subscribeOnMount({
-    snowballShow: () => show = true,
-    snowballHide: () => show = false,
-    snowballUpdate: async (e) => {
-      const climbed = e.mult > mult;
-      mult = e.mult;
-      if (climbed) {
-        context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_multiplier_up" });
-        await pop$1.set(1.35);
-        await pop$1.set(1);
-      }
-    }
-  });
-  const draw = (g) => {
-    g.roundRect(-95, -36, 190, 72, 18).fill({ color: 662062, alpha: 0.85 });
-    g.roundRect(-95, -36, 190, 72, 18).stroke({ width: 3, color: 16757052, alpha: 0.9 });
-  };
-  FadeContainer($$payload, {
-    show,
-    children: ($$payload2) => {
-      BoardContainer($$payload2, {
-        children: ($$payload3) => {
-          Container($$payload3, {
-            x: BOARD_SIZES.width / 2,
-            y: -SYMBOL_SIZE * 0.72,
-            scale: pop$1.current,
-            children: ($$payload4) => {
-              Graphics($$payload4, { draw });
-              $$payload4.out += `<!----> `;
-              Text($$payload4, {
-                anchor: 0.5,
-                text: `M  ×${mult}`,
-                style: {
-                  fontFamily: "sans-serif",
-                  fontWeight: "700",
-                  fontSize: SYMBOL_SIZE * 0.34,
-                  fill: 16757052
-                }
-              });
-              $$payload4.out += `<!---->`;
-            },
-            $$slots: { default: true }
-          });
-        },
-        $$slots: { default: true }
-      });
-    },
-    $$slots: { default: true }
-  });
-  pop();
-}
 function ScatterFx($$payload, $$props) {
   push();
   const context2 = getContext();
@@ -18037,22 +18308,13 @@ function ScatterFx($$payload, $$props) {
       });
     }
   });
-  const drawLinks = (g) => {
+  const drawScatterPulses = (g) => {
     const p = celebrate.link;
     if (p <= 0) return;
     const points = positions.map((pos) => ({
       x: getPositionX(pos.reel),
       y: getPositionY(pos.row)
     }));
-    for (let i = 0; i < points.length; i++) {
-      for (let j = i + 1; j < points.length; j++) {
-        g.moveTo(points[i].x, points[i].y).lineTo(points[j].x, points[j].y).stroke({
-          width: 3 * p,
-          color: 16770726,
-          alpha: 0.45 * p
-        });
-      }
-    }
     for (const point of points) {
       g.circle(point.x, point.y, 12 * p).fill({ color: 16777215, alpha: 0.7 * p });
     }
@@ -18076,7 +18338,7 @@ function ScatterFx($$payload, $$props) {
             Container($$payload3, {
               blendMode: "add",
               children: ($$payload4) => {
-                Graphics($$payload4, { draw: drawLinks });
+                Graphics($$payload4, { draw: drawScatterPulses });
               },
               $$slots: { default: true }
             });
@@ -18100,170 +18362,6 @@ function ScatterFx($$payload, $$props) {
     $$payload.out += "<!--[!-->";
   }
   $$payload.out += `<!--]-->`;
-  pop();
-}
-function WinBackdrop($$payload, $$props) {
-  push();
-  const { $$slots, $$events, ...props } = $$props;
-  const color = props.color ?? 16757052;
-  let rot = 0;
-  let glow = 0.5;
-  let raf2 = 0;
-  onDestroy(() => cancelAnimationFrame(raf2));
-  const RAYS = 14;
-  const raysDraw = (g) => {
-    const R = props.radius * 1.8;
-    for (let i = 0; i < RAYS; i++) {
-      const a0 = i / RAYS * Math.PI * 2;
-      const a1 = a0 + Math.PI * 2 / RAYS * 0.5;
-      g.moveTo(0, 0).lineTo(Math.cos(a0) * R, Math.sin(a0) * R).lineTo(Math.cos(a1) * R, Math.sin(a1) * R).fill({ color, alpha: 0.05 });
-    }
-  };
-  const glowDraw = (g) => {
-    const R = props.radius;
-    g.circle(0, 0, R).fill({ color, alpha: 0.16 });
-    g.circle(0, 0, R * 0.6).fill({ color, alpha: 0.18 });
-  };
-  Container($$payload, {
-    rotation: rot,
-    children: ($$payload2) => {
-      Graphics($$payload2, { draw: raysDraw });
-    },
-    $$slots: { default: true }
-  });
-  $$payload.out += `<!----> `;
-  Container($$payload, {
-    alpha: 0.45 + glow * 0.4,
-    scale: 0.9 + glow * 0.14,
-    children: ($$payload2) => {
-      Graphics($$payload2, { draw: glowDraw });
-    },
-    $$slots: { default: true }
-  });
-  $$payload.out += `<!---->`;
-  pop();
-}
-function ScatterPay($$payload, $$props) {
-  push();
-  const context2 = getContext();
-  let show = false;
-  let count = 4;
-  let mult = 3;
-  const fx = { scale: 0.6, alpha: 0, flash: 0 };
-  context2.stateLayoutDerived.canvasSizes();
-  const boardLayout2 = context2.stateGameDerived.boardLayout();
-  const isHero = count >= 6;
-  const color = isHero ? 16738876 : count >= 5 ? 10185983 : 16757052;
-  context2.eventEmitter.subscribeOnMount({
-    scatterPayShow: async (emitterEvent) => {
-      count = emitterEvent.count;
-      mult = Math.round(emitterEvent.amount / BOOK_AMOUNT_MULTIPLIER);
-      show = true;
-      context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_scatter_win_v2" });
-      gsap.killTweensOf(fx);
-      await new Promise((resolve) => {
-        const timeline = gsap.timeline({ onComplete: resolve });
-        timeline.set(fx, {
-          scale: 0.6,
-          alpha: 0,
-          flash: isHero ? 0.85 : 0
-        }).to(fx, { alpha: 1, duration: 0.12 }).to(
-          fx,
-          {
-            scale: isHero ? 1.18 : 1.06,
-            duration: 0.32,
-            ease: "back.out(2.4)"
-          },
-          "<"
-        ).to(fx, { flash: 0, duration: 0.4, ease: "power2.out" }, "<").to(fx, { scale: 1, duration: 0.2 });
-      });
-      await waitForTimeout((isHero ? 2200 : 1400) / stateBetDerived.timeScale());
-      await new Promise((resolve) => {
-        gsap.timeline({ onComplete: resolve }).to(fx, {
-          alpha: 0,
-          scale: 1.12,
-          duration: 0.3,
-          ease: "power2.in"
-        });
-      });
-      show = false;
-    }
-  });
-  FadeContainer($$payload, {
-    show,
-    zIndex: 46,
-    children: ($$payload2) => {
-      CanvasSizeRectangle($$payload2, {
-        backgroundColor: 329743,
-        backgroundAlpha: isHero ? 0.7 : 0.42
-      });
-      $$payload2.out += `<!----> `;
-      MainContainer($$payload2, {
-        children: ($$payload3) => {
-          Container($$payload3, {
-            x: boardLayout2.x,
-            y: boardLayout2.y,
-            scale: fx.scale,
-            alpha: fx.alpha,
-            children: ($$payload4) => {
-              WinBackdrop($$payload4, {
-                radius: SYMBOL_SIZE * (isHero ? 4 : 2.6),
-                color
-              });
-              $$payload4.out += `<!----> `;
-              Text($$payload4, {
-                anchor: 0.5,
-                y: -SYMBOL_SIZE * 0.78,
-                text: `${count} SCATTERS`,
-                style: {
-                  fontFamily: "sans-serif",
-                  fontWeight: "800",
-                  fontSize: SYMBOL_SIZE * 0.36,
-                  letterSpacing: 2,
-                  fill: 15398655,
-                  stroke: { color: 329743, width: 5 }
-                }
-              });
-              $$payload4.out += `<!----> `;
-              Text($$payload4, {
-                anchor: 0.5,
-                y: SYMBOL_SIZE * 0.34,
-                text: `×${mult}`,
-                style: {
-                  fontFamily: "sans-serif",
-                  fontWeight: "900",
-                  fontSize: SYMBOL_SIZE * (isHero ? 1.6 : 1.15),
-                  fill: color,
-                  stroke: { color: 329743, width: 7 },
-                  dropShadow: {
-                    color: 0,
-                    blur: 6,
-                    distance: 3,
-                    alpha: 0.85
-                  }
-                }
-              });
-              $$payload4.out += `<!---->`;
-            },
-            $$slots: { default: true }
-          });
-        },
-        $$slots: { default: true }
-      });
-      $$payload2.out += `<!----> `;
-      if (fx.flash > 0) {
-        $$payload2.out += "<!--[-->";
-        CanvasSizeRectangle($$payload2, {
-          backgroundColor: 16777215,
-          backgroundAlpha: fx.flash
-        });
-      } else {
-        $$payload2.out += "<!--[!-->";
-      }
-      $$payload2.out += `<!--]-->`;
-    },
-    $$slots: { default: true }
-  });
   pop();
 }
 function WinCapCelebration($$payload, $$props) {
@@ -18344,6 +18442,47 @@ function WinCoins($$payload, $$props) {
   $$payload.out += `<!--]-->`;
   pop();
 }
+function WinBackdrop($$payload, $$props) {
+  push();
+  const { $$slots, $$events, ...props } = $$props;
+  const color = props.color ?? 16757052;
+  let rot = 0;
+  let glow = 0.5;
+  let raf2 = 0;
+  onDestroy(() => cancelAnimationFrame(raf2));
+  const RAYS = 14;
+  const raysDraw = (g) => {
+    const R = props.radius * 1.8;
+    for (let i = 0; i < RAYS; i++) {
+      const a0 = i / RAYS * Math.PI * 2;
+      const a1 = a0 + Math.PI * 2 / RAYS * 0.5;
+      g.moveTo(0, 0).lineTo(Math.cos(a0) * R, Math.sin(a0) * R).lineTo(Math.cos(a1) * R, Math.sin(a1) * R).fill({ color, alpha: 0.05 });
+    }
+  };
+  const glowDraw = (g) => {
+    const R = props.radius;
+    g.circle(0, 0, R).fill({ color, alpha: 0.16 });
+    g.circle(0, 0, R * 0.6).fill({ color, alpha: 0.18 });
+  };
+  Container($$payload, {
+    rotation: rot,
+    children: ($$payload2) => {
+      Graphics($$payload2, { draw: raysDraw });
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!----> `;
+  Container($$payload, {
+    alpha: 0.45 + glow * 0.4,
+    scale: 0.9 + glow * 0.14,
+    children: ($$payload2) => {
+      Graphics($$payload2, { draw: glowDraw });
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!---->`;
+  pop();
+}
 function WinBanner($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
@@ -18416,20 +18555,7 @@ function Win($$payload, $$props) {
   };
   const tierFor = (mult) => WIN_TIERS.find((t) => mult >= t.min);
   const lowestTier = WIN_TIERS[WIN_TIERS.length - 1];
-  const amountStyle = {
-    fontFamily: "Cinzel, Georgia, serif",
-    fontWeight: "900",
-    fontSize: SYMBOL_SIZE * 0.95,
-    align: "center",
-    fill: 16770726,
-    stroke: { color: 2757632, width: 8 },
-    dropShadow: {
-      color: 0,
-      blur: 10,
-      distance: 5,
-      alpha: 0.6
-    }
-  };
+  const amountStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.95 });
   let show = false;
   let amount2 = 0;
   let winLevelData = void 0;
@@ -18570,7 +18696,7 @@ function Win($$payload, $$props) {
                 Container($$payload4, {
                   scale: numFx.scale,
                   children: ($$payload5) => {
-                    ResponsiveText($$payload5, {
+                    ResponsiveBitmapText($$payload5, {
                       anchor: 0.5,
                       y: imgH * 0.17,
                       maxWidth: imgW * 0.6,
@@ -18582,13 +18708,14 @@ function Win($$payload, $$props) {
                       $$payload5.out += "<!--[-->";
                       Container($$payload5, {
                         alpha: numFx.flash,
+                        blendMode: "add",
                         children: ($$payload6) => {
-                          ResponsiveText($$payload6, {
+                          ResponsiveBitmapText($$payload6, {
                             anchor: 0.5,
                             y: imgH * 0.17,
                             maxWidth: imgW * 0.6,
                             text: bookEventAmountToCurrencyString(countUp.current),
-                            style: { ...amountStyle, fill: 16777215 }
+                            style: amountStyle
                           });
                         },
                         $$slots: { default: true }
@@ -18625,7 +18752,6 @@ function FreeSpinIntro($$payload, $$props) {
   push();
   const context2 = getContext();
   let show = false;
-  let total = 0;
   let oncomplete = () => {
   };
   let confirmed = false;
@@ -18687,16 +18813,15 @@ function FreeSpinIntro($$payload, $$props) {
       await playOutro();
       show = false;
     },
-    freeSpinIntroUpdate: async (emitterEvent) => {
-      total = emitterEvent.totalFreeSpins;
+    freeSpinIntroUpdate: async () => {
       await waitForResolve((resolve) => oncomplete = resolve);
     }
   });
   const sizes = context2.stateLayoutDerived.canvasSizes();
   const tapToPlay = i18nDerived.freeSpinsTapToPlay();
-  const imgW = Math.min(sizes.width * 0.82, sizes.height * 0.68 * FREE_SPINS_BANNER_ASPECT);
-  const imgH = imgW / FREE_SPINS_BANNER_ASPECT;
-  const countY = imgH * 0.13;
+  const imageAspect = 1408 / 768;
+  const imgW = Math.min(sizes.width * 0.88, sizes.height * 0.72 * imageAspect);
+  const imgH = imgW / imageAspect;
   if (show) {
     $$payload.out += "<!--[-->";
     Container($$payload, {
@@ -18724,7 +18849,7 @@ function FreeSpinIntro($$payload, $$props) {
           children: ($$payload3) => {
             Sprite($$payload3, {
               anchor: 0.5,
-              key: "freeSpinsBanner",
+              key: "freeSpinIntro",
               width: imgW,
               height: imgH,
               eventMode: "static",
@@ -18732,42 +18857,9 @@ function FreeSpinIntro($$payload, $$props) {
               onpointerup: confirm
             });
             $$payload3.out += `<!----> `;
-            Graphics($$payload3, {
-              draw: (g) => {
-                g.roundRect(-imgW * 0.14, countY - imgH * 0.105, imgW * 0.28, imgH * 0.21, imgH * 0.035).fill({ color: 399421, alpha: 0.94 });
-                g.roundRect(-imgW * 0.14, countY - imgH * 0.105, imgW * 0.28, imgH * 0.21, imgH * 0.035).stroke({
-                  width: Math.max(2, imgH * 7e-3),
-                  color: 7531263,
-                  alpha: 0.9
-                });
-              }
-            });
-            $$payload3.out += `<!----> `;
             Text($$payload3, {
               anchor: 0.5,
-              y: countY,
-              text: `${total}`,
-              style: {
-                fontFamily: "Cinzel, Georgia, serif",
-                fontWeight: "900",
-                fontSize: imgH * 0.16,
-                fill: 16770726,
-                stroke: {
-                  color: 2428928,
-                  width: Math.max(3, imgH * 8e-3)
-                },
-                dropShadow: {
-                  color: 0,
-                  alpha: 0.9,
-                  blur: 6,
-                  distance: 2
-                }
-              }
-            });
-            $$payload3.out += `<!----> `;
-            Text($$payload3, {
-              anchor: 0.5,
-              y: imgH * 0.62,
+              y: imgH * 0.49,
               alpha: fx.hint,
               text: tapToPlay,
               style: {
@@ -18946,41 +19038,53 @@ function FreeSpinRetrigger($$payload, $$props) {
 function FreeSpinCounter($$payload, $$props) {
   push();
   const context2 = getContext();
-  const PANEL_RATIO_DESKTOP = 824 / 622;
-  const panelWidth = SYMBOL_SIZE * 2;
-  const panelSizes = {
-    width: panelWidth,
-    height: panelWidth / PANEL_RATIO_DESKTOP
-  };
-  const multiplierPanelSizes = {
-    width: panelSizes.width * 0.84,
-    height: SYMBOL_SIZE * 0.52
-  };
+  const freeSpinsSize = SYMBOL_SIZE * 2.05;
+  const totalMultSize = SYMBOL_SIZE * 1.42;
+  const panelGap = SYMBOL_SIZE * 0.18;
   const scale = 1;
   const boardLayout2 = context2.stateGameDerived.boardLayout();
   const position = {
-    x: boardLayout2.x + boardLayout2.width * 0.5 + SYMBOL_SIZE * 0.35,
-    y: boardLayout2.y - boardLayout2.height * 0.5
+    x: boardLayout2.x + boardLayout2.width * 0.5 + SYMBOL_SIZE * 1.08,
+    y: boardLayout2.y - boardLayout2.height * 0.5 + totalMultSize * 0.5
   };
-  const fontSize = SYMBOL_SIZE * 0.275;
   let show = false;
   let current = 0;
   let total = 0;
-  let titleSizes = { width: 0, height: 0 };
-  let counterSizes = { height: 0 };
-  const textContainerSizes = {
-    width: titleSizes.width,
-    height: titleSizes.height + counterSizes.height
-  };
-  const counterPosition = { x: titleSizes.width / 2, y: titleSizes.height };
+  let lastPersistentMult = context2.stateGame.persistentMult;
+  const totalMultPop = new Tween(1, { duration: 160 });
   context2.eventEmitter.subscribeOnMount({
     freeSpinCounterShow: () => show = true,
     freeSpinCounterHide: () => show = false,
     freeSpinCounterUpdate: (emitterEvent) => {
       if (emitterEvent.current !== void 0) current = emitterEvent.current;
       if (emitterEvent.total !== void 0) total = emitterEvent.total;
+    },
+    snowballUpdate: async (emitterEvent) => {
+      const climbed = emitterEvent.mult > lastPersistentMult;
+      lastPersistentMult = emitterEvent.mult;
+      if (!climbed) return;
+      context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_multiplier_up" });
+      await totalMultPop.set(1.16);
+      await totalMultPop.set(1);
     }
   });
+  const totalMultLabelStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.145 });
+  const freeSpinsLabelStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.14 });
+  const freeSpinsValueStyle = {
+    fontFamily: "Cinzel, Georgia, serif",
+    fontWeight: "900",
+    fontSize: SYMBOL_SIZE * 0.28,
+    fill: 16770976,
+    align: "center",
+    stroke: { color: 2757632, width: 5 },
+    dropShadow: {
+      color: 0,
+      blur: 7,
+      distance: 2,
+      alpha: 0.75
+    }
+  };
+  const totalMultValueStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.34 });
   MainContainer($$payload, {
     children: ($$payload2) => {
       FadeContainer($$payload2, spread_props([
@@ -18990,85 +19094,68 @@ function FreeSpinCounter($$payload, $$props) {
           scale,
           children: ($$payload3) => {
             Container($$payload3, {
-              x: panelSizes.width * 0.5,
-              y: -multiplierPanelSizes.height * 0.5 - SYMBOL_SIZE * 0.14,
+              scale: totalMultPop.current,
               children: ($$payload4) => {
-                Graphics($$payload4, {
-                  draw: (g) => {
-                    g.roundRect(-multiplierPanelSizes.width * 0.5, -multiplierPanelSizes.height * 0.5, multiplierPanelSizes.width, multiplierPanelSizes.height, 14).fill({ color: 662062, alpha: 0.92 });
-                    g.roundRect(-multiplierPanelSizes.width * 0.5, -multiplierPanelSizes.height * 0.5, multiplierPanelSizes.width, multiplierPanelSizes.height, 14).stroke({ width: 2.5, color: 16757052, alpha: 0.9 });
-                  }
+                Container($$payload4, {
+                  y: -totalMultSize * 0.58,
+                  children: ($$payload5) => {
+                    BitmapText($$payload5, {
+                      text: "TOTAL MULT",
+                      anchor: 0.5,
+                      style: totalMultLabelStyle
+                    });
+                  },
+                  $$slots: { default: true }
                 });
                 $$payload4.out += `<!----> `;
-                Text($$payload4, {
-                  text: "TOTAL MULT",
-                  x: -multiplierPanelSizes.width * 0.31,
-                  anchor: { x: 0, y: 0.5 },
-                  style: {
-                    fontFamily: "sans-serif",
-                    fontWeight: "800",
-                    fontSize: SYMBOL_SIZE * 0.16,
-                    fill: 9432831
-                  }
-                });
-                $$payload4.out += `<!----> `;
-                Text($$payload4, {
-                  text: `×${context2.stateGame.persistentMult}`,
-                  x: multiplierPanelSizes.width * 0.34,
-                  anchor: { x: 0.5, y: 0.5 },
-                  style: {
-                    fontFamily: "sans-serif",
-                    fontWeight: "900",
-                    fontSize: SYMBOL_SIZE * 0.28,
-                    fill: 16765562
-                  }
+                Container($$payload4, {
+                  children: ($$payload5) => {
+                    Sprite($$payload5, {
+                      anchor: 0.5,
+                      key: "totalMultBanner",
+                      width: totalMultSize,
+                      height: totalMultSize
+                    });
+                    $$payload5.out += `<!----> `;
+                    ResponsiveBitmapText($$payload5, {
+                      text: `x${context2.stateGame.persistentMult}`,
+                      anchor: 0.5,
+                      maxWidth: totalMultSize * 0.52,
+                      style: totalMultValueStyle
+                    });
+                    $$payload5.out += `<!---->`;
+                  },
+                  $$slots: { default: true }
                 });
                 $$payload4.out += `<!---->`;
               },
               $$slots: { default: true }
             });
             $$payload3.out += `<!----> `;
-            Graphics($$payload3, {
-              draw: (g) => {
-                g.roundRect(0, 0, panelSizes.width, panelSizes.height, 16).fill({ color: 662062, alpha: 0.92 });
-                g.roundRect(0, 0, panelSizes.width, panelSizes.height, 16).stroke({ width: 2.5, color: 2285823, alpha: 0.8 });
-              }
-            });
-            $$payload3.out += `<!----> `;
             Container($$payload3, {
-              x: panelSizes.width * 0.5,
-              y: panelSizes.height * 0.48,
-              pivot: anchorToPivot({
-                sizes: textContainerSizes,
-                anchor: { x: 0.5, y: 0.5 }
-              }),
+              y: totalMultSize * 0.5 + freeSpinsSize * 0.5 + panelGap,
               children: ($$payload4) => {
-                Text($$payload4, {
-                  text: "FREE SPIN",
-                  style: {
-                    fontFamily: "sans-serif",
-                    fontWeight: "800",
-                    fontSize,
-                    fill: 2285823,
-                    wordWrap: false
-                  },
-                  onresize: (sizes) => titleSizes = sizes
+                Sprite($$payload4, {
+                  anchor: 0.5,
+                  key: "freeSpinsCount",
+                  width: freeSpinsSize,
+                  height: freeSpinsSize
                 });
                 $$payload4.out += `<!----> `;
-                Text($$payload4, spread_props([
-                  { text: `${current} OF ${total}` },
-                  counterPosition,
-                  {
-                    anchor: { x: 0.5, y: 0 },
-                    style: {
-                      fontFamily: "sans-serif",
-                      fontWeight: "800",
-                      fontSize,
-                      fill: 16765562
-                    },
-                    onresize: (sizes) => counterSizes = sizes
-                  }
-                ]));
+                BitmapText($$payload4, {
+                  text: "FREE SPINS",
+                  anchor: 0.5,
+                  y: -freeSpinsSize * 0.14,
+                  style: freeSpinsLabelStyle
+                });
+                $$payload4.out += `<!----> `;
+                ResponsiveText($$payload4, {
+                  text: `${current} / ${total}`,
+                  anchor: 0.5,
+                  y: freeSpinsSize * 0.13,
+                  maxWidth: freeSpinsSize * 0.68,
+                  style: freeSpinsValueStyle
+                });
                 $$payload4.out += `<!---->`;
               },
               $$slots: { default: true }
@@ -19097,6 +19184,12 @@ function FreeSpinOutro($$payload, $$props) {
     }
   });
   const sizes = context2.stateLayoutDerived.canvasSizes();
+  const imageAspect = 1408 / 768;
+  const imgW = Math.min(sizes.width * 0.88, sizes.height * 0.72 * imageAspect);
+  const imgH = imgW / imageAspect;
+  const amountY = imgH * (505 / 768 - 0.5);
+  const amountMaxWidth = imgW * 0.48;
+  const amountStyle = abyssalBitmapStyle({ fontSize: imgH * 0.12 });
   FadeContainer($$payload, {
     show,
     zIndex: 45,
@@ -19113,28 +19206,19 @@ function FreeSpinOutro($$payload, $$props) {
         x: sizes.width / 2,
         y: sizes.height / 2,
         children: ($$payload3) => {
-          Text($$payload3, {
+          Sprite($$payload3, {
             anchor: 0.5,
-            y: -56,
-            text: "TOTAL WIN",
-            style: {
-              fontFamily: "sans-serif",
-              fontWeight: "800",
-              fontSize: 72,
-              fill: 2285823
-            }
+            key: "freeSpinOutro",
+            width: imgW,
+            height: imgH
           });
           $$payload3.out += `<!----> `;
-          Text($$payload3, {
+          ResponsiveBitmapText($$payload3, {
             anchor: 0.5,
-            y: 48,
+            y: amountY,
+            maxWidth: amountMaxWidth,
             text: bookEventAmountToCurrencyString(amount2),
-            style: {
-              fontFamily: "sans-serif",
-              fontWeight: "800",
-              fontSize: 104,
-              fill: 16757052
-            }
+            style: amountStyle
           });
           $$payload3.out += `<!---->`;
         },
@@ -20652,105 +20736,183 @@ function ReplayControls($$payload, $$props) {
 }
 function GameInfo($$payload, $$props) {
   push();
-  const ATLAS = new URL("../../assets/symbols/eye/eye.png", import.meta.url).href;
-  const ATLAS_W = 1572;
-  const ATLAS_H = 1660;
-  const CELL_W = 393;
-  const CELL_H = 415;
+  const ATLAS = new URL("../../assets/symbols/symbol_black/symbol_black.png", import.meta.url).href;
+  const ATLAS_W = 1980;
+  const ATLAS_H = 2004;
+  const CELL_W = 495;
+  const CELL_H = 501;
   const FRAME = {
-    H1: [393, 0],
-    H2: [0, 0],
-    H3: [1179, 0],
-    H4: [786, 0],
-    L1: [786, 415],
-    L2: [0, 415],
-    L3: [393, 415],
-    L4: [0, 830],
-    L5: [1179, 415],
-    SCATTER: [393, 830],
-    ADD_EYE: [1179, 830],
-    MULT_EYE: [0, 1245],
-    CLOSE_EYE: [786, 830]
+    H1: [990, 0],
+    H2: [1485, 0],
+    H3: [0, 0],
+    H4: [495, 0],
+    L1: [1485, 501],
+    L2: [0, 501],
+    L3: [495, 501],
+    L4: [990, 501],
+    L5: [1485, 1002],
+    SCATTER: [0, 1503],
+    ADD_EYE: [495, 1503],
+    MULT_EYE: [1485, 1503],
+    CLOSE_EYE: [0, 1002]
   };
+  const t = (key) => i18nDerived.gameInfo(key);
+  const pay = (symbol, tier) => t(`PAY_${symbol}_${tier}`);
+  const copy = {
+    title: t("TITLE"),
+    tagline: t("TAGLINE"),
+    leadHtml: t("LEAD_HTML"),
+    howSpinPlaysTitle: t("HOW_SPIN_PLAYS_TITLE"),
+    paytableTitle: t("PAYTABLE_TITLE"),
+    paytableNote: t("PAYTABLE_NOTE"),
+    paytableHighSymbols: t("PAYTABLE_HIGH_SYMBOLS"),
+    paytableLowSymbols: t("PAYTABLE_LOW_SYMBOLS"),
+    paytableSymbolHeader: t("PAYTABLE_SYMBOL_HEADER"),
+    paytableCount8To9: t("PAYTABLE_COUNT_8_TO_9"),
+    paytableCount10To11: t("PAYTABLE_COUNT_10_TO_11"),
+    paytableCount12Plus: t("PAYTABLE_COUNT_12_PLUS"),
+    specialSymbolsTitle: t("SPECIAL_SYMBOLS_TITLE"),
+    specialScatterName: t("SPECIAL_SCATTER_NAME"),
+    specialScatterDescriptionHtml: t("SPECIAL_SCATTER_DESCRIPTION_HTML"),
+    specialAddEyeName: t("SPECIAL_ADD_EYE_NAME"),
+    specialAddEyeDescriptionHtml: t("SPECIAL_ADD_EYE_DESCRIPTION_HTML"),
+    specialMultEyeName: t("SPECIAL_MULT_EYE_NAME"),
+    specialMultEyeDescriptionHtml: t("SPECIAL_MULT_EYE_DESCRIPTION_HTML"),
+    eyeGazeTitle: t("EYE_GAZE_TITLE"),
+    eyeGazeDescriptionHtml: t("EYE_GAZE_DESCRIPTION_HTML"),
+    eyeGazeExampleHtml: t("EYE_GAZE_EXAMPLE_HTML"),
+    freeSpinsTitle: t("FREE_SPINS_TITLE"),
+    waysToPlayTitle: t("WAYS_TO_PLAY_TITLE"),
+    generalDisclaimerTitle: t("GENERAL_DISCLAIMER_TITLE"),
+    generalDisclaimerHtml: t("GENERAL_DISCLAIMER_HTML")
+  };
+  const steps = [
+    t("HOW_SPIN_PLAYS_STEP_1"),
+    t("HOW_SPIN_PLAYS_STEP_2"),
+    t("HOW_SPIN_PLAYS_STEP_3_HTML"),
+    t("HOW_SPIN_PLAYS_STEP_4")
+  ];
+  const freeSpinBullets = [
+    t("FREE_SPINS_BULLET_1_HTML"),
+    t("FREE_SPINS_BULLET_2_HTML"),
+    t("FREE_SPINS_BULLET_3_HTML"),
+    t("FREE_SPINS_BULLET_4_HTML")
+  ];
   const highs = [
     {
       sym: "H1",
-      name: "Anglerfish",
-      pays: ["10.00×", "25.00×", "50.00×"]
+      name: t("SYMBOL_H1"),
+      pays: [
+        pay("H1", "8_TO_9"),
+        pay("H1", "10_TO_11"),
+        pay("H1", "12_PLUS")
+      ]
     },
     {
       sym: "H2",
-      name: "Nautilus",
-      pays: ["2.50×", "10.00×", "25.00×"]
+      name: t("SYMBOL_H2"),
+      pays: [
+        pay("H2", "8_TO_9"),
+        pay("H2", "10_TO_11"),
+        pay("H2", "12_PLUS")
+      ]
     },
     {
       sym: "H3",
-      name: "Diving Helmet",
-      pays: ["2.00×", "5.00×", "15.00×"]
+      name: t("SYMBOL_H3"),
+      pays: [
+        pay("H3", "8_TO_9"),
+        pay("H3", "10_TO_11"),
+        pay("H3", "12_PLUS")
+      ]
     },
     {
       sym: "H4",
-      name: "Jellyfish",
-      pays: ["1.50×", "2.00×", "12.00×"]
+      name: t("SYMBOL_H4"),
+      pays: [
+        pay("H4", "8_TO_9"),
+        pay("H4", "10_TO_11"),
+        pay("H4", "12_PLUS")
+      ]
     }
   ];
   const lows = [
     {
       sym: "L1",
-      name: "Cyan gem",
-      pays: ["1.00×", "1.50×", "10.00×"]
+      name: t("SYMBOL_L1"),
+      pays: [
+        pay("L1", "8_TO_9"),
+        pay("L1", "10_TO_11"),
+        pay("L1", "12_PLUS")
+      ]
     },
     {
       sym: "L2",
-      name: "Teal gem",
-      pays: ["0.80×", "1.20×", "8.00×"]
+      name: t("SYMBOL_L2"),
+      pays: [
+        pay("L2", "8_TO_9"),
+        pay("L2", "10_TO_11"),
+        pay("L2", "12_PLUS")
+      ]
     },
     {
       sym: "L3",
-      name: "Sapphire gem",
-      pays: ["0.50×", "1.00×", "8.00×"]
+      name: t("SYMBOL_L3"),
+      pays: [
+        pay("L3", "8_TO_9"),
+        pay("L3", "10_TO_11"),
+        pay("L3", "12_PLUS")
+      ]
     },
     {
       sym: "L4",
-      name: "Violet gem",
-      pays: ["0.40×", "0.90×", "6.00×"]
+      name: t("SYMBOL_L4"),
+      pays: [
+        pay("L4", "8_TO_9"),
+        pay("L4", "10_TO_11"),
+        pay("L4", "12_PLUS")
+      ]
     },
     {
       sym: "L5",
-      name: "Aqua gem",
-      pays: ["0.20×", "0.70×", "5.00×"]
+      name: t("SYMBOL_L5"),
+      pays: [
+        pay("L5", "8_TO_9"),
+        pay("L5", "10_TO_11"),
+        pay("L5", "12_PLUS")
+      ]
     }
   ];
   const modes = [
     {
-      name: "Base",
-      cost: "1× bet",
-      text: "The standard game. The Eye is rare, mostly the friendly ADD type."
+      name: t("MODE_BASE_NAME"),
+      cost: t("MODE_BASE_COST"),
+      text: t("MODE_BASE_TEXT")
     },
     {
-      name: "Ante",
-      cost: "1.25× bet",
-      text: "Pay 25% more for more frequent Eyes and Scatters."
+      name: t("MODE_ANTE_NAME"),
+      cost: t("MODE_ANTE_COST"),
+      text: t("MODE_ANTE_TEXT")
     },
     {
-      name: "Buy Free Spins",
-      cost: "100× bet",
-      text: "Buy straight into the Free Spins feature."
+      name: t("MODE_BUY_FREE_SPINS_NAME"),
+      cost: t("MODE_BUY_FREE_SPINS_COST"),
+      text: t("MODE_BUY_FREE_SPINS_TEXT")
     },
     {
-      name: "Super Spins",
-      cost: "20× bet",
-      text: "One single spin with the Eye guaranteed — no bonus round."
+      name: t("MODE_SUPER_SPINS_NAME"),
+      cost: t("MODE_SUPER_SPINS_COST"),
+      text: t("MODE_SUPER_SPINS_TEXT")
     },
     {
-      name: "Super Bonus",
-      cost: "500× bet",
-      text: "Free Spins with the Gaze charging twice as fast and MULTIPLY Eyes common."
+      name: t("MODE_SUPER_BONUS_NAME"),
+      cost: t("MODE_SUPER_BONUS_COST"),
+      text: t("MODE_SUPER_BONUS_TEXT")
     },
     {
-      name: "Ultimate",
-      cost: "300× bet",
-      text: "One spin with several Eyes at once that combine — huge or nothing."
+      name: t("MODE_ULTIMATE_NAME"),
+      cost: t("MODE_ULTIMATE_COST"),
+      text: t("MODE_ULTIMATE_TEXT")
     }
   ];
   function symIcon($$payload2, name, size = 30) {
@@ -20759,45 +20921,46 @@ function GameInfo($$payload, $$props) {
     const s = size / CELL_W;
     $$payload2.out += `<span class="sym-icon svelte-73l26x"${attr("style", `width:${stringify(CELL_W * s)}px; height:${stringify(CELL_H * s)}px; background-image:url('${stringify(ATLAS)}'); background-size:${stringify(ATLAS_W * s)}px ${stringify(ATLAS_H * s)}px; background-position:${stringify(-fx * s)}px ${stringify(-fy * s)}px;`)}></span>`;
   }
+  const each_array = ensure_array_like(steps);
   function payColumn($$payload2, title, list, high) {
-    const each_array = ensure_array_like(list);
-    $$payload2.out += `<div${attr("class", to_class("pay-col", "svelte-73l26x", { "high": high }))}><h3 class="svelte-73l26x">${escape_html(title)}</h3> <table class="svelte-73l26x"><thead><tr><th class="sym svelte-73l26x">Symbol</th><th class="svelte-73l26x">8–9</th><th class="svelte-73l26x">10–11</th><th class="svelte-73l26x">12+</th></tr></thead><tbody class="svelte-73l26x"><!--[-->`;
-    for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-      let s = each_array[$$index];
+    const each_array_1 = ensure_array_like(list);
+    $$payload2.out += `<div${attr("class", to_class("pay-col", "svelte-73l26x", { "high": high }))}><h3 class="svelte-73l26x">${escape_html(title)}</h3> <table class="svelte-73l26x"><thead><tr><th class="sym svelte-73l26x">${escape_html(copy.paytableSymbolHeader)}</th><th class="svelte-73l26x">${escape_html(copy.paytableCount8To9)}</th><th class="svelte-73l26x">${escape_html(copy.paytableCount10To11)}</th><th class="svelte-73l26x">${escape_html(copy.paytableCount12Plus)}</th></tr></thead><tbody class="svelte-73l26x"><!--[-->`;
+    for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+      let s = each_array_1[$$index_1];
       $$payload2.out += `<tr class="svelte-73l26x"><td class="sym svelte-73l26x">`;
       symIcon($$payload2, s.sym);
       $$payload2.out += `<!----><span>${escape_html(s.name)}</span></td><td class="svelte-73l26x">${escape_html(s.pays[0])}</td><td class="svelte-73l26x">${escape_html(s.pays[1])}</td><td class="svelte-73l26x">${escape_html(s.pays[2])}</td></tr>`;
     }
     $$payload2.out += `<!--]--></tbody></table></div>`;
   }
-  const each_array_1 = ensure_array_like(modes);
-  $$payload.out += `<div class="game-info svelte-73l26x"><header class="svelte-73l26x"><h1 class="svelte-73l26x">ABYSSAL</h1> <p class="tag svelte-73l26x">DEEP-SEA TUMBLE SLOT</p></header> <p class="lead svelte-73l26x">Symbols drop onto a <strong class="svelte-73l26x">6×5 board</strong>. You win whenever <strong class="svelte-73l26x">8 or more of the
-		same symbol</strong> land <strong class="svelte-73l26x">anywhere</strong> — no paylines. Winners burst and new
-		symbols tumble in, which can chain into more wins from a single spin.
-		There is <strong class="svelte-73l26x">no wild</strong>; the <strong class="svelte-73l26x">Eye</strong> is the sole multiplier.</p> <section class="svelte-73l26x"><h2 class="svelte-73l26x">How a spin plays</h2> <ol class="steps svelte-73l26x"><li class="svelte-73l26x">The board fills with 30 symbols.</li> <li class="svelte-73l26x">Any symbol with 8+ on the board wins and bursts.</li> <li class="svelte-73l26x">Symbols above fall and new ones drop in — a <strong class="svelte-73l26x">tumble</strong>.</li> <li class="svelte-73l26x">Wins are checked again, repeating until a drop pays nothing.</li></ol></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">Paytable</h2> <p class="note svelte-73l26x">Pays are a multiple of your bet, by how many land — before any Eye multiplier.</p> <div class="paytables svelte-73l26x">`;
-  payColumn($$payload, "High symbols", highs, true);
+  const each_array_2 = ensure_array_like(freeSpinBullets);
+  const each_array_3 = ensure_array_like(modes);
+  $$payload.out += `<div class="game-info svelte-73l26x"><header class="svelte-73l26x"><h1 class="svelte-73l26x">${escape_html(copy.title)}</h1> <p class="tag svelte-73l26x">${escape_html(copy.tagline)}</p></header> <p class="lead svelte-73l26x">${html(copy.leadHtml)}</p> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.howSpinPlaysTitle)}</h2> <ol class="steps svelte-73l26x"><!--[-->`;
+  for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+    let step = each_array[$$index];
+    $$payload.out += `<li class="svelte-73l26x">${html(step)}</li>`;
+  }
+  $$payload.out += `<!--]--></ol></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.paytableTitle)}</h2> <p class="note svelte-73l26x">${escape_html(copy.paytableNote)}</p> <div class="paytables svelte-73l26x">`;
+  payColumn($$payload, copy.paytableHighSymbols, highs, true);
   $$payload.out += `<!----> `;
-  payColumn($$payload, "Low symbols", lows, false);
-  $$payload.out += `<!----></div></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">Special symbols</h2> <div class="specials svelte-73l26x"><div class="special svelte-73l26x">`;
+  payColumn($$payload, copy.paytableLowSymbols, lows, false);
+  $$payload.out += `<!----></div></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.specialSymbolsTitle)}</h2> <div class="specials svelte-73l26x"><div class="special svelte-73l26x">`;
   symIcon($$payload, "SCATTER", 56);
-  $$payload.out += `<!----> <div class="special-name svelte-73l26x">Leviathan — Scatter</div> <p class="svelte-73l26x"><strong class="svelte-73l26x">4+</strong> triggers Free Spins and pays instantly: <strong class="svelte-73l26x">4 = 3×</strong>, <strong class="svelte-73l26x">5 = 5×</strong>, <strong class="svelte-73l26x">6 = 100×</strong>.</p></div> <div class="special svelte-73l26x">`;
+  $$payload.out += `<!----> <div class="special-name svelte-73l26x">${escape_html(copy.specialScatterName)}</div> <p class="svelte-73l26x">${html(copy.specialScatterDescriptionHtml)}</p></div> <div class="special svelte-73l26x">`;
   symIcon($$payload, "ADD_EYE", 56);
-  $$payload.out += `<!----> <div class="special-name svelte-73l26x">ADD Eye</div> <p class="svelte-73l26x">Common. Multiplier = <strong class="svelte-73l26x">start + Gaze</strong>.</p></div> <div class="special svelte-73l26x">`;
+  $$payload.out += `<!----> <div class="special-name svelte-73l26x">${escape_html(copy.specialAddEyeName)}</div> <p class="svelte-73l26x">${html(copy.specialAddEyeDescriptionHtml)}</p></div> <div class="special svelte-73l26x">`;
   symIcon($$payload, "MULT_EYE", 56);
-  $$payload.out += `<!----> <div class="special-name svelte-73l26x">MULTIPLY Eye</div> <p class="svelte-73l26x">Rare &amp; explosive. Multiplier = <strong class="svelte-73l26x">start × Gaze</strong>.</p></div></div></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">The Eye &amp; the Gaze</h2> <p class="svelte-73l26x">Every winning tumble charges the <strong class="svelte-73l26x">Gaze</strong> by 1. If an <strong class="svelte-73l26x">Eye</strong> is
-			on the board at the end of a winning spin, it turns the Gaze into one big multiplier applied
-			to everything you won that spin.</p> <p class="note svelte-73l26x">Example: a 2× win with a Gaze of 3 and an ADD Eye starting at 10 → ×13 → pays 26×.
-			A MULTIPLY Eye → ×30 → pays 60×.</p></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">Free Spins</h2> <ul class="bullets svelte-73l26x"><li class="svelte-73l26x">Land <strong class="svelte-73l26x">4+ Leviathan (Scatter)</strong> — they can drop mid-tumble — to trigger.</li> <li class="svelte-73l26x">You get a flat <strong class="svelte-73l26x">15 free spins</strong>.</li> <li class="svelte-73l26x">A <strong class="svelte-73l26x">banked multiplier</strong> starts at ×1 and only grows, paying off on Eye spins.</li> <li class="svelte-73l26x">Retrigger with 3+ Scatters for <strong class="svelte-73l26x">+5 spins</strong> (up to 30).</li></ul></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">Ways to play</h2> <div class="modes svelte-73l26x"><!--[-->`;
-  for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
-    let m = each_array_1[$$index_1];
+  $$payload.out += `<!----> <div class="special-name svelte-73l26x">${escape_html(copy.specialMultEyeName)}</div> <p class="svelte-73l26x">${html(copy.specialMultEyeDescriptionHtml)}</p></div></div></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${html(copy.eyeGazeTitle)}</h2> <p class="svelte-73l26x">${html(copy.eyeGazeDescriptionHtml)}</p> <p class="note svelte-73l26x">${html(copy.eyeGazeExampleHtml)}</p></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.freeSpinsTitle)}</h2> <ul class="bullets svelte-73l26x"><!--[-->`;
+  for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
+    let bullet = each_array_2[$$index_2];
+    $$payload.out += `<li class="svelte-73l26x">${html(bullet)}</li>`;
+  }
+  $$payload.out += `<!--]--></ul></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.waysToPlayTitle)}</h2> <div class="modes svelte-73l26x"><!--[-->`;
+  for (let $$index_3 = 0, $$length = each_array_3.length; $$index_3 < $$length; $$index_3++) {
+    let m = each_array_3[$$index_3];
     $$payload.out += `<div class="mode svelte-73l26x"><div class="mode-head svelte-73l26x"><span class="mode-name svelte-73l26x">${escape_html(m.name)}</span><span class="mode-cost svelte-73l26x">${escape_html(m.cost)}</span></div> <p class="svelte-73l26x">${escape_html(m.text)}</p></div>`;
   }
-  $$payload.out += `<!--]--></div></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">General Disclaimer</h2> <p class="disclaimer svelte-73l26x">Malfunction voids all wins and plays. A consistent internet connection is required. In the
-			event of a disconnection, reload the game to finish any uncompleted rounds. The expected
-			return is calculated over many plays. The game display is not representative of any physical
-			device and is for illustrative purposes only. Winnings are settled according to the amount
-			received from the Remote Game Server and not from events within the web browser. TM and ©
-			2026 Stake Engine.</p></section></div>`;
+  $$payload.out += `<!--]--></div></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.generalDisclaimerTitle)}</h2> <p class="disclaimer svelte-73l26x">${html(copy.generalDisclaimerHtml)}</p></section></div>`;
   pop();
 }
 function BuyBonusModal($$payload, $$props) {
@@ -20827,43 +20990,43 @@ function BuyBonusModal($$payload, $$props) {
       onclose: close,
       children: ($$payload2) => {
         const each_array = ensure_array_like(cards);
-        $$payload2.out += `<div class="buy-modal svelte-1edcu2"><div class="bm-bet svelte-1edcu2"><span class="bm-bet-label svelte-1edcu2">BET</span> <div class="bm-stepper svelte-1edcu2"><button class="bm-step svelte-1edcu2"${attr("disabled", decDisabled, true)} aria-label="decrease bet">−</button> <span class="bm-bet-value svelte-1edcu2">${escape_html(money(stateBet$1.betAmount))}</span> <button class="bm-step svelte-1edcu2"${attr("disabled", incDisabled, true)} aria-label="increase bet">+</button></div></div> <div class="bm-grid svelte-1edcu2"><!--[-->`;
+        $$payload2.out += `<div class="buy-modal svelte-1cghchn"><div class="bm-bet svelte-1cghchn"><span class="bm-bet-label svelte-1cghchn">BET</span> <div class="bm-stepper svelte-1cghchn"><button class="bm-step svelte-1cghchn"${attr("disabled", decDisabled, true)} aria-label="decrease bet">−</button> <span class="bm-bet-value svelte-1cghchn">${escape_html(money(stateBet$1.betAmount))}</span> <button class="bm-step svelte-1cghchn"${attr("disabled", incDisabled, true)} aria-label="increase bet">+</button></div></div> <div class="bm-grid svelte-1cghchn"><!--[-->`;
         for (let $$index_1 = 0, $$length = each_array.length; $$index_1 < $$length; $$index_1++) {
           let m = each_array[$$index_1];
           const activate = isActivate(m);
           const active = activate && isActive(m);
           const each_array_1 = ensure_array_like(BOLTS);
-          $$payload2.out += `<div${attr("class", to_class("bm-card", "svelte-1edcu2", { "active": active }))}><div class="bm-hero svelte-1edcu2">`;
+          $$payload2.out += `<div${attr("class", to_class("bm-card", "svelte-1cghchn", { "active": active }))}><div class="bm-hero svelte-1cghchn">`;
           if (heroOf(m)) {
             $$payload2.out += "<!--[-->";
-            $$payload2.out += `<img${attr("src", heroOf(m))}${attr("alt", m.text.title)} class="svelte-1edcu2">`;
+            $$payload2.out += `<img${attr("src", heroOf(m))}${attr("alt", m.text.title)} class="svelte-1cghchn">`;
           } else {
             $$payload2.out += "<!--[!-->";
           }
           $$payload2.out += `<!--]--> `;
           if (active) {
             $$payload2.out += "<!--[-->";
-            $$payload2.out += `<div class="bm-badge svelte-1edcu2">ACTIVE</div>`;
+            $$payload2.out += `<div class="bm-badge svelte-1cghchn">ACTIVE</div>`;
           } else {
             $$payload2.out += "<!--[!-->";
           }
-          $$payload2.out += `<!--]--></div> <div class="bm-panel svelte-1edcu2"><div class="bm-bolts svelte-1edcu2"><!--[-->`;
+          $$payload2.out += `<!--]--></div> <div class="bm-panel svelte-1cghchn"><div class="bm-bolts svelte-1cghchn"><!--[-->`;
           for (let $$index = 0, $$length2 = each_array_1.length; $$index < $$length2; $$index++) {
             let i = each_array_1[$$index];
-            $$payload2.out += `<svg${attr("class", to_class("bolt", "svelte-1edcu2", { "on": i < volatilityOf(m) }))} viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z" class="svelte-1edcu2"></path></svg>`;
+            $$payload2.out += `<svg${attr("class", to_class("bolt", "svelte-1cghchn", { "on": i < volatilityOf(m) }))} viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z" class="svelte-1cghchn"></path></svg>`;
           }
-          $$payload2.out += `<!--]--></div> <div class="bm-title svelte-1edcu2">${escape_html(m.text.title)}</div> <div class="bm-price svelte-1edcu2">${escape_html(money(costOf(m)))}</div> `;
+          $$payload2.out += `<!--]--></div> <div class="bm-title svelte-1cghchn">${escape_html(m.text.title)}</div> <div class="bm-price svelte-1cghchn">${escape_html(money(costOf(m)))}</div> `;
           if (activate && active) {
             $$payload2.out += "<!--[-->";
-            $$payload2.out += `<button class="bm-action activate on svelte-1edcu2">DEACTIVATE</button>`;
+            $$payload2.out += `<button class="bm-action activate on svelte-1cghchn">DEACTIVATE</button>`;
           } else {
             $$payload2.out += "<!--[!-->";
             if (activate) {
               $$payload2.out += "<!--[-->";
-              $$payload2.out += `<button class="bm-action activate svelte-1edcu2"${attr("disabled", !affordable(m), true)}>ACTIVATE</button>`;
+              $$payload2.out += `<button class="bm-action activate svelte-1cghchn"${attr("disabled", !affordable(m), true)}>ACTIVATE</button>`;
             } else {
               $$payload2.out += "<!--[!-->";
-              $$payload2.out += `<button class="bm-action buy svelte-1edcu2"${attr("disabled", !affordable(m), true)}>${escape_html(affordable(m) ? "BUY" : "LOW FUNDS")}</button>`;
+              $$payload2.out += `<button class="bm-action buy svelte-1cghchn"${attr("disabled", !affordable(m), true)}>${escape_html(affordable(m) ? "BUY" : "LOW FUNDS")}</button>`;
             }
             $$payload2.out += `<!--]-->`;
           }
@@ -20959,9 +21122,6 @@ function Game($$payload, $$props) {
             MainContainer($$payload3, {
               children: ($$payload4) => {
                 Eye($$payload4);
-                $$payload4.out += `<!----> `;
-                PersistentMultiplier($$payload4);
-                $$payload4.out += `<!---->`;
               },
               $$slots: { default: true }
             });
@@ -20977,8 +21137,6 @@ function Game($$payload, $$props) {
             }
             $$payload3.out += `<!--]--> `;
             Win($$payload3);
-            $$payload3.out += `<!----> `;
-            ScatterPay($$payload3);
             $$payload3.out += `<!----> `;
             WinCapCelebration($$payload3);
             $$payload3.out += `<!----> `;
@@ -21042,6 +21200,7 @@ function Game($$payload, $$props) {
 function AbyssalPixiLogo($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
+  new URL("../../assets/fonts/abyssal_bitmap_font_package/abyssal_font.fnt", import.meta.url).href;
   $$payload.out += `<div class="abyssal-pixi-logo svelte-1sswcpt" role="img"${attr("aria-label", props.title)}></div>`;
   pop();
 }
@@ -21054,17 +21213,16 @@ function AbyssalLoader($$payload, $$props) {
   const ready = context2.stateApp.loaded || progress >= 100;
   const copy = {
     logo: i18nDerived.loaderLogo(),
+    cta: i18nDerived.loaderCta(),
+    loading: i18nDerived.loaderLoading(),
+    previousCard: i18nDerived.loaderPreviousCard(),
+    nextCard: i18nDerived.loaderNextCard(),
     card1Title: i18nDerived.loaderCard1Title(),
     card1Body: i18nDerived.loaderCard1Body(),
     card2Title: i18nDerived.loaderCard2Title(),
     card2Body: i18nDerived.loaderCard2Body(),
     card3Title: i18nDerived.loaderCard3Title(),
-    card3Body: i18nDerived.loaderCard3Body(),
-    cta: i18nDerived.loaderCta(),
-    loading: i18nDerived.loaderLoading(),
-    cardsLabel: i18nDerived.loaderCardsLabel(),
-    previousCard: i18nDerived.loaderPreviousCard(),
-    nextCard: i18nDerived.loaderNextCard()
+    card3Body: i18nDerived.loaderCard3Body()
   };
   const backgroundUrl = new URL("../../assets/background/base.webp", import.meta.url).href;
   new URL("../../assets/fonts/Cinzel/Cinzel-VariableFont_wght.ttf", import.meta.url).href;
@@ -21089,25 +21247,35 @@ function AbyssalLoader($$payload, $$props) {
     $$payload.out += "<!--[-->";
     const each_array = ensure_array_like(Array.from({ length: 28 }));
     const each_array_1 = ensure_array_like(cards);
-    $$payload.out += `<div${attr("class", to_class("abyssal-loader", "svelte-zmtehn", { "ready": ready, "leaving": leaving }))} role="button" tabindex="0"${attr("aria-label", ready ? copy.cta : copy.loading)}><div class="loader-stage svelte-zmtehn"><div class="background svelte-zmtehn" aria-hidden="true"${attr("style", `background-image: url(${backgroundUrl})`)}></div> <div class="vignette svelte-zmtehn" aria-hidden="true"></div> <div class="light-rays svelte-zmtehn" aria-hidden="true"></div> <div class="bubbles svelte-zmtehn" aria-hidden="true"><!--[-->`;
+    const each_array_2 = ensure_array_like(cards);
+    $$payload.out += `<div${attr("class", to_class("abyssal-loader", "svelte-pm00y7", { "ready": ready, "leaving": leaving }))} role="button" tabindex="0"${attr("aria-label", ready ? copy.cta : copy.loading)}><div class="loader-stage svelte-pm00y7"><div class="background svelte-pm00y7" aria-hidden="true"${attr("style", `background-image: url(${backgroundUrl})`)}></div> <div class="vignette svelte-pm00y7" aria-hidden="true"></div> <div class="light-rays svelte-pm00y7" aria-hidden="true"></div> <div class="bubbles svelte-pm00y7" aria-hidden="true"><!--[-->`;
     for (let index = 0, $$length = each_array.length; index < $$length; index++) {
       each_array[index];
-      $$payload.out += `<i${attr("style", `--i: ${index}`)} class="svelte-zmtehn"></i>`;
+      $$payload.out += `<i${attr("style", `--i: ${index}`)} class="svelte-pm00y7"></i>`;
     }
-    $$payload.out += `<!--]--></div> <header class="loader-header svelte-zmtehn">`;
+    $$payload.out += `<!--]--></div> <header class="loader-header svelte-pm00y7">`;
     AbyssalPixiLogo($$payload, { title: copy.logo });
-    $$payload.out += `<!----></header> <div class="cards svelte-zmtehn"><!--[-->`;
+    $$payload.out += `<!----></header> <div class="cards-grid svelte-pm00y7"><!--[-->`;
     for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
       let card = each_array_1[$$index_1];
-      $$payload.out += `<article class="how-card svelte-zmtehn"><img class="card-art svelte-zmtehn"${attr("src", card.art)} alt=""> <div class="card-shade svelte-zmtehn"></div> <div class="card-copy svelte-zmtehn"><h2 class="svelte-zmtehn">${escape_html(card.title)}</h2> <p class="svelte-zmtehn">${escape_html(card.body)}</p></div></article>`;
+      $$payload.out += `<article class="info-card svelte-pm00y7"><img class="card-icon svelte-pm00y7"${attr("src", card.art)} alt=""> <h2 class="svelte-pm00y7">${escape_html(card.title)}</h2> <p class="svelte-pm00y7">${escape_html(card.body)}</p></article>`;
     }
-    $$payload.out += `<!--]--></div> <div class="card-navigation svelte-zmtehn"${attr("aria-label", copy.cardsLabel)}><button class="carousel-arrow previous svelte-zmtehn" type="button"${attr("aria-label", copy.previousCard)}${attr("disabled", activeCard === 0, true)}>‹</button> <button class="carousel-arrow next svelte-zmtehn" type="button"${attr("aria-label", copy.nextCard)}${attr("disabled", activeCard === cards.length - 1, true)}>›</button></div> <div class="loader-gate svelte-zmtehn">`;
+    $$payload.out += `<!--]--></div> <div class="carousel svelte-pm00y7" aria-live="polite"><button class="carousel-arrow previous svelte-pm00y7" type="button"${attr("aria-label", copy.previousCard)}>‹</button> <!---->`;
+    {
+      $$payload.out += `<div class="slide svelte-pm00y7"><img class="slide-icon svelte-pm00y7"${attr("src", cards[activeCard].art)} alt=""> <div class="slide-text svelte-pm00y7"><h2 class="svelte-pm00y7">${escape_html(cards[activeCard].title)}</h2> <p class="svelte-pm00y7">${escape_html(cards[activeCard].body)}</p></div></div>`;
+    }
+    $$payload.out += `<!----> <button class="carousel-arrow next svelte-pm00y7" type="button"${attr("aria-label", copy.nextCard)}>›</button> <div class="carousel-dots svelte-pm00y7" aria-hidden="true"><!--[-->`;
+    for (let index = 0, $$length = each_array_2.length; index < $$length; index++) {
+      each_array_2[index];
+      $$payload.out += `<i${attr("class", to_class("", "svelte-pm00y7", { "active": index === activeCard }))}></i>`;
+    }
+    $$payload.out += `<!--]--></div></div> <div class="loader-gate svelte-pm00y7">`;
     if (ready) {
       $$payload.out += "<!--[-->";
-      $$payload.out += `<div class="cta svelte-zmtehn">${escape_html(copy.cta)}</div>`;
+      $$payload.out += `<span class="cta svelte-pm00y7">${escape_html(copy.cta)}</span>`;
     } else {
       $$payload.out += "<!--[!-->";
-      $$payload.out += `<div class="progress svelte-zmtehn"><div class="progress-fill svelte-zmtehn"${attr("style", `width: ${progress}%`)}></div></div> <span class="svelte-zmtehn">${escape_html(copy.loading)} ${escape_html(progress)}%</span>`;
+      $$payload.out += `<div class="progress svelte-pm00y7"><div class="progress-fill svelte-pm00y7"${attr("style", `width: ${progress}%`)}></div></div> <span class="loading-label svelte-pm00y7">${escape_html(copy.loading)} ${escape_html(progress)}%</span>`;
     }
     $$payload.out += `<!--]--></div></div></div>`;
   }
@@ -21134,7 +21302,95 @@ const en = {
   LOADER_PREVIOUS_CARD: "Previous card",
   LOADER_NEXT_CARD: "Next card",
   FREE_SPINS_TAP_TO_PLAY: "TAP ANYWHERE TO PLAY",
-  FREE_SPINS_TAP_TO_SKIP: "TAP ANYWHERE TO SKIP"
+  FREE_SPINS_TAP_TO_SKIP: "TAP ANYWHERE TO SKIP",
+  GAME_INFO_TITLE: "ABYSSAL",
+  GAME_INFO_TAGLINE: "DEEP-SEA TUMBLE SLOT",
+  GAME_INFO_LEAD_HTML: "Symbols drop onto a <strong>6&times;5 board</strong>. You win whenever <strong>8 or more of the same symbol</strong> land <strong>anywhere</strong> &ndash; no paylines. Winners burst and new symbols tumble in, which can chain into more wins from a single spin. There is <strong>no wild</strong>; the <strong>Eye</strong> is the sole multiplier.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "How a spin plays",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "The board fills with 30 symbols.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "Any symbol with 8+ on the board wins and bursts.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "Symbols above fall and new ones drop in &ndash; a <strong>tumble</strong>.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Wins are checked again, repeating until a drop pays nothing.",
+  GAME_INFO_PAYTABLE_TITLE: "Paytable",
+  GAME_INFO_PAYTABLE_NOTE: "Pays are a multiple of your bet, by how many land - before any Eye multiplier.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "High symbols",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "Low symbols",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "Symbol",
+  GAME_INFO_PAYTABLE_COUNT_8_TO_9: "8-9",
+  GAME_INFO_PAYTABLE_COUNT_10_TO_11: "10-11",
+  GAME_INFO_PAYTABLE_COUNT_12_PLUS: "12+",
+  GAME_INFO_SYMBOL_H1: "Anglerfish",
+  GAME_INFO_SYMBOL_H2: "Nautilus",
+  GAME_INFO_SYMBOL_H3: "Diving Helmet",
+  GAME_INFO_SYMBOL_H4: "Jellyfish",
+  GAME_INFO_SYMBOL_L1: "Cyan gem",
+  GAME_INFO_SYMBOL_L2: "Teal gem",
+  GAME_INFO_SYMBOL_L3: "Sapphire gem",
+  GAME_INFO_SYMBOL_L4: "Violet gem",
+  GAME_INFO_SYMBOL_L5: "Aqua gem",
+  GAME_INFO_PAY_H1_8_TO_9: "10.00x",
+  GAME_INFO_PAY_H1_10_TO_11: "25.00x",
+  GAME_INFO_PAY_H1_12_PLUS: "50.00x",
+  GAME_INFO_PAY_H2_8_TO_9: "2.50x",
+  GAME_INFO_PAY_H2_10_TO_11: "10.00x",
+  GAME_INFO_PAY_H2_12_PLUS: "25.00x",
+  GAME_INFO_PAY_H3_8_TO_9: "2.00x",
+  GAME_INFO_PAY_H3_10_TO_11: "5.00x",
+  GAME_INFO_PAY_H3_12_PLUS: "15.00x",
+  GAME_INFO_PAY_H4_8_TO_9: "1.50x",
+  GAME_INFO_PAY_H4_10_TO_11: "2.00x",
+  GAME_INFO_PAY_H4_12_PLUS: "12.00x",
+  GAME_INFO_PAY_L1_8_TO_9: "1.00x",
+  GAME_INFO_PAY_L1_10_TO_11: "1.50x",
+  GAME_INFO_PAY_L1_12_PLUS: "10.00x",
+  GAME_INFO_PAY_L2_8_TO_9: "0.80x",
+  GAME_INFO_PAY_L2_10_TO_11: "1.20x",
+  GAME_INFO_PAY_L2_12_PLUS: "8.00x",
+  GAME_INFO_PAY_L3_8_TO_9: "0.50x",
+  GAME_INFO_PAY_L3_10_TO_11: "1.00x",
+  GAME_INFO_PAY_L3_12_PLUS: "8.00x",
+  GAME_INFO_PAY_L4_8_TO_9: "0.40x",
+  GAME_INFO_PAY_L4_10_TO_11: "0.90x",
+  GAME_INFO_PAY_L4_12_PLUS: "6.00x",
+  GAME_INFO_PAY_L5_8_TO_9: "0.20x",
+  GAME_INFO_PAY_L5_10_TO_11: "0.70x",
+  GAME_INFO_PAY_L5_12_PLUS: "5.00x",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Special symbols",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> triggers Free Spins and pays instantly: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong>.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Common. Multiplier = <strong>start&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Rare &amp; explosive. Multiplier = <strong>start&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "The Eye &amp; the Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Every winning tumble charges the <strong>Gaze</strong> by 1. If an <strong>Eye</strong> is on the board at the end of a winning spin, it turns the Gaze into one big multiplier applied to everything you won that spin.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Example: a 2x win with a Gaze of 3 and an ADD Eye starting at 10 &rarr; x13 &rarr; pays 26x. A MULTIPLY Eye &rarr; x30 &rarr; pays 60x.",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Land <strong>4+ Leviathan (Scatter)</strong> - they can drop mid-tumble - to trigger.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "You get a flat <strong>15 free spins</strong>.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "A <strong>banked multiplier</strong> starts at x1 and only grows, paying off on Eye spins.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "Retrigger with 3+ Scatters for <strong>+5 spins</strong> (up to 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "Ways to play",
+  GAME_INFO_MODE_BASE_NAME: "Base",
+  GAME_INFO_MODE_BASE_COST: "1x bet",
+  GAME_INFO_MODE_BASE_TEXT: "The standard game. The Eye is rare, mostly the friendly ADD type.",
+  GAME_INFO_MODE_ANTE_NAME: "Ante",
+  GAME_INFO_MODE_ANTE_COST: "1.25x bet",
+  GAME_INFO_MODE_ANTE_TEXT: "Pay 25% more for more frequent Eyes and Scatters.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Buy Free Spins",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "100x bet",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Buy straight into the Free Spins feature.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "20x bet",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "One single spin with the Eye guaranteed - no bonus round.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "500x bet",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins with the Gaze charging twice as fast and MULTIPLY Eyes common.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "300x bet",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "One spin with several Eyes at once that combine - huge or nothing.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "General Disclaimer",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. The expected return is calculated over many plays. The game display is not representative of any physical device and is for illustrative purposes only. Winnings are settled according to the amount received from the Remote Game Server and not from events within the web browser. TM and &copy; 2026 Stake Engine."
 };
 const zh = {
   HOME: "主页",
@@ -21152,7 +21408,95 @@ const zh = {
   LOADER_PREVIOUS_CARD: "上一张卡片",
   LOADER_NEXT_CARD: "下一张卡片",
   FREE_SPINS_TAP_TO_PLAY: "点击任意处开始",
-  FREE_SPINS_TAP_TO_SKIP: "点击任意处跳过"
+  FREE_SPINS_TAP_TO_SKIP: "点击任意处跳过",
+  GAME_INFO_TITLE: "ABYSSAL",
+  GAME_INFO_TAGLINE: "深海连消老虎机",
+  GAME_INFO_LEAD_HTML: "符号会落入 <strong>6&times;5 盘面</strong>。只要<strong>任意位置</strong>出现 <strong>8 个或更多相同符号</strong>即可获胜，无需 paylines。获胜符号会爆开，新符号继续下落，单次旋转可连锁产生更多赢分。游戏中<strong>没有百搭符号</strong>；<strong>眼睛</strong>是唯一倍数来源。",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "旋转流程",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "盘面填充 30 个符号。",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "盘面上任一符号达到 8 个以上即获胜并爆开。",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "上方符号下落，新符号补入，形成一次 <strong>连消</strong>。",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "再次检测赢分，直到某次下落没有产生赢分为止。",
+  GAME_INFO_PAYTABLE_TITLE: "赔付表",
+  GAME_INFO_PAYTABLE_NOTE: "赔付按下注倍数计算，根据落下数量决定，未计入任何眼睛倍数。",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "高价值符号",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "低价值符号",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "符号",
+  GAME_INFO_PAYTABLE_COUNT_8_TO_9: "8-9",
+  GAME_INFO_PAYTABLE_COUNT_10_TO_11: "10-11",
+  GAME_INFO_PAYTABLE_COUNT_12_PLUS: "12+",
+  GAME_INFO_SYMBOL_H1: "鮟鱇鱼",
+  GAME_INFO_SYMBOL_H2: "鹦鹉螺",
+  GAME_INFO_SYMBOL_H3: "潜水头盔",
+  GAME_INFO_SYMBOL_H4: "水母",
+  GAME_INFO_SYMBOL_L1: "青色宝石",
+  GAME_INFO_SYMBOL_L2: "蓝绿色宝石",
+  GAME_INFO_SYMBOL_L3: "蓝宝石",
+  GAME_INFO_SYMBOL_L4: "紫色宝石",
+  GAME_INFO_SYMBOL_L5: "水蓝宝石",
+  GAME_INFO_PAY_H1_8_TO_9: "10.00x",
+  GAME_INFO_PAY_H1_10_TO_11: "25.00x",
+  GAME_INFO_PAY_H1_12_PLUS: "50.00x",
+  GAME_INFO_PAY_H2_8_TO_9: "2.50x",
+  GAME_INFO_PAY_H2_10_TO_11: "10.00x",
+  GAME_INFO_PAY_H2_12_PLUS: "25.00x",
+  GAME_INFO_PAY_H3_8_TO_9: "2.00x",
+  GAME_INFO_PAY_H3_10_TO_11: "5.00x",
+  GAME_INFO_PAY_H3_12_PLUS: "15.00x",
+  GAME_INFO_PAY_H4_8_TO_9: "1.50x",
+  GAME_INFO_PAY_H4_10_TO_11: "2.00x",
+  GAME_INFO_PAY_H4_12_PLUS: "12.00x",
+  GAME_INFO_PAY_L1_8_TO_9: "1.00x",
+  GAME_INFO_PAY_L1_10_TO_11: "1.50x",
+  GAME_INFO_PAY_L1_12_PLUS: "10.00x",
+  GAME_INFO_PAY_L2_8_TO_9: "0.80x",
+  GAME_INFO_PAY_L2_10_TO_11: "1.20x",
+  GAME_INFO_PAY_L2_12_PLUS: "8.00x",
+  GAME_INFO_PAY_L3_8_TO_9: "0.50x",
+  GAME_INFO_PAY_L3_10_TO_11: "1.00x",
+  GAME_INFO_PAY_L3_12_PLUS: "8.00x",
+  GAME_INFO_PAY_L4_8_TO_9: "0.40x",
+  GAME_INFO_PAY_L4_10_TO_11: "0.90x",
+  GAME_INFO_PAY_L4_12_PLUS: "6.00x",
+  GAME_INFO_PAY_L5_8_TO_9: "0.20x",
+  GAME_INFO_PAY_L5_10_TO_11: "0.70x",
+  GAME_INFO_PAY_L5_12_PLUS: "5.00x",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "特殊符号",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "利维坦 - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> 个触发免费旋转并立即赔付：<strong>4 = 3x</strong>、<strong>5 = 5x</strong>、<strong>6 = 100x</strong>。",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD 眼睛",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "常见。倍数 = <strong>初始值&nbsp;+&nbsp;凝视</strong>。",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY 眼睛",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "稀有且爆发力强。倍数 = <strong>初始值&nbsp;&times;&nbsp;凝视</strong>。",
+  GAME_INFO_EYE_GAZE_TITLE: "眼睛 &amp; 凝视",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "每次获胜连消都会让<strong>凝视</strong>增加 1。若获胜旋转结束时盘面上有<strong>眼睛</strong>，它会将凝视转化为一个大倍数，作用于该次旋转赢得的全部金额。",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "示例：2x 赢分，凝视为 3，ADD 眼睛初始值为 10 &rarr; x13 &rarr; 支付 26x。MULTIPLY 眼睛 &rarr; x30 &rarr; 支付 60x。",
+  GAME_INFO_FREE_SPINS_TITLE: "免费旋转",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "落下 <strong>4+ 个利维坦 (Scatter)</strong> 即触发；它们也可能在连消中途落下。",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "获得固定 <strong>15 次免费旋转</strong>。",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>累计倍数</strong>从 x1 开始，只会增长，并在眼睛旋转中结算。",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "3+ 个 Scatter 可重新触发，获得 <strong>+5 次旋转</strong>，最多 30 次。",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "玩法模式",
+  GAME_INFO_MODE_BASE_NAME: "基础",
+  GAME_INFO_MODE_BASE_COST: "1x 下注",
+  GAME_INFO_MODE_BASE_TEXT: "标准游戏。眼睛较少出现，通常为较友好的 ADD 类型。",
+  GAME_INFO_MODE_ANTE_NAME: "Ante",
+  GAME_INFO_MODE_ANTE_COST: "1.25x 下注",
+  GAME_INFO_MODE_ANTE_TEXT: "多支付 25%，提高眼睛和 Scatter 出现频率。",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "购买免费旋转",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "100x 下注",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "直接购买进入免费旋转功能。",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "超级旋转",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "20x 下注",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "单次旋转必定出现眼睛，无奖励回合。",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "超级奖励",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "500x 下注",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "免费旋转中凝视充能速度翻倍，MULTIPLY 眼睛更常见。",
+  GAME_INFO_MODE_ULTIMATE_NAME: "终极",
+  GAME_INFO_MODE_ULTIMATE_COST: "300x 下注",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "单次旋转出现多个眼睛并组合结算，可能爆发，也可能落空。",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "一般免责声明",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "故障将使所有赢分和游戏无效。需要稳定的互联网连接。如发生断线，请重新加载游戏以完成任何未完成回合。预期返还率按大量游戏计算。游戏显示不代表任何实体设备，仅用于说明。赢分以远程游戏服务器收到的金额为准，而非网页浏览器内事件。TM 和 &copy; 2026 Stake Engine。"
 };
 const messagesMapGame = {
   en,

@@ -5,12 +5,12 @@ A mesh that maps a texture onto a subdivided plane with configurable vertex dens
 ## Quick Start
 
 ```ts
-const texture = await Assets.load("background.png");
+const texture = await Assets.load('background.png');
 
 const plane = new MeshPlane({
-  texture,
-  verticesX: 10,
-  verticesY: 10,
+	texture,
+	verticesX: 10,
+	verticesY: 10,
 });
 
 app.stage.addChild(plane);
@@ -39,13 +39,13 @@ All `Container` options (`position`, `scale`, `tint`, `label`, `filters`, `zInde
 ### Deforming the vertex grid
 
 ```ts
-const { buffer } = plane.geometry.getAttribute("aPosition");
+const { buffer } = plane.geometry.getAttribute('aPosition');
 
 app.ticker.add(() => {
-  for (let i = 0; i < buffer.data.length; i++) {
-    buffer.data[i] += Math.sin(performance.now() / 1000 + i) * 0.3;
-  }
-  buffer.update();
+	for (let i = 0; i < buffer.data.length; i++) {
+		buffer.data[i] += Math.sin(performance.now() / 1000 + i) * 0.3;
+	}
+	buffer.update();
 });
 ```
 
@@ -54,7 +54,7 @@ Grab the position buffer via `getAttribute('aPosition')`, mutate the `data` arra
 ### Auto-resize on texture change
 
 ```ts
-plane.texture = await Assets.load("new-background.png");
+plane.texture = await Assets.load('new-background.png');
 ```
 
 `autoResize` defaults to `true`. When the plane's texture changes (or emits an `'update'` event), the geometry rebuilds to match the new texture dimensions. Set `autoResize = false` to keep the original size regardless of the new texture.
@@ -63,9 +63,9 @@ plane.texture = await Assets.load("new-background.png");
 
 ```ts
 const fixedPlane = new MeshPlane({
-  texture,
-  verticesX: 20,
-  verticesY: 20,
+	texture,
+	verticesX: 20,
+	verticesY: 20,
 });
 fixedPlane.autoResize = false;
 
@@ -81,9 +81,9 @@ For a plane whose size is decoupled from the texture, disable `autoResize` and s
 
 ```ts
 const smooth = new MeshPlane({
-  texture,
-  verticesX: 40,
-  verticesY: 40,
+	texture,
+	verticesX: 40,
+	verticesY: 40,
 });
 ```
 
@@ -93,16 +93,16 @@ Vertex density directly controls how smoothly the plane can deform. A 10×10 gri
 
 ```ts
 const plane = new MeshPlane({ texture, verticesX: 30, verticesY: 30 });
-const { buffer } = plane.geometry.getAttribute("aPosition");
+const { buffer } = plane.geometry.getAttribute('aPosition');
 const original = new Float32Array(buffer.data);
 
 app.ticker.add((ticker) => {
-  const t = performance.now() / 500;
-  for (let i = 0; i < buffer.data.length; i += 2) {
-    buffer.data[i] = original[i];
-    buffer.data[i + 1] = original[i + 1] + Math.sin(t + original[i] * 0.1) * 5;
-  }
-  buffer.update();
+	const t = performance.now() / 500;
+	for (let i = 0; i < buffer.data.length; i += 2) {
+		buffer.data[i] = original[i];
+		buffer.data[i + 1] = original[i + 1] + Math.sin(t + original[i] * 0.1) * 5;
+	}
+	buffer.update();
 });
 ```
 
@@ -115,19 +115,18 @@ Cache the original positions once, then offset from them each frame. Resetting t
 Wrong:
 
 ```ts
-import { SimplePlane } from "pixi.js";
+import { SimplePlane } from 'pixi.js';
 const plane = new SimplePlane(texture, 10, 10);
 ```
 
 Correct:
 
 ```ts
-import { MeshPlane } from "pixi.js";
+import { MeshPlane } from 'pixi.js';
 const plane = new MeshPlane({ texture, verticesX: 10, verticesY: 10 });
 ```
 
 `SimplePlane` was renamed to `MeshPlane` in v8 and switched to an options-object constructor.
-
 
 ### [MEDIUM] Mutating positions without calling `buffer.update()`
 
@@ -146,11 +145,9 @@ buffer.update();
 
 The buffer does not observe its own `data` array. Without `update()`, the changes stay on the CPU and the next render draws stale vertex data.
 
-
 ### [MEDIUM] High vertex density on pixel-art textures
 
 A dense grid on a small pixel-art texture can cause visible UV interpolation artifacts. Use fewer vertices (10×10 or less) for pixel art, or set `roundPixels: true` on the mesh.
-
 
 ## API Reference
 

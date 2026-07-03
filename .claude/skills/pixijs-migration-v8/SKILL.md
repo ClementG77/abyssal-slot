@@ -1,6 +1,6 @@
 ---
 name: pixijs-migration-v8
-description: "Use this skill when upgrading to PixiJS v8 from v7 or diagnosing broken v7 code after an upgrade. Covers async app.init, single pixi.js package (deprecated @pixi/* sub-packages), Graphics shape-then-fill, BaseTexture → TextureSource, shader/uniform rework, ParticleContainer+Particle, constructor options objects, DisplayObject removal, settings/utils removal, Ticker signature, events rewrite. Triggers on: migrate v7, v8 breaking changes, @pixi/ import, DisplayObject, beginFill, endFill, cacheAsBitmap, BaseTexture, deprecated."
+description: 'Use this skill when upgrading to PixiJS v8 from v7 or diagnosing broken v7 code after an upgrade. Covers async app.init, single pixi.js package (deprecated @pixi/* sub-packages), Graphics shape-then-fill, BaseTexture → TextureSource, shader/uniform rework, ParticleContainer+Particle, constructor options objects, DisplayObject removal, settings/utils removal, Ticker signature, events rewrite. Triggers on: migrate v7, v8 breaking changes, @pixi/ import, DisplayObject, beginFill, endFill, cacheAsBitmap, BaseTexture, deprecated.'
 license: MIT
 ---
 
@@ -16,9 +16,9 @@ await app.init({ width: 800, height: 600 });
 document.body.appendChild(app.canvas);
 
 const g = new Graphics()
-  .rect(0, 0, 100, 100)
-  .fill({ color: 0xff0000 })
-  .stroke({ width: 2, color: 0x000000 });
+	.rect(0, 0, 100, 100)
+	.fill({ color: 0xff0000 })
+	.stroke({ width: 2, color: 0x000000 });
 app.stage.addChild(g);
 ```
 
@@ -49,7 +49,7 @@ Fail: passing options to `new Application({...})` and using synchronously.
 **Single package** -- Expected:
 
 ```ts
-import { Sprite, Application, Assets, Graphics } from "pixi.js";
+import { Sprite, Application, Assets, Graphics } from 'pixi.js';
 ```
 
 Fail: importing from any of the deprecated v7 core `@pixi/*` sub-packages (see list below). Supplemental packages like `@pixi/sound` are still valid and should continue to be used.
@@ -60,10 +60,10 @@ Deprecated `@pixi/*` packages (never use, any version):
 **Custom builds** -- Set `skipExtensionImports: true` and import only needed extensions:
 
 ```ts
-import "pixi.js/graphics";
-import "pixi.js/text";
-import "pixi.js/events";
-import { Application } from "pixi.js";
+import 'pixi.js/graphics';
+import 'pixi.js/text';
+import 'pixi.js/events';
+import { Application } from 'pixi.js';
 await app.init({ skipExtensionImports: true });
 ```
 
@@ -103,9 +103,7 @@ Fail: `beginFill(0xff0000).drawRect(50, 50, 100, 100).endFill()`.
 **Fill replaces beginFill/beginTextureFill** -- Expected:
 
 ```ts
-graphics
-  .rect(0, 0, 100, 100)
-  .fill({ texture: Texture.WHITE, alpha: 0.5, color: 0xff0000 });
+graphics.rect(0, 0, 100, 100).fill({ texture: Texture.WHITE, alpha: 0.5, color: 0xff0000 });
 ```
 
 Fail: `beginFill(color, alpha)` or `beginTextureFill({ texture, alpha, color })`.
@@ -113,7 +111,7 @@ Fail: `beginFill(color, alpha)` or `beginTextureFill({ texture, alpha, color })`
 **Stroke replaces lineStyle** -- Expected:
 
 ```ts
-graphics.rect(0, 0, 100, 100).fill("blue").stroke({ width: 2, color: "white" });
+graphics.rect(0, 0, 100, 100).fill('blue').stroke({ width: 2, color: 'white' });
 ```
 
 Fail: `lineStyle(2, 'white')` or `lineTextureStyle({ texture, width, color })`.
@@ -141,9 +139,9 @@ Fail: `new Graphics(graphics.geometry)`.
 **Options object constructor** -- Expected:
 
 ```ts
-const text = new Text({ text: "Hello", style: { fontSize: 24 } });
-const bmp = new BitmapText({ text: "Hello", style: { fontFamily: "MyFont" } });
-const html = new HTMLText({ text: "<b>Hello</b>", style: { fontSize: 24 } });
+const text = new Text({ text: 'Hello', style: { fontSize: 24 } });
+const bmp = new BitmapText({ text: 'Hello', style: { fontFamily: 'MyFont' } });
+const html = new HTMLText({ text: '<b>Hello</b>', style: { fontSize: 24 } });
 ```
 
 Fail: `new Text('Hello', { fontSize: 24 })` (positional args).
@@ -158,11 +156,11 @@ Fail: `new Text('Hello', { fontSize: 24 })` (positional args).
 
 ```ts
 const ns = new NineSliceSprite({
-  texture,
-  leftWidth: 10,
-  topHeight: 10,
-  rightWidth: 10,
-  bottomHeight: 10,
+	texture,
+	leftWidth: 10,
+	topHeight: 10,
+	rightWidth: 10,
+	bottomHeight: 10,
 });
 ```
 
@@ -172,10 +170,10 @@ const ns = new NineSliceSprite({
 
 ```ts
 const geom = new MeshGeometry({
-  positions: vertices,
-  uvs,
-  indices,
-  topology: "triangle-list",
+	positions: vertices,
+	uvs,
+	indices,
+	topology: 'triangle-list',
 });
 ```
 
@@ -185,7 +183,7 @@ Fail: `new MeshGeometry(vertices, uvs, indices)`.
 
 ```ts
 const container = new ParticleContainer({
-  boundsArea: new Rectangle(0, 0, 800, 600),
+	boundsArea: new Rectangle(0, 0, 800, 600),
 });
 const particle = new Particle(texture);
 container.addParticle(particle);
@@ -198,10 +196,10 @@ Fail: `container.addChild(new Sprite(texture))`.
 **eventMode replaces interactive** -- Expected:
 
 ```ts
-sprite.eventMode = "static";
-sprite.cursor = "pointer";
-sprite.on("pointertap", () => {
-  /* handle */
+sprite.eventMode = 'static';
+sprite.cursor = 'pointer';
+sprite.on('pointertap', () => {
+	/* handle */
 });
 ```
 
@@ -213,7 +211,7 @@ Default `eventMode` is `'passive'` (no events). Must set `'static'` or `'dynamic
 
 ```ts
 app.ticker.add((ticker) => {
-  bunny.rotation += ticker.deltaTime;
+	bunny.rotation += ticker.deltaTime;
 });
 ```
 
@@ -227,10 +225,10 @@ Broken: `app.ticker.add((dt) => { bunny.rotation += dt; })` -- compiles but `dt`
 
 ```ts
 const shader = Shader.from({
-  gl: { vertex: vertexSrc, fragment: fragmentSrc },
-  resources: {
-    myUniforms: new UniformGroup({ uTime: { value: 0, type: "f32" } }),
-  },
+	gl: { vertex: vertexSrc, fragment: fragmentSrc },
+	resources: {
+		myUniforms: new UniformGroup({ uTime: { value: 0, type: 'f32' } }),
+	},
 });
 ```
 
@@ -240,8 +238,8 @@ Fail: `Shader.from(vertex, fragment, uniforms)`.
 
 ```ts
 const filter = new Filter({
-  glProgram: GlProgram.from({ fragment, vertex }),
-  resources: { filterUniforms: { uTime: { value: 0, type: "f32" } } },
+	glProgram: GlProgram.from({ fragment, vertex }),
+	resources: { filterUniforms: { uTime: { value: 0, type: 'f32' } } },
 });
 ```
 
@@ -265,9 +263,9 @@ sprite.onViewUpdate(); // then refresh the sprite's display
 
 ```ts
 const rt = RenderTexture.create({
-  width: 100,
-  height: 100,
-  autoGenerateMipmaps: true,
+	width: 100,
+	height: 100,
+	autoGenerateMipmaps: true,
 });
 renderer.render({ target: rt, container: scene });
 rt.source.updateMipmaps();
@@ -278,7 +276,7 @@ rt.source.updateMipmaps();
 **DOMAdapter replaces settings.ADAPTER** -- Expected:
 
 ```ts
-import { DOMAdapter, WebWorkerAdapter } from "pixi.js";
+import { DOMAdapter, WebWorkerAdapter } from 'pixi.js';
 DOMAdapter.set(WebWorkerAdapter);
 DOMAdapter.get().createCanvas();
 ```
@@ -353,18 +351,17 @@ Built-in adapters: `BrowserAdapter` (default), `WebWorkerAdapter` (for web worke
 Wrong:
 
 ```ts
-import { Sprite } from "@pixi/sprite";
-import { Application } from "@pixi/app";
+import { Sprite } from '@pixi/sprite';
+import { Application } from '@pixi/app';
 ```
 
 Correct:
 
 ```ts
-import { Sprite, Application } from "pixi.js";
+import { Sprite, Application } from 'pixi.js';
 ```
 
 v8 uses a single `pixi.js` package. The v7 core `@pixi/*` sub-packages are deprecated and must not be used (see the full list under Imports above). Supplemental packages like `@pixi/sound` are still valid.
-
 
 ### [CRITICAL] Using DisplayObject as base class
 
@@ -373,14 +370,12 @@ Correct: `class MyObject extends Container { ... }`
 
 `DisplayObject` was removed in v8. `Container` is the base class for all display objects.
 
-
 ### [HIGH] Using old SCALE_MODES/WRAP_MODES/DRAW_MODES enums
 
 Wrong: `texture.source.scaleMode = SCALE_MODES.NEAREST;`
 Correct: `texture.source.scaleMode = 'nearest';`
 
 v8 uses string values. Old enums may work as deprecated aliases but should be replaced.
-
 
 ### [HIGH] Using `interactive = true` instead of `eventMode`
 
@@ -389,7 +384,6 @@ Preferred: `sprite.eventMode = 'static';`
 
 Default `eventMode` is `'passive'` (no events). Must set `'static'` (hit-testable, no tick checks) or `'dynamic'` (hit-testable with tick checks) explicitly. `interactive = true` still works without a deprecation warning, but `eventMode` is the canonical v8 API.
 
-
 ### [HIGH] Using utils namespace
 
 Wrong: `import { utils } from 'pixi.js'; utils.isMobile.any();`
@@ -397,14 +391,12 @@ Correct: `import { isMobile } from 'pixi.js'; isMobile.any();`
 
 The `utils` namespace was removed. All utility functions are direct imports.
 
-
 ### [HIGH] Expecting texture UV changes to auto-update sprites
 
 Wrong: modifying `texture.frame` and assuming the sprite updates automatically.
 Correct: call `sprite.onViewUpdate()` after modifying texture UVs.
 
 Sprites no longer subscribe to texture UV change events for performance. Source data updates (e.g. video) still auto-reflect.
-
 
 ## API Reference
 

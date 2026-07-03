@@ -1,0 +1,183 @@
+import _ from 'lodash';
+import type { Tween } from 'svelte/motion';
+
+import { stateBet, stateBetDerived } from 'state-shared';
+import { createEnhanceBoard, createReelForCascading } from 'utils-slots';
+import { createGetWinLevelDataByWinLevelAlias } from 'utils-shared/winLevel';
+
+import type { EyeType, GameType, RawSymbol, SymbolState } from './types';
+import { winLevelMap } from './winLevelMap';
+import { eventEmitter } from './eventEmitter';
+import {
+	REEL_CELL_HEIGHT,
+	INITIAL_BOARD,
+	BOARD_DIMENSIONS,
+	SPIN_OPTIONS_DEFAULT,
+	SPIN_OPTIONS_FAST,
+	INITIAL_SYMBOL_STATE,
+	SCATTER_LAND_SOUND_MAP,
+	REEL_LAYOUT_BASE,
+	REEL_LAYOUT_FREE_SPINS,
+	getReelDisplayGrid,
+	getReelPosition,
+} from './constants';
+
+const onSymbolLand = ({ rawSymbol }: { rawSymbol: RawSymbol }) => {
+	if (rawSymbol.name === 'S') {
+		// No board jolt on a scatter land. A base book caps at 3 scatters (a near-miss that pays
+		// and triggers nothing — the feature needs ≥4), so jolting the whole board on the 3rd was
+		// all promise and no payoff. Tension is owned entirely by the math's per-reel `anticipation`
+		// array via the reels' `anticipating` flag (see Anticipations.svelte → ScatterFx): it darkens
+		// + zooms only while another scatter can still land, and the trigger celebration
+		// (freeSpinTrigger → scatterCelebrate) owns the payoff. The scatter still gets its own
+		// land flare (Symbol) + frame-glow surge below.
+		eventEmitter.broadcast({ type: 'reelFrameScatterLand' });
+		eventEmitter.broadcast({ type: 'soundScatterCounterIncrease' });
+		eventEmitter.broadcast({
+			type: 'soundOnce',
+			name: SCATTER_LAND_SOUND_MAP[scatterLandIndex()],
+		});
+	}
+
+	// The Eye's frame-glow accent fires on its own land; the heavy board jolt is driven from the
+	// reel stop (see onReelStopping) so it hits when the Eye's column drops in, not at full draw.
+	if (rawSymbol.name === 'EYE') eventEmitter.broadcast({ type: 'reelFrameEyeLand' });
+};
+
+const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
+	const reel = createReelForCascading({
+		reelIndex,
+		symbolHeight: REEL_CELL_HEIGHT,
+		initialSymbols: INITIAL_BOARD[reelIndex],
+		initialSymbolState: INITIAL_SYMBOL_STATE,
+		onReelStopping: () => {
+			eventEmitter.broadcast({
+				type: 'soundOnce',
+				name: 'sfx_reel_stop_1',
+				forcePlay: !stateBet.isTurbo,
+			});
+			// The Eye lands heavy: jolt the board the moment its COLUMN drops in (this reel stopping),
+			// NOT when the individual top-row eye finally settles. Top symbols land last (fall-in
+			// delay), so triggering on the eye's own land reads as "after the whole board is drawn".
+			// Fires once per eye-bearing reel, and only on the reveal drop (tumbles settle silently).
+			const reelHasEye = board[reelIndex].reelState.symbols.some(
+				(reelSymbol) => reelSymbol.rawSymbol.name === 'EYE',
+			);
+			if (reelHasEye) eventEmitter.broadcast({ type: 'boardEyeImpact' });
+		},
+		onSymbolLand,
+	});
+
+	reel.reelState.spinOptions = () =>
+		reel.reelState.spinType === 'fast' ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
+
+	return reel;
+});
+
+export type Reel = (typeof board)[number];
+export type ReelSymbol = Reel['reelState']['symbols'][number];
+
+export type TumbleSymbol = {
+	symbolY: Tween<number>;
+	rawSymbol: RawSymbol;
+	symbolState: SymbolState;
+	oncomplete: () => void;
+};
+
+export const stateGame = $state({
+	board,
+	gameType: 'basegame' as GameType,
+	tumbleBoardAdding: [] as TumbleSymbol[][],
+	tumbleBoardBase: [] as TumbleSymbol[][],
+	scatterCounter: 0,
+	// True while the board is anticipating the free-spins trigger (3+ scatters down). Scatters
+	// pulse harder and the board dims/holds while we wait for the next one.
+	scatterAnticipating: false,
+	// The Eye's Gaze charge for the current spin (driven by `gazeStep`); reset each reveal.
+	gazeCharge: 0,
+	// Tracks whether the current spin already resolved an Eye. If charge exists and this
+	// stays false by settlement, the meter drains as the intended no-Eye near miss.
+	eyeResolvedThisSpin: false,
+	// Every Eye opened this spin (with its board cell + value), in reveal order. Drives the combine
+	// reveal at `eyeResolve` (gaze + each Eye → final multiplier). Reset each reveal. Ultimate has
+	// 1–5; base/feature exactly 1.
+	revealedEyes: [] as { reel: number; row: number; eyeType: EyeType; startValue: number }[],
+	// The board cell of the Eye that resolved this spin — the origin the multiplier flies from
+	// when it travels to the tumble-win banner. Set at `eyeReveal`, cleared each reveal.
+	eyeResolveCell: null as { reel: number; row: number } | null,
+	// True between an Eye resolving and its multiplier being applied to the tumble-win banner
+	// (consumed in `setWin`). Guards a second setWin from re-triggering the multiply.
+	eyeMultPending: false,
+	// Snowball persistent multiplier `M` during a feature (driven by `setPersistentMult`).
+	persistentMult: 1,
+	// Keeps the game scene blurred while the free-spins congratulations banner is awaiting a press.
+	freeSpinIntroActive: false,
+});
+
+const reelLayout = () =>
+	stateGame.gameType === 'freegame' ? REEL_LAYOUT_FREE_SPINS : REEL_LAYOUT_BASE;
+
+const boardLayout = () => {
+	const layout = reelLayout();
+	const grid = getReelDisplayGrid(layout);
+	const position = getReelPosition(layout);
+
+	return {
+		x: position.x + grid.x + grid.width / 2,
+		y: position.y + grid.y + grid.height / 2,
+		anchor: { x: 0.5, y: 0.5 },
+		pivot: { x: grid.width / 2, y: grid.height / 2 },
+		width: grid.width,
+		height: grid.height,
+	};
+};
+
+const boardRaw = () =>
+	board.map((reel) => reel.reelState.symbols.map((reelSymbol) => reelSymbol.rawSymbol));
+
+const tumbleBoardCombined = () => {
+	const tumbleBoardCombined = stateGame.tumbleBoardBase.map((tumbleReelBase, reelIndex) => {
+		const tumbleReelAdding = stateGame.tumbleBoardAdding[reelIndex] ?? [];
+		return [...tumbleReelAdding, ...tumbleReelBase];
+	});
+
+	return tumbleBoardCombined;
+};
+
+const scatterLandIndex = () => {
+	if (stateGame.scatterCounter > 5) return 5;
+	if (stateGame.scatterCounter < 1) return 1;
+	return stateGame.scatterCounter as 1 | 2 | 3 | 4 | 5;
+};
+
+const { enhanceBoard } = createEnhanceBoard();
+const enhancedBoard = enhanceBoard({ board: stateGame.board });
+
+const speedUpCurrentSpin = () => {
+	enhancedBoard.board.forEach((reel) => (reel.reelState.spinType = 'fast'));
+	enhancedBoard.stop();
+};
+
+const enableTurbo = () => {
+	stateBetDerived.updateIsTurbo(true, { persistent: true });
+	speedUpCurrentSpin();
+};
+
+// win levels
+
+export const { getWinLevelDataByWinLevelAlias } = createGetWinLevelDataByWinLevelAlias({
+	winLevelMap,
+});
+
+export const stateGameDerived = {
+	onSymbolLand,
+	reelLayout,
+	boardLayout,
+	boardRaw,
+	tumbleBoardCombined,
+	scatterLandIndex,
+	enhancedBoard,
+	speedUpCurrentSpin,
+	enableTurbo,
+	getWinLevelDataByWinLevelAlias,
+};

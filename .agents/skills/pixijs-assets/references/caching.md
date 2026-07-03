@@ -5,12 +5,12 @@ Every asset loaded through `Assets` is cached until you explicitly unload it. Th
 ## Quick Start
 
 ```ts
-await Assets.load("hero.png");
+await Assets.load('hero.png');
 
-const cached = Assets.get("hero.png");
+const cached = Assets.get('hero.png');
 const sprite = new Sprite(cached);
 
-await Assets.unload("hero.png");
+await Assets.unload('hero.png');
 ```
 
 `Assets.load` adds the asset to the cache; `Assets.get` retrieves it synchronously; `Assets.unload` removes it and releases the underlying GPU resource.
@@ -20,13 +20,13 @@ await Assets.unload("hero.png");
 ### Synchronous access to already-loaded assets
 
 ```ts
-await Assets.load(["hero.png", "enemy.png"]);
+await Assets.load(['hero.png', 'enemy.png']);
 
-const hero = Assets.get("hero");
-const enemy = Assets.get("enemy");
+const hero = Assets.get('hero');
+const enemy = Assets.get('enemy');
 
 if (hero) {
-  app.stage.addChild(new Sprite(hero));
+	app.stage.addChild(new Sprite(hero));
 }
 ```
 
@@ -35,10 +35,10 @@ if (hero) {
 ### Multiple keys at once
 
 ```ts
-await Assets.load(["hero", "enemy", "boss"]);
+await Assets.load(['hero', 'enemy', 'boss']);
 
-const all = Assets.get(["hero", "enemy", "boss"]);
-const heroTex = all["hero"];
+const all = Assets.get(['hero', 'enemy', 'boss']);
+const heroTex = all['hero'];
 ```
 
 Passing an array returns an object keyed by alias. Useful for retrieving all the assets a scene needs in one call.
@@ -46,8 +46,8 @@ Passing an array returns an object keyed by alias. Useful for retrieving all the
 ### Deduping load calls
 
 ```ts
-const tex1 = await Assets.load("hero.png");
-const tex2 = await Assets.load("hero.png");
+const tex1 = await Assets.load('hero.png');
+const tex2 = await Assets.load('hero.png');
 console.log(tex1 === tex2); // true
 ```
 
@@ -57,7 +57,7 @@ Calling `Assets.load` with the same key multiple times returns the same cached r
 
 ```ts
 sprite.destroy();
-await Assets.unload("hero.png");
+await Assets.unload('hero.png');
 ```
 
 `Assets.unload(id)` removes the asset from the cache, calls `destroy()` on the texture (releasing GPU memory), and removes any loader-specific wrappers. Always destroy or detach display objects that reference the asset before unloading, or you'll hit freed GPU memory.
@@ -66,7 +66,7 @@ await Assets.unload("hero.png");
 
 ```ts
 level1Container.destroy({ children: true });
-await Assets.unloadBundle("level1");
+await Assets.unloadBundle('level1');
 ```
 
 Prefer `unloadBundle` over manually iterating. It releases every asset in the bundle and respects reference counting; if another bundle also uses one of the assets, it stays in the cache.
@@ -74,11 +74,11 @@ Prefer `unloadBundle` over manually iterating. It releases every asset in the bu
 ### Inspecting the cache
 
 ```ts
-import { Cache } from "pixi.js";
+import { Cache } from 'pixi.js';
 
-const key = "hero.png";
+const key = 'hero.png';
 if (Cache.has(key)) {
-  const texture = Cache.get(key);
+	const texture = Cache.get(key);
 }
 ```
 
@@ -91,30 +91,28 @@ The low-level `Cache` class backs `Assets.get`. It exposes `has(key)`, `get(key)
 Wrong:
 
 ```ts
-const texture = Assets.get("hero.png");
+const texture = Assets.get('hero.png');
 const sprite = new Sprite(texture); // texture is undefined
 ```
 
 Correct:
 
 ```ts
-await Assets.load("hero.png");
-const texture = Assets.get("hero.png");
+await Assets.load('hero.png');
+const texture = Assets.get('hero.png');
 const sprite = new Sprite(texture);
 ```
 
 `Assets.get` is synchronous and returns `undefined` if the asset hasn't been loaded yet. Always await `Assets.load` first, or use the return value of `Assets.load` directly.
-
 
 ### [HIGH] Not unloading between levels
 
 Textures stay in the cache indefinitely. A game that loads level after level without calling `Assets.unload` or `Assets.unloadBundle` slowly accumulates GPU memory until it hits browser limits.
 
 ```ts
-await Assets.unloadBundle("level1");
-await Assets.loadBundle("level2");
+await Assets.unloadBundle('level1');
+await Assets.loadBundle('level2');
 ```
-
 
 ### [MEDIUM] Using sprites after unload
 
@@ -122,7 +120,7 @@ Wrong:
 
 ```ts
 const sprite = new Sprite(texture);
-await Assets.unload("hero.png");
+await Assets.unload('hero.png');
 // sprite still references the destroyed texture
 ```
 
@@ -130,11 +128,10 @@ Correct:
 
 ```ts
 sprite.destroy();
-await Assets.unload("hero.png");
+await Assets.unload('hero.png');
 ```
 
 `Assets.unload` destroys the underlying texture. Any sprite still referencing it will render Texture.EMPTY or crash depending on the backend. Destroy the leaf (or reassign its texture) before unloading.
-
 
 ## API Reference
 

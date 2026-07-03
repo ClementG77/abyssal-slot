@@ -198,29 +198,29 @@ Example frame dimensions can vary after slicing, so keep all coordinates in a co
 
 ```ts
 export type GazeMeterLayout = {
-  frameW: number;
-  frameH: number;
+	frameW: number;
+	frameH: number;
 
-  inner: {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-    radius: number;
-  };
+	inner: {
+		x: number;
+		y: number;
+		w: number;
+		h: number;
+		radius: number;
+	};
 
-  eye: {
-    x: number;
-    y: number;
-    size: number;
-  };
+	eye: {
+		x: number;
+		y: number;
+		size: number;
+	};
 
-  text: {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-  };
+	text: {
+		x: number;
+		y: number;
+		w: number;
+		h: number;
+	};
 };
 ```
 
@@ -228,29 +228,29 @@ Starting layout example for the approved vertical meter:
 
 ```ts
 export const DEFAULT_GAZE_LAYOUT: GazeMeterLayout = {
-  frameW: 430,
-  frameH: 1220,
+	frameW: 430,
+	frameH: 1220,
 
-  inner: {
-    x: 118,
-    y: 300,
-    w: 194,
-    h: 650,
-    radius: 38,
-  },
+	inner: {
+		x: 118,
+		y: 300,
+		w: 194,
+		h: 650,
+		radius: 38,
+	},
 
-  eye: {
-    x: 215,
-    y: 116,
-    size: 250,
-  },
+	eye: {
+		x: 215,
+		y: 116,
+		size: 250,
+	},
 
-  text: {
-    x: 215,
-    y: 1108,
-    w: 340,
-    h: 90,
-  },
+	text: {
+		x: 215,
+		y: 1108,
+		w: 340,
+		h: 90,
+	},
 };
 ```
 
@@ -264,36 +264,30 @@ Use this while placing the fill area.
 
 ```ts
 function addDebugLayoutOverlay(parent: PIXI.Container, layout: GazeMeterLayout) {
-  const g = new PIXI.Graphics();
+	const g = new PIXI.Graphics();
 
-  g.roundRect(
-    layout.inner.x,
-    layout.inner.y,
-    layout.inner.w,
-    layout.inner.h,
-    layout.inner.radius,
-  );
+	g.roundRect(layout.inner.x, layout.inner.y, layout.inner.w, layout.inner.h, layout.inner.radius);
 
-  g.stroke({
-    width: 3,
-    color: 0x00ffff,
-    alpha: 0.8,
-  });
+	g.stroke({
+		width: 3,
+		color: 0x00ffff,
+		alpha: 0.8,
+	});
 
-  g.rect(
-    layout.text.x - layout.text.w / 2,
-    layout.text.y - layout.text.h / 2,
-    layout.text.w,
-    layout.text.h,
-  );
+	g.rect(
+		layout.text.x - layout.text.w / 2,
+		layout.text.y - layout.text.h / 2,
+		layout.text.w,
+		layout.text.h,
+	);
 
-  g.stroke({
-    width: 3,
-    color: 0xffcc00,
-    alpha: 0.8,
-  });
+	g.stroke({
+		width: 3,
+		color: 0xffcc00,
+		alpha: 0.8,
+	});
 
-  parent.addChild(g);
+	parent.addChild(g);
 }
 ```
 
@@ -320,10 +314,10 @@ Recommended state model:
 
 ```ts
 type GazeMeterState = {
-  gaze: number;             // current tumble count
-  visibleSegments: number;  // clamped 0-10
-  multiplierText: string;   // "0x", "5x", "13x", etc.
-  overcharged: boolean;     // true if gaze > 10
+	gaze: number; // current tumble count
+	visibleSegments: number; // clamped 0-10
+	multiplierText: string; // "0x", "5x", "13x", etc.
+	overcharged: boolean; // true if gaze > 10
 };
 ```
 
@@ -344,15 +338,15 @@ gazeMeter.incrementGaze({ multiplierText: '1x' });
 gazeMeter.setMultiplierText('13x');
 
 gazeMeter.playEyeLanded({
-  eyeType: 'ADD',
-  eyeValue: 10,
-  finalMultiplier: 13,
+	eyeType: 'ADD',
+	eyeValue: 10,
+	finalMultiplier: 13,
 });
 
 gazeMeter.playEyeLanded({
-  eyeType: 'MULT',
-  eyeValue: 10,
-  finalMultiplier: 30,
+	eyeType: 'MULT',
+	eyeValue: 10,
+	finalMultiplier: 30,
 });
 
 gazeMeter.playResolved();
@@ -383,488 +377,472 @@ Spin ends
 ## 10. PixiJS Class Skeleton
 
 ```ts
-import {
-  BlurFilter,
-  Container,
-  Graphics,
-  Sprite,
-  Text,
-  Texture,
-} from 'pixi.js';
+import { BlurFilter, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 
 import gsap from 'gsap';
 
 export type EyeType = 'ADD' | 'MULT';
 
 export type GazeMeterTextures = {
-  frame: Texture;
-  dividers: Texture;
-  eye: Texture;
-  glow: Texture;
-  particle: Texture;
+	frame: Texture;
+	dividers: Texture;
+	eye: Texture;
+	glow: Texture;
+	particle: Texture;
 };
 
 export type GazeMeterOptions = {
-  layout: GazeMeterLayout;
-  maxSegments?: number;
-  initialText?: string;
+	layout: GazeMeterLayout;
+	maxSegments?: number;
+	initialText?: string;
 };
 
 export class AbyssalGazeMeter extends Container {
-  private layout: GazeMeterLayout;
-  private maxSegments: number;
+	private layout: GazeMeterLayout;
+	private maxSegments: number;
 
-  private frameBack: Sprite;
-  private dividersFront: Sprite;
-  private topEye: Sprite;
+	private frameBack: Sprite;
+	private dividersFront: Sprite;
+	private topEye: Sprite;
 
-  private fillMask: Graphics;
-  private fillLayer: Container;
-  private fxLayer: Container;
-  private segmentFills: Container[] = [];
-
-  private multiplierText: Text;
-
-  private gaze = 0;
-  private timelines: gsap.core.Timeline[] = [];
-
-  constructor(
-    private textures: GazeMeterTextures,
-    options: GazeMeterOptions,
-  ) {
-    super();
-
-    this.layout = options.layout;
-    this.maxSegments = options.maxSegments ?? 10;
-
-    this.frameBack = new Sprite(textures.frame);
-    this.addChild(this.frameBack);
-
-    this.fillLayer = new Container();
-    this.addChild(this.fillLayer);
-
-    this.fillMask = this.createFillMask();
-    this.addChild(this.fillMask);
-    this.fillLayer.mask = this.fillMask;
-
-    this.createSegments();
-
-    this.dividersFront = new Sprite(textures.dividers);
-    this.addChild(this.dividersFront);
-
-    this.topEye = new Sprite(textures.eye);
-    this.topEye.anchor.set(0.5);
-    this.topEye.x = this.layout.eye.x;
-    this.topEye.y = this.layout.eye.y;
-    this.topEye.width = this.layout.eye.size;
-    this.topEye.scale.y = this.topEye.scale.x;
-    this.addChild(this.topEye);
-
-    this.fxLayer = new Container();
-    this.addChild(this.fxLayer);
-
-    this.multiplierText = this.createMultiplierText(options.initialText ?? '0x');
-    this.addChild(this.multiplierText);
-
-    this.playIdle();
-  }
-
-  public setGaze(value: number, instant = false) {
-    const next = Math.max(0, value);
-    const prev = this.gaze;
-
-    this.gaze = next;
-
-    const prevVisible = Math.min(prev, this.maxSegments);
-    const nextVisible = Math.min(next, this.maxSegments);
-
-    if (instant) {
-      this.segmentFills.forEach((seg, i) => {
-        seg.alpha = i < nextVisible ? 1 : 0;
-      });
-      return;
-    }
-
-    if (nextVisible > prevVisible) {
-      for (let i = prevVisible; i < nextVisible; i++) {
-        this.animateSegmentIn(i, i - prevVisible);
-      }
-    } else if (nextVisible < prevVisible) {
-      for (let i = prevVisible - 1; i >= nextVisible; i--) {
-        this.animateSegmentOut(i, prevVisible - 1 - i);
-      }
-    }
-
-    if (next > this.maxSegments) {
-      this.playOvercharge();
-    }
-  }
-
-  public incrementGaze(multiplierText?: string) {
-    const next = this.gaze + 1;
-
-    this.setGaze(next);
-
-    if (multiplierText) {
-      this.setMultiplierText(multiplierText);
-    }
-
-    this.playChargePulse();
-  }
-
-  public setMultiplierText(text: string) {
-    this.multiplierText.text = text;
-
-    gsap.fromTo(
-      this.multiplierText.scale,
-      { x: 0.86, y: 0.86 },
-      {
-        x: 1,
-        y: 1,
-        duration: 0.28,
-        ease: 'back.out(2)',
-      },
-    );
-  }
-
-  public playEyeLanded(params: {
-    eyeType: EyeType;
-    eyeValue: number;
-    finalMultiplier: number;
-  }) {
-    this.setMultiplierText(`${params.finalMultiplier}x`);
-
-    const color = params.eyeType === 'MULT' ? 0xff331a : 0x35d9ff;
-
-    this.spawnEyeBurst(color);
-
-    gsap.fromTo(
-      this.topEye.scale,
-      { x: this.topEye.scale.x, y: this.topEye.scale.y },
-      {
-        x: this.topEye.scale.x * 1.16,
-        y: this.topEye.scale.y * 1.16,
-        duration: 0.18,
-        yoyo: true,
-        repeat: 2,
-        ease: 'sine.inOut',
-      },
-    );
-  }
-
-  public reset(animated = true) {
-    this.gaze = 0;
-    this.setMultiplierText('0x');
-
-    if (!animated) {
-      this.segmentFills.forEach((seg) => {
-        seg.alpha = 0;
-      });
-      return;
-    }
-
-    this.segmentFills.forEach((seg, i) => {
-      gsap.to(seg, {
-        alpha: 0,
-        duration: 0.22,
-        delay: (this.maxSegments - i) * 0.025,
-        ease: 'power2.in',
-      });
-    });
-  }
-
-  public destroyMeter() {
-    this.timelines.forEach((tl) => tl.kill());
-    gsap.killTweensOf(this);
-    gsap.killTweensOf(this.topEye);
-    gsap.killTweensOf(this.multiplierText);
-    this.destroy({ children: true });
-  }
-
-  private createFillMask() {
-    const g = new Graphics();
-
-    g.roundRect(
-      this.layout.inner.x,
-      this.layout.inner.y,
-      this.layout.inner.w,
-      this.layout.inner.h,
-      this.layout.inner.radius,
-    );
-
-    g.fill({ color: 0xffffff, alpha: 1 });
-
-    return g;
-  }
-
-  private createSegments() {
-    const { inner } = this.layout;
-
-    const gap = 5;
-    const segmentH = inner.h / this.maxSegments;
-
-    for (let i = 0; i < this.maxSegments; i++) {
-      const segment = new Container();
-
-      const y = inner.y + inner.h - (i + 1) * segmentH;
-
-      const baseGlow = new Graphics();
-      baseGlow.roundRect(
-        inner.x + 8,
-        y + gap / 2,
-        inner.w - 16,
-        segmentH - gap,
-        10,
-      );
-      baseGlow.fill({ color: 0x8a2cff, alpha: 0.78 });
-      baseGlow.blendMode = 'add';
-
-      const core = new Graphics();
-      core.roundRect(
-        inner.x + 24,
-        y + gap / 2 + 4,
-        inner.w - 48,
-        segmentH - gap - 8,
-        8,
-      );
-      core.fill({ color: 0x33d9ff, alpha: 0.2 });
-      core.blendMode = 'add';
-
-      const shine = new Sprite(this.textures.glow);
-      shine.anchor.set(0.5);
-      shine.x = inner.x + inner.w / 2;
-      shine.y = y + segmentH / 2;
-      shine.width = inner.w * 1.3;
-      shine.height = segmentH * 2;
-      shine.alpha = 0.5;
-      shine.blendMode = 'add';
-
-      segment.addChild(baseGlow, core, shine);
-      segment.alpha = 0;
-
-      this.fillLayer.addChild(segment);
-      this.segmentFills.push(segment);
-    }
-  }
-
-  private createMultiplierText(initialText: string) {
-    const t = new Text({
-      text: initialText,
-      style: {
-        fontFamily: 'Cinzel, Georgia, serif',
-        fontSize: 54,
-        fontWeight: '900',
-        fill: '#FFE6A0',
-        stroke: '#2B0700',
-        strokeThickness: 8,
-        align: 'center',
-        dropShadow: true,
-        dropShadowColor: '#000000',
-        dropShadowBlur: 5,
-        dropShadowDistance: 3,
-      },
-    });
-
-    t.anchor.set(0.5);
-    t.x = this.layout.text.x;
-    t.y = this.layout.text.y;
-
-    return t;
-  }
-
-  private animateSegmentIn(index: number, orderDelay = 0) {
-    const seg = this.segmentFills[index];
-
-    gsap.fromTo(
-      seg,
-      { alpha: 0 },
-      {
-        alpha: 1,
-        duration: 0.32,
-        delay: orderDelay * 0.05,
-        ease: 'power2.out',
-      },
-    );
-
-    gsap.fromTo(
-      seg.scale,
-      { x: 0.92, y: 0.75 },
-      {
-        x: 1,
-        y: 1,
-        duration: 0.38,
-        delay: orderDelay * 0.05,
-        ease: 'back.out(1.8)',
-      },
-    );
-
-    this.flashSegment(index, orderDelay);
-    this.spawnChargeParticle(index, orderDelay);
-  }
-
-  private animateSegmentOut(index: number, orderDelay = 0) {
-    const seg = this.segmentFills[index];
-
-    gsap.to(seg, {
-      alpha: 0,
-      duration: 0.22,
-      delay: orderDelay * 0.035,
-      ease: 'power2.in',
-    });
-  }
-
-  private flashSegment(index: number, delay = 0) {
-    const { inner } = this.layout;
-    const segmentH = inner.h / this.maxSegments;
-    const y = inner.y + inner.h - (index + 1) * segmentH;
-
-    const flash = new Sprite(this.textures.glow);
-    flash.anchor.set(0.5);
-    flash.x = inner.x + inner.w / 2;
-    flash.y = y + segmentH / 2;
-    flash.width = inner.w * 1.45;
-    flash.height = segmentH * 2.4;
-    flash.alpha = 0;
-    flash.blendMode = 'add';
-
-    this.fxLayer.addChild(flash);
-
-    gsap.timeline({ delay })
-      .to(flash, {
-        alpha: 0.95,
-        duration: 0.08,
-        ease: 'power1.out',
-      })
-      .to(flash, {
-        alpha: 0,
-        duration: 0.28,
-        ease: 'power2.out',
-        onComplete: () => flash.destroy(),
-      });
-  }
-
-  private spawnChargeParticle(index: number, delay = 0) {
-    const { inner } = this.layout;
-    const segmentH = inner.h / this.maxSegments;
-    const targetY = inner.y + inner.h - (index + 0.5) * segmentH;
-
-    const p = new Sprite(this.textures.particle);
-    p.anchor.set(0.5);
-    p.x = inner.x + inner.w / 2;
-    p.y = inner.y + inner.h + 20;
-    p.width = 62;
-    p.height = 62;
-    p.alpha = 0;
-    p.blendMode = 'add';
-
-    this.fxLayer.addChild(p);
-
-    gsap.timeline({ delay })
-      .to(p, {
-        alpha: 1,
-        duration: 0.08,
-      })
-      .to(p, {
-        y: targetY,
-        duration: 0.32,
-        ease: 'power3.out',
-      }, '<')
-      .to(p, {
-        alpha: 0,
-        scaleX: 1.8,
-        scaleY: 1.8,
-        duration: 0.22,
-        ease: 'power2.out',
-        onComplete: () => p.destroy(),
-      });
-  }
-
-  private playChargePulse() {
-    gsap.fromTo(
-      this.topEye.scale,
-      { x: this.topEye.scale.x, y: this.topEye.scale.y },
-      {
-        x: this.topEye.scale.x * 1.08,
-        y: this.topEye.scale.y * 1.08,
-        duration: 0.16,
-        yoyo: true,
-        repeat: 1,
-        ease: 'sine.inOut',
-      },
-    );
-
-    gsap.fromTo(
-      this.multiplierText,
-      { alpha: 0.75 },
-      {
-        alpha: 1,
-        duration: 0.22,
-        ease: 'sine.out',
-      },
-    );
-  }
-
-  private spawnEyeBurst(color: number) {
-    const burst = new Sprite(this.textures.glow);
-    burst.anchor.set(0.5);
-    burst.x = this.layout.eye.x;
-    burst.y = this.layout.eye.y;
-    burst.width = this.layout.eye.size * 1.7;
-    burst.height = this.layout.eye.size * 1.7;
-    burst.tint = color;
-    burst.alpha = 0;
-    burst.blendMode = 'add';
-
-    this.fxLayer.addChild(burst);
-
-    gsap.timeline()
-      .to(burst, {
-        alpha: 0.9,
-        duration: 0.1,
-      })
-      .to(burst, {
-        alpha: 0,
-        width: this.layout.eye.size * 2.4,
-        height: this.layout.eye.size * 2.4,
-        duration: 0.35,
-        ease: 'power2.out',
-        onComplete: () => burst.destroy(),
-      });
-  }
-
-  private playOvercharge() {
-    this.segmentFills.forEach((seg, i) => {
-      gsap.to(seg, {
-        alpha: 0.72 + (i % 2) * 0.18,
-        duration: 0.45,
-        repeat: 1,
-        yoyo: true,
-        ease: 'sine.inOut',
-      });
-    });
-  }
-
-  private playIdle() {
-    const eyeTl = gsap.timeline({ repeat: -1, yoyo: true });
-
-    eyeTl.to(this.topEye, {
-      alpha: 0.86,
-      duration: 1.6,
-      ease: 'sine.inOut',
-    });
-
-    this.timelines.push(eyeTl);
-
-    const textTl = gsap.timeline({ repeat: -1, yoyo: true });
-
-    textTl.to(this.multiplierText, {
-      alpha: 0.82,
-      duration: 1.2,
-      ease: 'sine.inOut',
-    });
-
-    this.timelines.push(textTl);
-  }
+	private fillMask: Graphics;
+	private fillLayer: Container;
+	private fxLayer: Container;
+	private segmentFills: Container[] = [];
+
+	private multiplierText: Text;
+
+	private gaze = 0;
+	private timelines: gsap.core.Timeline[] = [];
+
+	constructor(
+		private textures: GazeMeterTextures,
+		options: GazeMeterOptions,
+	) {
+		super();
+
+		this.layout = options.layout;
+		this.maxSegments = options.maxSegments ?? 10;
+
+		this.frameBack = new Sprite(textures.frame);
+		this.addChild(this.frameBack);
+
+		this.fillLayer = new Container();
+		this.addChild(this.fillLayer);
+
+		this.fillMask = this.createFillMask();
+		this.addChild(this.fillMask);
+		this.fillLayer.mask = this.fillMask;
+
+		this.createSegments();
+
+		this.dividersFront = new Sprite(textures.dividers);
+		this.addChild(this.dividersFront);
+
+		this.topEye = new Sprite(textures.eye);
+		this.topEye.anchor.set(0.5);
+		this.topEye.x = this.layout.eye.x;
+		this.topEye.y = this.layout.eye.y;
+		this.topEye.width = this.layout.eye.size;
+		this.topEye.scale.y = this.topEye.scale.x;
+		this.addChild(this.topEye);
+
+		this.fxLayer = new Container();
+		this.addChild(this.fxLayer);
+
+		this.multiplierText = this.createMultiplierText(options.initialText ?? '0x');
+		this.addChild(this.multiplierText);
+
+		this.playIdle();
+	}
+
+	public setGaze(value: number, instant = false) {
+		const next = Math.max(0, value);
+		const prev = this.gaze;
+
+		this.gaze = next;
+
+		const prevVisible = Math.min(prev, this.maxSegments);
+		const nextVisible = Math.min(next, this.maxSegments);
+
+		if (instant) {
+			this.segmentFills.forEach((seg, i) => {
+				seg.alpha = i < nextVisible ? 1 : 0;
+			});
+			return;
+		}
+
+		if (nextVisible > prevVisible) {
+			for (let i = prevVisible; i < nextVisible; i++) {
+				this.animateSegmentIn(i, i - prevVisible);
+			}
+		} else if (nextVisible < prevVisible) {
+			for (let i = prevVisible - 1; i >= nextVisible; i--) {
+				this.animateSegmentOut(i, prevVisible - 1 - i);
+			}
+		}
+
+		if (next > this.maxSegments) {
+			this.playOvercharge();
+		}
+	}
+
+	public incrementGaze(multiplierText?: string) {
+		const next = this.gaze + 1;
+
+		this.setGaze(next);
+
+		if (multiplierText) {
+			this.setMultiplierText(multiplierText);
+		}
+
+		this.playChargePulse();
+	}
+
+	public setMultiplierText(text: string) {
+		this.multiplierText.text = text;
+
+		gsap.fromTo(
+			this.multiplierText.scale,
+			{ x: 0.86, y: 0.86 },
+			{
+				x: 1,
+				y: 1,
+				duration: 0.28,
+				ease: 'back.out(2)',
+			},
+		);
+	}
+
+	public playEyeLanded(params: { eyeType: EyeType; eyeValue: number; finalMultiplier: number }) {
+		this.setMultiplierText(`${params.finalMultiplier}x`);
+
+		const color = params.eyeType === 'MULT' ? 0xff331a : 0x35d9ff;
+
+		this.spawnEyeBurst(color);
+
+		gsap.fromTo(
+			this.topEye.scale,
+			{ x: this.topEye.scale.x, y: this.topEye.scale.y },
+			{
+				x: this.topEye.scale.x * 1.16,
+				y: this.topEye.scale.y * 1.16,
+				duration: 0.18,
+				yoyo: true,
+				repeat: 2,
+				ease: 'sine.inOut',
+			},
+		);
+	}
+
+	public reset(animated = true) {
+		this.gaze = 0;
+		this.setMultiplierText('0x');
+
+		if (!animated) {
+			this.segmentFills.forEach((seg) => {
+				seg.alpha = 0;
+			});
+			return;
+		}
+
+		this.segmentFills.forEach((seg, i) => {
+			gsap.to(seg, {
+				alpha: 0,
+				duration: 0.22,
+				delay: (this.maxSegments - i) * 0.025,
+				ease: 'power2.in',
+			});
+		});
+	}
+
+	public destroyMeter() {
+		this.timelines.forEach((tl) => tl.kill());
+		gsap.killTweensOf(this);
+		gsap.killTweensOf(this.topEye);
+		gsap.killTweensOf(this.multiplierText);
+		this.destroy({ children: true });
+	}
+
+	private createFillMask() {
+		const g = new Graphics();
+
+		g.roundRect(
+			this.layout.inner.x,
+			this.layout.inner.y,
+			this.layout.inner.w,
+			this.layout.inner.h,
+			this.layout.inner.radius,
+		);
+
+		g.fill({ color: 0xffffff, alpha: 1 });
+
+		return g;
+	}
+
+	private createSegments() {
+		const { inner } = this.layout;
+
+		const gap = 5;
+		const segmentH = inner.h / this.maxSegments;
+
+		for (let i = 0; i < this.maxSegments; i++) {
+			const segment = new Container();
+
+			const y = inner.y + inner.h - (i + 1) * segmentH;
+
+			const baseGlow = new Graphics();
+			baseGlow.roundRect(inner.x + 8, y + gap / 2, inner.w - 16, segmentH - gap, 10);
+			baseGlow.fill({ color: 0x8a2cff, alpha: 0.78 });
+			baseGlow.blendMode = 'add';
+
+			const core = new Graphics();
+			core.roundRect(inner.x + 24, y + gap / 2 + 4, inner.w - 48, segmentH - gap - 8, 8);
+			core.fill({ color: 0x33d9ff, alpha: 0.2 });
+			core.blendMode = 'add';
+
+			const shine = new Sprite(this.textures.glow);
+			shine.anchor.set(0.5);
+			shine.x = inner.x + inner.w / 2;
+			shine.y = y + segmentH / 2;
+			shine.width = inner.w * 1.3;
+			shine.height = segmentH * 2;
+			shine.alpha = 0.5;
+			shine.blendMode = 'add';
+
+			segment.addChild(baseGlow, core, shine);
+			segment.alpha = 0;
+
+			this.fillLayer.addChild(segment);
+			this.segmentFills.push(segment);
+		}
+	}
+
+	private createMultiplierText(initialText: string) {
+		const t = new Text({
+			text: initialText,
+			style: {
+				fontFamily: 'Cinzel, Georgia, serif',
+				fontSize: 54,
+				fontWeight: '900',
+				fill: '#FFE6A0',
+				stroke: '#2B0700',
+				strokeThickness: 8,
+				align: 'center',
+				dropShadow: true,
+				dropShadowColor: '#000000',
+				dropShadowBlur: 5,
+				dropShadowDistance: 3,
+			},
+		});
+
+		t.anchor.set(0.5);
+		t.x = this.layout.text.x;
+		t.y = this.layout.text.y;
+
+		return t;
+	}
+
+	private animateSegmentIn(index: number, orderDelay = 0) {
+		const seg = this.segmentFills[index];
+
+		gsap.fromTo(
+			seg,
+			{ alpha: 0 },
+			{
+				alpha: 1,
+				duration: 0.32,
+				delay: orderDelay * 0.05,
+				ease: 'power2.out',
+			},
+		);
+
+		gsap.fromTo(
+			seg.scale,
+			{ x: 0.92, y: 0.75 },
+			{
+				x: 1,
+				y: 1,
+				duration: 0.38,
+				delay: orderDelay * 0.05,
+				ease: 'back.out(1.8)',
+			},
+		);
+
+		this.flashSegment(index, orderDelay);
+		this.spawnChargeParticle(index, orderDelay);
+	}
+
+	private animateSegmentOut(index: number, orderDelay = 0) {
+		const seg = this.segmentFills[index];
+
+		gsap.to(seg, {
+			alpha: 0,
+			duration: 0.22,
+			delay: orderDelay * 0.035,
+			ease: 'power2.in',
+		});
+	}
+
+	private flashSegment(index: number, delay = 0) {
+		const { inner } = this.layout;
+		const segmentH = inner.h / this.maxSegments;
+		const y = inner.y + inner.h - (index + 1) * segmentH;
+
+		const flash = new Sprite(this.textures.glow);
+		flash.anchor.set(0.5);
+		flash.x = inner.x + inner.w / 2;
+		flash.y = y + segmentH / 2;
+		flash.width = inner.w * 1.45;
+		flash.height = segmentH * 2.4;
+		flash.alpha = 0;
+		flash.blendMode = 'add';
+
+		this.fxLayer.addChild(flash);
+
+		gsap
+			.timeline({ delay })
+			.to(flash, {
+				alpha: 0.95,
+				duration: 0.08,
+				ease: 'power1.out',
+			})
+			.to(flash, {
+				alpha: 0,
+				duration: 0.28,
+				ease: 'power2.out',
+				onComplete: () => flash.destroy(),
+			});
+	}
+
+	private spawnChargeParticle(index: number, delay = 0) {
+		const { inner } = this.layout;
+		const segmentH = inner.h / this.maxSegments;
+		const targetY = inner.y + inner.h - (index + 0.5) * segmentH;
+
+		const p = new Sprite(this.textures.particle);
+		p.anchor.set(0.5);
+		p.x = inner.x + inner.w / 2;
+		p.y = inner.y + inner.h + 20;
+		p.width = 62;
+		p.height = 62;
+		p.alpha = 0;
+		p.blendMode = 'add';
+
+		this.fxLayer.addChild(p);
+
+		gsap
+			.timeline({ delay })
+			.to(p, {
+				alpha: 1,
+				duration: 0.08,
+			})
+			.to(
+				p,
+				{
+					y: targetY,
+					duration: 0.32,
+					ease: 'power3.out',
+				},
+				'<',
+			)
+			.to(p, {
+				alpha: 0,
+				scaleX: 1.8,
+				scaleY: 1.8,
+				duration: 0.22,
+				ease: 'power2.out',
+				onComplete: () => p.destroy(),
+			});
+	}
+
+	private playChargePulse() {
+		gsap.fromTo(
+			this.topEye.scale,
+			{ x: this.topEye.scale.x, y: this.topEye.scale.y },
+			{
+				x: this.topEye.scale.x * 1.08,
+				y: this.topEye.scale.y * 1.08,
+				duration: 0.16,
+				yoyo: true,
+				repeat: 1,
+				ease: 'sine.inOut',
+			},
+		);
+
+		gsap.fromTo(
+			this.multiplierText,
+			{ alpha: 0.75 },
+			{
+				alpha: 1,
+				duration: 0.22,
+				ease: 'sine.out',
+			},
+		);
+	}
+
+	private spawnEyeBurst(color: number) {
+		const burst = new Sprite(this.textures.glow);
+		burst.anchor.set(0.5);
+		burst.x = this.layout.eye.x;
+		burst.y = this.layout.eye.y;
+		burst.width = this.layout.eye.size * 1.7;
+		burst.height = this.layout.eye.size * 1.7;
+		burst.tint = color;
+		burst.alpha = 0;
+		burst.blendMode = 'add';
+
+		this.fxLayer.addChild(burst);
+
+		gsap
+			.timeline()
+			.to(burst, {
+				alpha: 0.9,
+				duration: 0.1,
+			})
+			.to(burst, {
+				alpha: 0,
+				width: this.layout.eye.size * 2.4,
+				height: this.layout.eye.size * 2.4,
+				duration: 0.35,
+				ease: 'power2.out',
+				onComplete: () => burst.destroy(),
+			});
+	}
+
+	private playOvercharge() {
+		this.segmentFills.forEach((seg, i) => {
+			gsap.to(seg, {
+				alpha: 0.72 + (i % 2) * 0.18,
+				duration: 0.45,
+				repeat: 1,
+				yoyo: true,
+				ease: 'sine.inOut',
+			});
+		});
+	}
+
+	private playIdle() {
+		const eyeTl = gsap.timeline({ repeat: -1, yoyo: true });
+
+		eyeTl.to(this.topEye, {
+			alpha: 0.86,
+			duration: 1.6,
+			ease: 'sine.inOut',
+		});
+
+		this.timelines.push(eyeTl);
+
+		const textTl = gsap.timeline({ repeat: -1, yoyo: true });
+
+		textTl.to(this.multiplierText, {
+			alpha: 0.82,
+			duration: 1.2,
+			ease: 'sine.inOut',
+		});
+
+		this.timelines.push(textTl);
+	}
 }
 ```
 
@@ -874,18 +852,18 @@ export class AbyssalGazeMeter extends Container {
 
 ```ts
 const meter = new AbyssalGazeMeter(
-  {
-    frame: textures.gaze_meter_frame_empty,
-    dividers: textures.gaze_meter_dividers_front,
-    eye: textures.gaze_meter_eye_top,
-    glow: textures.gaze_meter_glow_soft,
-    particle: textures.gaze_meter_particle_burst,
-  },
-  {
-    layout: DEFAULT_GAZE_LAYOUT,
-    maxSegments: 10,
-    initialText: '0x',
-  },
+	{
+		frame: textures.gaze_meter_frame_empty,
+		dividers: textures.gaze_meter_dividers_front,
+		eye: textures.gaze_meter_eye_top,
+		glow: textures.gaze_meter_glow_soft,
+		particle: textures.gaze_meter_particle_burst,
+	},
+	{
+		layout: DEFAULT_GAZE_LAYOUT,
+		maxSegments: 10,
+		initialText: '0x',
+	},
 );
 
 meter.position.set(board.x - 110, board.y + board.height / 2);
@@ -899,24 +877,24 @@ Example gameplay integration:
 
 ```ts
 events.on('spin:start', () => {
-  meter.reset(false);
+	meter.reset(false);
 });
 
 events.on('tumble:win', ({ gaze, multiplierPreview }) => {
-  meter.setGaze(gaze);
-  meter.setMultiplierText(`${multiplierPreview}x`);
+	meter.setGaze(gaze);
+	meter.setMultiplierText(`${multiplierPreview}x`);
 });
 
 events.on('eye:landed', ({ eyeType, eyeValue, finalMultiplier }) => {
-  meter.playEyeLanded({
-    eyeType,
-    eyeValue,
-    finalMultiplier,
-  });
+	meter.playEyeLanded({
+		eyeType,
+		eyeValue,
+		finalMultiplier,
+	});
 });
 
 events.on('spin:end', () => {
-  gsap.delayedCall(0.9, () => meter.reset(true));
+	gsap.delayedCall(0.9, () => meter.reset(true));
 });
 ```
 
@@ -945,14 +923,14 @@ Set the height:
 
 ```ts
 function setLiquidFill(gaze: number) {
-  const ratio = Math.min(gaze / 10, 1);
-  const targetHeight = layout.inner.h * ratio;
+	const ratio = Math.min(gaze / 10, 1);
+	const targetHeight = layout.inner.h * ratio;
 
-  gsap.to(liquid, {
-    height: targetHeight,
-    duration: 0.35,
-    ease: 'power2.out',
-  });
+	gsap.to(liquid, {
+		height: targetHeight,
+		duration: 0.35,
+		ease: 'power2.out',
+	});
 }
 ```
 
@@ -1001,12 +979,12 @@ For a fast cascade sequence, queue charges:
 const chargeQueue = gsap.timeline();
 
 function queueGazeIncrement(gaze: number, text: string) {
-  chargeQueue.add(() => {
-    meter.setGaze(gaze);
-    meter.setMultiplierText(text);
-  });
+	chargeQueue.add(() => {
+		meter.setGaze(gaze);
+		meter.setMultiplierText(text);
+	});
 
-  chargeQueue.to({}, { duration: 0.18 });
+	chargeQueue.to({}, { duration: 0.18 });
 }
 ```
 

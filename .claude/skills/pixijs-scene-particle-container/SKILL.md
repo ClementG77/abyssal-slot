@@ -1,6 +1,6 @@
 ---
 name: pixijs-scene-particle-container
-description: "Use this skill when rendering thousands of lightweight sprites in PixiJS v8. Covers ParticleContainer with Particle instances, addParticle/removeParticle, particleChildren array, dynamicProperties (vertex, position, rotation, uvs, color), boundsArea, roundPixels, update. Triggers on: ParticleContainer, Particle, IParticle, addParticle, particleChildren, dynamicProperties, boundsArea, particle effects, constructor options, ParticleContainerOptions, ParticleOptions."
+description: 'Use this skill when rendering thousands of lightweight sprites in PixiJS v8. Covers ParticleContainer with Particle instances, addParticle/removeParticle, particleChildren array, dynamicProperties (vertex, position, rotation, uvs, color), boundsArea, roundPixels, update. Triggers on: ParticleContainer, Particle, IParticle, addParticle, particleChildren, dynamicProperties, boundsArea, particle effects, constructor options, ParticleContainerOptions, ParticleOptions.'
 license: MIT
 ---
 
@@ -13,26 +13,26 @@ The Particle API is new in v8 but is stable for production use.
 ## Quick Start
 
 ```ts
-const texture = await Assets.load("particle.png");
+const texture = await Assets.load('particle.png');
 
 const container = new ParticleContainer({
-  texture,
-  boundsArea: new Rectangle(0, 0, app.screen.width, app.screen.height),
-  dynamicProperties: {
-    position: true,
-    rotation: false,
-    color: false,
-  },
+	texture,
+	boundsArea: new Rectangle(0, 0, app.screen.width, app.screen.height),
+	dynamicProperties: {
+		position: true,
+		rotation: false,
+		color: false,
+	},
 });
 
 for (let i = 0; i < 10000; i++) {
-  container.addParticle(
-    new Particle({
-      texture,
-      x: Math.random() * app.screen.width,
-      y: Math.random() * app.screen.height,
-    }),
-  );
+	container.addParticle(
+		new Particle({
+			texture,
+			x: Math.random() * app.screen.width,
+			y: Math.random() * app.screen.height,
+		}),
+	);
 }
 
 app.stage.addChild(container);
@@ -83,16 +83,16 @@ The constructor also accepts a bare `Texture` as its sole argument (`new Particl
 
 ```ts
 const particle = new Particle({
-  texture,
-  x: 100,
-  y: 200,
-  scaleX: 0.5,
-  scaleY: 0.5,
-  anchorX: 0.5,
-  anchorY: 0.5,
-  rotation: Math.PI / 4,
-  tint: 0xff0000,
-  alpha: 0.8,
+	texture,
+	x: 100,
+	y: 200,
+	scaleX: 0.5,
+	scaleY: 0.5,
+	anchorX: 0.5,
+	anchorY: 0.5,
+	rotation: Math.PI / 4,
+	tint: 0xff0000,
+	alpha: 0.8,
 });
 
 container.addParticle(particle);
@@ -106,9 +106,9 @@ Override `Particle.defaultOptions` to change defaults globally:
 
 ```ts
 Particle.defaultOptions = {
-  ...Particle.defaultOptions,
-  anchorX: 0.5,
-  anchorY: 0.5,
+	...Particle.defaultOptions,
+	anchorX: 0.5,
+	anchorY: 0.5,
 };
 ```
 
@@ -116,19 +116,19 @@ Particle.defaultOptions = {
 
 ```ts
 const particles = Array.from(
-  { length: 10000 },
-  () =>
-    new Particle({
-      texture,
-      x: Math.random() * 800,
-      y: Math.random() * 600,
-    }),
+	{ length: 10000 },
+	() =>
+		new Particle({
+			texture,
+			x: Math.random() * 800,
+			y: Math.random() * 600,
+		}),
 );
 
 const container = new ParticleContainer({
-  texture,
-  boundsArea: new Rectangle(0, 0, 800, 600),
-  particles,
+	texture,
+	boundsArea: new Rectangle(0, 0, 800, 600),
+	particles,
 });
 ```
 
@@ -138,9 +138,9 @@ Passing `particles` in the constructor is equivalent to creating the container e
 
 ```ts
 const container = new ParticleContainer({
-  dynamicProperties: {
-    rotation: true,
-  },
+	dynamicProperties: {
+		rotation: true,
+	},
 });
 ```
 
@@ -162,7 +162,7 @@ Mark only what you animate; static properties are cheaper. If you change a stati
 
 ```ts
 container.particleChildren.forEach((p) => {
-  p.tint = 0x00ff00;
+	p.tint = 0x00ff00;
 });
 container.update();
 ```
@@ -173,9 +173,7 @@ container.update();
 // Bulk add
 const batch = [];
 for (let i = 0; i < 5000; i++) {
-  batch.push(
-    new Particle({ texture, x: Math.random() * 800, y: Math.random() * 600 }),
-  );
+	batch.push(new Particle({ texture, x: Math.random() * 800, y: Math.random() * 600 }));
 }
 container.particleChildren.push(...batch);
 container.update();
@@ -248,7 +246,6 @@ container.addParticle(particle);
 
 `ParticleContainer` does not accept `Sprite` children. `addChild` throws an error. Particles must be `Particle` instances (or any object implementing `IParticle`), added via `addParticle`. This is a complete rework from v7, where `ParticleContainer` accepted `Sprite` children.
 
-
 ### [HIGH] Not setting boundsArea on ParticleContainer
 
 Wrong:
@@ -262,12 +259,11 @@ Correct:
 
 ```ts
 const container = new ParticleContainer({
-  boundsArea: new Rectangle(0, 0, 800, 600),
+	boundsArea: new Rectangle(0, 0, 800, 600),
 });
 ```
 
 `ParticleContainer` returns empty bounds `(0, 0, 0, 0)` by default for performance. Without `boundsArea`, the container is culled as invisible when culling is active, and `containsPoint` always misses. Set `boundsArea` to the region your particles occupy.
-
 
 ### [HIGH] Using children instead of particleChildren
 
@@ -287,7 +283,6 @@ console.log(container.particleChildren.length); // 1
 
 Particles are stored in the `particleChildren` array, not `children`. The standard `Container.children` array is empty on a `ParticleContainer`. All particle enumeration, counting, and manipulation must use `particleChildren` plus the `*Particle` methods.
 
-
 ### [MEDIUM] Do not use ParticleContainer as a normal container
 
 `ParticleContainer` contains particles, not display objects. If you need to group a particle system with a background sprite or UI overlay, wrap the `ParticleContainer` itself inside a plain `Container`:
@@ -296,7 +291,6 @@ Particles are stored in the `particleChildren` array, not `children`. The standa
 const world = new Container();
 world.addChild(backgroundSprite, particleContainer, uiLayer);
 ```
-
 
 ## API Reference
 

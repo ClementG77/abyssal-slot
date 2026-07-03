@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Application, Container, FillGradient, Text, type TextStyleOptions } from 'pixi.js';
+	import { Application, Assets, BitmapText, Container } from 'pixi.js';
 
 	type Props = {
 		title: string;
@@ -10,6 +10,13 @@
 
 	let host = $state<HTMLDivElement>();
 
+	// Same URL form as game/assets.ts `abyssalFont`, so Pixi's Assets cache resolves both to one
+	// entry — whichever loads first wins, the other reuses it.
+	const abyssalFontUrl = new URL(
+		'../../assets/fonts/abyssal_bitmap_font_package/abyssal_font.fnt',
+		import.meta.url,
+	).href;
+
 	onMount(() => {
 		if (!host) return;
 
@@ -18,7 +25,8 @@
 		let resizeObserver: ResizeObserver | undefined;
 
 		const createLogo = async () => {
-			await document.fonts.load('900 96px "Arial Black"');
+			// The branded AbyssalBitmap face — gold fill, bevel and outline baked into the glyphs.
+			await Assets.load(abyssalFontUrl);
 			if (!active || !host) return;
 
 			app = new Application();
@@ -39,64 +47,28 @@
 			host.appendChild(app.canvas);
 
 			const logo = new Container();
-			const style: TextStyleOptions = {
-				fontFamily: 'Arial Black, Impact, sans-serif',
+			// The face is uppercase-only (no lowercase glyphs).
+			const title = props.title.toUpperCase();
+			const style = {
+				fontFamily: 'AbyssalBitmap',
 				fontSize: 150,
-				fontWeight: '900',
-				letterSpacing: 2,
-				padding: 28,
-				align: 'center' as const,
-			};
-			const depth = new Text({
-				text: props.title,
-				style: {
-					...style,
-					fill: 0x230742,
-					stroke: { color: 0x080014, width: 26 },
-					dropShadow: { color: 0x000000, alpha: 0.95, blur: 7, distance: 11, angle: Math.PI / 2 },
-				},
-				anchor: 0.5,
-			});
-			const outline = new Text({
-				text: props.title,
-				style: {
-					...style,
-					fill: 0x53218f,
-					stroke: { color: 0x7d26d8, width: 17 },
-					dropShadow: { color: 0x6d21cc, alpha: 0.8, blur: 10, distance: 0 },
-				},
-				anchor: 0.5,
-			});
-			const gold = new FillGradient({
-				end: { x: 0, y: 1 },
-				colorStops: [
-					{ offset: 0, color: 0xfff6ca },
-					{ offset: 0.3, color: 0xffd879 },
-					{ offset: 0.6, color: 0xb55d1c },
-					{ offset: 1, color: 0xffd782 },
-				],
-			});
-			const face = new Text({
-				text: props.title,
-				style: {
-					...style,
-					fill: gold,
-					stroke: { color: 0x3b0b62, width: 8 },
-					dropShadow: { color: 0xf5c268, alpha: 0.4, blur: 2, distance: 0 },
-				},
-				anchor: 0.5,
-			});
-			const highlight = new Text({
-				text: props.title,
-				style: {
-					...style,
-					fill: { color: 0xffffff, alpha: 0 },
-					stroke: { color: 0xfff2b2, width: 1.5 },
-				},
-				anchor: 0.5,
-			});
+				letterSpacing: 4,
+				align: 'center',
+			} as const;
+			// Depth: a dark solid copy dropped below the face (multiplicative tint turns the
+			// glyphs into a clean silhouette).
+			const depth = new BitmapText({ text: title, style, anchor: 0.5, tint: 0x0a0616 });
+			depth.position.set(0, 10);
+			depth.alpha = 0.85;
+			// The gold face itself — fill/bevel/outline live in the glyph art.
+			const face = new BitmapText({ text: title, style, anchor: 0.5 });
+			// Glow: an additive warm copy blooms the gold without washing out the bevel.
+			const glow = new BitmapText({ text: title, style, anchor: 0.5, tint: 0xffd879 });
+			glow.alpha = 0.35;
+			glow.blendMode = 'add';
+			glow.scale.set(1.02);
 
-			logo.addChild(depth, outline, face, highlight);
+			logo.addChild(depth, glow, face);
 			app.stage.addChild(logo);
 			const intrinsicWidth = logo.width;
 			const intrinsicHeight = logo.height;

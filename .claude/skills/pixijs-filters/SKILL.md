@@ -1,6 +1,6 @@
 ---
 name: pixijs-filters
-description: "Use this skill when applying visual effects to PixiJS v8 containers via the filter pipeline. Covers built-in filters (AlphaFilter, BlurFilter, ColorMatrixFilter, DisplacementFilter, NoiseFilter), custom Filter.from() with GLSL/WGSL, options (resolution, padding, antialias, blendRequired), filterArea optimization, pixi-filters community package. Triggers on: filters, BlurFilter, ColorMatrixFilter, DisplacementFilter, NoiseFilter, Filter.from, GLSL filter, pixi-filters, filterArea."
+description: 'Use this skill when applying visual effects to PixiJS v8 containers via the filter pipeline. Covers built-in filters (AlphaFilter, BlurFilter, ColorMatrixFilter, DisplacementFilter, NoiseFilter), custom Filter.from() with GLSL/WGSL, options (resolution, padding, antialias, blendRequired), filterArea optimization, pixi-filters community package. Triggers on: filters, BlurFilter, ColorMatrixFilter, DisplacementFilter, NoiseFilter, Filter.from, GLSL filter, pixi-filters, filterArea.'
 license: MIT
 ---
 
@@ -9,7 +9,7 @@ Attach visual effects by assigning one filter (or an array for chaining) to `con
 ## Quick Start
 
 ```ts
-const sprite = new Sprite(await Assets.load("hero.png"));
+const sprite = new Sprite(await Assets.load('hero.png'));
 app.stage.addChild(sprite);
 
 const blur = new BlurFilter({ strength: 4, quality: 4 });
@@ -32,14 +32,14 @@ app.stage.addChild(container);
 
 ```ts
 import {
-  AlphaFilter,
-  BlurFilter,
-  ColorMatrixFilter,
-  DisplacementFilter,
-  NoiseFilter,
-  Assets,
-  Sprite,
-} from "pixi.js";
+	AlphaFilter,
+	BlurFilter,
+	ColorMatrixFilter,
+	DisplacementFilter,
+	NoiseFilter,
+	Assets,
+	Sprite,
+} from 'pixi.js';
 
 // Alpha (uniform transparency without per-child layering)
 const alpha = new AlphaFilter({ alpha: 0.5 });
@@ -47,10 +47,10 @@ const alpha = new AlphaFilter({ alpha: 0.5 });
 // Blur — strength/quality are uniform; strengthX/strengthY split axes;
 // kernelSize must be odd (5, 7, 9, ... 15); repeatEdgePixels avoids transparent edges
 const blur = new BlurFilter({
-  strength: 4,
-  quality: 4,
-  kernelSize: 5,
-  repeatEdgePixels: false,
+	strength: 4,
+	quality: 4,
+	kernelSize: 5,
+	repeatEdgePixels: false,
 });
 
 // Color matrix — brightness is one of many presets. Others: tint, hue,
@@ -65,11 +65,11 @@ colorMatrix.contrast(0.5, true); // multiply stacks on top of existing matrix
 colorMatrix.alpha = 0.7; // blend at 70% strength
 
 // Displacement — scale is a number or PointData
-const displacementTexture = await Assets.load("displacement_map.png");
+const displacementTexture = await Assets.load('displacement_map.png');
 const displacementSprite = new Sprite(displacementTexture);
 const displacement = new DisplacementFilter({
-  sprite: displacementSprite,
-  scale: { x: 20, y: 10 },
+	sprite: displacementSprite,
+	scale: { x: 20, y: 10 },
 });
 
 // Noise — seed is an arbitrary number that determines the noise pattern; same seed reproduces the same pattern
@@ -83,11 +83,11 @@ sprite.filters = [blur, colorMatrix];
 The simplest way to create a custom filter. Only a fragment shader is needed; PixiJS provides a default vertex shader.
 
 ```ts
-import { Filter } from "pixi.js";
+import { Filter } from 'pixi.js';
 
 const filter = Filter.from({
-  gl: {
-    fragment: `
+	gl: {
+		fragment: `
             in vec2 vTextureCoord;
             out vec4 finalColor;
             uniform sampler2D uTexture;
@@ -99,35 +99,35 @@ const filter = Filter.from({
                 finalColor = texture(uTexture, uv);
             }
         `,
-  },
-  resources: {
-    timeUniforms: {
-      uTime: { value: 0, type: "f32" },
-    },
-  },
+	},
+	resources: {
+		timeUniforms: {
+			uTime: { value: 0, type: 'f32' },
+		},
+	},
 });
 
 sprite.filters = filter;
 
 app.ticker.add((ticker) => {
-  filter.resources.timeUniforms.uniforms.uTime += 0.04 * ticker.deltaTime;
+	filter.resources.timeUniforms.uniforms.uTime += 0.04 * ticker.deltaTime;
 });
 ```
 
 For more control, construct `GlProgram`/`GpuProgram` objects directly:
 
 ```ts
-import { Filter, GlProgram } from "pixi.js";
+import { Filter, GlProgram } from 'pixi.js';
 
 const glProgram = GlProgram.from({ fragment: fragmentSrc, vertex: vertexSrc });
 
 const filter = new Filter({
-  glProgram,
-  resources: {
-    timeUniforms: {
-      uTime: { value: 0, type: "f32" },
-    },
-  },
+	glProgram,
+	resources: {
+		timeUniforms: {
+			uTime: { value: 0, type: 'f32' },
+		},
+	},
 });
 ```
 
@@ -142,17 +142,17 @@ Key points:
 ### Filter options
 
 ```ts
-import { Filter, GlProgram, Rectangle } from "pixi.js";
+import { Filter, GlProgram, Rectangle } from 'pixi.js';
 
 const filter = new Filter({
-  glProgram: GlProgram.from({ fragment }),
-  resources: {},
-  resolution: 0.5, // default 1. Lower = faster, blurrier. 'inherit' matches the render target resolution
-  padding: 10, // default 0. Extra pixels for effects that extend bounds
-  antialias: "off", // default 'off'. 'on' | 'off' | 'inherit'
-  blendMode: "normal", // default 'normal'
-  blendRequired: false, // default false. true if shader samples uBackTexture
-  clipToViewport: true, // default true
+	glProgram: GlProgram.from({ fragment }),
+	resources: {},
+	resolution: 0.5, // default 1. Lower = faster, blurrier. 'inherit' matches the render target resolution
+	padding: 10, // default 0. Extra pixels for effects that extend bounds
+	antialias: 'off', // default 'off'. 'on' | 'off' | 'inherit'
+	blendMode: 'normal', // default 'normal'
+	blendRequired: false, // default false. true if shader samples uBackTexture
+	clipToViewport: true, // default true
 });
 
 // Optimization: set known bounds to avoid per-frame measurement
@@ -169,12 +169,12 @@ sprite2.filters = [filter];
 ### Community filters (pixi-filters)
 
 ```ts
-import { AdjustmentFilter } from "pixi-filters/adjustment";
-import { GlowFilter } from "pixi-filters/glow";
+import { AdjustmentFilter } from 'pixi-filters/adjustment';
+import { GlowFilter } from 'pixi-filters/glow';
 
 sprite.filters = [
-  new AdjustmentFilter({ brightness: 1.2, contrast: 1.1 }),
-  new GlowFilter({ distance: 15, outerStrength: 2 }),
+	new AdjustmentFilter({ brightness: 1.2, contrast: 1.1 }),
+	new GlowFilter({ distance: 15, outerStrength: 2 }),
 ];
 ```
 
@@ -185,20 +185,20 @@ For v8, community filters use `pixi-filters/{name}` imports, not the old `@pixi/
 Advanced blend modes (`color-burn`, `overlay`, `hard-light`, etc.) are powered by the filter system and must be imported before use. They also require `useBackBuffer: true` on WebGL; see the `pixijs-blend-modes` skill for the full list.
 
 ```ts
-import "pixi.js/advanced-blend-modes";
+import 'pixi.js/advanced-blend-modes';
 
 await app.init({ useBackBuffer: true });
-sprite.blendMode = "color-burn";
+sprite.blendMode = 'color-burn';
 ```
 
 Advanced blend modes are filter-based, so they inherit `Filter.defaultOptions`, whose `resolution` defaults to `1`. On high-DPI render targets this can make a blend mode look clipped, scaled, or only partially applied. Set `Filter.defaultOptions.resolution = 'inherit'` before creating the affected objects to render at the render target resolution, at higher memory and runtime cost:
 
 ```ts
-import { Filter } from "pixi.js";
-import "pixi.js/advanced-blend-modes";
+import { Filter } from 'pixi.js';
+import 'pixi.js/advanced-blend-modes';
 
-Filter.defaultOptions.resolution = "inherit";
-sprite.blendMode = "overlay";
+Filter.defaultOptions.resolution = 'inherit';
+sprite.blendMode = 'overlay';
 ```
 
 ## Common Mistakes
@@ -208,7 +208,7 @@ sprite.blendMode = "overlay";
 Wrong:
 
 ```ts
-import { Filter } from "pixi.js";
+import { Filter } from 'pixi.js';
 
 const filter = new Filter(vertex, fragment, { uTime: 0 });
 ```
@@ -216,35 +216,33 @@ const filter = new Filter(vertex, fragment, { uTime: 0 });
 Correct:
 
 ```ts
-import { Filter, GlProgram } from "pixi.js";
+import { Filter, GlProgram } from 'pixi.js';
 
 const filter = new Filter({
-  glProgram: GlProgram.from({ fragment, vertex }),
-  resources: {
-    timeUniforms: { uTime: { value: 0, type: "f32" } },
-  },
+	glProgram: GlProgram.from({ fragment, vertex }),
+	resources: {
+		timeUniforms: { uTime: { value: 0, type: 'f32' } },
+	},
 });
 ```
 
 v8 uses an options object. Shaders must be wrapped in `GlProgram.from()` or `GpuProgram.from()`. Uniforms are grouped in `resources` with explicit types. Textures are resources, not uniforms.
-
 
 ### [HIGH] Using @pixi/filter-\* packages for v8
 
 Wrong:
 
 ```ts
-import { AdjustmentFilter } from "@pixi/filter-adjustment";
+import { AdjustmentFilter } from '@pixi/filter-adjustment';
 ```
 
 Correct:
 
 ```ts
-import { AdjustmentFilter } from "pixi-filters/adjustment";
+import { AdjustmentFilter } from 'pixi-filters/adjustment';
 ```
 
 `@pixi/filter-*` packages are v7 only. For v8, the community filters package restructured to `pixi-filters/{name}`.
-
 
 ### [HIGH] Using too many filters without containerizing
 
@@ -254,7 +252,7 @@ Wrong:
 
 ```ts
 for (const child of container.children) {
-  child.filters = [new BlurFilter({ strength: 4 })];
+	child.filters = [new BlurFilter({ strength: 4 })];
 }
 ```
 
@@ -263,7 +261,6 @@ Correct:
 ```ts
 container.filters = [new BlurFilter({ strength: 4 })];
 ```
-
 
 ### [HIGH] Using a blendRequired filter without useBackBuffer on WebGL
 
@@ -275,18 +272,16 @@ await app.init({ useBackBuffer: true });
 
 WebGPU enables the back buffer unconditionally, so this only affects WebGL.
 
-
 ### [MEDIUM] Not setting filterArea for known-size containers
 
 Without `filterArea`, PixiJS measures the container bounds every frame via `getGlobalBounds()`, which recursively walks all children. For containers with known dimensions, set `filterArea` to avoid this cost:
 
 ```ts
-import { Rectangle } from "pixi.js";
+import { Rectangle } from 'pixi.js';
 
 container.filterArea = new Rectangle(0, 0, 800, 600);
 container.filters = [someFilter];
 ```
-
 
 ## API Reference
 

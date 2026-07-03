@@ -8,7 +8,6 @@ Every option accepted by `app.init(options)`. Options come from three type sourc
 
 Options with no default are unset unless you pass them. `Partial<ApplicationOptions>` means everything is optional.
 
-
 ## View / canvas
 
 Configures the main canvas and how it maps to CSS pixels.
@@ -26,11 +25,11 @@ Configures the main canvas and how it maps to CSS pixels.
 
 ```ts
 await app.init({
-  width: 1280,
-  height: 720,
-  resolution: window.devicePixelRatio,
-  autoDensity: true,
-  antialias: true,
+	width: 1280,
+	height: 720,
+	resolution: window.devicePixelRatio,
+	autoDensity: true,
+	antialias: true,
 });
 ```
 
@@ -47,8 +46,8 @@ Controls the clear color applied each frame.
 
 ```ts
 await app.init({
-  backgroundColor: 0x1099bb,
-  backgroundAlpha: 1,
+	backgroundColor: 0x1099bb,
+	backgroundAlpha: 1,
 });
 ```
 
@@ -69,24 +68,23 @@ Passing an array to `preference` restricts `autoDetectRenderer` to exactly the l
 
 ```ts
 // Try WebGPU first, then fall back to WebGL. Never use Canvas2D.
-await app.init({ preference: ["webgpu", "webgl"] });
+await app.init({ preference: ['webgpu', 'webgl'] });
 
 // Only ever use Canvas2D (e.g. in a WebGL-disabled environment).
-await app.init({ preference: ["canvas"] });
+await app.init({ preference: ['canvas'] });
 
 // Skip WebGPU entirely while keeping the default webgl → canvas fallback order.
-await app.init({ preference: ["webgl", "canvas"] });
+await app.init({ preference: ['webgl', 'canvas'] });
 ```
 
 Contrast with the string form, which falls through the **full** default priority if the first choice fails:
 
 ```ts
 // Tries webgpu, then webgl, then canvas — all three are candidates.
-await app.init({ preference: "webgpu" });
+await app.init({ preference: 'webgpu' });
 ```
 
 Use the array when you need to guarantee a renderer is never picked (e.g. WebGPU is broken on a target device, or you want to forbid Canvas2D's feature subset).
-
 
 ## Shared rendering
 
@@ -101,8 +99,8 @@ Apply to every renderer type.
 
 ```ts
 await app.init({
-  roundPixels: true,
-  hello: true,
+	roundPixels: true,
+	hello: true,
 });
 ```
 
@@ -116,7 +114,7 @@ Graphics rendering options.
 
 ```ts
 await app.init({
-  bezierSmoothness: 0.75,
+	bezierSmoothness: 0.75,
 });
 ```
 
@@ -133,13 +131,13 @@ See `pixijs-ticker` for the ticker API itself.
 
 ```ts
 await app.init({
-  autoStart: false,
-  sharedTicker: false,
+	autoStart: false,
+	sharedTicker: false,
 });
 
 function loop() {
-  app.renderer.render(app.stage);
-  requestAnimationFrame(loop);
+	app.renderer.render(app.stage);
+	requestAnimationFrame(loop);
 }
 loop();
 ```
@@ -154,7 +152,7 @@ The plugin listens for `resize` events on `window` and calls `renderer.resize()`
 
 ```ts
 await app.init({
-  resizeTo: window,
+	resizeTo: window,
 });
 ```
 
@@ -162,17 +160,17 @@ await app.init({
 
 Opt-in plugin (must `extensions.add(CullerPlugin)` to activate).
 
-| Option                   | Type      | Default                                              | Description                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------------------ | --------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Option                   | Type      | Default               | Description                                                                                                                                                               |
+| ------------------------ | --------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `culler.updateTransform` | `boolean` | `false` (effectively) | Must be explicitly set to `true` to run transform updates before culling. Otherwise PixiJS skips transform updates, and cull bounds may lag one frame for moving objects. |
 
 ```ts
-import { CullerPlugin, extensions } from "pixi.js";
+import { CullerPlugin, extensions } from 'pixi.js';
 
 extensions.add(CullerPlugin);
 
 await app.init({
-  culler: { updateTransform: true },
+	culler: { updateTransform: true },
 });
 ```
 
@@ -188,13 +186,13 @@ await app.init({
 
 ```ts
 await app.init({
-  eventMode: "static",
-  eventFeatures: {
-    move: true,
-    globalMove: false,
-    click: true,
-    wheel: true,
-  },
+	eventMode: 'static',
+	eventFeatures: {
+		move: true,
+		globalMove: false,
+		click: true,
+		wheel: true,
+	},
 });
 ```
 
@@ -213,11 +211,11 @@ See `pixijs-accessibility` for the full accessibility API.
 
 ```ts
 await app.init({
-  accessibilityOptions: {
-    enabledByDefault: true,
-    activateOnTab: true,
-    deactivateOnMouseMove: true,
-  },
+	accessibilityOptions: {
+		enabledByDefault: true,
+		activateOnTab: true,
+		deactivateOnMouseMove: true,
+	},
 });
 ```
 
@@ -237,12 +235,12 @@ Applied when the WebGL renderer is selected.
 
 ```ts
 await app.init({
-  preference: "webgl",
-  webgl: {
-    preferWebGLVersion: 2,
-    useBackBuffer: true,
-    powerPreference: "high-performance",
-  },
+	preference: 'webgl',
+	webgl: {
+		preferWebGLVersion: 2,
+		useBackBuffer: true,
+		powerPreference: 'high-performance',
+	},
 });
 ```
 
@@ -256,10 +254,10 @@ await app.init({
 
 ```ts
 await app.init({
-  preference: ["webgpu", "webgl"],
-  webgpu: {
-    powerPreference: "high-performance",
-  },
+	preference: ['webgpu', 'webgl'],
+	webgpu: {
+		powerPreference: 'high-performance',
+	},
 });
 ```
 
@@ -289,9 +287,9 @@ All time values are milliseconds.
 
 ```ts
 await app.init({
-  gcActive: true,
-  gcMaxUnusedTime: 60_000,
-  gcFrequency: 30_000,
+	gcActive: true,
+	gcMaxUnusedTime: 60_000,
+	gcFrequency: 30_000,
 });
 ```
 
@@ -301,12 +299,12 @@ await app.init({
 
 ```ts
 await app.init({
-  antialias: false,
-  webgl: { antialias: true, useBackBuffer: true },
-  webgpu: { antialias: true },
-  canvasOptions: {
-    /* canvas-specific */
-  },
+	antialias: false,
+	webgl: { antialias: true, useBackBuffer: true },
+	webgpu: { antialias: true },
+	canvasOptions: {
+		/* canvas-specific */
+	},
 });
 ```
 

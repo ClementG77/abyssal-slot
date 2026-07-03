@@ -1,6 +1,6 @@
 ---
 name: pixijs-scene-container
-description: "Use this skill when grouping, positioning, or transforming display objects in PixiJS v8. Covers Container constructor options (isRenderGroup, sortableChildren, boundsArea), addChild/removeChild/addChildAt/swapChildren/setChildIndex, position/scale/rotation/pivot/skew/alpha/tint, getBounds/getGlobalPosition/toLocal/toGlobal, zIndex sorting, cullable, onRender per-frame callback, destroy. Triggers on: Container, addChild, removeChild, addChildAt, swapChildren, sortableChildren, zIndex, position, scale, rotation, pivot, getBounds, toGlobal, toLocal, onRender, destroy, constructor options, ContainerOptions."
+description: 'Use this skill when grouping, positioning, or transforming display objects in PixiJS v8. Covers Container constructor options (isRenderGroup, sortableChildren, boundsArea), addChild/removeChild/addChildAt/swapChildren/setChildIndex, position/scale/rotation/pivot/skew/alpha/tint, getBounds/getGlobalPosition/toLocal/toGlobal, zIndex sorting, cullable, onRender per-frame callback, destroy. Triggers on: Container, addChild, removeChild, addChildAt, swapChildren, sortableChildren, zIndex, position, scale, rotation, pivot, getBounds, toGlobal, toLocal, onRender, destroy, constructor options, ContainerOptions.'
 license: MIT
 ---
 
@@ -12,14 +12,14 @@ Assumes familiarity with `pixijs-scene-core-concepts`.
 
 ```ts
 const group = new Container({
-  label: "hero-group",
-  x: 200,
-  y: 150,
-  sortableChildren: true,
+	label: 'hero-group',
+	x: 200,
+	y: 150,
+	sortableChildren: true,
 });
 
-const body = new Sprite(await Assets.load("body.png"));
-const head = new Sprite(await Assets.load("head.png"));
+const body = new Sprite(await Assets.load('body.png'));
+const head = new Sprite(await Assets.load('head.png'));
 head.position.set(0, -40);
 head.zIndex = 1;
 
@@ -38,19 +38,19 @@ app.stage.addChild(group);
 
 ```ts
 const container = new Container({
-  label: "world",
-  x: 100,
-  y: 50,
-  scale: 2,
-  rotation: Math.PI / 4,
-  alpha: 0.8,
-  visible: true,
-  tint: 0xffaa00,
-  blendMode: "add",
-  sortableChildren: true,
-  isRenderGroup: true,
-  origin: { x: 0, y: 0 },
-  boundsArea: new Rectangle(0, 0, 1920, 1080),
+	label: 'world',
+	x: 100,
+	y: 50,
+	scale: 2,
+	rotation: Math.PI / 4,
+	alpha: 0.8,
+	visible: true,
+	tint: 0xffaa00,
+	blendMode: 'add',
+	sortableChildren: true,
+	isRenderGroup: true,
+	origin: { x: 0, y: 0 },
+	boundsArea: new Rectangle(0, 0, 1920, 1080),
 });
 ```
 
@@ -190,19 +190,19 @@ const { width, height } = sprite.getSize();
 ```ts
 const parent = new Container();
 
-parent.on("childAdded", (child, container, index) => {
-  console.log("added at", index, child.label);
+parent.on('childAdded', (child, container, index) => {
+	console.log('added at', index, child.label);
 });
 
-parent.on("childRemoved", (child, container, index) => {
-  console.log("removed from", index);
+parent.on('childRemoved', (child, container, index) => {
+	console.log('removed from', index);
 });
 
 const child = new Container();
-child.on("added", (newParent) => console.log("entered", newParent.label));
-child.on("removed", (oldParent) => console.log("left", oldParent.label));
-child.on("visibleChanged", (visible) => console.log("visible:", visible));
-child.on("destroyed", (destroyed) => console.log("gone", destroyed.label));
+child.on('added', (newParent) => console.log('entered', newParent.label));
+child.on('removed', (oldParent) => console.log('left', oldParent.label));
+child.on('visibleChanged', (visible) => console.log('visible:', visible));
+child.on('destroyed', (destroyed) => console.log('gone', destroyed.label));
 
 parent.addChild(child);
 ```
@@ -226,7 +226,7 @@ These are emitted on the `EventEmitter` side of `Container`; do not confuse them
 const container = new Container();
 
 container.onRender = (renderer) => {
-  container.rotation += 0.01;
+	container.rotation += 0.01;
 };
 
 container.onRender = null;
@@ -237,7 +237,7 @@ container.onRender = null;
 ### Finding and removing from parent
 
 ```ts
-const player = world.getChildByLabel("player");
+const player = world.getChildByLabel('player');
 const enemies = world.getChildrenByLabel(/enemy-\d+/, true);
 
 const bounds = hud.getLocalBounds();
@@ -256,9 +256,9 @@ oldSprite.removeFromParent();
 container.destroy();
 
 container.destroy({
-  children: true,
-  texture: true,
-  textureSource: true,
+	children: true,
+	texture: true,
+	textureSource: true,
 });
 
 console.log(container.destroyed);

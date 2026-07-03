@@ -5,7 +5,7 @@ import { stateBet, stateBetDerived } from 'state-shared';
 import { createEnhanceBoard, createReelForCascading } from 'utils-slots';
 import { createGetWinLevelDataByWinLevelAlias } from 'utils-shared/winLevel';
 
-import type { EyeType, GameType, RawSymbol, SymbolState } from './types';
+import type { EyeType, GameType, Position, RawSymbol, SymbolState } from './types';
 import { winLevelMap } from './winLevelMap';
 import { eventEmitter } from './eventEmitter';
 import {
@@ -22,8 +22,39 @@ import {
 	getReelPosition,
 } from './constants';
 
-const onSymbolLand = ({ rawSymbol }: { rawSymbol: RawSymbol }) => {
+const getScatterLandSoundIndex = (scatterCount: number) => {
+	if (scatterCount > 5) return 5;
+	if (scatterCount < 1) return 1;
+	return scatterCount as 1 | 2 | 3 | 4 | 5;
+};
+
+const getVisibleLandPosition = ({ reel, row }: { reel?: number; row?: number }) => {
+	const position: Position | undefined =
+		reel === undefined || row === undefined ? undefined : { reel, row };
+	const isVisiblePosition =
+		position === undefined ||
+		(position.reel >= 0 &&
+			position.reel < BOARD_DIMENSIONS.x &&
+			position.row >= 0 &&
+			position.row < BOARD_DIMENSIONS.y);
+	return isVisiblePosition ? position : undefined;
+};
+
+const onSymbolLand = ({
+	rawSymbol,
+	reel,
+	row,
+}: {
+	rawSymbol: RawSymbol;
+	reel?: number;
+	row?: number;
+}) => {
+	const position = getVisibleLandPosition({ reel, row });
+	if (reel !== undefined && row !== undefined && position === undefined) return;
+
 	if (rawSymbol.name === 'S') {
+		const scatterCountAfterLand = stateGame.scatterCounter + 1;
+
 		// No board jolt on a scatter land. A base book caps at 3 scatters (a near-miss that pays
 		// and triggers nothing — the feature needs ≥4), so jolting the whole board on the 3rd was
 		// all promise and no payoff. Tension is owned entirely by the math's per-reel `anticipation`
@@ -31,17 +62,21 @@ const onSymbolLand = ({ rawSymbol }: { rawSymbol: RawSymbol }) => {
 		// + zooms only while another scatter can still land, and the trigger celebration
 		// (freeSpinTrigger → scatterCelebrate) owns the payoff. The scatter still gets its own
 		// land flare (Symbol) + frame-glow surge below.
-		eventEmitter.broadcast({ type: 'reelFrameScatterLand' });
+		eventEmitter.broadcast({ type: 'reelFrameScatterLand', position });
 		eventEmitter.broadcast({ type: 'soundScatterCounterIncrease' });
+		if (scatterCountAfterLand >= 4 && stateGame.scatterAnticipating) {
+			eventEmitter.broadcast({ type: 'reelFrameScatterAnticipationEnd' });
+		}
 		eventEmitter.broadcast({
 			type: 'soundOnce',
-			name: SCATTER_LAND_SOUND_MAP[scatterLandIndex()],
+			name: SCATTER_LAND_SOUND_MAP[getScatterLandSoundIndex(scatterCountAfterLand)],
 		});
 	}
 
-	// The Eye's frame-glow accent fires on its own land; the heavy board jolt is driven from the
-	// reel stop (see onReelStopping) so it hits when the Eye's column drops in, not at full draw.
-	if (rawSymbol.name === 'EYE') eventEmitter.broadcast({ type: 'reelFrameEyeLand' });
+	if (rawSymbol.name === 'EYE') {
+		eventEmitter.broadcast({ type: 'boardEyeImpact', position });
+		eventEmitter.broadcast({ type: 'reelFrameEyeLand', position });
+	}
 };
 
 const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
@@ -56,14 +91,6 @@ const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
 				name: 'sfx_reel_stop_1',
 				forcePlay: !stateBet.isTurbo,
 			});
-			// The Eye lands heavy: jolt the board the moment its COLUMN drops in (this reel stopping),
-			// NOT when the individual top-row eye finally settles. Top symbols land last (fall-in
-			// delay), so triggering on the eye's own land reads as "after the whole board is drawn".
-			// Fires once per eye-bearing reel, and only on the reveal drop (tumbles settle silently).
-			const reelHasEye = board[reelIndex].reelState.symbols.some(
-				(reelSymbol) => reelSymbol.rawSymbol.name === 'EYE',
-			);
-			if (reelHasEye) eventEmitter.broadcast({ type: 'boardEyeImpact' });
 		},
 		onSymbolLand,
 	});
@@ -82,6 +109,7 @@ export type TumbleSymbol = {
 	rawSymbol: RawSymbol;
 	symbolState: SymbolState;
 	oncomplete: () => void;
+	isRefill?: boolean;
 };
 
 export const stateGame = $state({
@@ -144,11 +172,7 @@ const tumbleBoardCombined = () => {
 	return tumbleBoardCombined;
 };
 
-const scatterLandIndex = () => {
-	if (stateGame.scatterCounter > 5) return 5;
-	if (stateGame.scatterCounter < 1) return 1;
-	return stateGame.scatterCounter as 1 | 2 | 3 | 4 | 5;
-};
+const scatterLandIndex = () => getScatterLandSoundIndex(stateGame.scatterCounter);
 
 const { enhanceBoard } = createEnhanceBoard();
 const enhancedBoard = enhanceBoard({ board: stateGame.board });

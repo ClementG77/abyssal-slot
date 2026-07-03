@@ -30,15 +30,15 @@ Rendering is **retained mode**: objects persist across frames unless you explici
 
 ```ts
 app.ticker.add((ticker) => {
-  sprite.rotation += 0.01 * ticker.deltaTime;
+	sprite.rotation += 0.01 * ticker.deltaTime;
 });
 
 app.ticker.add(
-  (ticker) => {
-    updatePhysics(ticker.deltaMS);
-  },
-  undefined,
-  UPDATE_PRIORITY.HIGH,
+	(ticker) => {
+		updatePhysics(ticker.deltaMS);
+	},
+	undefined,
+	UPDATE_PRIORITY.HIGH,
 );
 ```
 
@@ -59,18 +59,18 @@ UPDATE_PRIORITY.UTILITY     = -50  // post-render cleanup
 ```
 
 ```ts
-import { UPDATE_PRIORITY } from "pixi.js";
+import { UPDATE_PRIORITY } from 'pixi.js';
 
 app.ticker.add(
-  (ticker) => {
-    handleInput(ticker.deltaMS);
-  },
-  undefined,
-  UPDATE_PRIORITY.HIGH,
+	(ticker) => {
+		handleInput(ticker.deltaMS);
+	},
+	undefined,
+	UPDATE_PRIORITY.HIGH,
 );
 
 app.ticker.add((ticker) => {
-  updateAnimations(ticker.deltaTime);
+	updateAnimations(ticker.deltaTime);
 });
 ```
 
@@ -90,9 +90,9 @@ Use `deltaTime` as a frame-rate multiplier for simple per-frame logic; use `delt
 await app.init({ autoStart: false, width: 800, height: 600 });
 
 function frame(time: number) {
-  updateGameState();
-  app.renderer.render(app.stage);
-  requestAnimationFrame(frame);
+	updateGameState();
+	app.renderer.render(app.stage);
+	requestAnimationFrame(frame);
 }
 
 requestAnimationFrame(frame);
@@ -114,7 +114,7 @@ Useful for a pause menu or when the user switches away from the tab. The ticker 
 ```ts
 const sprite = new Sprite(texture);
 sprite.onRender = () => {
-  sprite.rotation += 0.01;
+	sprite.rotation += 0.01;
 };
 
 app.stage.addChild(sprite);
@@ -139,7 +139,7 @@ Wrong:
 
 ```ts
 app.ticker.add((dt) => {
-  sprite.rotation += dt; // dt is the Ticker instance, not a number
+	sprite.rotation += dt; // dt is the Ticker instance, not a number
 });
 ```
 
@@ -147,12 +147,11 @@ Correct:
 
 ```ts
 app.ticker.add((ticker) => {
-  sprite.rotation += ticker.deltaTime;
+	sprite.rotation += ticker.deltaTime;
 });
 ```
 
 v8 passes the `Ticker` instance to the callback, not a delta. Old v7 code that used `(dt) => sprite.x += dt` compiles but produces `NaN` because `dt` is an object.
-
 
 ### [HIGH] Using `updateTransform` for per-frame logic
 
@@ -160,10 +159,10 @@ Wrong:
 
 ```ts
 class MySprite extends Sprite {
-  updateTransform() {
-    super.updateTransform();
-    this.rotation += 0.01;
-  }
+	updateTransform() {
+		super.updateTransform();
+		this.rotation += 0.01;
+	}
 }
 ```
 
@@ -171,17 +170,16 @@ Correct:
 
 ```ts
 class MySprite extends Sprite {
-  constructor() {
-    super();
-    this.onRender = () => {
-      this.rotation += 0.01;
-    };
-  }
+	constructor() {
+		super();
+		this.onRender = () => {
+			this.rotation += 0.01;
+		};
+	}
 }
 ```
 
 `updateTransform` was removed in v8. Use `onRender` for per-object per-frame logic.
-
 
 ### [MEDIUM] Assuming ticker callbacks run after render
 
@@ -189,7 +187,7 @@ Wrong:
 
 ```ts
 app.ticker.add(() => {
-  readPixelsFromCanvas(); // empty; render hasn't happened yet this frame
+	readPixelsFromCanvas(); // empty; render hasn't happened yet this frame
 });
 ```
 
@@ -197,16 +195,15 @@ Correct:
 
 ```ts
 app.ticker.add(
-  () => {
-    readPixelsFromCanvas();
-  },
-  undefined,
-  UPDATE_PRIORITY.UTILITY,
+	() => {
+		readPixelsFromCanvas();
+	},
+	undefined,
+	UPDATE_PRIORITY.UTILITY,
 );
 ```
 
 Callbacks added at the default priority (`NORMAL = 0`) run _before_ the render call (at `LOW = -25`). Use `UTILITY = -50` for post-render work like pixel readbacks or DOM sync.
-
 
 ## API Reference
 

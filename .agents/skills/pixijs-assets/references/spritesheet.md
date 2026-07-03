@@ -5,12 +5,12 @@ Load and use texture atlases and animation sheets with PixiJS's `Spritesheet` cl
 ## Quick Start
 
 ```ts
-const sheet = await Assets.load("spritesheet.json");
+const sheet = await Assets.load('spritesheet.json');
 
-const hero = new Sprite(sheet.textures["hero.png"]);
+const hero = new Sprite(sheet.textures['hero.png']);
 app.stage.addChild(hero);
 
-const walk = new AnimatedSprite(sheet.animations["walk"]);
+const walk = new AnimatedSprite(sheet.animations['walk']);
 walk.animationSpeed = 0.15;
 walk.play();
 app.stage.addChild(walk);
@@ -24,30 +24,30 @@ When loaded through `Assets.load()`, the JSON file is fetched, the atlas image i
 
 ```json
 {
-  "frames": {
-    "hero.png": {
-      "frame": { "x": 0, "y": 0, "w": 64, "h": 64 },
-      "sourceSize": { "w": 64, "h": 64 },
-      "spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
-      "anchor": { "x": 0.5, "y": 0.5 },
-      "borders": { "left": 10, "top": 10, "right": 10, "bottom": 10 }
-    },
-    "walk_01.png": {
-      "frame": { "x": 64, "y": 0, "w": 64, "h": 64 },
-      "rotated": true,
-      "trimmed": true,
-      "sourceSize": { "w": 80, "h": 80 },
-      "spriteSourceSize": { "x": 8, "y": 8, "w": 64, "h": 64 }
-    }
-  },
-  "animations": {
-    "walk": ["walk_01.png", "walk_02.png", "walk_03.png"]
-  },
-  "meta": {
-    "image": "spritesheet.png",
-    "size": { "w": 512, "h": 256 },
-    "scale": "1"
-  }
+	"frames": {
+		"hero.png": {
+			"frame": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"anchor": { "x": 0.5, "y": 0.5 },
+			"borders": { "left": 10, "top": 10, "right": 10, "bottom": 10 }
+		},
+		"walk_01.png": {
+			"frame": { "x": 64, "y": 0, "w": 64, "h": 64 },
+			"rotated": true,
+			"trimmed": true,
+			"sourceSize": { "w": 80, "h": 80 },
+			"spriteSourceSize": { "x": 8, "y": 8, "w": 64, "h": 64 }
+		}
+	},
+	"animations": {
+		"walk": ["walk_01.png", "walk_02.png", "walk_03.png"]
+	},
+	"meta": {
+		"image": "spritesheet.png",
+		"size": { "w": 512, "h": 256 },
+		"scale": "1"
+	}
 }
 ```
 
@@ -63,15 +63,15 @@ Key fields:
 ### Manual Spritesheet creation
 
 ```ts
-const texture = await Assets.load("atlas.png");
+const texture = await Assets.load('atlas.png');
 const sheet = new Spritesheet({
-  texture,
-  data: spritesheetJsonData,
-  cachePrefix: "myAtlas_",
+	texture,
+	data: spritesheetJsonData,
+	cachePrefix: 'myAtlas_',
 });
 await sheet.parse();
 
-const frame = new Sprite(sheet.textures["hero.png"]);
+const frame = new Sprite(sheet.textures['hero.png']);
 ```
 
 `parse()` is async for large spritesheets (over 1000 frames); it batches texture creation across multiple frames. For smaller sheets, `parseSync()` is also available.
@@ -81,14 +81,14 @@ const frame = new Sprite(sheet.textures["hero.png"]);
 ### Preloaded texture with Assets
 
 ```ts
-const atlasTexture = await Assets.load("images/spritesheet.png");
+const atlasTexture = await Assets.load('images/spritesheet.png');
 
 Assets.add({
-  alias: "atlas",
-  src: "images/spritesheet.json",
-  data: { texture: atlasTexture },
+	alias: 'atlas',
+	src: 'images/spritesheet.json',
+	data: { texture: atlasTexture },
 });
-const sheet = await Assets.load("atlas");
+const sheet = await Assets.load('atlas');
 ```
 
 ### Multi-pack spritesheets

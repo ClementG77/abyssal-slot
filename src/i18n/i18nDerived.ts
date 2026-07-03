@@ -8,6 +8,7 @@ export const i18nDerived = {
 	...i18nDerivedUiHtml,
 	home: () => stateI18nDerived.translate('HOME'),
 	notTranslated: () => stateI18nDerived.translate('NOT TRANSLATED'),
+	gameInfo: (key: string) => stateI18nDerived.translate(`GAME_INFO_${key}`),
 	loaderSubtitle: () => stateI18nDerived.translate('LOADER_SUBTITLE'),
 	loaderLogo: () => stateI18nDerived.translate('LOADER_LOGO'),
 	loaderCard1Title: () => stateI18nDerived.translate('LOADER_CARD_1_TITLE'),

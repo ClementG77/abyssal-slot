@@ -48,7 +48,6 @@ export const REEL_FRAME_FREE_SPINS_IMAGE_SIZE = { width: 1448, height: 1086 };
 // Coordinates are kept as source-space fractions so the component scales cleanly on every viewport.
 export const GAZE_METER_IMAGE_SIZE = { width: 1254, height: 1254 };
 export const GAZE_METER_MAX_CHARGE = 10;
-export const GAZE_METER_MULTIPLIER_COLOR = 0xffe6a0;
 export const GAZE_METER_LAYOUT = {
 	imageWidth: GAZE_METER_IMAGE_SIZE.width,
 	imageHeight: GAZE_METER_IMAGE_SIZE.height,
@@ -213,7 +212,7 @@ export const getSymbolFill = (symbolName: SymbolName) => {
 	// The scatter art fills ~100% of its 393×415 frame while the highs only fill ~73% (circles with
 	// empty corners). ~0.69 matches the highs' visible height; a touch above makes the leviathan
 	// read as the hero symbol without dominating.
-	if (symbolName === 'S') return 0.9;
+	if (symbolName === 'S') return 1.1;
 	if (symbolName === 'EYE') return 1.2; // eye a bit bigger
 	if (symbolName.startsWith('H')) return 0.95; // highs a bit bigger
 	if (symbolName.startsWith('L')) return 0.74; // lows a bit smaller
@@ -221,22 +220,49 @@ export const getSymbolFill = (symbolName: SymbolName) => {
 	return REEL_LAYOUT_BASE.symbolFill;
 };
 
-// The three Eye states all live in the symbol atlas: CLOSE = the unrevealed eye sitting on the
-// board, ADD / MULT = the resolved eye art. One definition so every component (board Symbol, the
-// AbyssalEye FX component, the reveal overlay, the paytable) addresses the same frames.
+// --- Branded bitmap font (the gold "minted" Abyssal type) --------------------------------
+// Face name baked into static/assets/fonts/abyssal_bitmap_font_package/abyssal_font.fnt and
+// registered by the `abyssalFont` asset. Render it with <BitmapText>/<ResponsiveBitmapText> —
+// the gold fill, bevel and dark outline are baked into the glyph art (no stroke/dropShadow
+// style props needed, and `fill` tints multiplicatively so leave it unset to keep the gold).
+// UPPERCASE-only coverage, no '/' (use "OF"), no lowercase except 'x'.
+export const ABYSSAL_FONT_FAMILY = 'AbyssalBitmap';
+export const abyssalBitmapStyle = ({
+	fontSize,
+	letterSpacing,
+}: {
+	fontSize: number;
+	letterSpacing?: number;
+}): TextStyleOptions => ({
+	fontFamily: ABYSSAL_FONT_FAMILY,
+	fontSize,
+	align: 'center',
+	...(letterSpacing !== undefined ? { letterSpacing } : {}),
+});
+
+// The Eye states all live in the symbol atlas, in reveal order:
+//   CLOSE (purple, unrevealed) → flip → ADD_EMPTY/MULT_EMPTY (closed coloured art, our number
+//   written in the MIDDLE) → the multiplier fires into the win → the number leaves and the
+//   plain EMPTY art remains. The ADD/MULT ACTIVE (open) frames are reserved for hero moments
+//   (paytable, feature presentation) — the board lifecycle doesn't use them.
+// One definition so every component (board Symbol, the AbyssalEye FX component, the reveal
+// overlay, the paytable) addresses the same frames.
 export const EYE_FRAME = {
-	close: 'CLOSE_EYE',
-	add: 'ADD_EYE',
-	mult: 'MULT_EYE',
+	close: 'EYE_PURPLE_CLOSE',
+	add: 'EYE_ADD_ACTIVE',
+	mult: 'EYE_MULT_ACTIVE',
+	addEmpty: 'EYE_ADD_EMPTY',
+	multEmpty: 'EYE_MULT_EMPTY',
 } as const;
 export type EyeVariant = keyof typeof EYE_FRAME;
-// Eye art shares the uniform 393×415 atlas cell.
-export const EYE_ASPECT = 393 / 415;
+// Eye art shares the uniform 495×501 atlas cell.
+export const EYE_ASPECT = 495 / 501;
 
-// The Eye's iris (where the number belongs) sits ABOVE the frame's geometric centre — measured
-// at ~(-10, -17)px in the 393×415 art. As fractions of the eye's width/height, this nudges the
-// number onto the iris instead of the geometric centre (which renders it low / off the eye).
-export const EYE_LABEL_OFFSET = { x: -0.025, y: -0.041 } as const;
+// Value placement per art, as fractions of the eye's width/height:
+// EMPTY (closed) art → the multiplier sits in the MIDDLE of the face (~centre of the frame).
+export const EYE_LABEL_OFFSET = { x: 0, y: 0.015 } as const;
+// ACTIVE (open) art → the value sits in the banner plaque BELOW the iris (~+0.36 of the height).
+export const EYE_LABEL_OFFSET_PLAQUE = { x: 0, y: 0.36 } as const;
 
 // The Eye's number wears the same minted look as the Gaze meter value (Cinzel 900, dark navy
 // stroke, soft black drop shadow) so the two read as one currency. `fill` stays colour-coded —
@@ -259,19 +285,19 @@ export const eyeValueTextStyle = ({
 	dropShadow: { color: 0x000000, blur: 4, distance: 2, alpha: 0.8 },
 });
 
-// All frames in the `eye` atlas share a uniform 393×415 source cell.
+// All frames in the `symbol_black` atlas share a uniform 495×501 source cell.
 export const SYMBOL_SOURCE_SIZES: Record<SymbolName, { width: number; height: number }> = {
-	H1: { width: 393, height: 415 },
-	H2: { width: 393, height: 415 },
-	H3: { width: 393, height: 415 },
-	H4: { width: 393, height: 415 },
-	L1: { width: 393, height: 415 },
-	L2: { width: 393, height: 415 },
-	L3: { width: 393, height: 415 },
-	L4: { width: 393, height: 415 },
-	L5: { width: 393, height: 415 },
-	S: { width: 393, height: 415 },
-	EYE: { width: 393, height: 415 },
+	H1: { width: 495, height: 501 },
+	H2: { width: 495, height: 501 },
+	H3: { width: 495, height: 501 },
+	H4: { width: 495, height: 501 },
+	L1: { width: 495, height: 501 },
+	L2: { width: 495, height: 501 },
+	L3: { width: 495, height: 501 },
+	L4: { width: 495, height: 501 },
+	L5: { width: 495, height: 501 },
+	S: { width: 495, height: 501 },
+	EYE: { width: 495, height: 501 },
 };
 
 export const BACKGROUND_RATIO = 2039 / 1000;

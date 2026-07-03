@@ -5,20 +5,20 @@ A mesh that renders a textured plane with perspective projection via four corner
 ## Quick Start
 
 ```ts
-const texture = await Assets.load("card.png");
+const texture = await Assets.load('card.png');
 
 const mesh = new PerspectiveMesh({
-  texture,
-  verticesX: 20,
-  verticesY: 20,
-  x0: 0,
-  y0: 0, // top-left
-  x1: 300,
-  y1: 30, // top-right (raised)
-  x2: 280,
-  y2: 300, // bottom-right
-  x3: 20,
-  y3: 280, // bottom-left
+	texture,
+	verticesX: 20,
+	verticesY: 20,
+	x0: 0,
+	y0: 0, // top-left
+	x1: 300,
+	y1: 30, // top-right (raised)
+	x2: 280,
+	y2: 300, // bottom-right
+	x3: 20,
+	y3: 280, // bottom-left
 });
 
 app.stage.addChild(mesh);
@@ -58,14 +58,14 @@ Call `mesh.setCorners(x0, y0, x1, y1, x2, y2, x3, y3)` at runtime to animate the
 
 ```ts
 mesh.setCorners(
-  0,
-  0, // top-left    (x0, y0)
-  200,
-  0, // top-right   (x1, y1)
-  200,
-  200, // bottom-right(x2, y2)
-  0,
-  200, // bottom-left (x3, y3)
+	0,
+	0, // top-left    (x0, y0)
+	200,
+	0, // top-right   (x1, y1)
+	200,
+	200, // bottom-right(x2, y2)
+	0,
+	200, // bottom-left (x3, y3)
 );
 ```
 
@@ -75,16 +75,16 @@ Corners must be specified clockwise starting from the top-left. `setCorners` upd
 
 ```ts
 const mesh = new PerspectiveMesh({
-  texture,
-  verticesX: 20,
-  verticesY: 20,
+	texture,
+	verticesX: 20,
+	verticesY: 20,
 });
 
 app.ticker.add(() => {
-  const t = performance.now() / 1000;
-  const wave = Math.sin(t) * 30;
+	const t = performance.now() / 1000;
+	const wave = Math.sin(t) * 30;
 
-  mesh.setCorners(0, wave, 200, -wave, 200, 200, 0, 200);
+	mesh.setCorners(0, wave, 200, -wave, 200, 200, 0, 200);
 });
 ```
 
@@ -103,17 +103,17 @@ The number of vertices controls how smooth the perspective projection looks. A 5
 
 ```ts
 const floor = new PerspectiveMesh({
-  texture: floorTex,
-  verticesX: 20,
-  verticesY: 20,
-  x0: 200,
-  y0: 300, // near left on screen
-  x1: 600,
-  y1: 300, // near right
-  x2: 800,
-  y2: 200, // far right
-  x3: 0,
-  y3: 200, // far left
+	texture: floorTex,
+	verticesX: 20,
+	verticesY: 20,
+	x0: 200,
+	y0: 300, // near left on screen
+	x1: 600,
+	y1: 300, // near right
+	x2: 800,
+	y2: 200, // far right
+	x3: 0,
+	y3: 200, // far left
 });
 
 app.stage.addChild(floor);
@@ -124,7 +124,7 @@ Put the "far" corners higher on the screen and closer together than the "near" c
 ### Updating the texture
 
 ```ts
-mesh.texture = await Assets.load("new-card.png");
+mesh.texture = await Assets.load('new-card.png');
 ```
 
 Changing the texture rebuilds the geometry to match the new dimensions while keeping the current corner positions. The perspective projection persists through texture swaps.
@@ -135,24 +135,23 @@ Changing the texture rebuilds the geometry to match the new dimensions while kee
 
 `PerspectiveMesh` is a 2D mesh with UV correction to simulate perspective. There is no Z axis, no depth buffer, and no camera. For real 3D, use a full WebGL/WebGPU library on top of PixiJS, or drive vertex positions through a manual transform.
 
-
 ### [MEDIUM] Too few vertices for a noticeable tilt
 
 Wrong:
 
 ```ts
 const mesh = new PerspectiveMesh({
-  texture,
-  verticesX: 2,
-  verticesY: 2,
-  x0: 0,
-  y0: 0,
-  x1: 300,
-  y1: 50,
-  x2: 280,
-  y2: 250,
-  x3: 20,
-  y3: 200,
+	texture,
+	verticesX: 2,
+	verticesY: 2,
+	x0: 0,
+	y0: 0,
+	x1: 300,
+	y1: 50,
+	x2: 280,
+	y2: 250,
+	x3: 20,
+	y3: 200,
 });
 ```
 
@@ -160,27 +159,25 @@ Correct:
 
 ```ts
 const mesh = new PerspectiveMesh({
-  texture,
-  verticesX: 20,
-  verticesY: 20,
-  x0: 0,
-  y0: 0,
-  x1: 300,
-  y1: 50,
-  x2: 280,
-  y2: 250,
-  x3: 20,
-  y3: 200,
+	texture,
+	verticesX: 20,
+	verticesY: 20,
+	x0: 0,
+	y0: 0,
+	x1: 300,
+	y1: 50,
+	x2: 280,
+	y2: 250,
+	x3: 20,
+	y3: 200,
 });
 ```
 
 A 2×2 grid has only two triangles; the texture stretches linearly with no perspective correction. Bump density above 10×10 for any visible tilt.
 
-
 ### [MEDIUM] Non-convex corners
 
 If your four corners form a non-convex (self-intersecting or bow-tie) quadrilateral, the UV interpolation produces visual artifacts. Keep the corners in consistent clockwise order and check that the quad is convex.
-
 
 ## API Reference
 

@@ -4,7 +4,6 @@ import type { EmitterEventClusterWinAmounts } from '../components/ClusterWinAmou
 import type { EmitterEventTumbleBoard } from '../components/TumbleBoard.svelte';
 import type { EmitterEventTumbleWinAmount } from '../components/TumbleWinAmount.svelte';
 import type { EmitterEventBoardDebris } from '../components/BoardDebris.svelte';
-import type { EmitterEventScatterPay } from '../components/ScatterPay.svelte';
 import type { EmitterEventScatterFx } from '../components/ScatterFx.svelte';
 import type { EmitterEventGazeMeter } from '../components/GazeMeter.svelte';
 import type { EmitterEventEye } from '../components/Eye.svelte';
@@ -25,7 +24,6 @@ export type EmitterEventGame =
 	| EmitterEventTumbleBoard
 	| EmitterEventTumbleWinAmount
 	| EmitterEventBoardDebris
-	| EmitterEventScatterPay
 	| EmitterEventScatterFx
 	| EmitterEventGazeMeter
 	| EmitterEventEye

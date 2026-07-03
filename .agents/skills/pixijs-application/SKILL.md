@@ -1,6 +1,6 @@
 ---
 name: pixijs-application
-description: "Use this skill when creating and configuring a PixiJS v8 Application. Covers new Application() + async app.init() options (width, height, background, antialias, resolution, autoDensity, preference, resizeTo, autoStart, sharedTicker, canvas, useBackBuffer, powerPreference, eventFeatures, accessibilityOptions, gcActive, bezierSmoothness, webgl/webgpu/canvasOptions per-renderer overrides), app.stage/renderer/canvas/screen/domContainerRoot access, ResizePlugin, TickerPlugin, CullerPlugin (cullable, cullArea), custom ApplicationPlugin creation via ExtensionType.Application, start/stop lifecycle, and app.destroy() with releaseGlobalResources. Triggers on: Application, app.init, app.stage, app.renderer, app.canvas, app.screen, app.domContainerRoot, ApplicationOptions, ApplicationPlugin, ExtensionType.Application, resizeTo, preference, autoStart, sharedTicker, useBackBuffer, powerPreference, skipExtensionImports, preferWebGLVersion, preserveDrawingBuffer, cullable, CullerPlugin, app.start, app.stop, app.destroy, releaseGlobalResources."
+description: 'Use this skill when creating and configuring a PixiJS v8 Application. Covers new Application() + async app.init() options (width, height, background, antialias, resolution, autoDensity, preference, resizeTo, autoStart, sharedTicker, canvas, useBackBuffer, powerPreference, eventFeatures, accessibilityOptions, gcActive, bezierSmoothness, webgl/webgpu/canvasOptions per-renderer overrides), app.stage/renderer/canvas/screen/domContainerRoot access, ResizePlugin, TickerPlugin, CullerPlugin (cullable, cullArea), custom ApplicationPlugin creation via ExtensionType.Application, start/stop lifecycle, and app.destroy() with releaseGlobalResources. Triggers on: Application, app.init, app.stage, app.renderer, app.canvas, app.screen, app.domContainerRoot, ApplicationOptions, ApplicationPlugin, ExtensionType.Application, resizeTo, preference, autoStart, sharedTicker, useBackBuffer, powerPreference, skipExtensionImports, preferWebGLVersion, preserveDrawingBuffer, cullable, CullerPlugin, app.start, app.stop, app.destroy, releaseGlobalResources.'
 license: MIT
 ---
 
@@ -9,17 +9,17 @@ license: MIT
 ## Quick Start
 
 ```ts
-import { Application } from "pixi.js";
+import { Application } from 'pixi.js';
 
 const app = new Application();
 
 await app.init({
-  resizeTo: window,
-  background: "#1099bb",
-  antialias: true,
-  preference: "webgl",
-  autoDensity: true,
-  resolution: window.devicePixelRatio,
+	resizeTo: window,
+	background: '#1099bb',
+	antialias: true,
+	preference: 'webgl',
+	autoDensity: true,
+	resolution: window.devicePixelRatio,
 });
 
 document.body.appendChild(app.canvas);
@@ -32,7 +32,7 @@ document.body.appendChild(app.canvas);
 ### Lifecycle: construct, init, render, destroy
 
 ```ts
-import { Application } from "pixi.js";
+import { Application } from 'pixi.js';
 
 const app = new Application();
 
@@ -42,8 +42,8 @@ document.body.appendChild(app.canvas);
 // ... run scene, ticker drives app.render() automatically ...
 
 app.destroy(
-  { removeView: true, releaseGlobalResources: true },
-  { children: true, texture: true, textureSource: true },
+	{ removeView: true, releaseGlobalResources: true },
+	{ children: true, texture: true, textureSource: true },
 );
 ```
 
@@ -56,23 +56,23 @@ app.destroy(
 
 ```ts
 await app.init({
-  width: 800,
-  height: 600,
-  background: 0x1099bb,
-  backgroundAlpha: 1,
+	width: 800,
+	height: 600,
+	background: 0x1099bb,
+	backgroundAlpha: 1,
 
-  antialias: true,
-  resolution: window.devicePixelRatio,
-  autoDensity: true,
+	antialias: true,
+	resolution: window.devicePixelRatio,
+	autoDensity: true,
 
-  preference: "webgpu",
+	preference: 'webgpu',
 
-  autoStart: true,
-  sharedTicker: false,
+	autoStart: true,
+	sharedTicker: false,
 
-  resizeTo: window,
+	resizeTo: window,
 
-  canvas: document.querySelector("#game-canvas") as HTMLCanvasElement,
+	canvas: document.querySelector('#game-canvas') as HTMLCanvasElement,
 });
 ```
 
@@ -97,7 +97,7 @@ Set `resizeTo` at init (or reassign `app.resizeTo` later) to have the plugin lis
 ```ts
 await app.init({ resizeTo: window });
 
-app.resizeTo = document.querySelector("#game-container") as HTMLElement;
+app.resizeTo = document.querySelector('#game-container') as HTMLElement;
 
 app.resize(); // immediate resize to the target's current size
 app.queueResize(); // defer the resize to the next animation frame
@@ -116,11 +116,11 @@ The TickerPlugin creates `app.ticker` and registers `app.render()` on it at `UPD
 
 ```ts
 app.ticker.add((ticker) => {
-  sprite.rotation += 0.01 * ticker.deltaTime;
+	sprite.rotation += 0.01 * ticker.deltaTime;
 });
 
 app.ticker.addOnce(() => {
-  console.log("runs once on the next frame, then removes itself");
+	console.log('runs once on the next frame, then removes itself');
 });
 
 app.stop(); // pause the render loop (e.g. tab hidden)
@@ -136,9 +136,9 @@ await app.init({ autoStart: false, width: 800, height: 600 });
 document.body.appendChild(app.canvas);
 
 function frame() {
-  updateScene();
-  app.render();
-  requestAnimationFrame(frame);
+	updateScene();
+	app.render();
+	requestAnimationFrame(frame);
 }
 frame();
 ```
@@ -150,14 +150,7 @@ frame();
 The CullerPlugin skips rendering containers that fall outside `app.renderer.screen`. It isn't registered by default; add it before creating your app:
 
 ```ts
-import {
-  Application,
-  Container,
-  Sprite,
-  extensions,
-  CullerPlugin,
-  Rectangle,
-} from "pixi.js";
+import { Application, Container, Sprite, extensions, CullerPlugin, Rectangle } from 'pixi.js';
 
 extensions.add(CullerPlugin);
 
@@ -168,7 +161,7 @@ const world = new Container();
 world.cullable = true; // this container is culled when its bounds leave the screen
 world.cullableChildren = true; // default; set `false` to skip recursing into children
 
-const tile = Sprite.from("tile.png");
+const tile = Sprite.from('tile.png');
 tile.cullable = true;
 world.addChild(tile);
 app.stage.addChild(world);
@@ -181,24 +174,19 @@ Containers are not culled unless `cullable` is set. Override the default bounds 
 Extend `Application` by registering a class with `static init`, `static destroy`, and `static extension = ExtensionType.Application`. Both methods are called with `this` bound to the Application instance, so `this.renderer` and `this.stage` are available.
 
 ```ts
-import {
-  Application,
-  ExtensionType,
-  extensions,
-  type ApplicationOptions,
-} from "pixi.js";
+import { Application, ExtensionType, extensions, type ApplicationOptions } from 'pixi.js';
 
 class FpsOverlay {
-  public static extension = ExtensionType.Application;
+	public static extension = ExtensionType.Application;
 
-  public static init(this: Application, options: Partial<ApplicationOptions>) {
-    // runs inside app.init() after the renderer is created
-    // attach props/methods to `this` to expose them on the app
-  }
+	public static init(this: Application, options: Partial<ApplicationOptions>) {
+		// runs inside app.init() after the renderer is created
+		// attach props/methods to `this` to expose them on the app
+	}
 
-  public static destroy(this: Application) {
-    // runs inside app.destroy() — tear down anything you attached
-  }
+	public static destroy(this: Application) {
+		// runs inside app.destroy() — tear down anything you attached
+	}
 }
 
 extensions.add(FpsOverlay);
@@ -208,11 +196,11 @@ Plugins initialize in registration order and destroy in reverse. To add typed op
 
 ```ts
 declare global {
-  namespace PixiMixins {
-    interface ApplicationOptions {
-      fpsOverlay?: { visible?: boolean };
-    }
-  }
+	namespace PixiMixins {
+		interface ApplicationOptions {
+			fpsOverlay?: { visible?: boolean };
+		}
+	}
 }
 
 await app.init({ fpsOverlay: { visible: true } });
@@ -241,7 +229,6 @@ document.body.appendChild(app.canvas);
 
 In v8 the `Application` constructor takes no arguments. Options passed there are ignored and log a deprecation warning; the renderer is only created inside the async `init()` call.
 
-
 ### [HIGH] Using app.view instead of app.canvas
 
 Wrong:
@@ -257,7 +244,6 @@ document.body.appendChild(app.canvas);
 ```
 
 `app.view` was renamed to `app.canvas` in v8. The old getter still works but emits a deprecation warning.
-
 
 ### [MEDIUM] Touching app.canvas or app.renderer before init resolves
 
@@ -278,7 +264,6 @@ document.body.appendChild(app.canvas);
 ```
 
 `app.renderer`, `app.canvas`, and `app.screen` are only populated once the `init()` promise resolves. Accessing them earlier returns `undefined`.
-
 
 ## API Reference
 

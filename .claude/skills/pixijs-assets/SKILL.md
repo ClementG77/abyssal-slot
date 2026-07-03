@@ -1,6 +1,6 @@
 ---
 name: pixijs-assets
-description: "Use this skill when loading and managing resources in PixiJS v8. Covers Assets.init, Assets.load/add/unload, bundles, manifests, background loading, onProgress, caching, spritesheets, video textures, web fonts, bitmap fonts, animated GIFs, compressed textures, SVG as texture or Graphics, resolution detection, per-asset data options, and forcing a specific loader with the parser field (for extension-less URLs). Triggers on: Assets, Assets.load, Assets.init, loadBundle, manifest, backgroundLoad, Spritesheet, Cache, LoadOptions, unload, parser, loadParser, loadWebFont, loadBitmapFont, loadVideoTextures, GifSource, VideoSourceOptions."
+description: 'Use this skill when loading and managing resources in PixiJS v8. Covers Assets.init, Assets.load/add/unload, bundles, manifests, background loading, onProgress, caching, spritesheets, video textures, web fonts, bitmap fonts, animated GIFs, compressed textures, SVG as texture or Graphics, resolution detection, per-asset data options, and forcing a specific loader with the parser field (for extension-less URLs). Triggers on: Assets, Assets.load, Assets.init, loadBundle, manifest, backgroundLoad, Spritesheet, Cache, LoadOptions, unload, parser, loadParser, loadWebFont, loadBitmapFont, loadVideoTextures, GifSource, VideoSourceOptions.'
 license: MIT
 ---
 
@@ -9,20 +9,20 @@ The `Assets` API is PixiJS's asset loader, resolver, and cache in one singleton.
 ## Quick Start
 
 ```ts
-await Assets.init({ basePath: "/static/" });
+await Assets.init({ basePath: '/static/' });
 
-const texture = await Assets.load("bunny.png");
+const texture = await Assets.load('bunny.png');
 const sprite = new Sprite(texture);
 app.stage.addChild(sprite);
 
-const [hero, enemy] = await Assets.load(["hero.png", "enemy.png"]);
+const [hero, enemy] = await Assets.load(['hero.png', 'enemy.png']);
 
 await Assets.load({
-  alias: "logo",
-  src: "logo.webp",
+	alias: 'logo',
+	src: 'logo.webp',
 });
 
-const logo = new Sprite(Assets.get("logo"));
+const logo = new Sprite(Assets.get('logo'));
 ```
 
 `Assets.init()` is optional but recommended for setting `basePath`, `texturePreference`, or a manifest. After init, call `Assets.load()` with a URL, alias, array, or `UnresolvedAsset`; resolved assets are cached and re-resolved by `Assets.get()`.
@@ -51,29 +51,29 @@ By default, PixiJS picks a loader by matching the file extension or MIME type. W
 ```ts
 // Signed CDN URL with no extension
 const texture = await Assets.load({
-  src: "https://cdn.example.com/signed/abc123?token=xyz",
-  parser: "texture",
+	src: 'https://cdn.example.com/signed/abc123?token=xyz',
+	parser: 'texture',
 });
 
 // API endpoint that returns JSON
 const data = await Assets.load({
-  alias: "config",
-  src: "https://api.example.com/v1/config",
-  parser: "json",
+	alias: 'config',
+	src: 'https://api.example.com/v1/config',
+	parser: 'json',
 });
 
 // Extension-less font URL with explicit family
 await Assets.load({
-  src: "https://cdn.example.com/fonts/hero-v2",
-  parser: "web-font",
-  data: { family: "Hero", weights: ["400", "700"] },
+	src: 'https://cdn.example.com/fonts/hero-v2',
+	parser: 'web-font',
+	data: { family: 'Hero', weights: ['400', '700'] },
 });
 
 // Video stream without a file extension
 const clipTexture = await Assets.load({
-  src: "https://cdn.example.com/stream/xyz",
-  parser: "video",
-  data: { mime: "video/mp4", muted: true, playsinline: true },
+	src: 'https://cdn.example.com/stream/xyz',
+	parser: 'video',
+	data: { mime: 'video/mp4', muted: true, playsinline: true },
 });
 ```
 
@@ -101,10 +101,10 @@ The v7 `loadParser` field still works but emits a deprecation warning. Use `pars
 
 ```ts
 // Old (deprecated)
-await Assets.load({ src: "...", loadParser: "loadTextures" });
+await Assets.load({ src: '...', loadParser: 'loadTextures' });
 
 // New
-await Assets.load({ src: "...", parser: "texture" });
+await Assets.load({ src: '...', parser: 'texture' });
 ```
 
 ## Topics
@@ -147,15 +147,15 @@ There are two separate "options" concepts when loading assets:
 ### LoadOptions (per call)
 
 ```ts
-await Assets.load(["hero.png", "enemy.png"], {
-  onProgress: (p) => updateBar(p),
-  onError: (err, url) => {
-    const src = typeof url === "string" ? url : url.src;
-    console.warn("failed:", src, err);
-  },
-  strategy: "retry",
-  retryCount: 3,
-  retryDelay: 250,
+await Assets.load(['hero.png', 'enemy.png'], {
+	onProgress: (p) => updateBar(p),
+	onError: (err, url) => {
+		const src = typeof url === 'string' ? url : url.src;
+		console.warn('failed:', src, err);
+	},
+	strategy: 'retry',
+	retryCount: 3,
+	retryDelay: 250,
 });
 ```
 
@@ -187,12 +187,12 @@ Example combining `LoadOptions` and `data`:
 
 ```ts
 await Assets.load(
-  {
-    alias: "hero",
-    src: "hero.png",
-    data: { scaleMode: "nearest", resolution: 2 },
-  },
-  { strategy: "retry", retryCount: 3 },
+	{
+		alias: 'hero',
+		src: 'hero.png',
+		data: { scaleMode: 'nearest', resolution: 2 },
+	},
+	{ strategy: 'retry', retryCount: 3 },
 );
 ```
 
@@ -200,22 +200,22 @@ Inside a manifest or bundle, every entry can carry its own `data`:
 
 ```ts
 await Assets.init({
-  manifest: {
-    bundles: [
-      {
-        name: "level1",
-        assets: [
-          { alias: "tiles", src: "tiles.png", data: { scaleMode: "nearest" } },
-          { alias: "font", src: "hero.woff2", data: { family: "Hero" } },
-          {
-            alias: "clip",
-            src: "intro.mp4",
-            data: { autoPlay: false, muted: true },
-          },
-        ],
-      },
-    ],
-  },
+	manifest: {
+		bundles: [
+			{
+				name: 'level1',
+				assets: [
+					{ alias: 'tiles', src: 'tiles.png', data: { scaleMode: 'nearest' } },
+					{ alias: 'font', src: 'hero.woff2', data: { family: 'Hero' } },
+					{
+						alias: 'clip',
+						src: 'intro.mp4',
+						data: { autoPlay: false, muted: true },
+					},
+				],
+			},
+		],
+	},
 });
 ```
 
@@ -233,12 +233,12 @@ After init, preferences can still be tuned:
 
 ```ts
 Assets.setPreferences({
-  crossOrigin: "anonymous",
-  preferCreateImageBitmap: false,
+	crossOrigin: 'anonymous',
+	preferCreateImageBitmap: false,
 });
 
 for (const detection of Assets.detections) {
-  console.log(detection.extension);
+	console.log(detection.extension);
 }
 
 Assets.reset();
@@ -255,39 +255,36 @@ Assets.reset();
 Wrong:
 
 ```ts
-const texture = Texture.from("https://example.com/image.png");
+const texture = Texture.from('https://example.com/image.png');
 ```
 
 Correct:
 
 ```ts
-const texture = await Assets.load("https://example.com/image.png");
+const texture = await Assets.load('https://example.com/image.png');
 ```
 
 In v8, `Texture.from()` only reads the cache. It does not fetch from a URL. Use `Assets.load()` first; the return value is the texture itself.
-
 
 ### [HIGH] Using positional `Assets.add` signature
 
 Wrong:
 
 ```ts
-Assets.add("bunny", "bunny.png");
+Assets.add('bunny', 'bunny.png');
 ```
 
 Correct:
 
 ```ts
-Assets.add({ alias: "bunny", src: "bunny.png" });
+Assets.add({ alias: 'bunny', src: 'bunny.png' });
 ```
 
 The positional `Assets.add(key, url)` form was removed in v8. Use the options object with `alias` and `src` properties.
 
-
 ### [HIGH] Not unloading textures between levels
 
 `Assets.load()` caches textures indefinitely. For level-based games or screens with distinct asset sets, call `Assets.unloadBundle()` when transitioning to release GPU memory.
-
 
 ## API Reference
 

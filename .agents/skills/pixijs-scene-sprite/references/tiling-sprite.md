@@ -5,18 +5,18 @@ A sprite variant that repeats a texture across a given area. The texture can be 
 ## Quick Start
 
 ```ts
-const texture = await Assets.load("grass.png");
+const texture = await Assets.load('grass.png');
 
 const bg = new TilingSprite({
-  texture,
-  width: app.screen.width,
-  height: app.screen.height,
+	texture,
+	width: app.screen.width,
+	height: app.screen.height,
 });
 
 app.stage.addChild(bg);
 
 app.ticker.add((ticker) => {
-  bg.tilePosition.x -= 1 * ticker.deltaTime;
+	bg.tilePosition.x -= 1 * ticker.deltaTime;
 });
 ```
 
@@ -26,17 +26,17 @@ app.ticker.add((ticker) => {
 
 ```ts
 const bg = new TilingSprite({
-  texture,
-  width: 800,
-  height: 600,
-  tilePosition: { x: 0, y: 0 },
-  tileScale: { x: 1.5, y: 1.5 },
-  anchor: 0.5,
-  roundPixels: true,
+	texture,
+	width: 800,
+	height: 600,
+	tilePosition: { x: 0, y: 0 },
+	tileScale: { x: 1.5, y: 1.5 },
+	anchor: 0.5,
+	roundPixels: true,
 });
 
 const fromTexture = TilingSprite.from(texture, { width: 800, height: 600 });
-const fromCache = TilingSprite.from("pattern.png", { width: 800, height: 600 });
+const fromCache = TilingSprite.from('pattern.png', { width: 800, height: 600 });
 ```
 
 `TilingSprite.from(source, options?)` accepts a `Texture` or a cached alias string. The alias form reads from the Assets cache only; `await Assets.load('pattern.png')` first or the returned sprite draws `Texture.EMPTY`.
@@ -63,8 +63,8 @@ All `Container` options (`position`, `scale`, `tint`, `label`, `filters`, `zInde
 
 ```ts
 app.ticker.add((ticker) => {
-  bg.tilePosition.x -= 2 * ticker.deltaTime;
-  bg.tilePosition.y -= 0.5 * ticker.deltaTime;
+	bg.tilePosition.x -= 2 * ticker.deltaTime;
+	bg.tilePosition.y -= 0.5 * ticker.deltaTime;
 });
 ```
 
@@ -84,10 +84,10 @@ bg.tileRotation = Math.PI / 4;
 
 ```ts
 const bg = new TilingSprite({
-  texture,
-  width: 800,
-  height: 600,
-  anchor: 0.5,
+	texture,
+	width: 800,
+	height: 600,
+	anchor: 0.5,
 });
 
 bg.x = app.screen.width / 2;
@@ -100,11 +100,11 @@ bg.y = app.screen.height / 2;
 
 ```ts
 const bg = new TilingSprite({
-  texture,
-  width: 800,
-  height: 600,
-  anchor: 0.5,
-  applyAnchorToTexture: true,
+	texture,
+	width: 800,
+	height: 600,
+	anchor: 0.5,
+	applyAnchorToTexture: true,
 });
 ```
 
@@ -119,8 +119,8 @@ const near = new TilingSprite({ texture: nearTex, width: 800, height: 600 });
 app.stage.addChild(far, near);
 
 app.ticker.add((ticker) => {
-  far.tilePosition.x -= 0.5 * ticker.deltaTime;
-  near.tilePosition.x -= 2 * ticker.deltaTime;
+	far.tilePosition.x -= 0.5 * ticker.deltaTime;
+	near.tilePosition.x -= 2 * ticker.deltaTime;
 });
 ```
 
@@ -130,10 +130,10 @@ Give each layer a different `tilePosition` scroll rate for a parallax effect. Sc
 
 ```ts
 const bg = new TilingSprite({
-  texture,
-  width: 800,
-  height: 600,
-  roundPixels: true,
+	texture,
+	width: 800,
+	height: 600,
+	roundPixels: true,
 });
 ```
 
@@ -142,9 +142,9 @@ Snaps the sprite's position (not the tile pattern) to integer coordinates. Usefu
 ### Hit testing
 
 ```ts
-bg.eventMode = "static";
-bg.on("pointertap", (e) => {
-  console.log("tile clicked", bg.toLocal(e.global));
+bg.eventMode = 'static';
+bg.on('pointertap', (e) => {
+	console.log('tile clicked', bg.toLocal(e.global));
 });
 ```
 
@@ -153,7 +153,7 @@ bg.on("pointertap", (e) => {
 ### Global defaults
 
 ```ts
-TilingSprite.defaultOptions.texture = Texture.from("defaultPattern.png");
+TilingSprite.defaultOptions.texture = Texture.from('defaultPattern.png');
 TilingSprite.defaultOptions.tileScale = { x: 2, y: 2 };
 ```
 
@@ -181,12 +181,11 @@ const bg = new TilingSprite({ width: 800, height: 600 });
 Correct:
 
 ```ts
-const texture = await Assets.load("pattern.png");
+const texture = await Assets.load('pattern.png');
 const bg = new TilingSprite({ texture, width: 800, height: 600 });
 ```
 
 The runtime default is `Texture.EMPTY` (set in `TilingSprite.defaultOptions`), so omitting the texture produces an invisible sprite with nothing to tile. Always pass a real texture.
-
 
 ### [HIGH] Scaling the sprite instead of the tile
 
@@ -204,11 +203,9 @@ bg.tileScale.set(2);
 
 Scaling the sprite stretches everything; including the visible area. Use `tileScale` to make each tile larger while keeping the sprite's region the same size.
 
-
 ### [MEDIUM] Non-power-of-two textures with `tileScale`
 
 Some WebGL implementations cannot repeat non-power-of-two textures in hardware. If you see the pattern clamp to the edge instead of wrapping, resize the source texture to power-of-two dimensions (128, 256, 512, etc.) or pre-bake the tile pattern into a larger texture.
-
 
 ## API Reference
 

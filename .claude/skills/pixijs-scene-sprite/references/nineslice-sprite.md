@@ -5,16 +5,16 @@ A sprite variant that stretches a texture using 9-slice scaling. The four corner
 ## Quick Start
 
 ```ts
-const texture = await Assets.load("panel.png");
+const texture = await Assets.load('panel.png');
 
 const panel = new NineSliceSprite({
-  texture,
-  leftWidth: 20,
-  topHeight: 20,
-  rightWidth: 20,
-  bottomHeight: 20,
-  width: 400,
-  height: 200,
+	texture,
+	leftWidth: 20,
+	topHeight: 20,
+	rightWidth: 20,
+	bottomHeight: 20,
+	width: 400,
+	height: 200,
 });
 
 app.stage.addChild(panel);
@@ -26,14 +26,14 @@ All four border values default to `10`. Assign `width` / `height` on the sprite 
 
 ```ts
 const panel = new NineSliceSprite({
-  texture,
-  leftWidth: 20,
-  topHeight: 20,
-  rightWidth: 20,
-  bottomHeight: 20,
-  width: 400,
-  height: 200,
-  anchor: 0.5,
+	texture,
+	leftWidth: 20,
+	topHeight: 20,
+	rightWidth: 20,
+	bottomHeight: 20,
+	width: 400,
+	height: 200,
+	anchor: 0.5,
 });
 ```
 
@@ -93,15 +93,14 @@ Setting `width` / `height` modifies the sprite's vertices directly. It does not 
 
 ```ts
 const texture = new Texture({
-  source: baseSource,
-  defaultBorders: { left: 15, top: 15, right: 15, bottom: 15 },
+	source: baseSource,
+	defaultBorders: { left: 15, top: 15, right: 15, bottom: 15 },
 });
 
 const panel = new NineSliceSprite({ texture, width: 400, height: 200 });
 ```
 
 `defaultBorders` is a readonly Texture property. Pass it in the constructor options (or set it on the spritesheet data so `Assets.load` bakes it into the loaded texture). If the texture has borders set, the sprite picks them up automatically when no explicit border values are passed to the `NineSliceSprite` constructor. Define them once per texture and reuse across multiple panels.
-
 
 ### Border updates
 
@@ -126,7 +125,7 @@ panel.setSize(panel.originalWidth, panel.originalHeight);
 ### Global defaults
 
 ```ts
-NineSliceSprite.defaultOptions.texture = Texture.from("defaultPanel.png");
+NineSliceSprite.defaultOptions.texture = Texture.from('defaultPanel.png');
 ```
 
 `NineSliceSprite.defaultOptions` is a mutable static object, but only its `texture` field is read as a fallback. Border defaults come from `texture.defaultBorders` (per-texture) or `NineSliceGeometry.defaultOptions` (global), and size defaults fall back to `texture.width` / `texture.height` or `NineSliceGeometry.defaultOptions.width` / `.height`.
@@ -135,12 +134,12 @@ NineSliceSprite.defaultOptions.texture = Texture.from("defaultPanel.png");
 
 ```ts
 const panel = new NineSliceSprite({
-  texture,
-  leftWidth: 10,
-  topHeight: 10,
-  rightWidth: 10,
-  bottomHeight: 10,
-  roundPixels: true,
+	texture,
+	leftWidth: 10,
+	topHeight: 10,
+	rightWidth: 10,
+	bottomHeight: 10,
+	roundPixels: true,
 });
 ```
 
@@ -153,25 +152,24 @@ Use with pixel-art UI textures to avoid sub-pixel seams at the slice boundaries.
 Wrong:
 
 ```ts
-import { NineSlicePlane } from "pixi.js";
+import { NineSlicePlane } from 'pixi.js';
 const panel = new NineSlicePlane(texture, 10, 10, 10, 10);
 ```
 
 Correct:
 
 ```ts
-import { NineSliceSprite } from "pixi.js";
+import { NineSliceSprite } from 'pixi.js';
 const panel = new NineSliceSprite({
-  texture,
-  leftWidth: 10,
-  topHeight: 10,
-  rightWidth: 10,
-  bottomHeight: 10,
+	texture,
+	leftWidth: 10,
+	topHeight: 10,
+	rightWidth: 10,
+	bottomHeight: 10,
 });
 ```
 
 `NineSlicePlane` was renamed in v8 and switched to an options-object constructor. The old `NineSlicePlane` name is deprecated — use `NineSliceSprite` instead.
-
 
 ### [HIGH] Setting `texture.scale` to resize the panel
 
@@ -190,11 +188,9 @@ panel.height = 200;
 
 `scale` stretches the entire geometry including corners, defeating the purpose of 9-slice. Always use `width` / `height` to resize a `NineSliceSprite`; this preserves corner art.
 
-
 ### [MEDIUM] Borders larger than half the texture
 
 If `leftWidth + rightWidth > texture.width`, the corners overlap and the center strip disappears. Keep the sum of opposing borders less than the corresponding texture dimension.
-
 
 ## API Reference
 

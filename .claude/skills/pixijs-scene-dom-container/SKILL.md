@@ -1,6 +1,6 @@
 ---
 name: pixijs-scene-dom-container
-description: "Use this skill when overlaying HTML elements on the PixiJS v8 canvas. Covers DOMContainer with element, anchor, and scene-graph-driven CSS transforms, the pixi.js/dom side-effect import, DOMPipe registration, visibility sync, pointer-events handling. Triggers on: DOMContainer, pixi.js/dom, DOMPipe, HTML overlay, input on canvas, iframe overlay, DOMContainerOptions, element, anchor, constructor options."
+description: 'Use this skill when overlaying HTML elements on the PixiJS v8 canvas. Covers DOMContainer with element, anchor, and scene-graph-driven CSS transforms, the pixi.js/dom side-effect import, DOMPipe registration, visibility sync, pointer-events handling. Triggers on: DOMContainer, pixi.js/dom, DOMPipe, HTML overlay, input on canvas, iframe overlay, DOMContainerOptions, element, anchor, constructor options.'
 license: MIT
 ---
 
@@ -13,15 +13,15 @@ Assumes familiarity with `pixijs-scene-core-concepts`. `DOMContainer` extends `V
 ## Quick Start
 
 ```ts
-import "pixi.js/dom";
+import 'pixi.js/dom';
 
-const input = document.createElement("input");
-input.type = "text";
-input.placeholder = "Enter name...";
+const input = document.createElement('input');
+input.type = 'text';
+input.placeholder = 'Enter name...';
 
 const dom = new DOMContainer({
-  element: input,
-  anchor: 0.5,
+	element: input,
+	anchor: 0.5,
 });
 dom.position.set(app.screen.width / 2, app.screen.height / 2);
 
@@ -48,14 +48,14 @@ Leaf-specific options added by `DOMContainerOptions`:
 ### Setup and the side-effect import
 
 ```ts
-import "pixi.js/dom";
-import { DOMContainer } from "pixi.js";
+import 'pixi.js/dom';
+import { DOMContainer } from 'pixi.js';
 ```
 
 Or use the combined import that registers the pipe and re-exports the class:
 
 ```ts
-import { DOMContainer } from "pixi.js/dom";
+import { DOMContainer } from 'pixi.js/dom';
 ```
 
 The default `pixi.js` browser bundle already imports `pixi.js/dom` for you via `browserAll.ts`, so `DOMContainer` works out of the box in a typical browser app. You only need the explicit `import 'pixi.js/dom'` line when you set `skipExtensionImports: true` (custom builds) or when running under a non-browser bundle.
@@ -64,8 +64,8 @@ The default `pixi.js` browser bundle already imports `pixi.js/dom` for you via `
 
 ```ts
 const dom = new DOMContainer({
-  element: document.createElement("div"),
-  anchor: 0.5,
+	element: document.createElement('div'),
+	anchor: 0.5,
 });
 dom.position.set(400, 300);
 dom.scale.set(1.5);
@@ -80,11 +80,11 @@ If no `element` is provided, a `<div>` is created by default.
 ### Styling the element directly
 
 ```ts
-const panel = document.createElement("div");
-panel.innerHTML = "<h2>Score</h2><p>1500</p>";
-panel.style.color = "white";
-panel.style.fontFamily = "Arial";
-panel.style.pointerEvents = "none";
+const panel = document.createElement('div');
+panel.innerHTML = '<h2>Score</h2><p>1500</p>';
+panel.style.color = 'white';
+panel.style.fontFamily = 'Arial';
+panel.style.pointerEvents = 'none';
 
 const dom = new DOMContainer({ element: panel });
 dom.position.set(50, 50);
@@ -132,11 +132,10 @@ The default browser bundle auto-registers `DOMPipe`, so most apps do not need an
 ```ts
 await app.init({ skipExtensionImports: true });
 // Now you must add this yourself:
-import "pixi.js/dom";
+import 'pixi.js/dom';
 ```
 
 Without registration under a custom build, `DOMContainer` is still importable but the renderer has no pipe to process it; elements never synchronize with the scene graph and never appear.
-
 
 ### [MEDIUM] Expecting filters, masks, or blend modes to affect DOM elements
 
@@ -150,11 +149,10 @@ dom.filters = [new BlurFilter()];
 Correct:
 
 ```ts
-dom.element.style.filter = "blur(4px)";
+dom.element.style.filter = 'blur(4px)';
 ```
 
 DOM elements are HTML overlays positioned via CSS transforms; they exist outside the WebGL/WebGPU pipeline. PixiJS filters, masks, and blend modes have no effect on them. Use CSS filters and CSS `mix-blend-mode` on the element directly.
-
 
 ### [MEDIUM] Do not nest children inside a DOMContainer
 
@@ -174,7 +172,6 @@ group.addChild(dom, new Sprite(texture));
 
 `DOMContainer` extends `ViewContainer`, which sets `allowChildren = false`. It is a leaf in the PixiJS scene graph. For PixiJS children, wrap the `DOMContainer` alongside them in a plain `Container`. For nested HTML, nest inside the element itself (`element.appendChild(...)`).
 
-
 ### [LOW] Forgetting to set anchor for centered positioning
 
 The default anchor is `(0, 0)`, placing the element's top-left corner at the container's position. For centering a UI element on its scene-graph position, set `anchor: 0.5`:
@@ -183,7 +180,6 @@ The default anchor is `(0, 0)`, placing the element's top-left corner at the con
 const dom = new DOMContainer({ element: myElement, anchor: 0.5 });
 dom.position.set(400, 300);
 ```
-
 
 ## API Reference
 

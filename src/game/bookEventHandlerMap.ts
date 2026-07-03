@@ -43,6 +43,12 @@ const winLevelSoundsStop = () => {
 	eventEmitter.broadcastAsync({ type: 'uiShow' });
 };
 
+const resetCompletedBuyMode = () => {
+	if (stateBetDerived.activeBetMode()?.type === 'buy') {
+		stateBet.activeBetModeKey = 'BASE';
+	}
+};
+
 const animateSymbols = async ({ positions }: { positions: Position[] }) => {
 	eventEmitter.broadcast({ type: 'boardShow' });
 	await eventEmitter.broadcastAsync({
@@ -123,15 +129,11 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		});
 	},
 
-	// Instant scatter pay (4 = 3×, 5 = 5×, 6 = 100× the bet). The amount is already rolled into
-	// the round's running totals (setTotalWin / finalWin); here we celebrate it.
-	scatterPay: async (bookEvent: BookEventOfType<'scatterPay'>) => {
-		await eventEmitter.broadcastAsync({
-			type: 'scatterPayShow',
-			count: bookEvent.count,
-			amount: bookEvent.amount,
-		});
-	},
+	// Instant scatter pay (4 = 3×, 5 = 5×, 6 = 100× the bet). No dedicated celebration: the
+	// amount is already rolled into the round's running totals (setTotalWin / finalWin), the
+	// trigger moment is owned by scatterCelebrate → free-spins intro, and 20×+ totals still get
+	// the Win presentation via setWin. Registered so the event isn't reported as unhandled.
+	scatterPay: async (_bookEvent: BookEventOfType<'scatterPay'>) => {},
 
 	tumbleBoard: async (bookEvent: BookEventOfType<'tumbleBoard'>) => {
 		eventEmitter.broadcast({ type: 'boardHide' });
@@ -175,11 +177,13 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 				fromReel: 2.5,
 				fromRow: 3,
 			});
-			// Gates-style: the Eyes have spent their multiplier into the win, so empty them — strip
-			// the value/type back to a bare (closed) Eye symbol, leaving the icon but no number.
+			// The Eyes have fired their multiplier into the win — mark them `spent`: the number
+			// leaves the eye (Symbol hides it, with a pop) and the plain EMPTY art remains.
 			stateGame.revealedEyes.forEach(({ reel, row }) => {
 				const cell = stateGame.board[reel]?.reelState.symbols[row];
-				if (cell?.rawSymbol.name === 'EYE') cell.rawSymbol = { name: 'EYE', eye: true };
+				if (cell?.rawSymbol.name === 'EYE') {
+					cell.rawSymbol = { ...cell.rawSymbol, spent: true };
+				}
 			});
 		}
 
@@ -213,23 +217,28 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	// shows, persists through the remaining tumbles, and is there for `eyeReveal` to open. The
 	// board is on-screen at this point (the prior tumbleBoard re-showed it).
 	eyeDrop: async (bookEvent: BookEventOfType<'eyeDrop'>) => {
-		const cell =
-			stateGame.board[bookEvent.position.reel]?.reelState.symbols[bookEvent.position.row];
-		if (cell) {
-			cell.rawSymbol = { name: 'EYE', eye: true };
-			cell.symbolState = 'land'; // AbyssalEye settle shake
-			// drop it in from just above the cell so it reads as a landing, not an in-place swap.
-			// NOTE: the board is full at this point (eyeDrop arrives after the tumble settled), so the
-			// Eye necessarily takes over this cell — a true gap-fill fall would need the math to send
-			// the Eye inside the tumble's `newSymbols` refill instead of a standalone eyeDrop.
-			const targetY = cell.symbolY.current;
-			cell.symbolY.set(targetY - REEL_CELL_HEIGHT * 0.95, { duration: 0 });
-			void cell.symbolY.set(targetY, { duration: 260 / stateBetDerived.timeScale(), easing: backOut });
-		}
-		// it slams onto the board
-		eventEmitter.broadcast({ type: 'boardEyeImpact' });
-		eventEmitter.broadcast({ type: 'reelFrameEyeLand' });
-		await waitForTimeout(440 / stateBetDerived.timeScale());
+		const { position } = bookEvent;
+		const cell = stateGame.board[position.reel]?.reelState.symbols[position.row];
+		if (!cell) return;
+		cell.rawSymbol = { name: 'EYE', eye: true };
+		cell.symbolState = 'static';
+		// drop it in from just above the cell so it reads as a landing, not an in-place swap.
+		// NOTE: the board is full at this point (eyeDrop arrives after the tumble settled), so the
+		// Eye necessarily takes over this cell; a true gap-fill fall would need the math to send
+		// the Eye inside the tumble's `newSymbols` refill instead of a standalone eyeDrop.
+		const targetY = cell.symbolY.current;
+		cell.symbolY.set(targetY - REEL_CELL_HEIGHT * 0.95, { duration: 0 });
+		await cell.symbolY.set(targetY, {
+			duration: 260 / stateBetDerived.timeScale(),
+			easing: backOut,
+		});
+
+		stateGameDerived.onSymbolLand({
+			rawSymbol: cell.rawSymbol,
+			reel: position.reel,
+			row: position.row,
+		});
+		await waitForTimeout(180 / stateBetDerived.timeScale());
 	},
 
 	eyeReveal: async (bookEvent: BookEventOfType<'eyeReveal'>) => {
@@ -259,6 +268,11 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 			eyeType: bookEvent.eyeType,
 			startValue: bookEvent.startValue,
 		});
+		// Let the reveal card-flip finish before the book proceeds (AbyssalEye plays it off the
+		// rawSymbol change above — there's no emitter handshake to await). Squeeze + edge-on +
+		// spring-open + number pop runs ~0.7s; only then may eyeResolve fly the Gaze seed to the
+		// centre. Also paces Ultimate nicely: several Eyes flip one after another.
+		await waitForTimeout(700 / stateBetDerived.timeScale());
 	},
 
 	eyeResolve: async (bookEvent: BookEventOfType<'eyeResolve'>) => {
@@ -374,6 +388,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		eventEmitter.broadcast({ type: 'tumbleWinAmountHide' });
 		await eventEmitter.broadcastAsync({ type: 'freeSpinExitCover' });
 		stateGame.gameType = 'basegame';
+		resetCompletedBuyMode();
 		await eventEmitter.broadcastAsync({ type: 'freeSpinExitReveal' });
 		await eventEmitter.broadcastAsync({ type: 'uiShow' });
 	},

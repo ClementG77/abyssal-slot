@@ -1,6 +1,6 @@
 ---
 name: pixijs-scene-gif
-description: "Use this skill when displaying animated GIFs in PixiJS v8. Covers the pixi.js/gif side-effect import, Assets.load returning a GifSource, GifSprite playback (play/stop/currentFrame/animationSpeed), autoPlay/loop options, onComplete/onLoop/onFrameChange callbacks, GifSource sharing, clone, destroy. Triggers on: GifSprite, GifSource, pixi.js/gif, animationSpeed, currentFrame, autoPlay, onComplete, onFrameChange, constructor options, GifSpriteOptions."
+description: 'Use this skill when displaying animated GIFs in PixiJS v8. Covers the pixi.js/gif side-effect import, Assets.load returning a GifSource, GifSprite playback (play/stop/currentFrame/animationSpeed), autoPlay/loop options, onComplete/onLoop/onFrameChange callbacks, GifSource sharing, clone, destroy. Triggers on: GifSprite, GifSource, pixi.js/gif, animationSpeed, currentFrame, autoPlay, onComplete, onFrameChange, constructor options, GifSpriteOptions.'
 license: MIT
 ---
 
@@ -11,16 +11,16 @@ Assumes familiarity with `pixijs-scene-core-concepts`. `GifSprite` extends `Spri
 ## Quick Start
 
 ```ts
-import "pixi.js/gif";
-import { GifSprite } from "pixi.js/gif";
+import 'pixi.js/gif';
+import { GifSprite } from 'pixi.js/gif';
 
-const source = await Assets.load("animation.gif");
+const source = await Assets.load('animation.gif');
 
 const gif = new GifSprite({
-  source,
-  autoPlay: true,
-  loop: true,
-  animationSpeed: 1,
+	source,
+	autoPlay: true,
+	loop: true,
+	animationSpeed: 1,
 });
 
 gif.anchor.set(0.5);
@@ -61,11 +61,11 @@ The constructor also accepts a bare `GifSource` as its sole argument (`new GifSp
 ### Setup and the side-effect import
 
 ```ts
-import "pixi.js/gif";
-import { Assets } from "pixi.js";
-import { GifSprite } from "pixi.js/gif";
+import 'pixi.js/gif';
+import { Assets } from 'pixi.js';
+import { GifSprite } from 'pixi.js/gif';
 
-const source = await Assets.load("animation.gif");
+const source = await Assets.load('animation.gif');
 const gif = new GifSprite({ source });
 ```
 
@@ -97,15 +97,15 @@ gif.duration; // total duration in ms
 
 ```ts
 const source = await Assets.load({
-  src: "animation.gif",
-  data: {
-    fps: 12,
-    scaleMode: "nearest",
-    resolution: 2,
-  },
+	src: 'animation.gif',
+	data: {
+		fps: 12,
+		scaleMode: 'nearest',
+		resolution: 2,
+	},
 });
 
-const fromDataUri = await Assets.load("data:image/gif;base64,R0lGODlh...");
+const fromDataUri = await Assets.load('data:image/gif;base64,R0lGODlh...');
 ```
 
 Options in `data` are passed to `GifSource.from`. `fps` sets the fallback frame delay for GIFs that don't specify timing. `scaleMode` and `resolution` control the canvas textures created for each frame. The loader matches both `.gif` file extensions and `data:image/gif` URIs.
@@ -114,11 +114,11 @@ Options in `data` are passed to `GifSource.from`. `fps` sets the fallback frame 
 
 ```ts
 const gif = new GifSprite({
-  source,
-  loop: false,
-  onComplete: () => console.log("animation finished"),
-  onLoop: () => console.log("loop completed"),
-  onFrameChange: (frame) => console.log("now on frame", frame),
+	source,
+	loop: false,
+	onComplete: () => console.log('animation finished'),
+	onLoop: () => console.log('loop completed'),
+	onFrameChange: (frame) => console.log('now on frame', frame),
 });
 ```
 
@@ -132,7 +132,7 @@ const gif = new GifSprite({
 const gif = new GifSprite({ source, autoUpdate: false });
 
 app.ticker.add((ticker) => {
-  gif.update(ticker);
+	gif.update(ticker);
 });
 ```
 
@@ -141,7 +141,7 @@ app.ticker.add((ticker) => {
 ### Sharing source data and cloning
 
 ```ts
-const source = await Assets.load("animation.gif");
+const source = await Assets.load('animation.gif');
 
 const gif1 = new GifSprite({ source, autoPlay: true });
 const gif2 = new GifSprite({ source, autoPlay: false });
@@ -159,39 +159,37 @@ gif3.animationSpeed = 0.5;
 Wrong:
 
 ```ts
-import { Assets } from "pixi.js";
-const gif = await Assets.load("animation.gif");
+import { Assets } from 'pixi.js';
+const gif = await Assets.load('animation.gif');
 ```
 
 Correct:
 
 ```ts
-import "pixi.js/gif";
-import { Assets } from "pixi.js";
-const source = await Assets.load("animation.gif");
+import 'pixi.js/gif';
+import { Assets } from 'pixi.js';
+const source = await Assets.load('animation.gif');
 ```
 
 The GIF loader extension must be registered before loading. Without the side-effect import, the loader does not recognize `.gif` files and the load either fails or returns raw data.
-
 
 ### [MEDIUM] Expecting Assets.load to return a Texture
 
 Wrong:
 
 ```ts
-const texture = await Assets.load("animation.gif");
+const texture = await Assets.load('animation.gif');
 const sprite = new Sprite(texture);
 ```
 
 Correct:
 
 ```ts
-const source = await Assets.load("animation.gif");
+const source = await Assets.load('animation.gif');
 const gif = new GifSprite({ source });
 ```
 
 `Assets.load` on a GIF returns a `GifSource` containing frame textures and timing data. Pass the source to `GifSprite`; for a single still frame, read `source.textures[0]`.
-
 
 ### [MEDIUM] GIF memory not released on destroy
 
@@ -207,11 +205,10 @@ Correct:
 ```ts
 gif.destroy(true);
 // or
-await Assets.unload("animation.gif");
+await Assets.unload('animation.gif');
 ```
 
 GIF frames hold decoded pixel data as individual canvas textures. `gif.destroy()` (or `destroy(false)`) destroys the sprite but keeps the `GifSource` intact. Pass `true` to also destroy the source. For shared sources, only destroy when the last consumer is done, or call `Assets.unload` to let the asset cache handle it.
-
 
 ### [LOW] Do not nest children inside a GifSprite
 
@@ -221,7 +218,6 @@ GIF frames hold decoded pixel data as individual canvas textures. `gif.destroy()
 const group = new Container();
 group.addChild(gif, label);
 ```
-
 
 ## API Reference
 

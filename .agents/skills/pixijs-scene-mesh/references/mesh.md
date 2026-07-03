@@ -5,19 +5,19 @@ The base mesh class. Combines a `Geometry` (vertex positions, UVs, indices, topo
 ## Quick Start
 
 ```ts
-const texture = await Assets.load("pattern.png");
+const texture = await Assets.load('pattern.png');
 
 const geometry = new MeshGeometry({
-  positions: new Float32Array([0, 0, 100, 0, 100, 100, 0, 100]),
-  uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
-  indices: new Uint32Array([0, 1, 2, 0, 2, 3]),
-  topology: "triangle-list",
+	positions: new Float32Array([0, 0, 100, 0, 100, 100, 0, 100]),
+	uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
+	indices: new Uint32Array([0, 1, 2, 0, 2, 3]),
+	topology: 'triangle-list',
 });
 
 const mesh = new Mesh({
-  geometry,
-  texture,
-  roundPixels: false,
+	geometry,
+	texture,
+	roundPixels: false,
 });
 app.stage.addChild(mesh);
 ```
@@ -46,19 +46,19 @@ The constructor assigns `texture` from `shader.texture` when a custom shader is 
 
 ```ts
 const geometry = new MeshGeometry({
-  positions: new Float32Array([
-    0,
-    0, // vertex 0: x, y
-    100,
-    0, // vertex 1
-    100,
-    100, // vertex 2
-    0,
-    100, // vertex 3
-  ]),
-  uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
-  indices: new Uint32Array([0, 1, 2, 0, 2, 3]),
-  topology: "triangle-list",
+	positions: new Float32Array([
+		0,
+		0, // vertex 0: x, y
+		100,
+		0, // vertex 1
+		100,
+		100, // vertex 2
+		0,
+		100, // vertex 3
+	]),
+	uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
+	indices: new Uint32Array([0, 1, 2, 0, 2, 3]),
+	topology: 'triangle-list',
 });
 ```
 
@@ -72,7 +72,7 @@ After construction, read or replace the typed arrays via the getters `geometry.p
 ### Topology
 
 ```ts
-new MeshGeometry({ positions, uvs, indices, topology: "triangle-list" });
+new MeshGeometry({ positions, uvs, indices, topology: 'triangle-list' });
 ```
 
 Five topology types:
@@ -90,9 +90,9 @@ Topology is set on the **geometry**, not the mesh. The default is `'triangle-lis
 ### Batching
 
 ```ts
-geometry.batchMode = "auto"; // default
-geometry.batchMode = "batch"; // always batched
-geometry.batchMode = "no-batch"; // never batched
+geometry.batchMode = 'auto'; // default
+geometry.batchMode = 'batch'; // always batched
+geometry.batchMode = 'no-batch'; // never batched
 ```
 
 A mesh is batched (combined with other draw calls) only when:
@@ -107,11 +107,11 @@ Custom shaders always render independently. For large static meshes, set `batchM
 ### Custom shader
 
 ```ts
-import { Shader } from "pixi.js";
+import { Shader } from 'pixi.js';
 
 const shader = Shader.from({
-  gl: { vertex: vertSrc, fragment: fragSrc },
-  resources: { uTexture: texture.source, uSampler: texture.source.style },
+	gl: { vertex: vertSrc, fragment: fragSrc },
+	resources: { uTexture: texture.source, uSampler: texture.source.style },
 });
 
 const mesh = new Mesh({ geometry, shader });
@@ -134,7 +134,7 @@ Geometry is reference-counted. Multiple meshes can share one geometry, saving me
 
 ```ts
 mesh.geometry.positions[1] = Math.sin(performance.now() / 500) * 20;
-mesh.geometry.getBuffer("aPosition").update();
+mesh.geometry.getBuffer('aPosition').update();
 ```
 
 `MeshGeometry` exposes `positions`, `uvs`, and `indices` getters that return the underlying `Float32Array` / `Uint32Array` directly; they point at the same data as `getBuffer('aPosition').data` / `getBuffer('aUV').data` / `getIndex().data`. Mutate in place for the common case, or assign a whole new array via the setter (the setters do `buffer.data = value` with no length check; the real invariant is `uvs.length >= positions.length` so every vertex has a UV).
@@ -159,14 +159,13 @@ const mesh = new Mesh({ geometry, shader });
 
 v8 uses an options object. The positional form is deprecated and logs a warning. Note also that the `drawMode` argument was removed; use `geometry.topology` instead.
 
-
 ### [HIGH] `vertices` instead of `positions`
 
 Wrong:
 
 ```ts
 const geometry = new MeshGeometry({
-  vertices: new Float32Array([0, 0, 100, 0, 50, 100]),
+	vertices: new Float32Array([0, 0, 100, 0, 50, 100]),
 });
 ```
 
@@ -174,12 +173,11 @@ Correct:
 
 ```ts
 const geometry = new MeshGeometry({
-  positions: new Float32Array([0, 0, 100, 0, 50, 100]),
+	positions: new Float32Array([0, 0, 100, 0, 50, 100]),
 });
 ```
 
 The `MeshGeometry` option is `positions`. `vertices` is the convenience name used only by `MeshSimple`, where it's converted internally.
-
 
 ### [MEDIUM] Forgetting to set topology
 
@@ -187,8 +185,8 @@ Wrong:
 
 ```ts
 const geometry = new MeshGeometry({
-  positions: stripPositions,
-  indices: stripIndices,
+	positions: stripPositions,
+	indices: stripIndices,
 });
 ```
 
@@ -196,14 +194,13 @@ Correct:
 
 ```ts
 const geometry = new MeshGeometry({
-  positions: stripPositions,
-  indices: stripIndices,
-  topology: "triangle-strip",
+	positions: stripPositions,
+	indices: stripIndices,
+	topology: 'triangle-strip',
 });
 ```
 
 The default topology is `'triangle-list'`. If your data is organized as a strip or line list, the mesh renders garbage without an explicit topology.
-
 
 ## API Reference
 

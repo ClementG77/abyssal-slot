@@ -15,7 +15,7 @@ hero.scale.set(2);
 hero.rotation = Math.PI / 4;
 hero.alpha = 0.8;
 hero.tint = 0xff8800;
-hero.label = "hero";
+hero.label = 'hero';
 hero.zIndex = 10;
 ```
 
@@ -23,16 +23,16 @@ Options object:
 
 ```ts
 const hero = new Sprite({
-  texture,
-  x: 100,
-  y: 200,
-  anchor: 0.5,
-  scale: 2,
-  rotation: Math.PI / 4,
-  alpha: 0.8,
-  tint: 0xff8800,
-  label: "hero",
-  zIndex: 10,
+	texture,
+	x: 100,
+	y: 200,
+	anchor: 0.5,
+	scale: 2,
+	rotation: Math.PI / 4,
+	alpha: 0.8,
+	tint: 0xff8800,
+	label: 'hero',
+	zIndex: 10,
 });
 ```
 
@@ -49,35 +49,35 @@ For v7 to v8 migration of constructor patterns, see `pixijs-migration-v8`.
 
 ```ts
 const group = new Container({
-  // Transform
-  x: 100,
-  y: 200,
-  scale: { x: 2, y: 2 },
-  rotation: Math.PI / 4,
-  pivot: { x: 50, y: 50 },
-  skew: { x: 0, y: 0 },
-  // Display
-  alpha: 0.8,
-  tint: 0xff8800,
-  blendMode: "add",
-  visible: true,
-  renderable: true,
-  // Hierarchy
-  label: "world",
-  children: [background, player],
-  // Sorting & grouping
-  isRenderGroup: true,
-  sortableChildren: true,
-  zIndex: 10,
-  // Layout & bounds
-  boundsArea: new Rectangle(0, 0, 800, 600),
-  // Effects
-  filters: [new BlurFilter(2)],
-  mask: maskGraphics,
-  // Callbacks
-  onRender: (renderer) => {
-    /* per-frame logic */
-  },
+	// Transform
+	x: 100,
+	y: 200,
+	scale: { x: 2, y: 2 },
+	rotation: Math.PI / 4,
+	pivot: { x: 50, y: 50 },
+	skew: { x: 0, y: 0 },
+	// Display
+	alpha: 0.8,
+	tint: 0xff8800,
+	blendMode: 'add',
+	visible: true,
+	renderable: true,
+	// Hierarchy
+	label: 'world',
+	children: [background, player],
+	// Sorting & grouping
+	isRenderGroup: true,
+	sortableChildren: true,
+	zIndex: 10,
+	// Layout & bounds
+	boundsArea: new Rectangle(0, 0, 800, 600),
+	// Effects
+	filters: [new BlurFilter(2)],
+	mask: maskGraphics,
+	// Callbacks
+	onRender: (renderer) => {
+		/* per-frame logic */
+	},
 });
 ```
 

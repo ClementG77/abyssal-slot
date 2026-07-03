@@ -1,6 +1,6 @@
 ---
 name: pixijs-math
-description: "Use this skill when working with coordinates, vectors, matrices, shapes, hit testing, or layout rectangles in PixiJS v8. Covers Point/ObservablePoint, Matrix (2D affine, decompose, apply, applyInverse), shapes (Rectangle, Circle, Ellipse, Polygon, RoundedRectangle, Triangle), Rectangle layout helpers (pad, fit, enlarge, ceil, scale, getBounds), strokeContains hit tests, Polygon isClockwise/containsPolygon, toGlobal/toLocal, PointData/PointLike/Size types, DEG_TO_RAD, and pixi.js/math-extras vector and intersection helpers. Triggers on: Point, ObservablePoint, Matrix, Rectangle, Circle, Polygon, Triangle, RoundedRectangle, toGlobal, toLocal, hitArea, strokeContains, pad, fit, enlarge, ceil, getBounds, containsRect, intersects, isClockwise, math-extras, lineIntersection, segmentIntersection, DEG_TO_RAD, PointData."
+description: 'Use this skill when working with coordinates, vectors, matrices, shapes, hit testing, or layout rectangles in PixiJS v8. Covers Point/ObservablePoint, Matrix (2D affine, decompose, apply, applyInverse), shapes (Rectangle, Circle, Ellipse, Polygon, RoundedRectangle, Triangle), Rectangle layout helpers (pad, fit, enlarge, ceil, scale, getBounds), strokeContains hit tests, Polygon isClockwise/containsPolygon, toGlobal/toLocal, PointData/PointLike/Size types, DEG_TO_RAD, and pixi.js/math-extras vector and intersection helpers. Triggers on: Point, ObservablePoint, Matrix, Rectangle, Circle, Polygon, Triangle, RoundedRectangle, toGlobal, toLocal, hitArea, strokeContains, pad, fit, enlarge, ceil, getBounds, containsRect, intersects, isClockwise, math-extras, lineIntersection, segmentIntersection, DEG_TO_RAD, PointData.'
 license: MIT
 ---
 
@@ -21,9 +21,9 @@ parent.addChild(child);
 const globalPt = child.toGlobal(new Point(0, 0));
 
 const m = new Matrix()
-  .translate(100, 50)
-  .rotate(Math.PI / 4)
-  .scale(2, 2);
+	.translate(100, 50)
+	.rotate(Math.PI / 4)
+	.scale(2, 2);
 const world = m.apply(new Point(10, 20));
 
 const hitArea = new Rectangle(0, 0, 200, 100);
@@ -39,7 +39,7 @@ console.log(hitArea.contains(50, 50));
 Point is a simple {x, y} value type. ObservablePoint fires a callback when x or y changes; it is used internally by Container's position, scale, pivot, origin, and skew.
 
 ```ts
-import { Point } from "pixi.js";
+import { Point } from 'pixi.js';
 
 const p = new Point(10, 20);
 p.set(30, 40); // set both
@@ -59,7 +59,7 @@ temp.set(100, 200);
 Container properties like `position`, `scale`, `pivot`, `origin`, and `skew` are ObservablePoints. Setting `.x` or `.y` on them triggers transform recalculation automatically.
 
 ```ts
-import { Container } from "pixi.js";
+import { Container } from 'pixi.js';
 
 const obj = new Container();
 obj.position.set(100, 200); // triggers observer -> marks transform dirty
@@ -71,13 +71,13 @@ obj.position.x = 150; // also triggers observer
 Matrix represents a 3x3 affine transform: `| a c tx | b d ty | 0 0 1 |`. It supports translate, scale, rotate, append, prepend, invert, and decompose.
 
 ```ts
-import { Matrix, Point } from "pixi.js";
+import { Matrix, Point } from 'pixi.js';
 
 // Build a transform
 const m = new Matrix()
-  .translate(100, 50)
-  .rotate(Math.PI / 4)
-  .scale(2, 2);
+	.translate(100, 50)
+	.rotate(Math.PI / 4)
+	.scale(2, 2);
 
 // Transform a point (local -> parent space)
 const local = new Point(10, 20);
@@ -93,11 +93,11 @@ a.append(b); // a = a * b
 
 // Decompose into position/scale/rotation/skew
 const transform = {
-  position: new Point(),
-  scale: new Point(),
-  pivot: new Point(),
-  skew: new Point(),
-  rotation: 0,
+	position: new Point(),
+	scale: new Point(),
+	pivot: new Point(),
+	skew: new Point(),
+	rotation: 0,
 };
 m.decompose(transform);
 console.log(transform.rotation); // ~0.785 (PI/4)
@@ -113,7 +113,7 @@ const isDefault = m.equals(Matrix.IDENTITY);
 Containers provide `toGlobal`, `toLocal`, and `getGlobalPosition` for coordinate conversion.
 
 ```ts
-import { Container, Point } from "pixi.js";
+import { Container, Point } from 'pixi.js';
 
 const parent = new Container();
 parent.position.set(100, 100);
@@ -142,7 +142,7 @@ const ptInOther = child.toLocal(new Point(10, 10), other);
 Rectangle, Circle, Ellipse, Polygon, RoundedRectangle, and Triangle all implement `contains(x, y)` for point-in-shape tests, plus `getBounds(out?)` and `strokeContains(x, y, width, alignment?)`. They can be used as `hitArea` on containers for custom interaction regions.
 
 ```ts
-import { Rectangle, Circle, Polygon, Container } from "pixi.js";
+import { Rectangle, Circle, Polygon, Container } from 'pixi.js';
 
 const rect = new Rectangle(0, 0, 200, 100);
 rect.contains(50, 50); // true
@@ -172,9 +172,9 @@ new Polygon([0, 0, 100, 0, 50, 100]).getBounds(reused);
 // Use as hit area for interaction
 const button = new Container();
 button.hitArea = new Rectangle(0, 0, 200, 50);
-button.eventMode = "static";
-button.on("pointerdown", () => {
-  /* clicked */
+button.eventMode = 'static';
+button.on('pointerdown', () => {
+	/* clicked */
 });
 ```
 
@@ -185,7 +185,7 @@ Do not confuse native `Rectangle.intersects(other)` (returns `boolean`) with mat
 Rectangle ships with mutating helpers used heavily in UI/layout, bounds aggregation, and pixel snapping. All return `this` for chaining.
 
 ```ts
-import { Rectangle } from "pixi.js";
+import { Rectangle } from 'pixi.js';
 
 const r = new Rectangle(10, 10, 100, 50);
 
@@ -199,9 +199,7 @@ new Rectangle(150, 150, 200, 200).fit(viewport); // -> 150, 150, 50, 50
 
 // enlarge expands `this` to include another rect (bounds aggregation)
 const total = new Rectangle();
-items.forEach((item) =>
-  total.enlarge(new Rectangle().copyFromBounds(item.getBounds())),
-);
+items.forEach((item) => total.enlarge(new Rectangle().copyFromBounds(item.getBounds())));
 
 // ceil snaps to a pixel grid (resolution: 1 = whole pixels, 2 = half pixels)
 new Rectangle(10.2, 10.6, 100.8, 100.4).ceil();
@@ -215,7 +213,7 @@ new Rectangle().copyFromBounds(container.getBounds());
 Polygon accepts four constructor formats: a flat number array, an array of point-like objects, or either passed as spread arguments.
 
 ```ts
-import { Polygon, Point } from "pixi.js";
+import { Polygon, Point } from 'pixi.js';
 
 new Polygon([0, 0, 100, 0, 50, 100]); // flat numbers
 new Polygon([new Point(0, 0), new Point(100, 0), new Point(50, 100)]); // PointData[]
@@ -238,7 +236,7 @@ outer.containsPolygon(hole); // true
 ### Constants
 
 ```ts
-import { DEG_TO_RAD, RAD_TO_DEG, PI_2 } from "pixi.js";
+import { DEG_TO_RAD, RAD_TO_DEG, PI_2 } from 'pixi.js';
 
 const angle = 45 * DEG_TO_RAD; // 0.785...
 const degrees = angle * RAD_TO_DEG; // 45
@@ -253,12 +251,12 @@ const fullCircle = PI_2; // Math.PI * 2
 - `SHAPE_PRIMITIVE` - string literal union: `'rectangle' | 'circle' | 'ellipse' | 'polygon' | 'roundedRectangle' | 'triangle'`. Every shape exposes `type` so you can branch without `instanceof`.
 
 ```ts
-import type { PointData } from "pixi.js";
+import type { PointData } from 'pixi.js';
 
 function distance(a: PointData, b: PointData): number {
-  const dx = a.x - b.x;
-  const dy = a.y - b.y;
-  return Math.sqrt(dx * dx + dy * dy);
+	const dx = a.x - b.x;
+	const dy = a.y - b.y;
+	return Math.sqrt(dx * dx + dy * dy);
 }
 ```
 
@@ -267,8 +265,8 @@ function distance(a: PointData, b: PointData): number {
 `import 'pixi.js/math-extras'` adds methods to Point, ObservablePoint, and Rectangle via prototype extension. Not included in the default bundle.
 
 ```ts
-import "pixi.js/math-extras";
-import { Point } from "pixi.js";
+import 'pixi.js/math-extras';
+import { Point } from 'pixi.js';
 ```
 
 #### Point / ObservablePoint vector methods
@@ -313,8 +311,8 @@ a.add(b, out); // result written to out
 `containsRect` and `intersects` are native `Rectangle` methods (see above). math-extras adds `equals`, `intersection` (returns the overlap rect), and `union`:
 
 ```ts
-import "pixi.js/math-extras";
-import { Rectangle } from "pixi.js";
+import 'pixi.js/math-extras';
+import { Rectangle } from 'pixi.js';
 
 const r1 = new Rectangle(0, 0, 100, 100);
 const r2 = new Rectangle(50, 50, 100, 100);
@@ -334,12 +332,8 @@ r1.intersection(r2, out);
 These functions are exported from `pixi.js/math-extras`, not the main `pixi.js` entry.
 
 ```ts
-import {
-  floatEqual,
-  lineIntersection,
-  segmentIntersection,
-} from "pixi.js/math-extras";
-import { Point } from "pixi.js";
+import { floatEqual, lineIntersection, segmentIntersection } from 'pixi.js/math-extras';
+import { Point } from 'pixi.js';
 
 // Epsilon-based float comparison (default epsilon: Number.EPSILON)
 floatEqual(0.1 + 0.2, 0.3, 1e-10); // true with reasonable epsilon
@@ -347,24 +341,24 @@ floatEqual(1.0, 1.001, 0.01); // true (custom epsilon)
 
 // Unbounded line intersection (returns {x: NaN, y: NaN} if parallel)
 const hit = lineIntersection(
-  new Point(0, 0),
-  new Point(10, 10), // line A
-  new Point(10, 0),
-  new Point(0, 10), // line B
+	new Point(0, 0),
+	new Point(10, 10), // line A
+	new Point(10, 0),
+	new Point(0, 10), // line B
 ); // Point(5, 5)
 if (isNaN(hit.x)) {
-  /* lines are parallel */
+	/* lines are parallel */
 }
 
 // Bounded segment intersection (returns {x: NaN, y: NaN} if segments don't cross)
 const segHit = segmentIntersection(
-  new Point(0, 0),
-  new Point(10, 10),
-  new Point(10, 0),
-  new Point(0, 10),
+	new Point(0, 0),
+	new Point(10, 10),
+	new Point(10, 0),
+	new Point(0, 10),
 ); // Point(5, 5)
 if (isNaN(segHit.x)) {
-  /* segments don't intersect */
+	/* segments don't intersect */
 }
 ```
 
@@ -375,17 +369,16 @@ if (isNaN(segHit.x)) {
 Wrong:
 
 ```ts
-import { Point } from "@pixi/math";
+import { Point } from '@pixi/math';
 ```
 
 Correct:
 
 ```ts
-import { Point } from "pixi.js";
+import { Point } from 'pixi.js';
 ```
 
 v8 uses a single `pixi.js` package. All sub-packages like `@pixi/math`, `@pixi/core`, etc. were removed.
-
 
 ### MEDIUM: Mutating ObservablePoint without triggering observer
 
@@ -411,13 +404,12 @@ container.position.copyFrom(new Point(100, 200));
 
 Container's position, scale, pivot, origin, and skew are ObservablePoints. Setting `.x` or `.y` on them triggers the container's transform update. Reassigning the variable reference does not modify the container. Always mutate the existing ObservablePoint via `.set()`, `.copyFrom()`, or direct property assignment on the original object.
 
-
 ### MEDIUM: Not importing math-extras for extended methods
 
 Wrong:
 
 ```ts
-import { Point } from "pixi.js";
+import { Point } from 'pixi.js';
 const p = new Point(1, 2);
 p.add(new Point(3, 4)); // TypeError: p.add is not a function
 ```
@@ -425,14 +417,13 @@ p.add(new Point(3, 4)); // TypeError: p.add is not a function
 Correct:
 
 ```ts
-import "pixi.js/math-extras";
-import { Point } from "pixi.js";
+import 'pixi.js/math-extras';
+import { Point } from 'pixi.js';
 const p = new Point(1, 2);
 const sum = p.add(new Point(3, 4)); // works
 ```
 
 Extended math utilities (add, subtract, multiply, magnitude, normalize, dot, cross, etc. on Point; intersection methods on shapes) require an explicit `import 'pixi.js/math-extras'`. These are not included in the default bundle.
-
 
 ### MEDIUM: Storing references to shared/temporary objects
 
@@ -455,7 +446,6 @@ const myPoint = new Point(100, 200);
 ```
 
 `Point.shared` and `Matrix.shared` are reset to zero/identity every time they are accessed. They exist for one-off calculations within a single expression. Never store a reference to them.
-
 
 ## API Reference
 

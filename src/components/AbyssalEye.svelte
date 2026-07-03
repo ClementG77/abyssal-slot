@@ -1,11 +1,19 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import gsap from 'gsap';
 	import { CanvasTextMetrics, TextStyle, type TextStyleOptions } from 'pixi.js';
 
 	import { Container, Graphics, Sprite, Text } from 'pixi-svelte';
 
-	import { EYE_FRAME, EYE_ASPECT, EYE_LABEL_OFFSET, EYE_VALUE_FILL, eyeValueTextStyle, type EyeVariant } from '../game/constants';
+	import {
+		EYE_FRAME,
+		EYE_ASPECT,
+		EYE_LABEL_OFFSET,
+		EYE_LABEL_OFFSET_PLAQUE,
+		EYE_VALUE_FILL,
+		eyeValueTextStyle,
+		type EyeVariant,
+	} from '../game/constants';
 
 	export type EyeColorPreset = 'add' | 'mult' | 'close' | 'charged' | 'warning' | 'idle';
 	export type { EyeVariant };
@@ -13,7 +21,7 @@
 	export const EYE_COLORS: Record<EyeColorPreset, number> = {
 		add: 0x22dfff,
 		mult: 0xff2a1a,
-		close: 0x3fa8ff,
+		close: 0x9a6bff, // the dormant eye art is purple (EYE_PURPLE_CLOSE)
 		charged: 0x9a35ff,
 		warning: 0xffaa22,
 		idle: 0x3fa8ff,
@@ -29,8 +37,6 @@
 		textY?: number;
 		/** Play the board-impact drop and short shake. */
 		land?: boolean;
-		/** Reveal the assigned multiplier with a glow-and-scale pop. */
-		reveal?: boolean;
 		pulse?: boolean;
 		burst?: boolean;
 		idle?: boolean;
@@ -47,21 +53,37 @@
 		props.variant ??
 			(props.preset === 'mult' ? 'mult' : props.preset === 'close' ? 'close' : 'add'),
 	);
-	const frame = $derived(EYE_FRAME[variant]);
-	const effectColor = $derived(EYE_COLORS[props.preset ?? variant]);
-	// Sit the number on the iris (above the geometric centre), unless a caller overrides textY.
-	const labelX = $derived(width * EYE_LABEL_OFFSET.x);
-	const labelY = $derived(props.textY ?? height * EYE_LABEL_OFFSET.y);
-	const isMultiplierEye = $derived(variant === 'mult');
+	// The art actually on screen. It LAGS the `variant` prop during the reveal card-flip: when
+	// the prop moves off `close`, the closed purple face stays up until the flip is edge-on,
+	// then the revealed art takes over and the flip springs open. Any other variant change
+	// (e.g. the spent awaken EMPTY → ACTIVE) swaps instantly. Because the trigger is the prop
+	// EDGE on this live instance, the flip never depends on mount timing.
+	let displayVariant = $state<EyeVariant>(
+		props.variant ??
+			(props.preset === 'mult' ? 'mult' : props.preset === 'close' ? 'close' : 'add'),
+	);
+	const frame = $derived(EYE_FRAME[displayVariant]);
+	// the spent (empty) variants share the tint of their charged counterparts
+	const baseColorKey = (v: EyeVariant): EyeColorPreset =>
+		v === 'addEmpty' ? 'add' : v === 'multEmpty' ? 'mult' : v;
+	const effectColor = $derived(EYE_COLORS[props.preset ?? baseColorKey(displayVariant)]);
+	// Value placement follows the art on screen: on the EMPTY (closed) eye the number sits big
+	// in the MIDDLE of the face; on the ACTIVE (open, awakened) eye it sits smaller in the
+	// banner plaque below the iris. Callers can still override via textY/textStyle.
+	const isActiveVariant = $derived(displayVariant === 'add' || displayVariant === 'mult');
+	const labelOffset = $derived(isActiveVariant ? EYE_LABEL_OFFSET_PLAQUE : EYE_LABEL_OFFSET);
+	const labelX = $derived(width * labelOffset.x);
+	const labelY = $derived(props.textY ?? height * labelOffset.y);
+	const isMultiplierEye = $derived(displayVariant === 'mult' || displayVariant === 'multEmpty');
 	const intensity = $derived(Math.min(Math.max(props.intensity ?? 0, 0), 1));
 	const labelStyle = $derived<TextStyleOptions>(
 		props.textStyle ??
 			eyeValueTextStyle({
-				fontSize: props.size * 0.5,
+				fontSize: props.size * (isActiveVariant ? 0.17 : 0.36),
 				fill: isMultiplierEye ? EYE_VALUE_FILL.mul : EYE_VALUE_FILL.add,
 			}),
 	);
-	const maxLabelWidth = $derived(width * 0.72);
+	const maxLabelWidth = $derived(width * (isActiveVariant ? 0.52 : 0.6));
 	const labelFitScale = $derived.by(() => {
 		if (!props.text) return 1;
 		const measured = CanvasTextMetrics.measureText(props.text, new TextStyle(labelStyle));
@@ -69,6 +91,9 @@
 	});
 
 	const idleFx = $state({ alpha: 1 });
+	// Card-flip on reveal: the core squashes horizontally to edge-on, the art swaps, it springs
+	// back open. yBulge adds a touch of vertical stretch at the midpoint so it reads as a turn.
+	const flipFx = $state({ scaleX: 1 });
 	const pulseFx = $state({ scale: 1, textScale: 1, flashAlpha: 0 });
 	const burstFx = $state({ alpha: 0, scale: 0.55, glow: 0 });
 	const landingFx = $state({ x: 0, y: 0, scale: 1, rotation: 0 });
@@ -94,12 +119,16 @@
 	const haloAlpha = $derived(
 		Math.min(
 			0.6,
-			0.03 + glowPulse * 0.03 + intensity * 0.22 + haloFx.boost * 0.6 + revealFx.glow * 0.05 + burstFx.glow * 0.04,
+			0.03 +
+				glowPulse * 0.03 +
+				intensity * 0.22 +
+				haloFx.boost * 0.6 +
+				revealFx.glow * 0.05 +
+				burstFx.glow * 0.04,
 		),
 	);
 
 	let landWasActive = false;
-	let revealWasActive = false;
 	let pulseWasActive = false;
 	let burstWasActive = false;
 
@@ -136,22 +165,27 @@
 		return () => timeline.kill();
 	});
 
-	$effect(() => {
-		if (!props.reveal) {
-			revealWasActive = false;
-			return;
-		}
-		if (revealWasActive) return;
-		revealWasActive = true;
-
+	// The reveal card-flip: closed purple face squeezes, flips edge-on, the art swaps to the
+	// revealed variant, springs back open, and the glow + number land on the settle.
+	let flipTl: gsap.core.Timeline | undefined;
+	const playRevealFlip = (next: EyeVariant) => {
 		// The multiplier Eye is the rare hero: it reveals bigger, slower and brighter than an adder.
-		const mult = isMultiplierEye;
-		const timeline = gsap
+		const mult = next === 'mult' || next === 'multEmpty';
+		flipTl?.kill();
+		flipTl = gsap
 			.timeline()
-			.set(revealFx, { baseAlpha: 0, textAlpha: 0, textScale: 0.35, glow: 0 })
-			.set(glowFx, { scale: 0.72, alpha: 0.18 })
+			.set(revealFx, { baseAlpha: 1, textAlpha: 0, textScale: 0.35, glow: 0 })
+			.set(glowFx, { scale: 1, alpha: 0.18 })
 			.set(haloFx, { boost: 0, scaleBoost: 0 })
-			.to(revealFx, { baseAlpha: 1, duration: 0.15, ease: 'power2.out' })
+			.set(flipFx, { scaleX: 1 })
+			// the closed purple eye squeezes… and flips edge-on
+			.to(flipFx, { scaleX: 1.08, duration: 0.09, ease: 'power1.out' })
+			.to(flipFx, { scaleX: 0.02, duration: 0.15, ease: 'power2.in' })
+			// swap to the revealed art while nobody can see the face
+			.add(() => (displayVariant = next))
+			// …and spring back open as the charged eye
+			.to(flipFx, { scaleX: 1, duration: mult ? 0.34 : 0.26, ease: 'back.out(2.6)' })
+			// light + number land with the flip's settle
 			.to(glowFx, { scale: mult ? 1.4 : 1.2, alpha: 0.95, duration: 0.18, ease: 'sine.out' }, '<')
 			.to(
 				haloFx,
@@ -169,8 +203,24 @@
 			.to(glowFx, { scale: 1, alpha: 0.55, duration: 0.3, ease: 'sine.inOut' }, '<')
 			.to(haloFx, { boost: 0, scaleBoost: 0, duration: mult ? 0.5 : 0.34, ease: 'sine.inOut' }, '<')
 			.to(revealFx, { glow: 0, duration: mult ? 0.5 : 0.34, ease: 'sine.inOut' }, '<');
+	};
 
-		return () => timeline.kill();
+	// Watch the variant prop on this LIVE instance: leaving `close` plays the reveal flip; any
+	// other change (e.g. the spent awaken EMPTY → ACTIVE) swaps the art instantly (the caller's
+	// `pulse` provides the awaken pop).
+	$effect(() => {
+		const next = variant;
+		const shown = untrack(() => displayVariant);
+		if (next === shown) return;
+		if (shown === 'close') {
+			playRevealFlip(next);
+		} else {
+			flipTl?.kill();
+			flipFx.scaleX = 1;
+			revealFx.textAlpha = 1;
+			revealFx.textScale = 1;
+			displayVariant = next;
+		}
 	});
 
 	$effect(() => {
@@ -283,7 +333,9 @@
 			idle.kill();
 			shimmer.kill();
 			swayTl?.kill();
+			flipTl?.kill();
 			gsap.killTweensOf(landingFx);
+			gsap.killTweensOf(flipFx);
 			gsap.killTweensOf(revealFx);
 			gsap.killTweensOf(glowFx);
 			gsap.killTweensOf(haloFx);
@@ -344,8 +396,9 @@
 	</Container>
 
 	{#if props.showCore !== false}
-		<!-- Core eye layers. -->
-		<Container>
+		<!-- Core eye layers. The x-scale is the reveal card-flip (with a slight vertical bulge at
+		     the edge-on midpoint so it reads as a turn, not a squash). -->
+		<Container scale={{ x: flipFx.scaleX, y: 1 + Math.max(0, 1 - flipFx.scaleX) * 0.07 }}>
 			<!-- The glow deliberately reuses the EYE_FRAME atlas art: there is no separate glow texture.
 			     `scale` is baked into width/height — a `scale` prop alongside width/height would be
 			     applied last and override the sizing (rendering at native texture size). -->
@@ -389,7 +442,8 @@
 		<Graphics draw={drawParticles} />
 	</Container>
 
-	{#if props.text}
+	<!-- the multiplier NEVER shows on the closed purple face — only on revealed/awakened art -->
+	{#if props.text && displayVariant !== 'close'}
 		<Text
 			anchor={0.5}
 			x={labelX}

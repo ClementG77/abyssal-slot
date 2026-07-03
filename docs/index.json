@@ -1,40 +1,40 @@
 {
-    "modes": [
-        {
-            "name": "base",
-            "cost": 1.0,
-            "events": "books_base.jsonl.zst",
-            "weights": "lookUpTable_base_0.csv"
-        },
-        {
-            "name": "ante",
-            "cost": 1.25,
-            "events": "books_ante.jsonl.zst",
-            "weights": "lookUpTable_ante_0.csv"
-        },
-        {
-            "name": "bonus",
-            "cost": 100.0,
-            "events": "books_bonus.jsonl.zst",
-            "weights": "lookUpTable_bonus_0.csv"
-        },
-        {
-            "name": "superspins",
-            "cost": 20.0,
-            "events": "books_superspins.jsonl.zst",
-            "weights": "lookUpTable_superspins_0.csv"
-        },
-        {
-            "name": "superbonus",
-            "cost": 500.0,
-            "events": "books_superbonus.jsonl.zst",
-            "weights": "lookUpTable_superbonus_0.csv"
-        },
-        {
-            "name": "ultimate",
-            "cost": 300.0,
-            "events": "books_ultimate.jsonl.zst",
-            "weights": "lookUpTable_ultimate_0.csv"
-        }
-    ]
+	"modes": [
+		{
+			"name": "base",
+			"cost": 1.0,
+			"events": "books_base.jsonl.zst",
+			"weights": "lookUpTable_base_0.csv"
+		},
+		{
+			"name": "ante",
+			"cost": 1.25,
+			"events": "books_ante.jsonl.zst",
+			"weights": "lookUpTable_ante_0.csv"
+		},
+		{
+			"name": "bonus",
+			"cost": 100.0,
+			"events": "books_bonus.jsonl.zst",
+			"weights": "lookUpTable_bonus_0.csv"
+		},
+		{
+			"name": "superspins",
+			"cost": 20.0,
+			"events": "books_superspins.jsonl.zst",
+			"weights": "lookUpTable_superspins_0.csv"
+		},
+		{
+			"name": "superbonus",
+			"cost": 500.0,
+			"events": "books_superbonus.jsonl.zst",
+			"weights": "lookUpTable_superbonus_0.csv"
+		},
+		{
+			"name": "ultimate",
+			"cost": 300.0,
+			"events": "books_ultimate.jsonl.zst",
+			"weights": "lookUpTable_ultimate_0.csv"
+		}
+	]
 }

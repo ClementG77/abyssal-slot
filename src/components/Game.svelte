@@ -27,9 +27,7 @@
 	import TumbleWinAmount from './TumbleWinAmount.svelte';
 	import GazeMeter from './GazeMeter.svelte';
 	import Eye from './Eye.svelte';
-	import PersistentMultiplier from './PersistentMultiplier.svelte';
 	import ScatterFx from './ScatterFx.svelte';
-	import ScatterPay from './ScatterPay.svelte';
 	import WinCapCelebration from './WinCapCelebration.svelte';
 	import Win from './Win.svelte';
 	import FreeSpinIntro from './FreeSpinIntro.svelte';
@@ -111,7 +109,6 @@
 
 			<MainContainer>
 				<Eye />
-				<PersistentMultiplier />
 			</MainContainer>
 
 			<ScatterFx />
@@ -122,7 +119,6 @@
 				<ControlBar />
 			{/if}
 			<Win />
-			<ScatterPay />
 			<WinCapCelebration />
 			{#if ['desktop', 'landscape'].includes(context.stateLayoutDerived.layoutType())}
 				<FreeSpinCounter />

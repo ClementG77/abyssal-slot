@@ -1,47 +1,161 @@
 <script lang="ts">
+	import { i18nDerived } from '../i18n/i18nDerived';
+
 	// Player-facing game information shown in the "info" (gameRules) modal: the idea, how a
 	// spin plays, the paytable (with symbol art), the Eye/Gaze feature, Free Spins, the play
 	// modes, and the slot's key numbers. Mirrors docs/ABYSSAL_GAME_OVERVIEW.md (no wild — the
 	// Eye is the sole multiplier). Paytable values are bet multipliers; the Eye applies on top.
 	//
-	// Symbol art is rendered straight from the `eye` atlas via CSS sprites (the old per-symbol PNG
-	// icons were removed). Frame coords mirror eye.json; every cell is a uniform 393×415 inside the
-	// 1572×1660 sheet. The PNG URL uses the deploy-root-safe `new URL(..., import.meta.url)` form
-	// (a root-absolute `/assets/...` would 403 on Stake).
-	const ATLAS = new URL('../../assets/symbols/eye/eye.png', import.meta.url).href;
-	const ATLAS_W = 1572;
-	const ATLAS_H = 1660;
-	const CELL_W = 393;
-	const CELL_H = 415;
+	// Symbol art is rendered straight from the `symbol_black` atlas via CSS sprites (the old
+	// per-symbol PNG icons were removed). Frame coords mirror spritesheet.json; every cell is a
+	// uniform 495×501 inside the 1980×2004 sheet. The PNG URL uses the deploy-root-safe
+	// `new URL(..., import.meta.url)` form (a root-absolute `/assets/...` would 403 on Stake).
+	const ATLAS = new URL('../../assets/symbols/symbol_black/symbol_black.png', import.meta.url).href;
+	const ATLAS_W = 1980;
+	const ATLAS_H = 2004;
+	const CELL_W = 495;
+	const CELL_H = 501;
+	// Local keys map to the atlas frames (ADD_EYE/MULT_EYE/CLOSE_EYE → the ACTIVE / PURPLE_CLOSE art).
 	const FRAME: Record<string, [number, number]> = {
-		H1: [393, 0], H2: [0, 0], H3: [1179, 0], H4: [786, 0],
-		L1: [786, 415], L2: [0, 415], L3: [393, 415], L4: [0, 830], L5: [1179, 415],
-		SCATTER: [393, 830], ADD_EYE: [1179, 830], MULT_EYE: [0, 1245], CLOSE_EYE: [786, 830],
+		H1: [990, 0],
+		H2: [1485, 0],
+		H3: [0, 0],
+		H4: [495, 0],
+		L1: [1485, 501],
+		L2: [0, 501],
+		L3: [495, 501],
+		L4: [990, 501],
+		L5: [1485, 1002],
+		SCATTER: [0, 1503],
+		ADD_EYE: [495, 1503],
+		MULT_EYE: [1485, 1503],
+		CLOSE_EYE: [0, 1002],
 	};
 
-	const highs = [
-		{ sym: 'H1', name: 'Anglerfish', pays: ['10.00×', '25.00×', '50.00×'] },
-		{ sym: 'H2', name: 'Nautilus', pays: ['2.50×', '10.00×', '25.00×'] },
-		{ sym: 'H3', name: 'Diving Helmet', pays: ['2.00×', '5.00×', '15.00×'] },
-		{ sym: 'H4', name: 'Jellyfish', pays: ['1.50×', '2.00×', '12.00×'] },
-	];
-	const lows = [
-		{ sym: 'L1', name: 'Cyan gem', pays: ['1.00×', '1.50×', '10.00×'] },
-		{ sym: 'L2', name: 'Teal gem', pays: ['0.80×', '1.20×', '8.00×'] },
-		{ sym: 'L3', name: 'Sapphire gem', pays: ['0.50×', '1.00×', '8.00×'] },
-		{ sym: 'L4', name: 'Violet gem', pays: ['0.40×', '0.90×', '6.00×'] },
-		{ sym: 'L5', name: 'Aqua gem', pays: ['0.20×', '0.70×', '5.00×'] },
-	];
+	type PaySymbol = {
+		sym: string;
+		name: string;
+		pays: [string, string, string];
+	};
+	type Mode = {
+		name: string;
+		cost: string;
+		text: string;
+	};
 
-	const modes = [
-		{ name: 'Base', cost: '1× bet', text: 'The standard game. The Eye is rare, mostly the friendly ADD type.' },
-		{ name: 'Ante', cost: '1.25× bet', text: 'Pay 25% more for more frequent Eyes and Scatters.' },
-		{ name: 'Buy Free Spins', cost: '100× bet', text: 'Buy straight into the Free Spins feature.' },
-		{ name: 'Super Spins', cost: '20× bet', text: 'One single spin with the Eye guaranteed — no bonus round.' },
-		{ name: 'Super Bonus', cost: '500× bet', text: 'Free Spins with the Gaze charging twice as fast and MULTIPLY Eyes common.' },
-		{ name: 'Ultimate', cost: '300× bet', text: 'One spin with several Eyes at once that combine — huge or nothing.' },
-	];
+	const t = (key: string) => i18nDerived.gameInfo(key);
+	const pay = (symbol: string, tier: string) => t(`PAY_${symbol}_${tier}`);
 
+	const copy = $derived({
+		title: t('TITLE'),
+		tagline: t('TAGLINE'),
+		leadHtml: t('LEAD_HTML'),
+		howSpinPlaysTitle: t('HOW_SPIN_PLAYS_TITLE'),
+		paytableTitle: t('PAYTABLE_TITLE'),
+		paytableNote: t('PAYTABLE_NOTE'),
+		paytableHighSymbols: t('PAYTABLE_HIGH_SYMBOLS'),
+		paytableLowSymbols: t('PAYTABLE_LOW_SYMBOLS'),
+		paytableSymbolHeader: t('PAYTABLE_SYMBOL_HEADER'),
+		paytableCount8To9: t('PAYTABLE_COUNT_8_TO_9'),
+		paytableCount10To11: t('PAYTABLE_COUNT_10_TO_11'),
+		paytableCount12Plus: t('PAYTABLE_COUNT_12_PLUS'),
+		specialSymbolsTitle: t('SPECIAL_SYMBOLS_TITLE'),
+		specialScatterName: t('SPECIAL_SCATTER_NAME'),
+		specialScatterDescriptionHtml: t('SPECIAL_SCATTER_DESCRIPTION_HTML'),
+		specialAddEyeName: t('SPECIAL_ADD_EYE_NAME'),
+		specialAddEyeDescriptionHtml: t('SPECIAL_ADD_EYE_DESCRIPTION_HTML'),
+		specialMultEyeName: t('SPECIAL_MULT_EYE_NAME'),
+		specialMultEyeDescriptionHtml: t('SPECIAL_MULT_EYE_DESCRIPTION_HTML'),
+		eyeGazeTitle: t('EYE_GAZE_TITLE'),
+		eyeGazeDescriptionHtml: t('EYE_GAZE_DESCRIPTION_HTML'),
+		eyeGazeExampleHtml: t('EYE_GAZE_EXAMPLE_HTML'),
+		freeSpinsTitle: t('FREE_SPINS_TITLE'),
+		waysToPlayTitle: t('WAYS_TO_PLAY_TITLE'),
+		generalDisclaimerTitle: t('GENERAL_DISCLAIMER_TITLE'),
+		generalDisclaimerHtml: t('GENERAL_DISCLAIMER_HTML'),
+	});
+
+	const steps = $derived([
+		t('HOW_SPIN_PLAYS_STEP_1'),
+		t('HOW_SPIN_PLAYS_STEP_2'),
+		t('HOW_SPIN_PLAYS_STEP_3_HTML'),
+		t('HOW_SPIN_PLAYS_STEP_4'),
+	]);
+	const freeSpinBullets = $derived([
+		t('FREE_SPINS_BULLET_1_HTML'),
+		t('FREE_SPINS_BULLET_2_HTML'),
+		t('FREE_SPINS_BULLET_3_HTML'),
+		t('FREE_SPINS_BULLET_4_HTML'),
+	]);
+	const highs: PaySymbol[] = $derived([
+		{
+			sym: 'H1',
+			name: t('SYMBOL_H1'),
+			pays: [pay('H1', '8_TO_9'), pay('H1', '10_TO_11'), pay('H1', '12_PLUS')],
+		},
+		{
+			sym: 'H2',
+			name: t('SYMBOL_H2'),
+			pays: [pay('H2', '8_TO_9'), pay('H2', '10_TO_11'), pay('H2', '12_PLUS')],
+		},
+		{
+			sym: 'H3',
+			name: t('SYMBOL_H3'),
+			pays: [pay('H3', '8_TO_9'), pay('H3', '10_TO_11'), pay('H3', '12_PLUS')],
+		},
+		{
+			sym: 'H4',
+			name: t('SYMBOL_H4'),
+			pays: [pay('H4', '8_TO_9'), pay('H4', '10_TO_11'), pay('H4', '12_PLUS')],
+		},
+	]);
+	const lows: PaySymbol[] = $derived([
+		{
+			sym: 'L1',
+			name: t('SYMBOL_L1'),
+			pays: [pay('L1', '8_TO_9'), pay('L1', '10_TO_11'), pay('L1', '12_PLUS')],
+		},
+		{
+			sym: 'L2',
+			name: t('SYMBOL_L2'),
+			pays: [pay('L2', '8_TO_9'), pay('L2', '10_TO_11'), pay('L2', '12_PLUS')],
+		},
+		{
+			sym: 'L3',
+			name: t('SYMBOL_L3'),
+			pays: [pay('L3', '8_TO_9'), pay('L3', '10_TO_11'), pay('L3', '12_PLUS')],
+		},
+		{
+			sym: 'L4',
+			name: t('SYMBOL_L4'),
+			pays: [pay('L4', '8_TO_9'), pay('L4', '10_TO_11'), pay('L4', '12_PLUS')],
+		},
+		{
+			sym: 'L5',
+			name: t('SYMBOL_L5'),
+			pays: [pay('L5', '8_TO_9'), pay('L5', '10_TO_11'), pay('L5', '12_PLUS')],
+		},
+	]);
+	const modes: Mode[] = $derived([
+		{ name: t('MODE_BASE_NAME'), cost: t('MODE_BASE_COST'), text: t('MODE_BASE_TEXT') },
+		{ name: t('MODE_ANTE_NAME'), cost: t('MODE_ANTE_COST'), text: t('MODE_ANTE_TEXT') },
+		{
+			name: t('MODE_BUY_FREE_SPINS_NAME'),
+			cost: t('MODE_BUY_FREE_SPINS_COST'),
+			text: t('MODE_BUY_FREE_SPINS_TEXT'),
+		},
+		{
+			name: t('MODE_SUPER_SPINS_NAME'),
+			cost: t('MODE_SUPER_SPINS_COST'),
+			text: t('MODE_SUPER_SPINS_TEXT'),
+		},
+		{
+			name: t('MODE_SUPER_BONUS_NAME'),
+			cost: t('MODE_SUPER_BONUS_COST'),
+			text: t('MODE_SUPER_BONUS_TEXT'),
+		},
+		{ name: t('MODE_ULTIMATE_NAME'), cost: t('MODE_ULTIMATE_COST'), text: t('MODE_ULTIMATE_TEXT') },
+	]);
 </script>
 
 {#snippet symIcon(name: string, size = 30)}
@@ -50,44 +164,46 @@
 	{@const s = size / CELL_W}
 	<span
 		class="sym-icon"
-		style="width:{CELL_W * s}px; height:{CELL_H * s}px; background-image:url('{ATLAS}'); background-size:{ATLAS_W *
-			s}px {ATLAS_H * s}px; background-position:{-fx * s}px {-fy * s}px;"
+		style="width:{CELL_W * s}px; height:{CELL_H *
+			s}px; background-image:url('{ATLAS}'); background-size:{ATLAS_W * s}px {ATLAS_H *
+			s}px; background-position:{-fx * s}px {-fy * s}px;"
 	></span>
 {/snippet}
 
 <div class="game-info">
 	<header>
-		<h1>ABYSSAL</h1>
-		<p class="tag">DEEP-SEA TUMBLE SLOT</p>
+		<h1>{copy.title}</h1>
+		<p class="tag">{copy.tagline}</p>
 	</header>
 
 	<p class="lead">
-		Symbols drop onto a <strong>6×5 board</strong>. You win whenever <strong>8 or more of the
-		same symbol</strong> land <strong>anywhere</strong> — no paylines. Winners burst and new
-		symbols tumble in, which can chain into more wins from a single spin.
-		There is <strong>no wild</strong>; the <strong>Eye</strong> is the sole multiplier.
+		{@html copy.leadHtml}
 	</p>
 
 	<section>
-		<h2>How a spin plays</h2>
+		<h2>{copy.howSpinPlaysTitle}</h2>
 		<ol class="steps">
-			<li>The board fills with 30 symbols.</li>
-			<li>Any symbol with 8+ on the board wins and bursts.</li>
-			<li>Symbols above fall and new ones drop in — a <strong>tumble</strong>.</li>
-			<li>Wins are checked again, repeating until a drop pays nothing.</li>
+			{#each steps as step}
+				<li>{@html step}</li>
+			{/each}
 		</ol>
 	</section>
 
 	<section>
-		<h2>Paytable</h2>
-		<p class="note">Pays are a multiple of your bet, by how many land — before any Eye multiplier.</p>
+		<h2>{copy.paytableTitle}</h2>
+		<p class="note">{copy.paytableNote}</p>
 
-		{#snippet payColumn(title: string, list: typeof highs, high: boolean)}
+		{#snippet payColumn(title: string, list: PaySymbol[], high: boolean)}
 			<div class="pay-col" class:high>
 				<h3>{title}</h3>
 				<table>
 					<thead>
-						<tr><th class="sym">Symbol</th><th>8–9</th><th>10–11</th><th>12+</th></tr>
+						<tr>
+							<th class="sym">{copy.paytableSymbolHeader}</th>
+							<th>{copy.paytableCount8To9}</th>
+							<th>{copy.paytableCount10To11}</th>
+							<th>{copy.paytableCount12Plus}</th>
+						</tr>
 					</thead>
 					<tbody>
 						{#each list as s}
@@ -104,64 +220,61 @@
 		{/snippet}
 
 		<div class="paytables">
-			{@render payColumn('High symbols', highs, true)}
-			{@render payColumn('Low symbols', lows, false)}
+			{@render payColumn(copy.paytableHighSymbols, highs, true)}
+			{@render payColumn(copy.paytableLowSymbols, lows, false)}
 		</div>
 	</section>
 
 	<section>
-		<h2>Special symbols</h2>
+		<h2>{copy.specialSymbolsTitle}</h2>
 		<div class="specials">
 			<div class="special">
 				{@render symIcon('SCATTER', 56)}
-				<div class="special-name">Leviathan — Scatter</div>
+				<div class="special-name">{copy.specialScatterName}</div>
 				<p>
-					<strong>4+</strong> triggers Free Spins and pays instantly:
-					<strong>4 = 3×</strong>, <strong>5 = 5×</strong>, <strong>6 = 100×</strong>.
+					{@html copy.specialScatterDescriptionHtml}
 				</p>
 			</div>
 			<div class="special">
 				{@render symIcon('ADD_EYE', 56)}
-				<div class="special-name">ADD Eye</div>
-				<p>Common. Multiplier = <strong>start&nbsp;+&nbsp;Gaze</strong>.</p>
+				<div class="special-name">{copy.specialAddEyeName}</div>
+				<p>{@html copy.specialAddEyeDescriptionHtml}</p>
 			</div>
 			<div class="special">
 				{@render symIcon('MULT_EYE', 56)}
-				<div class="special-name">MULTIPLY Eye</div>
-				<p>Rare &amp; explosive. Multiplier = <strong>start&nbsp;×&nbsp;Gaze</strong>.</p>
+				<div class="special-name">{copy.specialMultEyeName}</div>
+				<p>{@html copy.specialMultEyeDescriptionHtml}</p>
 			</div>
 		</div>
 	</section>
 
 	<section>
-		<h2>The Eye &amp; the Gaze</h2>
+		<h2>{@html copy.eyeGazeTitle}</h2>
 		<p>
-			Every winning tumble charges the <strong>Gaze</strong> by 1. If an <strong>Eye</strong> is
-			on the board at the end of a winning spin, it turns the Gaze into one big multiplier applied
-			to everything you won that spin.
+			{@html copy.eyeGazeDescriptionHtml}
 		</p>
 		<p class="note">
-			Example: a 2× win with a Gaze of 3 and an ADD Eye starting at 10 → ×13 → pays 26×.
-			A MULTIPLY Eye → ×30 → pays 60×.
+			{@html copy.eyeGazeExampleHtml}
 		</p>
 	</section>
 
 	<section>
-		<h2>Free Spins</h2>
+		<h2>{copy.freeSpinsTitle}</h2>
 		<ul class="bullets">
-			<li>Land <strong>4+ Leviathan (Scatter)</strong> — they can drop mid-tumble — to trigger.</li>
-			<li>You get a flat <strong>15 free spins</strong>.</li>
-			<li>A <strong>banked multiplier</strong> starts at ×1 and only grows, paying off on Eye spins.</li>
-			<li>Retrigger with 3+ Scatters for <strong>+5 spins</strong> (up to 30).</li>
+			{#each freeSpinBullets as bullet}
+				<li>{@html bullet}</li>
+			{/each}
 		</ul>
 	</section>
 
 	<section>
-		<h2>Ways to play</h2>
+		<h2>{copy.waysToPlayTitle}</h2>
 		<div class="modes">
 			{#each modes as m}
 				<div class="mode">
-					<div class="mode-head"><span class="mode-name">{m.name}</span><span class="mode-cost">{m.cost}</span></div>
+					<div class="mode-head">
+						<span class="mode-name">{m.name}</span><span class="mode-cost">{m.cost}</span>
+					</div>
 					<p>{m.text}</p>
 				</div>
 			{/each}
@@ -169,14 +282,9 @@
 	</section>
 
 	<section>
-		<h2>General Disclaimer</h2>
+		<h2>{copy.generalDisclaimerTitle}</h2>
 		<p class="disclaimer">
-			Malfunction voids all wins and plays. A consistent internet connection is required. In the
-			event of a disconnection, reload the game to finish any uncompleted rounds. The expected
-			return is calculated over many plays. The game display is not representative of any physical
-			device and is for illustrative purposes only. Winnings are settled according to the amount
-			received from the Remote Game Server and not from events within the web browser. TM and ©
-			2026 Stake Engine.
+			{@html copy.generalDisclaimerHtml}
 		</p>
 	</section>
 </div>
@@ -294,7 +402,7 @@
 		font-size: 12.5px;
 		max-width: 560px;
 	}
-	strong {
+	:global(strong) {
 		color: #fff;
 		font-weight: 800;
 	}

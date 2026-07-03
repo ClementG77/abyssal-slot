@@ -1,6 +1,6 @@
 ---
 name: pixijs-scene-graphics
-description: "Use this skill when drawing vector shapes and paths in PixiJS v8. Covers the Graphics API: shape-then-fill methods (rect/circle/ellipse/poly/roundRect/star/regularPoly/roundPoly/roundShape/filletRect/chamferRect), path methods (moveTo/lineTo/bezierCurveTo/quadraticCurveTo/arc/arcTo/arcToSvg/closePath), fill/stroke/cut, holes, FillGradient (linear/radial), FillPattern, GraphicsContext sharing, svg import/export, containsPoint hit testing, cloning, clearing, bounds, fillStyle/strokeStyle, draw-time transforms (rotateTransform/scaleTransform/translateTransform/setTransform/save/restore), default styles, GraphicsPath reuse. Triggers on: Graphics, GraphicsContext, rect, circle, poly, roundRect, fill, stroke, cut, hole, beginHole, FillGradient, FillPattern, moveTo, bezierCurveTo, svg, graphicsContextToSvg, svg export, GraphicsOptions, containsPoint, clone, clear, bounds, rotateTransform, translateTransform, setFillStyle, setStrokeStyle, GraphicsPath."
+description: 'Use this skill when drawing vector shapes and paths in PixiJS v8. Covers the Graphics API: shape-then-fill methods (rect/circle/ellipse/poly/roundRect/star/regularPoly/roundPoly/roundShape/filletRect/chamferRect), path methods (moveTo/lineTo/bezierCurveTo/quadraticCurveTo/arc/arcTo/arcToSvg/closePath), fill/stroke/cut, holes, FillGradient (linear/radial), FillPattern, GraphicsContext sharing, svg import/export, containsPoint hit testing, cloning, clearing, bounds, fillStyle/strokeStyle, draw-time transforms (rotateTransform/scaleTransform/translateTransform/setTransform/save/restore), default styles, GraphicsPath reuse. Triggers on: Graphics, GraphicsContext, rect, circle, poly, roundRect, fill, stroke, cut, hole, beginHole, FillGradient, FillPattern, moveTo, bezierCurveTo, svg, graphicsContextToSvg, svg export, GraphicsOptions, containsPoint, clone, clear, bounds, rotateTransform, translateTransform, setFillStyle, setStrokeStyle, GraphicsPath.'
 license: MIT
 ---
 
@@ -14,16 +14,16 @@ Assumes familiarity with `pixijs-scene-core-concepts`. `Graphics` is a leaf: do 
 const g = new Graphics();
 
 g.rect(10, 10, 200, 100)
-  .fill({ color: 0x3498db, alpha: 0.8 })
-  .stroke({ width: 3, color: 0x2c3e50 });
+	.fill({ color: 0x3498db, alpha: 0.8 })
+	.stroke({ width: 3, color: 0x2c3e50 });
 
 g.circle(300, 60, 40).fill(0xe74c3c);
 
 g.moveTo(50, 200)
-  .lineTo(200, 200)
-  .bezierCurveTo(250, 250, 100, 300, 50, 250)
-  .closePath()
-  .fill(0x6c5ce7);
+	.lineTo(200, 200)
+	.bezierCurveTo(250, 250, 100, 300, 50, 250)
+	.closePath()
+	.fill(0x6c5ce7);
 
 app.stage.addChild(g);
 ```
@@ -51,8 +51,8 @@ The constructor also accepts a `GraphicsContext` instance as its sole argument (
 const g = new Graphics();
 
 g.rect(10, 10, 200, 100)
-  .fill({ color: 0x3498db, alpha: 0.8 })
-  .stroke({ width: 3, color: 0x2c3e50 });
+	.fill({ color: 0x3498db, alpha: 0.8 })
+	.stroke({ width: 3, color: 0x2c3e50 });
 
 g.circle(150, 200, 40).fill(0xe74c3c);
 g.roundRect(300, 10, 150, 80, 12).fill(0x2ecc71);
@@ -83,17 +83,17 @@ Strokes can use the same gradients and patterns as fills via `fill: gradient` or
 
 ```ts
 const grad = new FillGradient({
-  end: { x: 1, y: 0 },
-  colorStops: [
-    { offset: 0, color: 0xff0000 },
-    { offset: 1, color: 0x0000ff },
-  ],
+	end: { x: 1, y: 0 },
+	colorStops: [
+		{ offset: 0, color: 0xff0000 },
+		{ offset: 1, color: 0x0000ff },
+	],
 });
 g.rect(0, 0, 200, 100).stroke({
-  width: 8,
-  fill: grad,
-  join: "round",
-  cap: "round",
+	width: 8,
+	fill: grad,
+	join: 'round',
+	cap: 'round',
 });
 ```
 
@@ -107,13 +107,13 @@ g.roundPoly(250, 100, 50, 5, 10).fill(0xe74c3c);
 g.chamferRect(350, 50, 100, 80, 15).fill(0x2ecc71);
 g.filletRect(500, 50, 100, 80, 15).fill(0x9b59b6);
 g.roundShape(
-  [
-    { x: 50, y: 250, radius: 20 },
-    { x: 150, y: 250, radius: 5 },
-    { x: 150, y: 350, radius: 10 },
-    { x: 50, y: 350, radius: 15 },
-  ],
-  10,
+	[
+		{ x: 50, y: 250, radius: 20 },
+		{ x: 150, y: 250, radius: 5 },
+		{ x: 150, y: 350, radius: 10 },
+		{ x: 50, y: 350, radius: 15 },
+	],
+	10,
 ).fill(0xf39c12);
 ```
 
@@ -160,27 +160,22 @@ Calling `cut()` on a shape that already has a hole **adds** to the existing hole
 
 ```ts
 g.moveTo(50, 50)
-  .lineTo(200, 50)
-  .bezierCurveTo(250, 100, 250, 150, 200, 200)
-  .quadraticCurveTo(100, 250, 50, 200)
-  .closePath()
-  .fill({ color: 0x6c5ce7, alpha: 0.7 })
-  .stroke({ width: 2, color: 0xdfe6e9 });
+	.lineTo(200, 50)
+	.bezierCurveTo(250, 100, 250, 150, 200, 200)
+	.quadraticCurveTo(100, 250, 50, 200)
+	.closePath()
+	.fill({ color: 0x6c5ce7, alpha: 0.7 })
+	.stroke({ width: 2, color: 0xdfe6e9 });
 ```
 
 Path methods: `moveTo`, `lineTo`, `bezierCurveTo`, `quadraticCurveTo`, `arc`, `arcTo`, `arcToSvg`, `closePath`. Call `beginPath()` to discard the current path and start a new one.
 
 ```ts
 // arc(cx, cy, radius, startAngle, endAngle, counterclockwise?)
-g.moveTo(80, 50)
-  .arc(50, 50, 30, 0, Math.PI)
-  .stroke({ width: 4, color: 0x2c3e50 });
+g.moveTo(80, 50).arc(50, 50, 30, 0, Math.PI).stroke({ width: 4, color: 0x2c3e50 });
 
 // arcTo(x1, y1, x2, y2, radius) — rounded corner between two line segments
-g.moveTo(150, 20)
-  .arcTo(200, 20, 200, 80, 20)
-  .lineTo(200, 80)
-  .stroke({ width: 2 });
+g.moveTo(150, 20).arcTo(200, 20, 200, 80, 20).lineTo(200, 80).stroke({ width: 2 });
 
 // arcToSvg(rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y) — matches the SVG `A` command
 g.moveTo(250, 50).arcToSvg(40, 20, 0, 1, 0, 330, 50).stroke({ width: 2 });
@@ -191,39 +186,39 @@ g.moveTo(250, 50).arcToSvg(40, 20, 0, 1, 0, 330, 50).stroke({ width: 2 });
 ```ts
 // Linear gradient
 const linear = new FillGradient({
-  end: { x: 1, y: 0 },
-  colorStops: [
-    { offset: 0, color: 0xff0000 },
-    { offset: 1, color: 0x0000ff },
-  ],
+	end: { x: 1, y: 0 },
+	colorStops: [
+		{ offset: 0, color: 0xff0000 },
+		{ offset: 1, color: 0x0000ff },
+	],
 });
 g.rect(0, 0, 200, 100).fill(linear);
 
 // Radial gradient — inner circle at center, outer circle reaches edges
 const radial = new FillGradient({
-  type: "radial",
-  center: { x: 100, y: 100 },
-  innerRadius: 0,
-  outerCenter: { x: 100, y: 100 },
-  outerRadius: 100,
-  colorStops: [
-    { offset: 0, color: 0xffffff },
-    { offset: 1, color: 0x000000 },
-  ],
+	type: 'radial',
+	center: { x: 100, y: 100 },
+	innerRadius: 0,
+	outerCenter: { x: 100, y: 100 },
+	outerRadius: 100,
+	colorStops: [
+		{ offset: 0, color: 0xffffff },
+		{ offset: 1, color: 0x000000 },
+	],
 });
 g.circle(100, 100, 100).fill(radial);
 
-const brick = await Assets.load("brick.png");
+const brick = await Assets.load('brick.png');
 
 // Options-object form (preferred)
 const pattern = new FillPattern({
-  texture: brick,
-  repetition: "repeat", // 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat'
-  textureSpace: "global", // 'global' (default) | 'local'
+	texture: brick,
+	repetition: 'repeat', // 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat'
+	textureSpace: 'global', // 'global' (default) | 'local'
 });
 
 // Legacy positional form is still supported
-const pattern2 = new FillPattern(brick, "repeat");
+const pattern2 = new FillPattern(brick, 'repeat');
 
 g.rect(0, 120, 200, 100).fill(pattern);
 ```
@@ -242,7 +237,7 @@ Note `FillPattern` defaults `textureSpace` to `'global'`, unlike the `'local'` d
 ### Drawing a texture directly
 
 ```ts
-const tex = await Assets.load("icon.png");
+const tex = await Assets.load('icon.png');
 
 // Draw the whole texture at (x, y) with optional tint
 g.texture(tex, 0xffffff, 20, 20);
@@ -280,13 +275,13 @@ g.svg(`<svg viewBox="0 0 100 100">
 Serialize a `Graphics` or `GraphicsContext` back to a self-contained SVG document string with `graphicsContextToSvg`:
 
 ```ts
-import { Graphics, graphicsContextToSvg } from "pixi.js";
+import { Graphics, graphicsContextToSvg } from 'pixi.js';
 
 const g = new Graphics()
-  .rect(0, 0, 100, 50)
-  .fill({ color: 0xff0000 })
-  .circle(150, 25, 25)
-  .stroke({ color: 0x0000ff, width: 4 });
+	.rect(0, 0, 100, 50)
+	.fill({ color: 0xff0000 })
+	.circle(150, 25, 25)
+	.stroke({ color: 0x0000ff, width: 4 });
 
 const svgString = graphicsContextToSvg(g, 2);
 ```
@@ -297,14 +292,14 @@ const svgString = graphicsContextToSvg(g, 2);
 
 ```ts
 const arrow = new GraphicsPath()
-  .moveTo(0, 0)
-  .lineTo(40, 0)
-  .lineTo(40, -10)
-  .lineTo(60, 10)
-  .lineTo(40, 30)
-  .lineTo(40, 20)
-  .lineTo(0, 20)
-  .closePath();
+	.moveTo(0, 0)
+	.lineTo(40, 0)
+	.lineTo(40, -10)
+	.lineTo(60, 10)
+	.lineTo(40, 30)
+	.lineTo(40, 20)
+	.lineTo(0, 20)
+	.closePath();
 
 g.path(arrow).fill(0x3498db);
 g.translateTransform(80, 0).path(arrow).fill(0xe74c3c);
@@ -329,9 +324,9 @@ g.translateTransform(80, 0).path(arrow).fill(0xe74c3c);
 const g = new Graphics();
 
 g.translateTransform(100, 100)
-  .rotateTransform(Math.PI / 4)
-  .rect(-25, -25, 50, 50)
-  .fill(0x3498db);
+	.rotateTransform(Math.PI / 4)
+	.rect(-25, -25, 50, 50)
+	.fill(0x3498db);
 
 // The square is rotated 45 degrees as it is added to the geometry.
 // Setting g.rotation later rotates the entire Graphics on screen.
@@ -355,8 +350,8 @@ g.restore();
 
 ```ts
 g.setFillStyle({ color: 0x3498db, alpha: 0.8 }).setStrokeStyle({
-  width: 2,
-  color: 0x2c3e50,
+	width: 2,
+	color: 0x2c3e50,
 });
 
 g.rect(0, 0, 100, 100).fill().stroke();
@@ -369,11 +364,11 @@ g.circle(150, 50, 40).fill().stroke();
 
 ```ts
 const g = new Graphics().star(100, 100, 5, 60, 30).fill(0xf39c12);
-g.eventMode = "static";
-g.on("pointermove", (e) => {
-  if (g.containsPoint(g.toLocal(e.global))) {
-    /* over the star, not just its bbox */
-  }
+g.eventMode = 'static';
+g.on('pointermove', (e) => {
+	if (g.containsPoint(g.toLocal(e.global))) {
+		/* over the star, not just its bbox */
+	}
 });
 ```
 
@@ -434,7 +429,6 @@ const g = new Graphics().rect(0, 0, 100, 100).fill(0xff0000);
 
 v8 replaced "set style, draw, end" with "draw shape, then apply style". `beginFill`/`endFill` do not exist.
 
-
 ### [CRITICAL] Using old shape method names
 
 Wrong:
@@ -450,7 +444,6 @@ g.circle(50, 50, 25);
 ```
 
 All `draw*` methods were renamed in v8: `drawRect` → `rect`, `drawCircle` → `circle`, `drawEllipse` → `ellipse`, `drawPolygon` → `poly`, `drawRoundedRect` → `roundRect`, `drawStar` → `star`.
-
 
 ### [CRITICAL] Using lineStyle instead of stroke
 
@@ -469,18 +462,17 @@ g.rect(0, 0, 100, 100).stroke({ width: 2, color: 0xffffff });
 
 `lineStyle` was removed. Use `stroke()` after drawing the shape. The stroke options object accepts `width`, `color`, `alpha`, `cap`, `join`, `alignment`, `miterLimit`, and `pixelLine`.
 
-
 ### [HIGH] Using beginHole/endHole for holes
 
 Wrong:
 
 ```ts
 g.beginFill(0x00ff00)
-  .drawRect(0, 0, 100, 100)
-  .beginHole()
-  .drawCircle(50, 50, 20)
-  .endHole()
-  .endFill();
+	.drawRect(0, 0, 100, 100)
+	.beginHole()
+	.drawCircle(50, 50, 20)
+	.endHole()
+	.endFill();
 ```
 
 Correct:
@@ -490,7 +482,6 @@ g.rect(0, 0, 100, 100).fill(0x00ff00).circle(50, 50, 20).cut();
 ```
 
 `beginHole`/`endHole` were replaced by `cut()`. Draw the outer shape, fill it, then draw the hole shape and call `cut()`.
-
 
 ### [HIGH] Using GraphicsGeometry instead of GraphicsContext
 
@@ -511,7 +502,6 @@ const g2 = new Graphics(ctx);
 
 `GraphicsGeometry` was replaced by `GraphicsContext` in v8. There is no `.geometry` property.
 
-
 ### [HIGH] Destroying a shared GraphicsContext unexpectedly
 
 ```ts
@@ -524,7 +514,6 @@ g1.destroy({ context: true }); // also nullifies g2's context reference
 
 Destroying a shared `GraphicsContext` does not destroy sharing instances but breaks them by nullifying their context reference. When passing a context via the constructor, `destroy()` with no args preserves the context; use `destroy({ context: false })` to be explicit. Only destroy the context when all sharing instances are done with it. A self-owned context (not passed via constructor) is still destroyed by `destroy()` with no args.
 
-
 ### [HIGH] Clearing and redrawing Graphics every frame
 
 Graphics are designed to be stable, not dynamic. Calling `clear()` and redrawing every frame rebuilds GPU geometry each time. For dynamic visuals:
@@ -535,7 +524,6 @@ Graphics are designed to be stable, not dynamic. Calling `clear()` and redrawing
 
 This is the opposite of HTML Canvas 2D, where redrawing each frame is normal. PixiJS tessellates shapes into GPU triangles, so initial draw is expensive but subsequent renders are fast. Treat `Graphics` more like SVG elements than canvas draw calls.
 
-
 ### [MEDIUM] Do not nest children inside a Graphics
 
 `Graphics` sets `allowChildren = false`. Adding children logs a deprecation warning and will be a hard error in a future version. Wrap multiple graphics alongside other leaves in a plain `Container`:
@@ -544,7 +532,6 @@ This is the opposite of HTML Canvas 2D, where redrawing each frame is normal. Pi
 const group = new Container();
 group.addChild(graphics, sprite);
 ```
-
 
 ## API Reference
 

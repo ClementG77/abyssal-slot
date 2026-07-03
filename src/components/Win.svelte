@@ -12,7 +12,7 @@
 	import { Tween } from 'svelte/motion';
 
 	import { Container } from 'pixi-svelte';
-	import { FadeContainer, ResponsiveText } from 'components-pixi';
+	import { FadeContainer, ResponsiveBitmapText } from 'components-pixi';
 	import { waitForResolve, waitForTimeout } from 'utils-shared/wait';
 	import { createInterruptible } from 'utils-shared/interruptible';
 	import { bookEventAmountToCurrencyString } from 'utils-shared/amount';
@@ -26,7 +26,7 @@
 	import WinBackdrop from './WinBackdrop.svelte';
 	import WinBanner from './WinBanner.svelte';
 	import PressToContinue from './PressToContinue.svelte';
-	import { SYMBOL_SIZE } from '../game/constants';
+	import { SYMBOL_SIZE, abyssalBitmapStyle } from '../game/constants';
 	import { getContext } from '../game/context';
 
 	const context = getContext();
@@ -53,17 +53,9 @@
 	const tierFor = (mult: number) => WIN_TIERS.find((t) => mult >= t.min);
 	const lowestTier = WIN_TIERS[WIN_TIERS.length - 1];
 
-	// Branded "minted" amount type — Cinzel (matches the Eye / Gaze values), warm gold fill, dark
-	// stroke and a soft drop shadow for depth. One style for every banner tier.
-	const amountStyle = {
-		fontFamily: 'Cinzel, Georgia, serif',
-		fontWeight: '900',
-		fontSize: SYMBOL_SIZE * 0.95,
-		align: 'center',
-		fill: 0xffe6a6,
-		stroke: { color: 0x2a1400, width: 8 },
-		dropShadow: { color: 0x000000, blur: 10, distance: 5, alpha: 0.6 },
-	} as const;
+	// Branded amount type — the baked gold AbyssalBitmap face (fill/bevel/outline live in the
+	// glyph art, so no stroke/dropShadow props). One style for every banner tier.
+	const amountStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.95 });
 
 	let show = $state(false);
 	let amount = $state(0);
@@ -215,7 +207,7 @@
 				<WinBackdrop radius={imgW * 0.6} color={TIER_COLOR[bannerTier.key]} />
 				<WinBanner tierKey={bannerTier.key} width={imgW} height={imgH} />
 				<Container scale={numFx.scale}>
-					<ResponsiveText
+					<ResponsiveBitmapText
 						anchor={0.5}
 						y={imgH * 0.17}
 						maxWidth={imgW * 0.6}
@@ -223,13 +215,14 @@
 						style={amountStyle}
 					/>
 					{#if numFx.flash > 0}
-						<Container alpha={numFx.flash}>
-							<ResponsiveText
+						<!-- the lock flash: an additive copy of the gold glyphs blooms them to white -->
+						<Container alpha={numFx.flash} blendMode="add">
+							<ResponsiveBitmapText
 								anchor={0.5}
 								y={imgH * 0.17}
 								maxWidth={imgW * 0.6}
 								text={bookEventAmountToCurrencyString(countUp.current)}
-								style={{ ...amountStyle, fill: 0xffffff }}
+								style={amountStyle}
 							/>
 						</Container>
 					{/if}

@@ -1,6 +1,6 @@
 ---
 name: pixijs-blend-modes
-description: "Use this skill when compositing display objects with blend modes in PixiJS v8. Covers standard modes (normal, add, multiply, screen, erase, min, max), advanced modes via pixi.js/advanced-blend-modes (color-burn, overlay, hard-light, etc.), batch-friendly ordering. Triggers on: blendMode, additive, multiply, screen, overlay, color-burn, color-dodge, advanced-blend-modes, glow, erase."
+description: 'Use this skill when compositing display objects with blend modes in PixiJS v8. Covers standard modes (normal, add, multiply, screen, erase, min, max), advanced modes via pixi.js/advanced-blend-modes (color-burn, overlay, hard-light, etc.), batch-friendly ordering. Triggers on: blendMode, additive, multiply, screen, overlay, color-burn, color-dodge, advanced-blend-modes, glow, erase.'
 license: MIT
 ---
 
@@ -9,17 +9,17 @@ Set `container.blendMode` to composite display objects with GPU blend equations 
 ## Quick Start
 
 ```ts
-const light = new Sprite(await Assets.load("light.png"));
-light.blendMode = "add";
+const light = new Sprite(await Assets.load('light.png'));
+light.blendMode = 'add';
 app.stage.addChild(light);
 
-const shadow = new Sprite(await Assets.load("shadow.png"));
-shadow.blendMode = "multiply";
+const shadow = new Sprite(await Assets.load('shadow.png'));
+shadow.blendMode = 'multiply';
 app.stage.addChild(shadow);
 
-import "pixi.js/advanced-blend-modes";
-const overlay = new Sprite(await Assets.load("overlay.png"));
-overlay.blendMode = "color-burn";
+import 'pixi.js/advanced-blend-modes';
+const overlay = new Sprite(await Assets.load('overlay.png'));
+overlay.blendMode = 'color-burn';
 app.stage.addChild(overlay);
 ```
 
@@ -32,17 +32,17 @@ app.stage.addChild(overlay);
 Standard modes are built in and use GPU blend equations directly:
 
 ```ts
-import { Sprite } from "pixi.js";
+import { Sprite } from 'pixi.js';
 
-sprite.blendMode = "normal"; // standard alpha compositing (effective default at root)
-sprite.blendMode = "add"; // additive (lighten, glow effects)
-sprite.blendMode = "multiply"; // multiply (darken, shadow effects)
-sprite.blendMode = "screen"; // screen (lighten, dodge effects)
-sprite.blendMode = "erase"; // erase pixels from render target
-sprite.blendMode = "none"; // no blending, overwrites destination
-sprite.blendMode = "inherit"; // inherit from parent (this is the actual default value)
-sprite.blendMode = "min"; // keeps minimum of source and destination (WebGL2+ only)
-sprite.blendMode = "max"; // keeps maximum of source and destination (WebGL2+ only)
+sprite.blendMode = 'normal'; // standard alpha compositing (effective default at root)
+sprite.blendMode = 'add'; // additive (lighten, glow effects)
+sprite.blendMode = 'multiply'; // multiply (darken, shadow effects)
+sprite.blendMode = 'screen'; // screen (lighten, dodge effects)
+sprite.blendMode = 'erase'; // erase pixels from render target
+sprite.blendMode = 'none'; // no blending, overwrites destination
+sprite.blendMode = 'inherit'; // inherit from parent (this is the actual default value)
+sprite.blendMode = 'min'; // keeps minimum of source and destination (WebGL2+ only)
+sprite.blendMode = 'max'; // keeps maximum of source and destination (WebGL2+ only)
 ```
 
 These are hardware-accelerated and cheap. They do not require filters.
@@ -52,15 +52,15 @@ These are hardware-accelerated and cheap. They do not require filters.
 Advanced modes require an explicit import to register the extensions. On the WebGL renderer they also require `useBackBuffer: true` at init time, or PixiJS logs a warning and the blend silently falls back:
 
 ```ts
-import "pixi.js/advanced-blend-modes";
-import { Application, Sprite, Assets } from "pixi.js";
+import 'pixi.js/advanced-blend-modes';
+import { Application, Sprite, Assets } from 'pixi.js';
 
 const app = new Application();
 await app.init({ useBackBuffer: true }); // required for advanced modes on WebGL
 
-const texture = await Assets.load("overlay.png");
+const texture = await Assets.load('overlay.png');
 const overlay = new Sprite(texture);
-overlay.blendMode = "color-burn";
+overlay.blendMode = 'color-burn';
 ```
 
 Available advanced modes:
@@ -96,7 +96,7 @@ You set advanced blend modes the same way as standard ones, via the `blendMode` 
 Different blend modes break the rendering batch. Order objects to minimize transitions:
 
 ```ts
-import { Container, Sprite } from "pixi.js";
+import { Container, Sprite } from 'pixi.js';
 
 const scene = new Container();
 scene.addChild(screenSprite1); // 'screen'
@@ -114,34 +114,32 @@ scene.addChild(normalSprite2); // 'normal'
 Wrong:
 
 ```ts
-import { Sprite } from "pixi.js";
+import { Sprite } from 'pixi.js';
 
-sprite.blendMode = "color-burn"; // silently falls back to normal
+sprite.blendMode = 'color-burn'; // silently falls back to normal
 ```
 
 Correct:
 
 ```ts
-import "pixi.js/advanced-blend-modes";
-import { Sprite } from "pixi.js";
+import 'pixi.js/advanced-blend-modes';
+import { Sprite } from 'pixi.js';
 
-sprite.blendMode = "color-burn";
+sprite.blendMode = 'color-burn';
 ```
 
 Advanced blend modes (color-burn, overlay, etc.) require the extension import. Without it, only standard modes (normal, add, multiply, screen) are available. The invalid mode silently falls back.
 
-
 ### [MEDIUM] Mixing blend modes across adjacent objects
 
 Different blend modes break the render batch. `screen / normal / screen / normal` produces 4 draw calls, while `screen / screen / normal / normal` produces 2. Sort children so objects with the same blend mode are adjacent.
-
 
 ### [HIGH] Using the v7 BLEND_MODES enum
 
 Wrong:
 
 ```ts
-import { BLEND_MODES } from "pixi.js";
+import { BLEND_MODES } from 'pixi.js';
 
 sprite.blendMode = BLEND_MODES.ADD; // runtime error: BLEND_MODES is undefined
 ```
@@ -149,34 +147,32 @@ sprite.blendMode = BLEND_MODES.ADD; // runtime error: BLEND_MODES is undefined
 Correct:
 
 ```ts
-sprite.blendMode = "add";
+sprite.blendMode = 'add';
 ```
 
 In v8, `BLEND_MODES` is a TypeScript type only (a union of string literals). There is no runtime enum export, so `BLEND_MODES.ADD` evaluates to accessing a property on `undefined`. Use the string form.
-
 
 ### [HIGH] Advanced blend modes without useBackBuffer
 
 Wrong:
 
 ```ts
-import "pixi.js/advanced-blend-modes";
+import 'pixi.js/advanced-blend-modes';
 await app.init({
-  /* no useBackBuffer */
+	/* no useBackBuffer */
 });
-sprite.blendMode = "color-burn"; // logs a warning, falls back
+sprite.blendMode = 'color-burn'; // logs a warning, falls back
 ```
 
 Correct:
 
 ```ts
-import "pixi.js/advanced-blend-modes";
+import 'pixi.js/advanced-blend-modes';
 await app.init({ useBackBuffer: true });
-sprite.blendMode = "color-burn";
+sprite.blendMode = 'color-burn';
 ```
 
 Advanced modes read from the back buffer. On WebGL, the blend silently falls back if the back buffer is not enabled. WebGPU enables the back buffer unconditionally.
-
 
 ### [MEDIUM] Advanced blend modes clipped or scaled on high-DPI renderers
 
@@ -185,24 +181,23 @@ Advanced blend modes are filter-based and use `Filter.defaultOptions`, whose res
 Wrong:
 
 ```ts
-import "pixi.js/advanced-blend-modes";
+import 'pixi.js/advanced-blend-modes';
 
-sprite.blendMode = "overlay"; // renders at resolution 1, can clip on retina
+sprite.blendMode = 'overlay'; // renders at resolution 1, can clip on retina
 ```
 
 Correct:
 
 ```ts
-import { Filter } from "pixi.js";
-import "pixi.js/advanced-blend-modes";
+import { Filter } from 'pixi.js';
+import 'pixi.js/advanced-blend-modes';
 
-Filter.defaultOptions.resolution = "inherit"; // set before creating affected objects
+Filter.defaultOptions.resolution = 'inherit'; // set before creating affected objects
 
-sprite.blendMode = "overlay";
+sprite.blendMode = 'overlay';
 ```
 
 Setting `Filter.defaultOptions.resolution = "inherit"` makes advanced blend modes render at the render target's resolution. This costs more memory and runtime, so apply it where fidelity matters.
-
 
 ## API Reference
 

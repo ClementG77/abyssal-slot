@@ -18,7 +18,7 @@
 	// Board-wide scatter reactions:
 	//  • anticipation (3+ scatters) → dim the screen, set the shared `scatterAnticipating` flag
 	//    (the scatters pulse harder via Symbol) and run a rising audio hum.
-	//  • trigger → link the scatters with energy lines and flash before the transition.
+	//  • trigger → pulse the winning scatter cells and flash before the transition.
 	const context = getContext();
 
 	const dim = new Tween(0, { duration: 320 });
@@ -55,20 +55,13 @@
 		},
 	});
 
-	const drawLinks = (g: import('pixi.js').Graphics) => {
+	const drawScatterPulses = (g: import('pixi.js').Graphics) => {
 		const p = celebrate.link;
 		if (p <= 0) return;
 		const points = positions.map((pos) => ({
 			x: getPositionX(pos.reel),
 			y: getPositionY(pos.row),
 		}));
-		for (let i = 0; i < points.length; i++) {
-			for (let j = i + 1; j < points.length; j++) {
-				g.moveTo(points[i].x, points[i].y)
-					.lineTo(points[j].x, points[j].y)
-					.stroke({ width: 3 * p, color: 0xffe6a6, alpha: 0.45 * p });
-			}
-		}
 		for (const point of points) {
 			g.circle(point.x, point.y, 12 * p).fill({ color: 0xffffff, alpha: 0.7 * p });
 		}
@@ -80,12 +73,12 @@
 	<CanvasSizeRectangle backgroundColor={0x03060e} backgroundAlpha={dim.current} />
 {/if}
 
-<!-- trigger energy links (board space) -->
+<!-- trigger scatter pulses (board space) -->
 {#if celebrate.link > 0}
 	<MainContainer>
 		<BoardContainer>
 			<Container blendMode="add">
-				<Graphics draw={drawLinks} />
+				<Graphics draw={drawScatterPulses} />
 			</Container>
 		</BoardContainer>
 	</MainContainer>

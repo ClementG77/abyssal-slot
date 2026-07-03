@@ -1,6 +1,6 @@
 ---
 name: pixijs-scene-text
-description: "Use this skill when rendering text in PixiJS v8. Covers Text for canvas-quality styled labels, BitmapText for cheap per-frame updates via glyph atlas, HTMLText for HTML/CSS markup via SVG, SplitText and SplitBitmapText for per-character animation, TextStyle, tagStyles, constructor options, TextOptions, HTMLTextOptions, BitmapText, SplitTextOptions, SplitBitmapTextOptions. Triggers on: Text, BitmapText, HTMLText, SplitText, SplitBitmapText, TextStyle, HTMLTextStyle, BitmapFont.install, tagStyles, fontFamily, wordWrap."
+description: 'Use this skill when rendering text in PixiJS v8. Covers Text for canvas-quality styled labels, BitmapText for cheap per-frame updates via glyph atlas, HTMLText for HTML/CSS markup via SVG, SplitText and SplitBitmapText for per-character animation, TextStyle, tagStyles, constructor options, TextOptions, HTMLTextOptions, BitmapText, SplitTextOptions, SplitBitmapTextOptions. Triggers on: Text, BitmapText, HTMLText, SplitText, SplitBitmapText, TextStyle, HTMLTextStyle, BitmapFont.install, tagStyles, fontFamily, wordWrap.'
 license: MIT
 ---
 
@@ -12,14 +12,14 @@ Assumes familiarity with `pixijs-scene-core-concepts`. All text classes are leaf
 
 ```ts
 const text = new Text({
-  text: "Hello PixiJS",
-  style: {
-    fontFamily: "Arial",
-    fontSize: 36,
-    fill: 0xffffff,
-    stroke: { color: 0x4a1850, width: 5 },
-    dropShadow: { color: 0x000000, blur: 4, distance: 6 },
-  },
+	text: 'Hello PixiJS',
+	style: {
+		fontFamily: 'Arial',
+		fontSize: 36,
+		fill: 0xffffff,
+		stroke: { color: 0x4a1850, width: 5 },
+		dropShadow: { color: 0x000000, blur: 4, distance: 6 },
+	},
 });
 
 text.anchor.set(0.5);
@@ -79,48 +79,44 @@ Wrong:
 
 ```ts
 app.ticker.add(() => {
-  scoreText.text = `Score: ${score}`;
+	scoreText.text = `Score: ${score}`;
 });
 ```
 
 Correct:
 
 ```ts
-const scoreText = new BitmapText({ text: "Score: 0", style });
+const scoreText = new BitmapText({ text: 'Score: 0', style });
 app.ticker.add(() => {
-  scoreText.text = `Score: ${score}`;
+	scoreText.text = `Score: ${score}`;
 });
 ```
 
 Every `Text` update re-rasterizes the whole string. Use `BitmapText` for any value that changes per-frame.
-
 
 ### [HIGH] Positional constructor args
 
 Wrong:
 
 ```ts
-const text = new Text("Hello", { fontSize: 24 });
+const text = new Text('Hello', { fontSize: 24 });
 ```
 
 Correct:
 
 ```ts
-const text = new Text({ text: "Hello", style: { fontSize: 24 } });
+const text = new Text({ text: 'Hello', style: { fontSize: 24 } });
 ```
 
 v8 removed the `(string, style)` form. All text classes use options objects.
-
 
 ### [HIGH] Not importing `pixi.js/text-bitmap` in custom builds
 
 Under `skipExtensionImports: true` or aggressive tree-shaking, `Assets.load('font.fnt')` silently returns raw data unless you add `import 'pixi.js/text-bitmap'`. The standard `import { ... } from 'pixi.js'` bundle includes the extension.
 
-
 ### [MEDIUM] Adding children to a text instance
 
 Every text class sets `allowChildren = false`. Wrap in a `Container` to group text with other content.
-
 
 ## API Reference
 

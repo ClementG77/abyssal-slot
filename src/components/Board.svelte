@@ -6,7 +6,7 @@
 		| { type: 'boardShow' }
 		| { type: 'boardHide' }
 		// The Eye lands heavy enough to jolt the whole board (on its drop only — NOT on reveal).
-		| { type: 'boardEyeImpact' }
+		| { type: 'boardEyeImpact'; position?: Position }
 		| {
 				type: 'boardWithAnimateSymbols';
 				symbolPositions: Position[];

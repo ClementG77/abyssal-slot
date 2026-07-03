@@ -1,6 +1,6 @@
 ---
 name: pixijs-custom-rendering
-description: "Use this skill when writing custom shaders, uniforms, filters, or batchers in PixiJS v8. Covers Shader.from({gl, gpu, resources}), GlProgram/GpuProgram, UniformGroup with typed uniforms (f32, vec2, mat4x4), UBO mode, textures as resources, custom Filter via Filter.from, GLSL ES 3.0 conventions (in/out, finalColor, texture()), uBackTexture sampling, pixi.js/unsafe-eval for strict CSP, custom Batcher via extensions. Triggers on: Shader, GlProgram, GpuProgram, UniformGroup, Batcher, Filter, Filter.from, GLSL, WGSL, UBO, uniform, custom shader, finalColor, uBackTexture, blendRequired, unsafe-eval."
+description: 'Use this skill when writing custom shaders, uniforms, filters, or batchers in PixiJS v8. Covers Shader.from({gl, gpu, resources}), GlProgram/GpuProgram, UniformGroup with typed uniforms (f32, vec2, mat4x4), UBO mode, textures as resources, custom Filter via Filter.from, GLSL ES 3.0 conventions (in/out, finalColor, texture()), uBackTexture sampling, pixi.js/unsafe-eval for strict CSP, custom Batcher via extensions. Triggers on: Shader, GlProgram, GpuProgram, UniformGroup, Batcher, Filter, Filter.from, GLSL, WGSL, UBO, uniform, custom shader, finalColor, uBackTexture, blendRequired, unsafe-eval.'
 license: MIT
 ---
 
@@ -10,25 +10,25 @@ Custom shaders bind GLSL and WGSL programs to scene objects via `Shader.from({ g
 
 ```ts
 const uniforms = new UniformGroup({
-  uTime: { value: 0, type: "f32" },
+	uTime: { value: 0, type: 'f32' },
 });
 
 const shader = Shader.from({
-  gl: { vertex: vertexSrc, fragment: fragmentSrc },
-  resources: { uniforms },
+	gl: { vertex: vertexSrc, fragment: fragmentSrc },
+	resources: { uniforms },
 });
 
 const geometry = new MeshGeometry({
-  positions: new Float32Array([0, 0, 100, 0, 100, 100, 0, 100]),
-  uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
-  indices: new Uint32Array([0, 1, 2, 0, 2, 3]),
+	positions: new Float32Array([0, 0, 100, 0, 100, 100, 0, 100]),
+	uvs: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
+	indices: new Uint32Array([0, 1, 2, 0, 2, 3]),
 });
 
 const mesh = new Mesh({ geometry, shader });
 app.stage.addChild(mesh);
 
 app.ticker.add(() => {
-  shader.resources.uniforms.uniforms.uTime = performance.now() / 1000;
+	shader.resources.uniforms.uniforms.uTime = performance.now() / 1000;
 });
 ```
 
@@ -39,27 +39,27 @@ app.ticker.add(() => {
 ### Dual-renderer shader (WebGL + WebGPU)
 
 ```ts
-import { Shader, GlProgram, GpuProgram, UniformGroup } from "pixi.js";
+import { Shader, GlProgram, GpuProgram, UniformGroup } from 'pixi.js';
 
 const glVertex = `...`; // GLSL vertex (write `#version 300 es` yourself if you want WebGL2/GLSL ES 3.0)
 const glFragment = `...`; // GLSL fragment
 const wgslSource = `...`; // WGSL combined
 
 const shader = Shader.from({
-  gl: { vertex: glVertex, fragment: glFragment },
-  gpu: {
-    // entryPoint names are arbitrary; they must match the @vertex / @fragment
-    // function names in your WGSL source. PixiJS ships examples using
-    // 'mainVert' / 'mainFrag' but `main` is equally valid.
-    vertex: { entryPoint: "mainVert", source: wgslSource },
-    fragment: { entryPoint: "mainFrag", source: wgslSource },
-  },
-  resources: {
-    myUniforms: new UniformGroup({
-      uColor: { value: new Float32Array([1, 0, 0, 1]), type: "vec4<f32>" },
-      uMatrix: { value: new Float32Array(16), type: "mat4x4<f32>" },
-    }),
-  },
+	gl: { vertex: glVertex, fragment: glFragment },
+	gpu: {
+		// entryPoint names are arbitrary; they must match the @vertex / @fragment
+		// function names in your WGSL source. PixiJS ships examples using
+		// 'mainVert' / 'mainFrag' but `main` is equally valid.
+		vertex: { entryPoint: 'mainVert', source: wgslSource },
+		fragment: { entryPoint: 'mainFrag', source: wgslSource },
+	},
+	resources: {
+		myUniforms: new UniformGroup({
+			uColor: { value: new Float32Array([1, 0, 0, 1]), type: 'vec4<f32>' },
+			uMatrix: { value: new Float32Array(16), type: 'mat4x4<f32>' },
+		}),
+	},
 });
 ```
 
@@ -72,19 +72,19 @@ If only `gl` is provided, the shader works with WebGL only. If only `gpu` is pro
 Textures are resources, not uniforms. Pass the texture's `source` and `style` separately:
 
 ```ts
-import { Shader, UniformGroup, Texture, Assets } from "pixi.js";
+import { Shader, UniformGroup, Texture, Assets } from 'pixi.js';
 
-const texture = await Assets.load("myImage.png");
+const texture = await Assets.load('myImage.png');
 
 const shader = Shader.from({
-  gl: { vertex: vertSrc, fragment: fragSrc },
-  resources: {
-    uTexture: texture.source,
-    uSampler: texture.source.style,
-    myUniforms: new UniformGroup({
-      uAlpha: { value: 1.0, type: "f32" },
-    }),
-  },
+	gl: { vertex: vertSrc, fragment: fragSrc },
+	resources: {
+		uTexture: texture.source,
+		uSampler: texture.source.style,
+		myUniforms: new UniformGroup({
+			uAlpha: { value: 1.0, type: 'f32' },
+		}),
+	},
 });
 
 // Swap texture at runtime
@@ -97,12 +97,12 @@ Resources can also be plain objects (auto-wrapped into `UniformGroup`):
 
 ```ts
 const shader = Shader.from({
-  gl: { vertex: vertSrc, fragment: fragSrc },
-  resources: {
-    myUniforms: {
-      uTime: { value: 0, type: "f32" },
-    },
-  },
+	gl: { vertex: vertSrc, fragment: fragSrc },
+	resources: {
+		myUniforms: {
+			uTime: { value: 0, type: 'f32' },
+		},
+	},
 });
 ```
 
@@ -111,14 +111,14 @@ const shader = Shader.from({
 UBO mode packs uniforms into a single GPU buffer. Required for WebGPU; optional (WebGL2+) for WebGL.
 
 ```ts
-import { UniformGroup } from "pixi.js";
+import { UniformGroup } from 'pixi.js';
 
 const ubo = new UniformGroup(
-  {
-    uProjection: { value: new Float32Array(16), type: "mat4x4<f32>" },
-    uAlpha: { value: 1.0, type: "f32" },
-  },
-  { ubo: true, isStatic: true },
+	{
+		uProjection: { value: new Float32Array(16), type: 'mat4x4<f32>' },
+		uAlpha: { value: 1.0, type: 'f32' },
+	},
+	{ ubo: true, isStatic: true },
 );
 
 // Must call update() manually when isStatic is true
@@ -139,11 +139,11 @@ UBO rules:
 `Filter.from({ gl, resources })` is the shorthand. Pass only a fragment shader; PixiJS supplies a default vertex shader that handles output frame positioning.
 
 ```ts
-import { Filter } from "pixi.js";
+import { Filter } from 'pixi.js';
 
 const filter = Filter.from({
-  gl: {
-    fragment: `
+	gl: {
+		fragment: `
             in vec2 vTextureCoord;
             out vec4 finalColor;
             uniform sampler2D uTexture;
@@ -154,12 +154,12 @@ const filter = Filter.from({
                 finalColor = mix(color, vec4(1.0 - color.rgb, color.a), uStrength);
             }
         `,
-  },
-  resources: {
-    filterUniforms: {
-      uStrength: { value: 0.5, type: "f32" },
-    },
-  },
+	},
+	resources: {
+		filterUniforms: {
+			uStrength: { value: 0.5, type: 'f32' },
+		},
+	},
 });
 
 filter.resources.filterUniforms.uniforms.uStrength = 1.0;
@@ -180,9 +180,9 @@ Set `blendRequired: true` and sample `uBackTexture` in the fragment shader. Pixi
 
 ```ts
 const blendFilter = Filter.from({
-  gl: { fragment: blendFragSrc },
-  resources: { uniforms: { uAmount: { value: 0.5, type: "f32" } } },
-  blendRequired: true,
+	gl: { fragment: blendFragSrc },
+	resources: { uniforms: { uAmount: { value: 0.5, type: 'f32' } } },
+	blendRequired: true,
 });
 ```
 
@@ -207,50 +207,50 @@ See [references/uniform-types.md](references/uniform-types.md) for the complete 
 The `Batcher` abstract class enables custom batching for specialized rendering. Subclass it and register via extensions:
 
 ```ts
-import { Batcher, extensions, ExtensionType } from "pixi.js";
+import { Batcher, extensions, ExtensionType } from 'pixi.js';
 import type {
-  BatcherOptions,
-  BatchableMeshElement,
-  BatchableQuadElement,
-  Geometry,
-  Shader,
-} from "pixi.js";
+	BatcherOptions,
+	BatchableMeshElement,
+	BatchableQuadElement,
+	Geometry,
+	Shader,
+} from 'pixi.js';
 
 class MyBatcher extends Batcher {
-  public static extension = {
-    type: [ExtensionType.Batcher],
-    name: "my-batcher",
-  };
+	public static extension = {
+		type: [ExtensionType.Batcher],
+		name: 'my-batcher',
+	};
 
-  public name = "my-batcher";
-  protected vertexSize = 6; // floats per vertex
-  public geometry: Geometry;
-  public shader: Shader;
+	public name = 'my-batcher';
+	protected vertexSize = 6; // floats per vertex
+	public geometry: Geometry;
+	public shader: Shader;
 
-  constructor(options: BatcherOptions) {
-    super(options);
-    // Initialize geometry and shader
-  }
+	constructor(options: BatcherOptions) {
+		super(options);
+		// Initialize geometry and shader
+	}
 
-  public packAttributes(
-    element: BatchableMeshElement,
-    float32View: Float32Array,
-    uint32View: Uint32Array,
-    index: number,
-    textureId: number,
-  ): void {
-    // Pack mesh vertex attributes into the batch buffer
-  }
+	public packAttributes(
+		element: BatchableMeshElement,
+		float32View: Float32Array,
+		uint32View: Uint32Array,
+		index: number,
+		textureId: number,
+	): void {
+		// Pack mesh vertex attributes into the batch buffer
+	}
 
-  public packQuadAttributes(
-    element: BatchableQuadElement,
-    float32View: Float32Array,
-    uint32View: Uint32Array,
-    index: number,
-    textureId: number,
-  ): void {
-    // Pack quad vertex attributes into the batch buffer
-  }
+	public packQuadAttributes(
+		element: BatchableQuadElement,
+		float32View: Float32Array,
+		uint32View: Uint32Array,
+		index: number,
+		textureId: number,
+	): void {
+		// Pack quad vertex attributes into the batch buffer
+	}
 }
 
 extensions.add(MyBatcher);
@@ -272,17 +272,16 @@ Correct:
 
 ```ts
 const shader = Shader.from({
-  gl: { vertex, fragment },
-  resources: {
-    uniforms: new UniformGroup({
-      uTime: { value: 1, type: "f32" },
-    }),
-  },
+	gl: { vertex, fragment },
+	resources: {
+		uniforms: new UniformGroup({
+			uTime: { value: 1, type: 'f32' },
+		}),
+	},
 });
 ```
 
 v8 requires an options object with `gl`/`gpu` programs and `resources`. The positional API was removed.
-
 
 ### [CRITICAL] UniformGroup without type annotation
 
@@ -295,11 +294,10 @@ new UniformGroup({ uTime: 1 });
 Correct:
 
 ```ts
-new UniformGroup({ uTime: { value: 1, type: "f32" } });
+new UniformGroup({ uTime: { value: 1, type: 'f32' } });
 ```
 
 Every uniform requires an explicit `{ value, type }` pair. Omitting the type causes a runtime error: "Uniform type undefined is not supported."
-
 
 ### [HIGH] UBO with unsupported types or wrong structure
 
@@ -307,14 +305,13 @@ UBO mode supports `f32` and `i32` based types (scalars and vectors). `u32` is no
 
 The struct name and field order must exactly match the shader's UBO declaration. Mismatches produce garbled rendering with no error.
 
-
 ### [HIGH] Putting textures in UniformGroup
 
 Wrong:
 
 ```ts
 new UniformGroup({
-  uTexture: { value: texture, type: "f32" },
+	uTexture: { value: texture, type: 'f32' },
 });
 ```
 
@@ -322,19 +319,18 @@ Correct:
 
 ```ts
 const shader = Shader.from({
-  gl: { vertex, fragment },
-  resources: {
-    uTexture: texture.source,
-    uSampler: texture.source.style,
-    myUniforms: new UniformGroup({
-      uAlpha: { value: 1.0, type: "f32" },
-    }),
-  },
+	gl: { vertex, fragment },
+	resources: {
+		uTexture: texture.source,
+		uSampler: texture.source.style,
+		myUniforms: new UniformGroup({
+			uAlpha: { value: 1.0, type: 'f32' },
+		}),
+	},
 });
 ```
 
 Textures are resources, not uniforms. Pass `texture.source` (TextureSource) and `texture.source.style` (TextureStyle) as top-level resource entries.
-
 
 ## API Reference
 

@@ -17,6 +17,7 @@
 		REEL_CELL_WIDTH,
 		SYMBOL_SIZE,
 		SYMBOL_SOURCE_SIZES,
+		type EyeVariant,
 	} from '../game/constants';
 	import type { SymbolState, RawSymbol, SymbolName } from '../game/types';
 
@@ -32,8 +33,8 @@
 	const props: Props = $props();
 	const context = getContext();
 
-	// Each paying / special symbol maps onto a frame of the `symbols` atlas. Resolved Eyes use
-	// the atlas's baked ADD_EYE / MULT_EYE art through the stateful AbyssalEye component.
+	// Each paying / special symbol maps onto a frame of the `symbols` atlas. Eyes use the atlas's
+	// baked EYE_*_ACTIVE / EYE_*_EMPTY / EYE_PURPLE_CLOSE art through the stateful AbyssalEye component.
 	const SYMBOL_FRAME: Partial<Record<SymbolName, string>> = {
 		H1: 'H1', // Anglerfish
 		H2: 'H2', // Nautilus
@@ -48,15 +49,25 @@
 	};
 	const frame = $derived(SYMBOL_FRAME[props.rawSymbol.name]);
 	// The eye colour already signals ADD (cyan) vs MUL (red), so the label is just the number.
+	// Shown on the revealed (EMPTY) face only WHILE the eye holds its value — once the
+	// multiplier has fired into the win (`spent`), the eye rests as a plain empty eye.
 	const eyeNumber = $derived(
 		props.rawSymbol.name === 'EYE' &&
 			props.rawSymbol.eyeType &&
+			!props.rawSymbol.spent &&
 			props.rawSymbol.startValue !== undefined
 			? `${props.rawSymbol.startValue}`
 			: undefined,
 	);
 	const isUnresolvedEye = $derived(props.rawSymbol.name === 'EYE' && !props.rawSymbol.eyeType);
-	const isResolvedEye = $derived(props.rawSymbol.name === 'EYE' && !!props.rawSymbol.eyeType);
+	// resolved = revealed, holding its value → EMPTY (closed) art + number in the middle.
+	// spent = has fired its multiplier into the win → AWAKENS to the ACTIVE (open) art, no number.
+	const isSpentEye = $derived(
+		props.rawSymbol.name === 'EYE' && !!props.rawSymbol.eyeType && !!props.rawSymbol.spent,
+	);
+	const isResolvedEye = $derived(
+		props.rawSymbol.name === 'EYE' && !!props.rawSymbol.eyeType && !props.rawSymbol.spent,
+	);
 	const symbolSize = $derived.by(() => {
 		const sourceSize = SYMBOL_SOURCE_SIZES[props.rawSymbol.name];
 		const fill = getSymbolFill(props.rawSymbol.name);
@@ -82,7 +93,13 @@
 	// Connected (winning) cells keep scaling up — bigger and bigger — until they explode.
 	const WIN_GROW_MAX = 1.4;
 
-	const isEye = $derived(isUnresolvedEye || isResolvedEye);
+	const isEye = $derived(isUnresolvedEye || isResolvedEye || isSpentEye);
+	// The lifecycle variant fed to the single AbyssalEye instance (see the template comment):
+	// unresolved → close; revealed or spent → EMPTY art (the value on it comes and goes via
+	// `eyeNumber`, the art itself stays the coloured empty eye).
+	const eyeVariant = $derived<EyeVariant>(
+		isUnresolvedEye ? 'close' : props.rawSymbol.eyeType === 'MUL' ? 'multEmpty' : 'addEmpty',
+	);
 
 	// --- Win / cascade juice (non-Eye symbols) -----------------------------------------
 	// `win`  → squash-pop + a bright additive flash bloom on the art, and the cell electrifies.
@@ -129,8 +146,11 @@
 	// No persistent halo (it reads too big) — just a gentle breathe + a land flare/ring. The soft
 	// coloured halo only blooms on "connect" (when the scatter is part of the trigger), pulsing
 	// harder while the board anticipates.
-	const scatterFx = $state({ breathe: 1, flare: 0, ring: 0, connect: 0 });
+	const scatterFx = $state({ breathe: 1, flare: 0, ring: 0, connect: 0, rays: 0 });
+	// ambient clock (seconds) driving the under-glow shimmer
+	const scatterAmb = $state({ t: 0 });
 	let scatterIdleTl: gsap.core.Timeline | undefined;
+	let scatterAmbTween: gsap.core.Tween | undefined;
 	let scatterFlareTl: gsap.core.Timeline | undefined;
 	let scatterConnectTl: gsap.core.Tween | undefined;
 	let scatterLandWasActive = false;
@@ -142,6 +162,7 @@
 	$effect(() => {
 		if (!isScatter) {
 			scatterIdleTl?.kill();
+			scatterAmbTween?.kill();
 			return;
 		}
 		const anticipating = context.stateGame.scatterAnticipating; // re-runs when it toggles
@@ -151,7 +172,18 @@
 			duration: anticipating ? 0.42 : 1.1,
 			ease: 'sine.inOut',
 		});
-		return () => scatterIdleTl?.kill();
+		// one long linear clock; the draws derive orbit angles / twinkle phases from it
+		scatterAmbTween?.kill();
+		scatterAmbTween = gsap.to(scatterAmb, {
+			t: scatterAmb.t + 3600,
+			duration: 3600,
+			ease: 'none',
+			repeat: -1,
+		});
+		return () => {
+			scatterIdleTl?.kill();
+			scatterAmbTween?.kill();
+		};
 	});
 
 	// soft coloured halo only while connecting (trigger)
@@ -181,10 +213,11 @@
 		scatterFlareTl?.kill();
 		scatterFlareTl = gsap
 			.timeline()
-			.set(scatterFx, { flare: 0, ring: 0 })
+			.set(scatterFx, { flare: 0, ring: 0, rays: 0 })
 			.to(scatterFx, { flare: 1, duration: 0.08, ease: 'power2.out' })
 			.to(scatterFx, { flare: 0, duration: 0.45, ease: 'power2.out' }, '<')
-			.to(scatterFx, { ring: 1, duration: 0.5, ease: 'power2.out' }, '<');
+			.to(scatterFx, { ring: 1, duration: 0.5, ease: 'power2.out' }, '<')
+			.to(scatterFx, { rays: 1, duration: 0.6, ease: 'power2.out' }, '<');
 	});
 
 	// Landing weight: a quick stretch-then-settle squash on every drop (reel stop + cascade slide).
@@ -225,20 +258,21 @@
 		elecT?.kill();
 		elecG?.kill();
 		scatterIdleTl?.kill();
+		scatterAmbTween?.kill();
 		scatterFlareTl?.kill();
 		scatterConnectTl?.kill();
 		gsap.killTweensOf(winFx);
 		gsap.killTweensOf(boomFx);
 		gsap.killTweensOf(elecFx);
 		gsap.killTweensOf(scatterFx);
+		gsap.killTweensOf(scatterAmb);
 	});
 
 	// The Eye on the board feeds off the Gaze: it brightens as the charge climbs, so the player
 	// feels the threat building before it ever opens. Only the eye branches read this.
 	let gazeIntensity = $state(0);
 	context.eventEmitter.subscribeOnMount({
-		gazeMeterFill: (e) =>
-			(gazeIntensity = Math.min(1, e.charge / GAZE_METER_MAX_CHARGE)),
+		gazeMeterFill: (e) => (gazeIntensity = Math.min(1, e.charge / GAZE_METER_MAX_CHARGE)),
 		gazeMeterReset: () => (gazeIntensity = 0),
 		gazeMeterDrain: () => (gazeIntensity = 0),
 	});
@@ -371,6 +405,42 @@
 			alpha: (1 - p) * 0.9,
 		});
 	};
+
+	// Soft golden under-glow behind the leviathan — the "this one is special" beacon. Stacked
+	// additive discs (bright core fading to the rim), shimmering with the ambient clock and
+	// burning brighter while the board anticipates another scatter.
+	const drawScatterGlow = (g: import('pixi.js').Graphics) => {
+		const base = Math.max(symbolSize.width, symbolSize.height) * 0.56;
+		const anticipating = context.stateGame.scatterAnticipating;
+		const shimmer = 0.8 + Math.sin(scatterAmb.t * 1.7) * 0.2;
+		const boost = anticipating ? 1.9 : 1;
+		const steps = 4;
+		for (let i = steps; i >= 1; i--) {
+			const f = i / steps; // 1 = rim … 0.25 = core
+			g.circle(0, 0, base * (0.45 + f * 0.75) * scatterFx.breathe).fill({
+				color: 0xffc964,
+				alpha: 0.028 * (1.25 - f) * shimmer * boost,
+			});
+		}
+	};
+
+	// Radial ray burst on landing: golden light shafts shoot out of the cell and fade.
+	const RAY_COUNT = 8;
+	const drawScatterRays = (g: import('pixi.js').Graphics) => {
+		const p = scatterFx.rays;
+		if (p <= 0 || p >= 1) return;
+		const base = Math.max(symbolSize.width, symbolSize.height) * 0.5;
+		const len = base * (0.9 + p * 1.5);
+		const spread = 0.09; // half-width of each ray, radians
+		for (let i = 0; i < RAY_COUNT; i++) {
+			const angle = (i * Math.PI * 2) / RAY_COUNT + p * 0.35 + 0.4;
+			g.poly([
+				{ x: Math.cos(angle - spread) * base * 0.5, y: Math.sin(angle - spread) * base * 0.5 },
+				{ x: Math.cos(angle) * len, y: Math.sin(angle) * len },
+				{ x: Math.cos(angle + spread) * base * 0.5, y: Math.sin(angle + spread) * base * 0.5 },
+			]).fill({ color: 0xffdf8a, alpha: (1 - p) * 0.55 });
+		}
+	};
 </script>
 
 <Container
@@ -379,25 +449,19 @@
 	scale={{ x: scale.current * winFx.squashX, y: scale.current * winFx.squashY }}
 	alpha={alpha.current}
 >
-	{#if isResolvedEye}
+	{#if isEye}
+		<!-- ONE persistent AbyssalEye across the whole lifecycle, so the variant EDGE animates:
+		     close (purple) → flip → addEmpty/multEmpty with the multiplier in the middle →
+		     the multiplier fires into the win → the number leaves (pulse) and the plain empty
+		     eye remains. Splitting these into separate if-branches would remount the component
+		     mid-transition and kill the flip. -->
 		<AbyssalEye
 			size={eyeSize}
-			variant={props.rawSymbol.eyeType === 'MUL' ? 'mult' : 'add'}
+			variant={eyeVariant}
 			text={eyeNumber}
 			land={props.state === 'land'}
-			reveal={Boolean(eyeNumber)}
-			pulse={props.state === 'land'}
-			intensity={gazeIntensity}
-		/>
-	{:else if isUnresolvedEye}
-		<!-- closed eye sitting on the board before it opens, brightening as the Gaze charges -->
-		<AbyssalEye
-			size={eyeSize}
-			variant="close"
-			land={props.state === 'land'}
-			reveal={false}
-			pulse={false}
-			intensity={gazeIntensity}
+			pulse={props.state === 'land' || isSpentEye}
+			intensity={isSpentEye ? 0 : gazeIntensity}
 		/>
 	{:else}
 		<!-- electrified winning cell (behind the art) -->
@@ -410,10 +474,19 @@
 		<!-- base art -->
 		{#if frame}
 			{#if isScatter}
-				<!-- leviathan: breathing body; the soft coloured halo only blooms on connect.
+				<!-- leviathan: breathing body over a golden under-glow, land flare/ring/rays;
+				     the soft coloured halo only blooms on connect.
 				     NOTE: never set `scale` alongside `width`/`height` on a pixi-svelte Sprite — the
 				     scale prop is applied last and overrides the width/height sizing (rendering the
 				     sprite at its native texture size). Bake the multiplier into width/height. -->
+				<Container blendMode="add">
+					<Graphics draw={drawScatterGlow} />
+				</Container>
+				{#if scatterFx.rays > 0 && scatterFx.rays < 1}
+					<Container blendMode="add">
+						<Graphics draw={drawScatterRays} />
+					</Container>
+				{/if}
 				{#if scatterFx.connect > 0}
 					<Sprite
 						key={frame}
@@ -506,6 +579,5 @@
 				/>
 			{/if}
 		{/if}
-
 	{/if}
 </Container>

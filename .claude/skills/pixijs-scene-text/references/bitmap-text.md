@@ -6,18 +6,18 @@ Text rendered from a pre-generated texture atlas of glyphs. Updating the text st
 
 ```ts
 const score = new BitmapText({
-  text: "Score: 0",
-  style: {
-    fontFamily: "Arial",
-    fontSize: 32,
-    fill: 0xffffff,
-  },
+	text: 'Score: 0',
+	style: {
+		fontFamily: 'Arial',
+		fontSize: 32,
+		fill: 0xffffff,
+	},
 });
 
 app.stage.addChild(score);
 
 app.ticker.add(() => {
-  score.text = `Score: ${Math.floor(performance.now() / 100)}`;
+	score.text = `Score: ${Math.floor(performance.now() / 100)}`;
 });
 ```
 
@@ -26,13 +26,13 @@ When you pass a system font family without calling `BitmapFont.install`, the tex
 ## Construction
 
 ```ts
-const minimal = new BitmapText({ text: "Score: 0" });
+const minimal = new BitmapText({ text: 'Score: 0' });
 
 const styled = new BitmapText({
-  text: "Hello",
-  style: { fontFamily: "GameFont", fontSize: 48, fill: 0xff0000 },
-  anchor: 0.5,
-  roundPixels: true,
+	text: 'Hello',
+	style: { fontFamily: 'GameFont', fontSize: 48, fill: 0xff0000 },
+	anchor: 0.5,
+	roundPixels: true,
 });
 ```
 
@@ -58,8 +58,8 @@ All `Container` options (`position`, `scale`, `tint`, `label`, `filters`, `zInde
 
 ```ts
 const dynamic = new BitmapText({
-  text: "Hello",
-  style: { fontFamily: "Arial", fontSize: 32, fill: 0xff1010 },
+	text: 'Hello',
+	style: { fontFamily: 'Arial', fontSize: 32, fill: 0xff1010 },
 });
 ```
 
@@ -68,21 +68,21 @@ The first `BitmapText` with a given `fontFamily` + `fontSize` generates an atlas
 ### Pre-installed fonts
 
 ```ts
-import { BitmapFont } from "pixi.js";
+import { BitmapFont } from 'pixi.js';
 
 BitmapFont.install({
-  name: "GameFont",
-  style: {
-    fontFamily: "Arial",
-    fontSize: 48,
-    fill: 0xffffff,
-    stroke: { color: "#000000", width: 2 },
-  },
+	name: 'GameFont',
+	style: {
+		fontFamily: 'Arial',
+		fontSize: 48,
+		fill: 0xffffff,
+		stroke: { color: '#000000', width: 2 },
+	},
 });
 
 const title = new BitmapText({
-  text: "Level 1",
-  style: { fontFamily: "GameFont", fontSize: 48, fill: 0x00ff00 },
+	text: 'Level 1',
+	style: { fontFamily: 'GameFont', fontSize: 48, fill: 0x00ff00 },
 });
 ```
 
@@ -100,40 +100,40 @@ const title = new BitmapText({
 | `dynamicFill`  | Allow runtime tinting via `BitmapText.tint`. Requires the font `style.fill` to be white, no stroke, no drop shadow, or a drop shadow with color `0x000000` (black). The idiomatic way to color bitmap text without generating a new atlas per color.  |
 
 ```ts
-import { BitmapFont, BitmapFontManager } from "pixi.js";
+import { BitmapFont, BitmapFontManager } from 'pixi.js';
 
 BitmapFont.install({
-  name: "UIFont",
-  chars: BitmapFontManager.ALPHANUMERIC,
-  resolution: window.devicePixelRatio,
-  padding: 8,
-  skipKerning: true,
-  textureStyle: { scaleMode: "nearest" },
-  dynamicFill: true,
-  style: { fontFamily: "Arial", fontSize: 32, fill: 0xffffff },
+	name: 'UIFont',
+	chars: BitmapFontManager.ALPHANUMERIC,
+	resolution: window.devicePixelRatio,
+	padding: 8,
+	skipKerning: true,
+	textureStyle: { scaleMode: 'nearest' },
+	dynamicFill: true,
+	style: { fontFamily: 'Arial', fontSize: 32, fill: 0xffffff },
 });
 
 const hp = new BitmapText({
-  text: "100",
-  style: { fontFamily: "UIFont", fill: "red" },
+	text: '100',
+	style: { fontFamily: 'UIFont', fill: 'red' },
 });
 const mp = new BitmapText({
-  text: "50",
-  style: { fontFamily: "UIFont", fill: "blue" },
+	text: '50',
+	style: { fontFamily: 'UIFont', fill: 'blue' },
 });
 ```
 
 ### Loaded bitmap fonts (FNT / XML)
 
 ```ts
-import "pixi.js/text-bitmap";
-import { Assets, BitmapText } from "pixi.js";
+import 'pixi.js/text-bitmap';
+import { Assets, BitmapText } from 'pixi.js';
 
-await Assets.load("fonts/arcade.fnt");
+await Assets.load('fonts/arcade.fnt');
 
 const arcade = new BitmapText({
-  text: "HIGH SCORE",
-  style: { fontFamily: "arcade", fontSize: 36 },
+	text: 'HIGH SCORE',
+	style: { fontFamily: 'arcade', fontSize: 36 },
 });
 ```
 
@@ -144,11 +144,11 @@ Load `.fnt` or `.xml` files (AngelCode BMFont format) via Assets. Generate them 
 Multi-channel Signed Distance Field (MSDF) fonts stay sharp at any size. Generate them with [AssetPack](https://pixijs.io/assetpack/) (Pixi's own asset pipeline, which takes a `.ttf` or `.otf` and emits the `.fnt` + atlas) or [msdf-bmfont](https://msdf-bmfont.donmccurdy.com/). Load them via Assets; they're detected automatically when the FNT file declares a distanceField section.
 
 ```ts
-await Assets.load("fonts/msdf-hero.fnt");
+await Assets.load('fonts/msdf-hero.fnt');
 
 const heading = new BitmapText({
-  text: "Title",
-  style: { fontFamily: "msdf-hero", fontSize: 120 },
+	text: 'Title',
+	style: { fontFamily: 'msdf-hero', fontSize: 120 },
 });
 
 heading.scale.set(2);
@@ -160,14 +160,14 @@ MSDF fonts trade CPU rendering time for a custom fragment shader, but remain cri
 
 ```ts
 const paragraph = new BitmapText({
-  text: "A long wrapped paragraph of bitmap text",
-  style: {
-    fontFamily: "Arial",
-    fontSize: 24,
-    wordWrap: true,
-    wordWrapWidth: 300,
-    lineHeight: 30,
-  },
+	text: 'A long wrapped paragraph of bitmap text',
+	style: {
+		fontFamily: 'Arial',
+		fontSize: 24,
+		wordWrap: true,
+		wordWrapWidth: 300,
+		lineHeight: 30,
+	},
 });
 ```
 
@@ -188,20 +188,19 @@ Updates reposition glyph quads only. No canvas re-draw, no GPU upload. This is w
 Wrong (custom build with `skipExtensionImports: true`):
 
 ```ts
-import { Assets } from "pixi.js";
-await Assets.load("font.fnt");
+import { Assets } from 'pixi.js';
+await Assets.load('font.fnt');
 ```
 
 Correct:
 
 ```ts
-import "pixi.js/text-bitmap";
-import { Assets } from "pixi.js";
-await Assets.load("font.fnt");
+import 'pixi.js/text-bitmap';
+import { Assets } from 'pixi.js';
+await Assets.load('font.fnt');
 ```
 
 Without the side-effect import, `.fnt` and `.xml` files aren't recognized by the asset loader; the call silently succeeds but returns raw data instead of a `BitmapFont`.
-
 
 ### [MEDIUM] Setting `resolution` on BitmapText
 
@@ -213,16 +212,13 @@ text.resolution = 2;
 
 `BitmapText` ignores `resolution` and logs a warning. The effective resolution is baked into the `BitmapFont` at install time. To get higher resolution, install the font with a larger `fontSize` and scale the text down.
 
-
 ### [MEDIUM] Missing characters silently dropped
 
 If the font atlas doesn't contain a glyph (e.g., a rare Unicode character), the glyph is silently skipped with no visible error. Text may appear incomplete. For unknown or user-generated content, fall back to canvas `Text` or `HTMLText`.
 
-
 ### [HIGH] Using BitmapText for CJK or emoji-heavy content
 
 CJK (Chinese/Japanese/Korean), Arabic, and emoji-heavy strings need thousands of glyphs. A bitmap atlas containing all of them exceeds GPU texture-size limits. Use `Text` or `HTMLText` for text with unpredictable or very large character sets.
-
 
 ## API Reference
 

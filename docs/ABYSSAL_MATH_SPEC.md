@@ -2,15 +2,16 @@
 
 > **As-built** spec for the **Abyssal** slot, implemented in the Stake Engine
 > **math-sdk**. Everything is **precomputed**: the SDK simulates millions of rounds into
-> *books* (event lists) + a weighted *lookup table* (CSV), and at spin time the RGS picks
+> _books_ (event lists) + a weighted _lookup table_ (CSV), and at spin time the RGS picks
 > a simulation by weight and replays its events. **No live state, no player input** — the
-> build-up/reveal of **The Eye** is a *render of a predetermined outcome*.
+> build-up/reveal of **The Eye** is a _render of a predetermined outcome_.
 >
 > **Status: built & shipped.** All five modes hit **96% RTP** and pass the RGS format /
 > compliance checks (100k books/mode). This document reflects the code in
 > `games/abyssal/`, which is the source of truth if anything here drifts.
 >
 > Companion docs (repo root):
+>
 > - [ABYSSAL_FRONTEND_GUIDE.md](ABYSSAL_FRONTEND_GUIDE.md) — the event vocabulary &
 >   payloads the client renders (the integration contract).
 > - [ABYSSAL_PRODUCTION_ROADMAP.md](ABYSSAL_PRODUCTION_ROADMAP.md) — the frontend
@@ -26,32 +27,32 @@
 
 ## 0. What changed from the original design (read if you knew the old spec)
 
-| Was (design) | Is (built) |
-|---|---|
-| "The Lantern" mechanic, symbol `LN` | **"The Eye"** (Leviathan's Eye), symbol `EYE`; charge meter named **"Gaze"** |
-| Ship a 94% RTP variant too | **96% only** — 94% variant explicitly dropped |
-| Volatility **High** | **MEDIUM** (base/ante); buys read LOW per-cost. HIGH is unreachable on a 15,000× game inside 2★ liability — see §7 |
-| Super Spins: 3–5 spins, ~40× | **1 spin, cost 20×**, no snowball; reaches the cap via a dense **WCAP** reel + a tumble guard |
-| Super Bonus ~500× | **500×**, charge +2, MUL common |
-| `LN` placed via reel strips | **EYE injected post-draw** (override), never on strips → guarantees max-1 and exact per-mode land probability |
-| Paytable seeds 0.25 / 0.16 / 0.32 | **snapped to the 0.1× grid** (RGS requires every payout `cents % 10 == 0`) |
-| Events `chargeStep` / `lanternReveal` / `lanternResolve` | **`gazeStep` / `eyeReveal` / `eyeResolve`** (+ full vocab in §9) |
+| Was (design)                                             | Is (built)                                                                                                         |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| "The Lantern" mechanic, symbol `LN`                      | **"The Eye"** (Leviathan's Eye), symbol `EYE`; charge meter named **"Gaze"**                                       |
+| Ship a 94% RTP variant too                               | **96% only** — 94% variant explicitly dropped                                                                      |
+| Volatility **High**                                      | **MEDIUM** (base/ante); buys read LOW per-cost. HIGH is unreachable on a 15,000× game inside 2★ liability — see §7 |
+| Super Spins: 3–5 spins, ~40×                             | **1 spin, cost 20×**, no snowball; reaches the cap via a dense **WCAP** reel + a tumble guard                      |
+| Super Bonus ~500×                                        | **500×**, charge +2, MUL common                                                                                    |
+| `LN` placed via reel strips                              | **EYE injected post-draw** (override), never on strips → guarantees max-1 and exact per-mode land probability      |
+| Paytable seeds 0.25 / 0.16 / 0.32                        | **snapped to the 0.1× grid** (RGS requires every payout `cents % 10 == 0`)                                         |
+| Events `chargeStep` / `lanternReveal` / `lanternResolve` | **`gazeStep` / `eyeReveal` / `eyeResolve`** (+ full vocab in §9)                                                   |
 
 ---
 
 ## 1. Game identity & targets
 
-| Field | Value |
-|---|---|
-| Game id / name | `abyssal` |
-| Grid | 6 reels × 5 rows (30 cells); padded to 6×7 in events (visible rows 1–5) |
-| Win model | **Pay-anywhere** (count-based), **tumbling** (cascading) |
-| Min win cluster | **8+ of a kind anywhere** (wilds count) |
-| Signature feature | **The Eye** (cascade-charged single multiplier symbol) |
-| Max win (all modes) | **15,000× bet** (flat hard cap) |
-| RTP | **96.0%** (all modes) |
-| Volatility | **MEDIUM** (base/ante); buy modes LOW per-cost |
-| Reels | independent strips per mode + a forced-cap strip |
+| Field               | Value                                                                   |
+| ------------------- | ----------------------------------------------------------------------- |
+| Game id / name      | `abyssal`                                                               |
+| Grid                | 6 reels × 5 rows (30 cells); padded to 6×7 in events (visible rows 1–5) |
+| Win model           | **Pay-anywhere** (count-based), **tumbling** (cascading)                |
+| Min win cluster     | **8+ of a kind anywhere** (wilds count)                                 |
+| Signature feature   | **The Eye** (cascade-charged single multiplier symbol)                  |
+| Max win (all modes) | **15,000× bet** (flat hard cap)                                         |
+| RTP                 | **96.0%** (all modes)                                                   |
+| Volatility          | **MEDIUM** (base/ante); buy modes LOW per-cost                          |
+| Reels               | independent strips per mode + a forced-cap strip                        |
 
 ---
 
@@ -62,6 +63,7 @@ pay-anywhere, tumble). Abyssal reuses its `board`, `tumble`, and `scatter` calcu
 modules (`Scatter.get_scatterpay_wins`).
 
 **Per spin loop**
+
 1. Reveal the board.
 2. Evaluate pay-anywhere: for each paying symbol, `count = symbols_on_board + wilds`.
    `count ≥ 8` pays (banded paytable, §4). One evaluation can yield several winning symbols.
@@ -77,22 +79,22 @@ charge** (§5).
 
 ## 3. Symbols
 
-| ID | Name | Class | Notes |
-|---|---|---|---|
-| H1 | Anglerfish | High | top payer |
-| H2 | Nautilus | High | |
-| H3 | Diving Helmet | High | |
-| H4 | Jellyfish | High | |
-| L1 | Cyan gem | Low | |
-| L2 | Teal gem | Low | |
-| L3 | Sapphire gem | Low | |
-| L4 | Violet gem | Low | |
-| W | Pearl (Wild) | Special | substitutes paying symbols; counts toward clusters; never pays alone; never Eye/Scatter |
-| S | Conch (Scatter) | Special | triggers Free Spins (≥4); pays nothing; not in pay-anywhere counts |
-| EYE | **The Eye** | Special | the Gaze-charged multiplier; **max 1 on board**; not in pay-anywhere counts |
+| ID  | Name            | Class   | Notes                                                                                   |
+| --- | --------------- | ------- | --------------------------------------------------------------------------------------- |
+| H1  | Anglerfish      | High    | top payer                                                                               |
+| H2  | Nautilus        | High    |                                                                                         |
+| H3  | Diving Helmet   | High    |                                                                                         |
+| H4  | Jellyfish       | High    |                                                                                         |
+| L1  | Cyan gem        | Low     |                                                                                         |
+| L2  | Teal gem        | Low     |                                                                                         |
+| L3  | Sapphire gem    | Low     |                                                                                         |
+| L4  | Violet gem      | Low     |                                                                                         |
+| W   | Pearl (Wild)    | Special | substitutes paying symbols; counts toward clusters; never pays alone; never Eye/Scatter |
+| S   | Conch (Scatter) | Special | triggers Free Spins (≥4); pays nothing; not in pay-anywhere counts                      |
+| EYE | **The Eye**     | Special | the Gaze-charged multiplier; **max 1 on board**; not in pay-anywhere counts             |
 
 `config.special_symbols = {"wild":["W"], "scatter":["S"], "eye":["EYE"]}`. The Wild is a
-**pure substitute** — the Eye is the *only* multiplier source.
+**pure substitute** — the Eye is the _only_ multiplier source.
 
 ---
 
@@ -102,16 +104,16 @@ Pay-anywhere grouped into cluster-size bands. **Final values** (RGS-snapped to t
 grid; the Eye only ever multiplies by integers so a 0.1-grid base keeps every realized
 payout legal). Defined in `game_config.py` as `pay_group`.
 
-| Symbol | 8–9 | 10–11 | 12–14 | 15–30 |
-|---|---|---|---|---|
-| H1 Anglerfish | 1.50 | 3.00 | 8.00 | 25.00 |
-| H2 Nautilus | 1.00 | 2.00 | 5.00 | 15.00 |
-| H3 Helmet | 0.80 | 1.50 | 4.00 | 12.00 |
-| H4 Jellyfish | 0.60 | 1.20 | 3.00 | 10.00 |
-| L1 Cyan | 0.30 | 0.60 | 1.50 | 5.00 |
-| L2 Teal | 0.20 | 0.50 | 1.20 | 4.00 |
-| L3 Sapphire | 0.20 | 0.40 | 1.00 | 3.00 |
-| L4 Violet | 0.10 | 0.30 | 0.80 | 2.50 |
+| Symbol        | 8–9  | 10–11 | 12–14 | 15–30 |
+| ------------- | ---- | ----- | ----- | ----- |
+| H1 Anglerfish | 1.50 | 3.00  | 8.00  | 25.00 |
+| H2 Nautilus   | 1.00 | 2.00  | 5.00  | 15.00 |
+| H3 Helmet     | 0.80 | 1.50  | 4.00  | 12.00 |
+| H4 Jellyfish  | 0.60 | 1.20  | 3.00  | 10.00 |
+| L1 Cyan       | 0.30 | 0.60  | 1.50  | 5.00  |
+| L2 Teal       | 0.20 | 0.50  | 1.20  | 4.00  |
+| L3 Sapphire   | 0.20 | 0.40  | 1.00  | 3.00  |
+| L4 Violet     | 0.10 | 0.30  | 0.80  | 2.50  |
 
 ---
 
@@ -122,20 +124,24 @@ then either **adds to** or **multiplies** it, and that multiplier is applied to 
 raw win.
 
 ### 5.1 Gaze (charge)
+
 - Every **connection** adds to `charge`: **+1** in base/ante/free/superspins, **+2** in
   Super Bonus (`charge_per_connection` + `feature_charge_increment`).
 - `charge` ≈ cascade length; rendered building via `gazeStep`.
 
 ### 5.2 The Eye symbol — post-draw injection
+
 The Eye is **not on the reel strips**. After the normal board is drawn,
 `game_override.maybe_place_eye()` injects (at most) one `EYE` symbol into a free cell, with
 probability and attributes drawn from the active distribution's condition tables (§6.1).
 This guarantees **max 1 Eye** and gives exact, per-mode control of `p(Eye)`. The Eye never
 pays or explodes, so it persists to end-of-tumble. When present it carries:
+
 - **type** ∈ `{ "ADD", "MUL" }`
 - **startValue** ∈ `{ 2, 5, 10, 25, 50, 100 }`
 
 ### 5.3 Resolution (end of tumble sequence)
+
 ```
 rawWin = sum of all connection wins this spin          # before the Eye
 if Eye present AND rawWin > 0:
@@ -145,11 +151,13 @@ if Eye present AND rawWin > 0:
 else:
     spinWin   = rawWin                                  # charge DISCARDED — no Eye
 ```
+
 - **No Eye → charge is lost** (player keeps `rawWin`). Most winning spins build a charge
   but no Eye lands — the intended near-miss tension.
 - **ADD** = common, modest combiner. **MUL** = rare max-win engine.
 
 ### 5.4 Value/rarity philosophy (sets personality; optimizer pins exact weights)
+
 - ADD common with a wide start table; MUL rarer, big-start MUL = the max-win tail.
 - Free-game Eyes start **smaller** (the snowball compounds them).
 - Super modes use punchier start tables; Super Bonus's MUL tail is **moderately cooled**
@@ -162,17 +170,19 @@ else:
 
 All modes: 96% RTP, 15,000× cap. Defined in `game_config.py` `bet_modes`.
 
-| Mode | Cost (× bet) | Type | Eye / feature behaviour |
-|---|---|---|---|
-| **base** | 1.0 | default | Eye rare (~1/10 spins), mostly ADD; charge resets each spin |
-| **ante** | 1.25 | toggle | higher Eye (~1/7) + scatter frequency than base |
-| **bonus** | 100 | buy | buys Free Spins (the snowball feature) |
-| **superspins** | 20 | buy | **one** guaranteed-Eye spin, **no snowball**; punchy single shot |
-| **superbonus** | 500 | buy | Free-Spins-like but **charge +2**, MUL common — the tail mode |
+| Mode           | Cost (× bet) | Type    | Eye / feature behaviour                                          |
+| -------------- | ------------ | ------- | ---------------------------------------------------------------- |
+| **base**       | 1.0          | default | Eye rare (~1/10 spins), mostly ADD; charge resets each spin      |
+| **ante**       | 1.25         | toggle  | higher Eye (~1/7) + scatter frequency than base                  |
+| **bonus**      | 100          | buy     | buys Free Spins (the snowball feature)                           |
+| **superspins** | 20           | buy     | **one** guaranteed-Eye spin, **no snowball**; punchy single shot |
+| **superbonus** | 500          | buy     | Free-Spins-like but **charge +2**, MUL common — the tail mode    |
 
 ### 6.1 How a distribution is shaped
+
 Each mode is a `BetMode` with `Distribution` buckets keyed by **criteria**
 (`wincap` / `freegame` / `0` / `basegame`), each carrying `conditions`:
+
 - `reel_weights` — which strip per gametype.
 - `scatter_triggers` — scatter-count weights used to force/΅shape Free-Spins entry.
 - `force_wincap` / `force_freegame` — force a bucket's outcome class.
@@ -180,12 +190,14 @@ Each mode is a `BetMode` with `Distribution` buckets keyed by **criteria**
   `eye_start_weights`, each `{basegame: …, freegame: …}`. `maybe_place_eye` reads these.
 
 Two builders in `game_config.py`:
+
 - `base_style_dists(...)` → base/ante: `wincap` (forced cap corner) + `freegame` +
   `0` (zero-win, quota 0.4) + `basegame` buckets.
 - `buy_dists(...)` → buy modes: a forced-`freegame` bucket (trigger spin on `BR0`),
   optionally a small forced-`wincap` bucket on a dense reel.
 
 ### 6.2 Free Spins (the snowball)
+
 - Trigger: **≥4 Scatter** → `4→10, 5→12, 6→14, …` spins (+2 per extra; `freespin_triggers`).
 - **Organic scatters (Sweet-Bonanza style) in base/ante** (`organic_scatter_betmodes`):
   scatters are **not** force-placed on the trigger reveal. The trigger spin draws on the
@@ -204,6 +216,7 @@ Two builders in `game_config.py`:
 - Hard ceiling: **`max_freespins = 50`**.
 
 ### 6.3 Super Spins (single shot)
+
 `fixed_feature_spins = {"superspins": 1}` → **exactly 1 spin**, Eye guaranteed present,
 **no snowball**. A single spin can't naturally reach 15,000×, so a small forced **`wincap`**
 bucket (`wincap_quota=0.003`) runs the spin on a dense **WCAP** reel (H1+Wild heavy) so one
@@ -212,12 +225,15 @@ global **`max_tumbles_per_spin = 20`** guard bounds it (normal play peaks ~10, s
 never bites real spins).
 
 ### 6.4 Super Bonus (high ceiling)
+
 Like Free Spins but **+2 charge/connection** and **MUL common** → both battery and
 multiplier run hot. Snowball applies. The mode that most often approaches the cap.
 
 ### 6.5 Organic trigger / acceptance model (how base/ante stay consistent)
+
 Bucket consistency is kept by the engine's accept/reject (`repeat`) mechanism rather than by
 force-placing scatters:
+
 - **`freegame` bucket** (`force_freegame=True`, `force_wincap=False`): `draw_board` draws
   naturally on **BT0**; the spin is **accepted only if ≥4 scatters land** by end of the
   tumble sequence, else the whole book is **re-rolled** (`gamestate.run_spin`). The realized
@@ -242,13 +258,13 @@ build. RTP is exactly 96% in every mode.
 
 Snapshot below = the **organic-scatter** build (2026-06-04), tail-retuned to keep 2★.
 
-| Mode | Cost | RTP | Hit rate | Median win | Volatility | Max-win odds | Unique payouts |
-|---|---|---|---|---|---|---|---|
-| base | 1.0 | 96.00% | 20.6% (≈1 in 5) | 0× | **13.7 MEDIUM** | ≈1 in 7.5M | ~2,700 |
-| ante | 1.25 | 96.00% | 22.6% (≈1 in 4) | 0× | **14.0 MEDIUM** | ≈1 in 6.0M | ~3,500 |
-| bonus | 100 | 96.00% | 100% | ~33× | 1.86 LOW | ≈1 in 3.9M | ~9,400 |
-| superspins | 20 | 96.00% | 99.0% | ~7× | 1.54 LOW | ≈1 in 0.75M | ~1,800 |
-| superbonus | 500 | 96.00% | 100% | ~194× | 1.45 LOW | ≈1 in 6.2M | ~30,200 |
+| Mode       | Cost | RTP    | Hit rate        | Median win | Volatility      | Max-win odds | Unique payouts |
+| ---------- | ---- | ------ | --------------- | ---------- | --------------- | ------------ | -------------- |
+| base       | 1.0  | 96.00% | 20.6% (≈1 in 5) | 0×         | **13.7 MEDIUM** | ≈1 in 7.5M   | ~2,700         |
+| ante       | 1.25 | 96.00% | 22.6% (≈1 in 4) | 0×         | **14.0 MEDIUM** | ≈1 in 6.0M   | ~3,500         |
+| bonus      | 100  | 96.00% | 100%            | ~33×       | 1.86 LOW        | ≈1 in 3.9M   | ~9,400         |
+| superspins | 20   | 96.00% | 99.0%           | ~7×        | 1.54 LOW        | ≈1 in 0.75M  | ~1,800         |
+| superbonus | 500  | 96.00% | 100%            | ~194×      | 1.45 LOW        | ≈1 in 6.2M   | ~30,200        |
 
 > **Volatility** = std-dev of `payout / cost`. Buy modes are structurally LOW (a big fixed
 > cost shrinks per-cost variance) — normal and expected for buys.
@@ -272,14 +288,14 @@ Snapshot below = the **organic-scatter** build (2026-06-04), tail-retuned to kee
 
 The Eye is **never** on a strip (it's injected). Strips use per-reel shuffles of a multiset.
 
-| Strip | Used by | Character |
-|---|---|---|
-| `BR0` | base/ante non-trigger base spins; buy trigger spin | balanced; lows > highs; W 8, S 5 |
-| `BT0` | base/ante **freegame trigger** spins (organic) | BR0 + scatter-rich (S 16) so scatters reach ≥4 across reveal + tumbles (verified: ~median 4 on triggered reveals, ~31% of triggers climb to ≥4 mid-cascade); **tune S vs. trigger/build-up feel** |
-| `FR0` | base/ante/bonus free game | a touch more wild (W 10); S **5** (kept low — scatters persist across tumbles so density compounds feature length) |
-| `SS0` | Super Spins | no scatter (short set never retriggers); richer highs |
-| `SB0` | Super Bonus | like FR0 (modest scatter for retriggers) |
-| `WCAP` | forced-cap bucket only | dense `{H1:150, W:38, H2:20, H3:12, L1:10}` so a single forced spin caps; never in normal play |
+| Strip  | Used by                                            | Character                                                                                                                                                                                         |
+| ------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BR0`  | base/ante non-trigger base spins; buy trigger spin | balanced; lows > highs; W 8, S 5                                                                                                                                                                  |
+| `BT0`  | base/ante **freegame trigger** spins (organic)     | BR0 + scatter-rich (S 16) so scatters reach ≥4 across reveal + tumbles (verified: ~median 4 on triggered reveals, ~31% of triggers climb to ≥4 mid-cascade); **tune S vs. trigger/build-up feel** |
+| `FR0`  | base/ante/bonus free game                          | a touch more wild (W 10); S **5** (kept low — scatters persist across tumbles so density compounds feature length)                                                                                |
+| `SS0`  | Super Spins                                        | no scatter (short set never retriggers); richer highs                                                                                                                                             |
+| `SB0`  | Super Bonus                                        | like FR0 (modest scatter for retriggers)                                                                                                                                                          |
+| `WCAP` | forced-cap bucket only                             | dense `{H1:150, W:38, H2:20, H3:12, L1:10}` so a single forced spin caps; never in normal play                                                                                                    |
 
 Regenerate with `python games/abyssal/make_reels.py`.
 
@@ -291,24 +307,24 @@ Full payloads, per-spin ordering, and a worked example are in
 [ABYSSAL_FRONTEND_GUIDE.md §6–§8](ABYSSAL_FRONTEND_GUIDE.md). Summary of what the math emits
 (`game_events.py`):
 
-| Event | Key payload | Purpose |
-|---|---|---|
-| `reveal` | `board, paddingPositions, gameType, anticipation` | new board (EYE carries `eye:true`) |
-| `winInfo` | `totalWin, wins:[{symbol,count,win,positions,meta}]` | one connection's wins |
-| `updateTumbleWin` | `amount` | running cumulative tumble win |
-| `gazeStep` *(custom)* | `fromPositions, charge` | connection energy → Gaze; new charge |
-| `tumbleBoard` | `explodingSymbols, newSymbols` | remove + refill |
-| `eyeReveal` *(custom)* | `position, eyeType, startValue` | the Eye flips |
-| `eyeResolve` *(custom)* | `charge, eyeType, startValue, totalMult` | release math |
-| `setPersistentMult` *(custom)* | `mult` | snowball `M` (snowball modes only) |
-| `setWin` | `amount, winLevel` | single-spin win after the Eye |
-| `setTotalWin` | `amount` | round cumulative |
-| `wincap` | `amount` | emitted once if the 15,000× cap is hit |
-| `finalWin` *(custom)* | `amount, capped` | final settlement; `capped` flags a max-win |
-| `freeSpinTrigger` | `totalFs, positions` | enter feature |
-| `freeSpinRetrigger` | `totalFs, positions` | +spins mid-feature |
-| `updateFreeSpin` | `amount(current), total` | feature spin counter |
-| `freeSpinEnd` | `amount, winLevel` | exit feature |
+| Event                          | Key payload                                          | Purpose                                    |
+| ------------------------------ | ---------------------------------------------------- | ------------------------------------------ |
+| `reveal`                       | `board, paddingPositions, gameType, anticipation`    | new board (EYE carries `eye:true`)         |
+| `winInfo`                      | `totalWin, wins:[{symbol,count,win,positions,meta}]` | one connection's wins                      |
+| `updateTumbleWin`              | `amount`                                             | running cumulative tumble win              |
+| `gazeStep` _(custom)_          | `fromPositions, charge`                              | connection energy → Gaze; new charge       |
+| `tumbleBoard`                  | `explodingSymbols, newSymbols`                       | remove + refill                            |
+| `eyeReveal` _(custom)_         | `position, eyeType, startValue`                      | the Eye flips                              |
+| `eyeResolve` _(custom)_        | `charge, eyeType, startValue, totalMult`             | release math                               |
+| `setPersistentMult` _(custom)_ | `mult`                                               | snowball `M` (snowball modes only)         |
+| `setWin`                       | `amount, winLevel`                                   | single-spin win after the Eye              |
+| `setTotalWin`                  | `amount`                                             | round cumulative                           |
+| `wincap`                       | `amount`                                             | emitted once if the 15,000× cap is hit     |
+| `finalWin` _(custom)_          | `amount, capped`                                     | final settlement; `capped` flags a max-win |
+| `freeSpinTrigger`              | `totalFs, positions`                                 | enter feature                              |
+| `freeSpinRetrigger`            | `totalFs, positions`                                 | +spins mid-feature                         |
+| `updateFreeSpin`               | `amount(current), total`                             | feature spin counter                       |
+| `freeSpinEnd`                  | `amount, winLevel`                                   | exit feature                               |
 
 Force-record keys (for QA force files): `symbol:"eye"` (+`eyeType`/`startValue`/`charge`),
 `symbol:"chargeNoEye"` (the deliberate near-miss), `symbol:"scatter"`, `criteria:"wincap"`.
@@ -342,30 +358,30 @@ Class chain: `GameConfig(Config)` → `GameState(GameStateOverride)` →
 
 ## 11. Key config constants (`game_config.py`)
 
-| Field | Value |
-|---|---|
-| `wincap` | `15000.0` |
-| `rtp` | `0.96` |
-| `num_reels` / `num_rows` | `6` / `[5]*6` |
-| `special_symbols` | `{wild:[W], scatter:[S], eye:[EYE]}` |
-| `eye_symbol` / `eye_start_values` | `"EYE"` / `[2,5,10,25,50,100]` |
-| `charge_per_connection` | `{basegame:1, freegame:1}` |
-| `feature_charge_increment` | `{superbonus:2}` |
-| `snowball_betmodes` | `{base, ante, bonus, superbonus}` |
-| `retrigger_betmodes` | `{base, ante, bonus, superbonus}` |
-| `fixed_feature_spins` | `{superspins:1}` |
-| `organic_scatter_betmodes` | `{base, ante}` (Sweet-Bonanza organic triggers; buys forced) |
-| `max_freespins` | `50` |
-| `max_tumbles_per_spin` | `20` |
-| `freespin_triggers` (base) | `{4:10,5:12,6:14,7:16,8:18,9:20,10:22}` |
-| `freespin_triggers` (free) | `{3:5,4:7,5:9,6:11,7:13,8:15,9:17,10:19}` |
+| Field                             | Value                                                        |
+| --------------------------------- | ------------------------------------------------------------ |
+| `wincap`                          | `15000.0`                                                    |
+| `rtp`                             | `0.96`                                                       |
+| `num_reels` / `num_rows`          | `6` / `[5]*6`                                                |
+| `special_symbols`                 | `{wild:[W], scatter:[S], eye:[EYE]}`                         |
+| `eye_symbol` / `eye_start_values` | `"EYE"` / `[2,5,10,25,50,100]`                               |
+| `charge_per_connection`           | `{basegame:1, freegame:1}`                                   |
+| `feature_charge_increment`        | `{superbonus:2}`                                             |
+| `snowball_betmodes`               | `{base, ante, bonus, superbonus}`                            |
+| `retrigger_betmodes`              | `{base, ante, bonus, superbonus}`                            |
+| `fixed_feature_spins`             | `{superspins:1}`                                             |
+| `organic_scatter_betmodes`        | `{base, ante}` (Sweet-Bonanza organic triggers; buys forced) |
+| `max_freespins`                   | `50`                                                         |
+| `max_tumbles_per_spin`            | `20`                                                         |
+| `freespin_triggers` (base)        | `{4:10,5:12,6:14,7:16,8:18,9:20,10:22}`                      |
+| `freespin_triggers` (free)        | `{3:5,4:7,5:9,6:11,7:13,8:15,9:17,10:19}`                    |
 
 ---
 
 ## 12. Distributions & optimization
 
 - The SDK's **Rust optimizer** (`OptimizationExecution.run_all_modes`) assigns per-simulation
-  lookup-table weights so realized RTP/volatility match targets. We set the *shape*; it pins
+  lookup-table weights so realized RTP/volatility match targets. We set the _shape_; it pins
   the weights.
 - `game_optimization.py` `opt_params` per mode (RTP shares must sum to the mode RTP;
   `verify_optimization_input` asserts this):
@@ -403,6 +419,7 @@ editable `src` install pointing at a sibling repo, so PYTHONPATH must win):
 # Windows PowerShell — full pipeline (sims → optimize → analytics → format checks)
 $env:PYTHONPATH = (Get-Location); $env:ABYSSAL_THREADS = "8"; python games/abyssal/run.py
 ```
+
 ```bash
 # bash
 PYTHONPATH="$PWD" ABYSSAL_THREADS=8 python games/abyssal/run.py

@@ -1,6 +1,6 @@
 ---
 name: pixijs-events
-description: "Use this skill when handling pointer, mouse, touch, or wheel input in PixiJS v8. Covers eventMode (none, passive, auto, static, dynamic), FederatedEvent types, propagation and capture phase, hitArea, interactiveChildren, cursor and cursorStyles, global move events for drag, eventFeatures config. Triggers on: eventMode, FederatedPointerEvent, pointerdown, click, tap, globalpointermove, drag, hitArea, cursor, stopPropagation."
+description: 'Use this skill when handling pointer, mouse, touch, or wheel input in PixiJS v8. Covers eventMode (none, passive, auto, static, dynamic), FederatedEvent types, propagation and capture phase, hitArea, interactiveChildren, cursor and cursorStyles, global move events for drag, eventFeatures config. Triggers on: eventMode, FederatedPointerEvent, pointerdown, click, tap, globalpointermove, drag, hitArea, cursor, stopPropagation.'
 license: MIT
 ---
 
@@ -9,27 +9,27 @@ PixiJS's federated event system mirrors DOM events on the scene graph. Set `cont
 ## Quick Start
 
 ```ts
-const button = new Sprite(await Assets.load("button.png"));
-button.eventMode = "static";
-button.cursor = "pointer";
+const button = new Sprite(await Assets.load('button.png'));
+button.eventMode = 'static';
+button.cursor = 'pointer';
 app.stage.addChild(button);
 
-button.on("pointertap", (event) => {
-  console.log("clicked at", event.global.x, event.global.y);
+button.on('pointertap', (event) => {
+	console.log('clicked at', event.global.x, event.global.y);
 });
 
 let dragging = false;
-button.on("pointerdown", () => {
-  dragging = true;
+button.on('pointerdown', () => {
+	dragging = true;
 });
-button.on("pointerup", () => {
-  dragging = false;
+button.on('pointerup', () => {
+	dragging = false;
 });
-button.on("pointerupoutside", () => {
-  dragging = false;
+button.on('pointerupoutside', () => {
+	dragging = false;
 });
-button.on("globalpointermove", (event) => {
-  if (dragging) button.parent.toLocal(event.global, undefined, button.position);
+button.on('globalpointermove', (event) => {
+	if (dragging) button.parent.toLocal(event.global, undefined, button.position);
 });
 ```
 
@@ -40,25 +40,25 @@ button.on("globalpointermove", (event) => {
 ### eventMode values
 
 ```ts
-import { Sprite } from "pixi.js";
+import { Sprite } from 'pixi.js';
 
 const sprite = new Sprite();
 
 // No interaction at all; children also ignored
-sprite.eventMode = "none";
+sprite.eventMode = 'none';
 
 // Default. Self not interactive; interactive children still work
-sprite.eventMode = "passive";
+sprite.eventMode = 'passive';
 
 // Hit tested only when a parent is interactive
-sprite.eventMode = "auto";
+sprite.eventMode = 'auto';
 
 // Standard interaction: receives pointer/mouse/touch events
-sprite.eventMode = "static";
+sprite.eventMode = 'static';
 
 // Like static, but also fires synthetic events from the ticker
 // when the pointer is stationary (for animated objects under cursor)
-sprite.eventMode = "dynamic";
+sprite.eventMode = 'dynamic';
 ```
 
 Use `'static'` for buttons, UI elements, and drag targets. Use `'dynamic'` only for objects that move under a stationary cursor and need continuous hover updates.
@@ -66,10 +66,10 @@ Use `'static'` for buttons, UI elements, and drag targets. Use `'dynamic'` only 
 Use `isInteractive()` to check whether an object can receive events:
 
 ```ts
-sprite.eventMode = "static";
+sprite.eventMode = 'static';
 sprite.isInteractive(); // true
 
-sprite.eventMode = "passive";
+sprite.eventMode = 'passive';
 sprite.isInteractive(); // false
 ```
 
@@ -88,51 +88,51 @@ Container lifecycle events (no `eventMode` required): `added`, `removed`, `destr
 ### Listening styles
 
 ```ts
-import { Sprite } from "pixi.js";
+import { Sprite } from 'pixi.js';
 
 const sprite = new Sprite();
-sprite.eventMode = "static";
+sprite.eventMode = 'static';
 
 // EventEmitter style (recommended)
-const handler = (e) => console.log("clicked");
-sprite.on("pointerdown", handler);
-sprite.once("pointerdown", handler); // one-time
-sprite.off("pointerdown", handler);
+const handler = (e) => console.log('clicked');
+sprite.on('pointerdown', handler);
+sprite.once('pointerdown', handler); // one-time
+sprite.off('pointerdown', handler);
 
 // DOM style
 sprite.addEventListener(
-  "click",
-  (event) => {
-    console.log("Clicked!", event.detail);
-  },
-  { once: true },
+	'click',
+	(event) => {
+		console.log('Clicked!', event.detail);
+	},
+	{ once: true },
 );
 
 // Property-based handlers
 sprite.onclick = (event) => {
-  console.log("Clicked!", event.detail);
+	console.log('Clicked!', event.detail);
 };
 ```
 
 ### Pointer events and propagation
 
 ```ts
-import { Sprite, Container } from "pixi.js";
+import { Sprite, Container } from 'pixi.js';
 
 const parent = new Container();
-parent.eventMode = "static";
+parent.eventMode = 'static';
 
 const child = new Sprite();
-child.eventMode = "static";
+child.eventMode = 'static';
 parent.addChild(child);
 
-child.on("pointerdown", (event) => {
-  console.log("child pressed");
-  event.stopPropagation(); // prevent parent from receiving this event
+child.on('pointerdown', (event) => {
+	console.log('child pressed');
+	event.stopPropagation(); // prevent parent from receiving this event
 });
 
-parent.on("pointerdown", () => {
-  console.log("parent pressed (only if child did not stop propagation)");
+parent.on('pointerdown', () => {
+	console.log('parent pressed (only if child did not stop propagation)');
 });
 ```
 
@@ -142,11 +142,11 @@ All events support capture phase by appending `capture` to the event name (e.g.,
 
 ```ts
 container.addEventListener(
-  "pointerdown",
-  (event) => {
-    event.stopImmediatePropagation(); // blocks event from reaching children
-  },
-  { capture: true },
+	'pointerdown',
+	(event) => {
+		event.stopImmediatePropagation(); // blocks event from reaching children
+	},
+	{ capture: true },
 );
 ```
 
@@ -162,10 +162,10 @@ When a pointer event fires, PixiJS walks the display tree to find the top-most i
 Set a custom `hitArea` to override bounds-based testing. This also speeds up hit tests on large or complex objects by reducing the geometry checked:
 
 ```ts
-import { Sprite, Rectangle, Circle, Polygon } from "pixi.js";
+import { Sprite, Rectangle, Circle, Polygon } from 'pixi.js';
 
 const sprite = new Sprite();
-sprite.eventMode = "static";
+sprite.eventMode = 'static';
 
 // Rectangular hit area
 sprite.hitArea = new Rectangle(0, 0, 100, 50);
@@ -178,43 +178,43 @@ sprite.hitArea = new Polygon([0, 0, 100, 0, 50, 100]);
 
 // Custom hit test via contains()
 sprite.hitArea = {
-  contains(x: number, y: number): boolean {
-    return x >= 0 && x <= 100 && y >= 0 && y <= 100;
-  },
+	contains(x: number, y: number): boolean {
+		return x >= 0 && x <= 100 && y >= 0 && y <= 100;
+	},
 };
 ```
 
 ### Global move events and drag
 
 ```ts
-import { Sprite, FederatedPointerEvent } from "pixi.js";
+import { Sprite, FederatedPointerEvent } from 'pixi.js';
 
 const sprite = new Sprite();
-sprite.eventMode = "static";
-sprite.cursor = "grab";
+sprite.eventMode = 'static';
+sprite.cursor = 'grab';
 
 let dragging = false;
 
-sprite.on("pointerdown", (event: FederatedPointerEvent) => {
-  dragging = true;
-  sprite.cursor = "grabbing";
+sprite.on('pointerdown', (event: FederatedPointerEvent) => {
+	dragging = true;
+	sprite.cursor = 'grabbing';
 });
 
 // globalpointermove fires even when pointer leaves the object
-sprite.on("globalpointermove", (event: FederatedPointerEvent) => {
-  if (dragging) {
-    sprite.position.set(event.global.x, event.global.y);
-  }
+sprite.on('globalpointermove', (event: FederatedPointerEvent) => {
+	if (dragging) {
+		sprite.position.set(event.global.x, event.global.y);
+	}
 });
 
-sprite.on("pointerup", () => {
-  dragging = false;
-  sprite.cursor = "grab";
+sprite.on('pointerup', () => {
+	dragging = false;
+	sprite.cursor = 'grab';
 });
 
-sprite.on("pointerupoutside", () => {
-  dragging = false;
-  sprite.cursor = "grab";
+sprite.on('pointerupoutside', () => {
+	dragging = false;
+	sprite.cursor = 'grab';
 });
 ```
 
@@ -226,8 +226,8 @@ Basic usage sets the `cursor` property per-object. For reusable cursors, registe
 app.renderer.events.cursorStyles.default = "url('bunny.png'), auto";
 app.renderer.events.cursorStyles.hover = "url('bunny_saturated.png'), auto";
 
-sprite.eventMode = "static";
-sprite.cursor = "hover"; // uses the registered 'hover' style
+sprite.eventMode = 'static';
+sprite.cursor = 'hover'; // uses the registered 'hover' style
 ```
 
 Cursor styles can be strings (CSS cursor values), objects (applied as CSS styles), or functions (called with the mode string).
@@ -237,28 +237,28 @@ Cursor styles can be strings (CSS cursor values), objects (applied as CSS styles
 `FederatedPointerEvent` carries rich input data; the more useful fields are:
 
 ```ts
-sprite.on("pointerdown", (event: FederatedPointerEvent) => {
-  event.global; // scene-space Point where the event happened
-  event.client; // CSS-pixel Point relative to the viewport
-  event.offset; // Point w.r.t. target Container in world space (not supported at the moment)
-  event.target; // the Container that received the event
-  event.currentTarget; // the Container whose listener is running
+sprite.on('pointerdown', (event: FederatedPointerEvent) => {
+	event.global; // scene-space Point where the event happened
+	event.client; // CSS-pixel Point relative to the viewport
+	event.offset; // Point w.r.t. target Container in world space (not supported at the moment)
+	event.target; // the Container that received the event
+	event.currentTarget; // the Container whose listener is running
 
-  event.pointerType; // 'mouse' | 'pen' | 'touch'
-  event.pointerId; // unique id for multi-touch tracking
-  event.isPrimary; // first pointer in a multi-pointer gesture
-  event.pressure; // 0-1 pen/touch pressure
-  event.button; // 0 left, 1 middle, 2 right
-  event.buttons; // bitmask of held buttons
-  event.altKey; // modifier key state
-  event.ctrlKey;
-  event.shiftKey;
-  event.metaKey;
+	event.pointerType; // 'mouse' | 'pen' | 'touch'
+	event.pointerId; // unique id for multi-touch tracking
+	event.isPrimary; // first pointer in a multi-pointer gesture
+	event.pressure; // 0-1 pen/touch pressure
+	event.button; // 0 left, 1 middle, 2 right
+	event.buttons; // bitmask of held buttons
+	event.altKey; // modifier key state
+	event.ctrlKey;
+	event.shiftKey;
+	event.metaKey;
 
-  event.nativeEvent; // the underlying DOM PointerEvent / MouseEvent / Touch
-  event.preventDefault();
-  event.stopPropagation();
-  event.stopImmediatePropagation();
+	event.nativeEvent; // the underlying DOM PointerEvent / MouseEvent / Touch
+	event.preventDefault();
+	event.stopPropagation();
+	event.stopImmediatePropagation();
 });
 ```
 
@@ -270,12 +270,12 @@ Toggle event categories globally for performance:
 
 ```ts
 await app.init({
-  eventFeatures: {
-    move: true, // pointer/mouse/touch move events
-    globalMove: true, // global move events (globalpointermove, etc.)
-    click: true, // click/tap/press events
-    wheel: true, // mouse wheel events
-  },
+	eventFeatures: {
+		move: true, // pointer/mouse/touch move events
+		globalMove: true, // global move events (globalpointermove, etc.)
+		click: true, // click/tap/press events
+		wheel: true, // mouse wheel events
+	},
 });
 
 // or configure after init
@@ -298,8 +298,8 @@ Wrong:
 
 ```ts
 const sprite = new Sprite(texture);
-sprite.on("pointerdown", () => {
-  console.log("clicked");
+sprite.on('pointerdown', () => {
+	console.log('clicked');
 });
 ```
 
@@ -307,14 +307,13 @@ Correct:
 
 ```ts
 const sprite = new Sprite(texture);
-sprite.eventMode = "static";
-sprite.on("pointerdown", () => {
-  console.log("clicked");
+sprite.eventMode = 'static';
+sprite.on('pointerdown', () => {
+	console.log('clicked');
 });
 ```
 
 The default `eventMode` is `'passive'`, which means the object itself receives no events. You must explicitly set `eventMode` to `'static'` or `'dynamic'` before any listener will fire.
-
 
 ### [HIGH] buttonMode removed; use cursor
 
@@ -328,37 +327,35 @@ sprite.buttonMode = true;
 Correct:
 
 ```ts
-sprite.eventMode = "static";
-sprite.cursor = "pointer";
+sprite.eventMode = 'static';
+sprite.cursor = 'pointer';
 ```
 
 `buttonMode` was removed in v8. Use `cursor = 'pointer'` to show a hand cursor on hover. `interactive = true` still works as an alias for `eventMode = 'static'`, but `eventMode` is preferred.
-
 
 ### [HIGH] Move events only fire over the object in v8
 
 Wrong:
 
 ```ts
-sprite.eventMode = "static";
-sprite.on("pointermove", (event) => {
-  // expects to fire everywhere; only fires inside sprite bounds
-  updateDrag(event.global.x, event.global.y);
+sprite.eventMode = 'static';
+sprite.on('pointermove', (event) => {
+	// expects to fire everywhere; only fires inside sprite bounds
+	updateDrag(event.global.x, event.global.y);
 });
 ```
 
 Correct:
 
 ```ts
-sprite.eventMode = "static";
-sprite.on("globalpointermove", (event) => {
-  // fires everywhere, even outside sprite bounds
-  updateDrag(event.global.x, event.global.y);
+sprite.eventMode = 'static';
+sprite.on('globalpointermove', (event) => {
+	// fires everywhere, even outside sprite bounds
+	updateDrag(event.global.x, event.global.y);
 });
 ```
 
 In v8, `pointermove`, `mousemove`, and `touchmove` only fire when the pointer is over the display object. In v7 they fired on any canvas move. For drag operations or global tracking, use `globalpointermove`, `globalmousemove`, or `globaltouchmove`.
-
 
 ### [MEDIUM] Cursor does not inherit from parent
 
@@ -366,15 +363,14 @@ Setting `cursor` on a parent container has no effect on its children. Only the d
 
 ```ts
 // This does NOT make children show a pointer cursor
-parent.cursor = "pointer";
+parent.cursor = 'pointer';
 
 // Each interactive child needs its own cursor
-child.eventMode = "static";
-child.cursor = "pointer";
+child.eventMode = 'static';
+child.cursor = 'pointer';
 ```
 
 If you want a uniform cursor for all children, set `cursor` on each interactive child individually, or set `hitArea` on the parent and make children non-interactive.
-
 
 ## API Reference
 

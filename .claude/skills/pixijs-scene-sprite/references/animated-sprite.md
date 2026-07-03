@@ -5,13 +5,13 @@ A `Sprite` subclass that cycles through an array of textures for frame-based ani
 ## Quick Start
 
 ```ts
-const sheet = await Assets.load("character.json");
+const sheet = await Assets.load('character.json');
 
 const walk = new AnimatedSprite({
-  textures: sheet.animations["walk"],
-  animationSpeed: 0.15,
-  loop: true,
-  autoPlay: true,
+	textures: sheet.animations['walk'],
+	animationSpeed: 0.15,
+	loop: true,
+	autoPlay: true,
 });
 
 app.stage.addChild(walk);
@@ -31,16 +31,16 @@ new AnimatedSprite({ textures, autoUpdate, autoPlay, loop, animationSpeed });
 Two constructor forms are supported. The options form accepts all `SpriteOptions` (anchor, tint, position, etc.) plus the animation-specific fields below. The positional form takes a frames array and an optional `autoUpdate` flag.
 
 ```ts
-const sheet = await Assets.load("character.json");
+const sheet = await Assets.load('character.json');
 
 const walk = new AnimatedSprite({
-  textures: sheet.animations["walk"],
-  animationSpeed: 0.2,
-  loop: true,
-  autoPlay: true,
-  anchor: 0.5,
-  x: 200,
-  y: 300,
+	textures: sheet.animations['walk'],
+	animationSpeed: 0.2,
+	loop: true,
+	autoPlay: true,
+	anchor: 0.5,
+	x: 200,
+	y: 300,
 });
 ```
 
@@ -93,9 +93,9 @@ walk.loop = false;
 ### Callbacks
 
 ```ts
-walk.onComplete = () => console.log("animation done");
+walk.onComplete = () => console.log('animation done');
 walk.onFrameChange = (frame) => console.log(`now on frame ${frame}`);
-walk.onLoop = () => console.log("looped back to start");
+walk.onLoop = () => console.log('looped back to start');
 ```
 
 - `onComplete`: fires when a non-looping animation reaches its end.
@@ -106,12 +106,12 @@ walk.onLoop = () => console.log("looped back to start");
 
 ```ts
 const walk = new AnimatedSprite({
-  textures: sheet.animations["walk"],
-  autoUpdate: false,
+	textures: sheet.animations['walk'],
+	autoUpdate: false,
 });
 
 app.ticker.add((ticker) => {
-  walk.update(ticker);
+	walk.update(ticker);
 });
 ```
 
@@ -121,11 +121,11 @@ app.ticker.add((ticker) => {
 
 ```ts
 const explosion = new AnimatedSprite({
-  textures: [
-    { texture: frame0, time: 100 },
-    { texture: frame1, time: 200 },
-    { texture: frame2, time: 300 },
-  ],
+	textures: [
+		{ texture: frame0, time: 100 },
+		{ texture: frame1, time: 200 },
+		{ texture: frame2, time: 300 },
+	],
 });
 ```
 
@@ -134,14 +134,14 @@ const explosion = new AnimatedSprite({
 Spritesheets loaded via `Assets.load` expose per-frame `duration` values at `sheet.data.frames[key].duration`. Build a `FrameObject[]` from those durations when you need pre-authored timing:
 
 ```ts
-const sheet = await Assets.load("0123456789.json");
+const sheet = await Assets.load('0123456789.json');
 const frames = [];
 for (let i = 0; i < 10; i++) {
-  const key = `0123456789 ${i}.ase`;
-  frames.push({
-    texture: Texture.from(key),
-    time: sheet.data.frames[key].duration,
-  });
+	const key = `0123456789 ${i}.ase`;
+	frames.push({
+		texture: Texture.from(key),
+		time: sheet.data.frames[key].duration,
+	});
 }
 const sprite = new AnimatedSprite(frames);
 ```
@@ -149,8 +149,8 @@ const sprite = new AnimatedSprite(frames);
 ### Factories
 
 ```ts
-const walk = AnimatedSprite.fromFrames(["walk0.png", "walk1.png", "walk2.png"]);
-const idle = AnimatedSprite.fromImages(["idle0.png", "idle1.png"]);
+const walk = AnimatedSprite.fromFrames(['walk0.png', 'walk1.png', 'walk2.png']);
+const idle = AnimatedSprite.fromImages(['idle0.png', 'idle1.png']);
 ```
 
 - `fromFrames(aliases)`: builds textures via `Texture.from` from Assets cache aliases. Requires the spritesheet to already be loaded.
@@ -162,8 +162,8 @@ Prefer `new AnimatedSprite({ textures: sheet.animations[...] })` after `await As
 
 ```ts
 const walk = new AnimatedSprite({
-  textures: sheet.animations["walk"],
-  updateAnchor: true,
+	textures: sheet.animations['walk'],
+	updateAnchor: true,
 });
 ```
 
@@ -176,28 +176,24 @@ const walk = new AnimatedSprite({
 Wrong:
 
 ```ts
-const walk = new AnimatedSprite([
-  Texture.from("walk0.png"),
-  Texture.from("walk1.png"),
-]);
+const walk = new AnimatedSprite([Texture.from('walk0.png'), Texture.from('walk1.png')]);
 ```
 
 Correct:
 
 ```ts
-const sheet = await Assets.load("character.json");
-const walk = new AnimatedSprite(sheet.animations["walk"]);
+const sheet = await Assets.load('character.json');
+const walk = new AnimatedSprite(sheet.animations['walk']);
 ```
 
 `Texture.from()` only reads the cache in v8. If the spritesheet has not been loaded, the textures resolve to `Texture.EMPTY` and the sprite shows nothing. Always `await Assets.load()` the spritesheet first, then use `sheet.animations[key]`.
-
 
 ### [HIGH] Forgetting to call `play()` or set `autoPlay`
 
 Wrong:
 
 ```ts
-const walk = new AnimatedSprite({ textures: sheet.animations["walk"] });
+const walk = new AnimatedSprite({ textures: sheet.animations['walk'] });
 app.stage.addChild(walk);
 ```
 
@@ -205,14 +201,13 @@ Correct:
 
 ```ts
 const walk = new AnimatedSprite({
-  textures: sheet.animations["walk"],
-  autoPlay: true,
+	textures: sheet.animations['walk'],
+	autoPlay: true,
 });
 app.stage.addChild(walk);
 ```
 
 `autoPlay` defaults to `false`. Without `autoPlay: true` or a manual `walk.play()` call, the sprite displays only the first frame.
-
 
 ### [MEDIUM] Using seconds instead of milliseconds for `FrameObject.time`
 
@@ -220,8 +215,8 @@ Wrong:
 
 ```ts
 new AnimatedSprite([
-  { texture: frame0, time: 0.1 },
-  { texture: frame1, time: 0.2 },
+	{ texture: frame0, time: 0.1 },
+	{ texture: frame1, time: 0.2 },
 ]);
 ```
 
@@ -229,13 +224,12 @@ Correct:
 
 ```ts
 new AnimatedSprite([
-  { texture: frame0, time: 100 },
-  { texture: frame1, time: 200 },
+	{ texture: frame0, time: 100 },
+	{ texture: frame1, time: 200 },
 ]);
 ```
 
 `FrameObject.time` is in milliseconds. A value of `0.1` will advance frames almost instantly.
-
 
 ### [MEDIUM] Setting `currentFrame` out of range
 
@@ -252,7 +246,6 @@ walk.currentFrame = walk.totalFrames - 1;
 ```
 
 The setter throws if the value is outside `[0, totalFrames - 1]`. Use `totalFrames - 1` for the last frame.
-
 
 ## API Reference
 

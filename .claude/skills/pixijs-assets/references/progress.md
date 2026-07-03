@@ -8,9 +8,9 @@
 const loadingBar = new Graphics();
 app.stage.addChild(loadingBar);
 
-await Assets.load(["hero.png", "enemy.png", "map.json"], (progress) => {
-  loadingBar.clear();
-  loadingBar.rect(0, 0, progress * 400, 20).fill(0x66ccff);
+await Assets.load(['hero.png', 'enemy.png', 'map.json'], (progress) => {
+	loadingBar.clear();
+	loadingBar.rect(0, 0, progress * 400, 20).fill(0x66ccff);
 });
 ```
 
@@ -21,8 +21,8 @@ The callback is invoked after each asset resolves. Final invocation reaches `1.0
 ### Progress on a single asset
 
 ```ts
-await Assets.load("large-atlas.json", (progress) => {
-  console.log(`${Math.round(progress * 100)}%`);
+await Assets.load('large-atlas.json', (progress) => {
+	console.log(`${Math.round(progress * 100)}%`);
 });
 ```
 
@@ -31,9 +31,8 @@ Even for a single asset, the callback fires (typically once, reaching `1.0`). Fo
 ### Progress on an array
 
 ```ts
-const assets = await Assets.load(
-  ["hero.png", "enemy.png", "map.json", "music.mp3"],
-  (progress) => updateBar(progress),
+const assets = await Assets.load(['hero.png', 'enemy.png', 'map.json', 'music.mp3'], (progress) =>
+	updateBar(progress),
 );
 ```
 
@@ -42,8 +41,8 @@ Progress is distributed evenly across the N assets. When the third asset in a fo
 ### Progress on a bundle
 
 ```ts
-await Assets.loadBundle("level1", (progress) => {
-  loadingText.text = `Loading… ${Math.round(progress * 100)}%`;
+await Assets.loadBundle('level1', (progress) => {
+	loadingText.text = `Loading… ${Math.round(progress * 100)}%`;
 });
 ```
 
@@ -52,12 +51,12 @@ Each asset in the bundle contributes equally. If the bundle has 10 entries, each
 ### Progress via `LoadOptions.onProgress`
 
 ```ts
-await Assets.load("game.json", {
-  onProgress: (progress) => updateBar(progress),
-  onError: (err, asset) => {
-    const src = typeof asset === "string" ? asset : asset.src;
-    console.warn("failed:", src, err);
-  },
+await Assets.load('game.json', {
+	onProgress: (progress) => updateBar(progress),
+	onError: (err, asset) => {
+		const src = typeof asset === 'string' ? asset : asset.src;
+		console.warn('failed:', src, err);
+	},
 });
 ```
 
@@ -67,18 +66,18 @@ Instead of a callback as the second argument, pass a `LoadOptions` object. This 
 
 ```ts
 async function loadAllWithTotal(tasks: Array<() => Promise<any>>) {
-  let done = 0;
-  for (const task of tasks) {
-    await task();
-    done++;
-    updateBar(done / tasks.length);
-  }
+	let done = 0;
+	for (const task of tasks) {
+		await task();
+		done++;
+		updateBar(done / tasks.length);
+	}
 }
 
 await loadAllWithTotal([
-  () => Assets.load("menu.json"),
-  () => Assets.loadBundle("level1"),
-  () => Assets.loadBundle("sounds"),
+	() => Assets.load('menu.json'),
+	() => Assets.loadBundle('level1'),
+	() => Assets.loadBundle('sounds'),
 ]);
 ```
 
@@ -91,22 +90,21 @@ Progress callbacks are scoped per call. If you need a single bar across several 
 Wrong:
 
 ```ts
-Assets.load("hero.png", (progress) => {
-  if (progress === 1) {
-    showHero();
-  }
+Assets.load('hero.png', (progress) => {
+	if (progress === 1) {
+		showHero();
+	}
 });
 ```
 
 Correct:
 
 ```ts
-await Assets.load("hero.png", (progress) => updateBar(progress));
+await Assets.load('hero.png', (progress) => updateBar(progress));
 showHero();
 ```
 
 `progress === 1` may fire slightly before the returned promise resolves. Always use the `await` or `.then()` to know when loading is truly complete. The progress callback is for UI updates only.
-
 
 ### [MEDIUM] Progress not updating smoothly
 
@@ -114,26 +112,24 @@ Each asset contributes a discrete step. If your bundle has three assets, progres
 
 ```ts
 let target = 0;
-await Assets.loadBundle("game", (p) => {
-  target = p;
+await Assets.loadBundle('game', (p) => {
+	target = p;
 });
 
 app.ticker.add(() => {
-  loadingBar.width += (target * maxWidth - loadingBar.width) * 0.1;
+	loadingBar.width += (target * maxWidth - loadingBar.width) * 0.1;
 });
 ```
-
 
 ### [MEDIUM] Progress via background loading
 
 Wrong:
 
 ```ts
-Assets.backgroundLoadBundle("game", (p) => updateBar(p));
+Assets.backgroundLoadBundle('game', (p) => updateBar(p));
 ```
 
 Background loading has no progress callback. For visible progress, use `Assets.loadBundle` (foreground). See `references/background.md`.
-
 
 ## API Reference
 

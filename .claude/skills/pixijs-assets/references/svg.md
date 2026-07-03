@@ -5,12 +5,12 @@ PixiJS loads `.svg` files in one of two modes: rasterized to a texture (fast, fi
 ## Quick Start
 
 ```ts
-const svgTexture = await Assets.load("icon.svg");
+const svgTexture = await Assets.load('icon.svg');
 const sprite = new Sprite(svgTexture);
 
 const svgContext = await Assets.load({
-  src: "icon.svg",
-  data: { parseAsGraphicsContext: true },
+	src: 'icon.svg',
+	data: { parseAsGraphicsContext: true },
 });
 const graphic = new Graphics(svgContext);
 ```
@@ -22,7 +22,7 @@ By default, SVG files rasterize to a texture at their native size. Pass `parseAs
 ### Texture mode (default)
 
 ```ts
-const icon = await Assets.load("close.svg");
+const icon = await Assets.load('close.svg');
 const button = new Sprite(icon);
 ```
 
@@ -32,8 +32,8 @@ The SVG is rasterized to a bitmap via the browser's native SVG-to-image pipeline
 
 ```ts
 const context = await Assets.load({
-  src: "logo.svg",
-  data: { parseAsGraphicsContext: true },
+	src: 'logo.svg',
+	data: { parseAsGraphicsContext: true },
 });
 
 const small = new Graphics(context);
@@ -49,8 +49,8 @@ The SVG is parsed into a `GraphicsContext` (a compiled list of fill/stroke instr
 
 ```ts
 const icon = await Assets.load({
-  src: "icon.svg",
-  data: { resolution: 2 },
+	src: 'icon.svg',
+	data: { resolution: 2 },
 });
 ```
 
@@ -59,7 +59,7 @@ For texture mode, you can pass `resolution` in `data` to rasterize at a higher d
 ### Global default
 
 ```ts
-import { loadSvg } from "pixi.js";
+import { loadSvg } from 'pixi.js';
 
 loadSvg.config.parseAsGraphicsContext = true;
 ```
@@ -82,7 +82,7 @@ If you need the same SVG at multiple sizes, Graphics mode is usually faster beca
 Wrong:
 
 ```ts
-const icon = await Assets.load("icon.svg");
+const icon = await Assets.load('icon.svg');
 const sprite = new Sprite(icon);
 sprite.scale.set(5); // pixelates
 ```
@@ -91,8 +91,8 @@ Correct (if you need scaling):
 
 ```ts
 const context = await Assets.load({
-  src: "icon.svg",
-  data: { parseAsGraphicsContext: true },
+	src: 'icon.svg',
+	data: { parseAsGraphicsContext: true },
 });
 const graphic = new Graphics(context);
 graphic.scale.set(5); // crisp
@@ -102,23 +102,20 @@ Or rasterize at higher resolution:
 
 ```ts
 const icon = await Assets.load({
-  src: "icon.svg",
-  data: { resolution: 5 },
+	src: 'icon.svg',
+	data: { resolution: 5 },
 });
 ```
 
 Texture mode is frozen at rasterization time. Use Graphics mode or high `resolution` when the final size isn't known upfront.
 
-
 ### [MEDIUM] External references in SVG files
 
 SVGs that reference external images via `<image href="...">` may fail to load if the reference is cross-origin without CORS headers. Inline the image data as base64 or serve everything from the same origin.
 
-
 ### [MEDIUM] CSS in `<style>` elements
 
 Not all CSS features are supported in Graphics mode; the parser extracts geometry, fill, and stroke, but ignores advanced CSS like `filter` or `mask`. For full CSS fidelity, use texture mode.
-
 
 ## API Reference
 

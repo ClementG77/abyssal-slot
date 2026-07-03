@@ -36,11 +36,11 @@ export default {
 		src: new URL('../../assets/provider_logo.png', import.meta.url).href,
 		preload: true,
 	},
-	// TexturePacker symbol atlas. Frames are addressed by name, such as `H1` / `SCATTER` /
-	// `ADD_EYE` / `MULT_EYE` / `CLOSE_EYE`.
+	// TexturePacker symbol atlas. Frames are addressed by name, such as `H1` / `SCATTER` and the
+	// Eye set (`EYE_PURPLE_CLOSE`, `EYE_ADD_ACTIVE`/`EYE_MULT_ACTIVE`, `EYE_ADD_EMPTY`/`EYE_MULT_EMPTY`).
 	symbols: {
 		type: 'sprites',
-		src: new URL('../../assets/symbols/eye/eye.json', import.meta.url).href,
+		src: new URL('../../assets/symbols/symbol_black/spritesheet.json', import.meta.url).href,
 		preload: true,
 	},
 	bigWin: {
@@ -63,14 +63,44 @@ export default {
 		src: new URL('../../assets/wins/max_win.png', import.meta.url).href,
 		preload: true,
 	},
-	freeSpinsBanner: {
+	tumbleWin: {
 		type: 'sprite',
-		src: new URL('../../assets/wins/freespins.png', import.meta.url).href,
+		src: new URL('../../assets/wins/tumble_win.png', import.meta.url).href,
+		preload: true,
+	},
+	freeSpinIntro: {
+		type: 'sprite',
+		src: new URL('../../assets/wins/freespin_intro.png', import.meta.url).href,
+		preload: true,
+	},
+	freeSpinOutro: {
+		type: 'sprite',
+		src: new URL('../../assets/wins/freespin_outro.png', import.meta.url).href,
+		preload: true,
+	},
+	freeSpinsCount: {
+		type: 'sprite',
+		src: new URL('../../assets/wins/freespins_count.png', import.meta.url).href,
+		preload: true,
+	},
+	totalMultBanner: {
+		type: 'sprite',
+		src: new URL('../../assets/wins/total_mult.png', import.meta.url).href,
 		preload: true,
 	},
 	freeSpinsRetrigger: {
 		type: 'sprite',
-		src: new URL('../../assets/wins/retrigger.png', import.meta.url).href,
+		src: new URL('../../assets/wins/freespin_retrigger.png', import.meta.url).href,
+		preload: true,
+	},
+	// Branded gold "minted" bitmap font (face name `AbyssalBitmap`). BMFont .fnt + sibling PNG page;
+	// Pixi installs it on load, then <BitmapText style={{ fontFamily: ABYSSAL_FONT_FAMILY }}> uses it.
+	// Glyph coverage is UPPERCASE-only: A–Z 0–9 space $ £ € × x , . ! ? % + - # & * < = > @ _ |
+	// — notably NO '/' and no lowercase (except 'x'). Keep on-screen strings inside that set.
+	abyssalFont: {
+		type: 'font',
+		src: new URL('../../assets/fonts/abyssal_bitmap_font_package/abyssal_font.fnt', import.meta.url)
+			.href,
 		preload: true,
 	},
 } as const;

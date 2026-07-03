@@ -65,8 +65,8 @@ entityLayer.detach(player);
 entityLayer.detachAll();
 
 const sortedLayer = new RenderLayer({
-  sortableChildren: true,
-  sortFunction: (a, b) => a.position.y - b.position.y,
+	sortableChildren: true,
+	sortFunction: (a, b) => a.position.y - b.position.y,
 });
 ```
 
@@ -85,11 +85,11 @@ Culling skips rendering objects outside the visible area. In v8, culling is manu
 const stage = new Container();
 
 for (let i = 0; i < 1000; i++) {
-  const sprite = Sprite.from("bunny.png");
-  sprite.x = Math.random() * 5000;
-  sprite.y = Math.random() * 5000;
-  sprite.cullable = true;
-  stage.addChild(sprite);
+	const sprite = Sprite.from('bunny.png');
+	sprite.x = Math.random() * 5000;
+	sprite.y = Math.random() * 5000;
+	sprite.cullable = true;
+	stage.addChild(sprite);
 }
 
 const view = { x: 0, y: 0, width: 800, height: 600 };
@@ -100,7 +100,7 @@ renderer.render(stage);
 For automatic culling with Application, register CullerPlugin:
 
 ```ts
-import { extensions, CullerPlugin } from "pixi.js";
+import { extensions, CullerPlugin } from 'pixi.js';
 extensions.add(CullerPlugin);
 
 const app = new Application();
