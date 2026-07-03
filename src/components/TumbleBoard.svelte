@@ -133,6 +133,9 @@
 			});
 		},
 		tumbleBoardSlideDown: async () => {
+			// Cascade settles reuse the `land` state but are NOT landings — flag them so land-only
+			// fanfare (scatter flare/ring/rays, board jolts) stays quiet during refills.
+			context.stateGame.cascading = true;
 			// Drop the refill reel-by-reel (left → right), like the initial spin, instead of every
 			// column at once.
 			const COLUMN_STAGGER = 80;
@@ -193,6 +196,7 @@
 				});
 
 			await Promise.all(getPromises());
+			context.stateGame.cascading = false;
 		},
 	});
 </script>

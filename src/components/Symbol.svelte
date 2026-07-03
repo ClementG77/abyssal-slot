@@ -2,7 +2,7 @@
 	import { onDestroy } from 'svelte';
 	import gsap from 'gsap';
 	import { Tween } from 'svelte/motion';
-	import { backOut } from 'svelte/easing';
+	import { backOut, cubicIn } from 'svelte/easing';
 
 	import { Container, Graphics, Sprite, Text } from 'pixi-svelte';
 	import { stateBetDerived } from 'state-shared';
@@ -90,8 +90,9 @@
 	const scale = new Tween(1, { duration: 120 });
 	const alpha = new Tween(1, { duration: 120 });
 	const ts = () => stateBetDerived.timeScale(); // turbo speed-up
-	// Connected (winning) cells keep scaling up — bigger and bigger — until they explode.
-	const WIN_GROW_MAX = 1.4;
+	// Connected (winning) cells settle QUICKLY at a slight emphasis size and hold there until
+	// they explode — no slow balloon grow.
+	const WIN_GROW_MAX = 1.12;
 
 	const isEye = $derived(isUnresolvedEye || isResolvedEye || isSpentEye);
 	// The lifecycle variant fed to the single AbyssalEye instance (see the template comment):
@@ -143,10 +144,12 @@
 	});
 
 	// --- Scatter (the leviathan): a hero symbol -----------------------------------------
-	// No persistent halo (it reads too big) — just a gentle breathe + a land flare/ring. The soft
-	// coloured halo only blooms on "connect" (when the scatter is part of the trigger), pulsing
-	// harder while the board anticipates.
-	const scatterFx = $state({ breathe: 1, flare: 0, ring: 0, connect: 0, rays: 0 });
+	// A gentle breathe over a golden under-glow; landing is a pure GLOW surge. The soft coloured
+	// halo only blooms on "connect" (when the scatter is part of the trigger), pulsing harder
+	// while the board anticipates.
+	// Landing is a pure GLOW surge (no flare/ring/rays) — `landGlow` spikes the under-glow,
+	// scaled up with the scatter count so later scatters burn brighter.
+	const scatterFx = $state({ breathe: 1, connect: 0, landGlow: 0 });
 	// ambient clock (seconds) driving the under-glow shimmer
 	const scatterAmb = $state({ t: 0 });
 	let scatterIdleTl: gsap.core.Timeline | undefined;
@@ -210,14 +213,19 @@
 		}
 		if (scatterLandWasActive) return;
 		scatterLandWasActive = true;
+		// cascade settles reuse the `land` state but are NOT landings — no fanfare
+		if (context.stateGame.cascading) return;
+
+		// A pure glow surge, escalating with the scatter count (2nd burns brighter than the 1st…)
+		const count = Math.max(1, Math.min(context.stateGame.scatterCounter, 4));
+		const power = 1 + (count - 1) * 0.45;
+
 		scatterFlareTl?.kill();
 		scatterFlareTl = gsap
 			.timeline()
-			.set(scatterFx, { flare: 0, ring: 0, rays: 0 })
-			.to(scatterFx, { flare: 1, duration: 0.08, ease: 'power2.out' })
-			.to(scatterFx, { flare: 0, duration: 0.45, ease: 'power2.out' }, '<')
-			.to(scatterFx, { ring: 1, duration: 0.5, ease: 'power2.out' }, '<')
-			.to(scatterFx, { rays: 1, duration: 0.6, ease: 'power2.out' }, '<');
+			.set(scatterFx, { landGlow: 0 })
+			.to(scatterFx, { landGlow: power, duration: 0.14, ease: 'power2.out' })
+			.to(scatterFx, { landGlow: 0, duration: 0.65, ease: 'power2.out' });
 	});
 
 	// Landing weight: a quick stretch-then-settle squash on every drop (reel stop + cascade slide).
@@ -243,12 +251,12 @@
 
 	const playBoom = () => {
 		boomTl?.kill();
-		// The cell flash; the flying shards are spawned at the board level (BoardDebris).
+		// The cell flash: an instant white-hot hit that decays fast — the burst's "crack". The
+		// flying shards are spawned at the board level (BoardDebris).
 		boomTl = gsap
 			.timeline()
-			.set(boomFx, { flash: 0 })
-			.to(boomFx, { flash: 0.95, duration: 0.05, ease: 'power1.out' })
-			.to(boomFx, { flash: 0, duration: 0.18, ease: 'power2.out' });
+			.set(boomFx, { flash: 1 })
+			.to(boomFx, { flash: 0, duration: 0.16, ease: 'power3.out' });
 	};
 
 	onDestroy(() => {
@@ -292,25 +300,28 @@
 			if (state === 'win') {
 				// connection: a quick pop, release the sequence, then keep growing in postWinStatic.
 				if (!isEye) playWinJuice();
-				await scale.set(1.2, { duration: 150 / ts(), easing: backOut });
+				await scale.set(1.18, { duration: 110 / ts(), easing: backOut });
 				if (myToken !== token) return;
 				done();
 			} else if (state === 'postWinStatic') {
 				alpha.set(1, { duration: 0 });
-				// cluster symbols keep scaling up — bigger and bigger — right up until they explode;
-				// the Eye and Scatter have their own treatment, so they just settle.
+				// winning symbols ease down from the pop to a slight hold size — quick, no balloon;
+				// the Eye and Scatter have their own treatment.
 				if (!isEye && !isScatter) {
-					await scale.set(WIN_GROW_MAX, { duration: 1100 / ts() });
+					await scale.set(WIN_GROW_MAX, { duration: 180 / ts() });
 				} else {
 					await scale.set(1, { duration: 120 / ts() });
 				}
 			} else if (state === 'explosion') {
 				if (!isEye) playBoom();
-				// continue from the grown connection size (no snap-back), then implode + fade as the
-				// shards fly out
+				// BURST, not fade: a fast overshoot pop from the hold size, then a hard collapse
+				// while the bubbles (BoardDebris) carry the energy up and away. Alpha only drops
+				// at the very end so the collapse itself reads.
 				scale.set(WIN_GROW_MAX, { duration: 0 });
-				alpha.set(0, { duration: 150 / ts() });
-				await scale.set(0.2, { duration: 150 / ts() });
+				await scale.set(WIN_GROW_MAX * 1.25, { duration: 70 / ts(), easing: backOut });
+				if (myToken !== token) return;
+				alpha.set(0, { duration: 90 / ts(), delay: 40 / ts() });
+				await scale.set(0, { duration: 130 / ts(), easing: cubicIn });
 				done();
 			} else if (state === 'land') {
 				scale.set(0.84, { duration: 0 });
@@ -393,27 +404,24 @@
 		g.stroke({ width: 2, color: 0xffffff, alpha: 0.45 + glow * 0.45 });
 	};
 
-	// Expanding ring thrown off when a scatter slams in.
-	const drawScatterRing = (g: import('pixi.js').Graphics) => {
-		const p = scatterFx.ring;
-		if (p <= 0 || p >= 1) return;
-		const base = Math.max(symbolSize.width, symbolSize.height) * 0.55;
-		const r = base * (0.7 + p * 1.0);
-		g.circle(0, 0, r).stroke({
-			width: Math.max(1, 5 * (1 - p)),
-			color: 0xffe6a6,
-			alpha: (1 - p) * 0.9,
-		});
-	};
 
 	// Soft golden under-glow behind the leviathan — the "this one is special" beacon. Stacked
 	// additive discs (bright core fading to the rim), shimmering with the ambient clock and
 	// burning brighter while the board anticipates another scatter.
 	const drawScatterGlow = (g: import('pixi.js').Graphics) => {
-		const base = Math.max(symbolSize.width, symbolSize.height) * 0.56;
 		const anticipating = context.stateGame.scatterAnticipating;
-		const shimmer = 0.8 + Math.sin(scatterAmb.t * 1.7) * 0.2;
-		const boost = anticipating ? 1.9 : 1;
+		const landGlow = scatterFx.landGlow;
+		// while anticipating, the settled scatters "call" the missing one: hotter, faster, wider;
+		// on landing the glow SURGES (landGlow spike, count-scaled)
+		const base =
+			Math.max(symbolSize.width, symbolSize.height) *
+			0.56 *
+			(anticipating ? 1.12 : 1) *
+			(1 + landGlow * 0.22);
+		const shimmer = anticipating
+			? 0.75 + Math.sin(scatterAmb.t * 3.6) * 0.25
+			: 0.8 + Math.sin(scatterAmb.t * 1.7) * 0.2;
+		const boost = (anticipating ? 2.6 : 1) + landGlow * 3.2;
 		const steps = 4;
 		for (let i = steps; i >= 1; i--) {
 			const f = i / steps; // 1 = rim … 0.25 = core
@@ -424,23 +432,6 @@
 		}
 	};
 
-	// Radial ray burst on landing: golden light shafts shoot out of the cell and fade.
-	const RAY_COUNT = 8;
-	const drawScatterRays = (g: import('pixi.js').Graphics) => {
-		const p = scatterFx.rays;
-		if (p <= 0 || p >= 1) return;
-		const base = Math.max(symbolSize.width, symbolSize.height) * 0.5;
-		const len = base * (0.9 + p * 1.5);
-		const spread = 0.09; // half-width of each ray, radians
-		for (let i = 0; i < RAY_COUNT; i++) {
-			const angle = (i * Math.PI * 2) / RAY_COUNT + p * 0.35 + 0.4;
-			g.poly([
-				{ x: Math.cos(angle - spread) * base * 0.5, y: Math.sin(angle - spread) * base * 0.5 },
-				{ x: Math.cos(angle) * len, y: Math.sin(angle) * len },
-				{ x: Math.cos(angle + spread) * base * 0.5, y: Math.sin(angle + spread) * base * 0.5 },
-			]).fill({ color: 0xffdf8a, alpha: (1 - p) * 0.55 });
-		}
-	};
 </script>
 
 <Container
@@ -482,11 +473,6 @@
 				<Container blendMode="add">
 					<Graphics draw={drawScatterGlow} />
 				</Container>
-				{#if scatterFx.rays > 0 && scatterFx.rays < 1}
-					<Container blendMode="add">
-						<Graphics draw={drawScatterRays} />
-					</Container>
-				{/if}
 				{#if scatterFx.connect > 0}
 					<Sprite
 						key={frame}
@@ -504,21 +490,17 @@
 					width={symbolSize.width * scatterFx.breathe}
 					height={symbolSize.height * scatterFx.breathe}
 				/>
-				{#if scatterFx.flare > 0}
+				{#if scatterFx.landGlow > 0}
+					<!-- landing: the art itself blooms warm (part of the glow-only land treatment) -->
 					<Sprite
 						key={frame}
 						anchor={0.5}
 						width={symbolSize.width * scatterFx.breathe}
 						height={symbolSize.height * scatterFx.breathe}
-						alpha={scatterFx.flare}
-						tint={0xffffff}
+						alpha={Math.min(0.5, scatterFx.landGlow * 0.32)}
+						tint={0xffd27a}
 						blendMode="add"
 					/>
-				{/if}
-				{#if scatterFx.ring > 0 && scatterFx.ring < 1}
-					<Container blendMode="add">
-						<Graphics draw={drawScatterRing} />
-					</Container>
 				{/if}
 			{:else}
 				<Sprite key={frame} anchor={0.5} width={symbolSize.width} height={symbolSize.height} />

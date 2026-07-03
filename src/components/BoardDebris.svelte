@@ -1,7 +1,7 @@
 <script lang="ts" module>
-	// Board-level shatter debris. Spawned when cells explode (TumbleBoard → `boardDebris`), the
-	// shards live here instead of on the symbols so they can be bigger and outlast the cell that
-	// collapsed and got refilled.
+	// Board-level burst FX. Spawned when cells explode (TumbleBoard → `boardDebris`), the
+	// bubbles live here instead of on the symbols so they can outlast the cell that collapsed
+	// and got refilled.
 	export type EmitterEventBoardDebris = {
 		type: 'boardDebris';
 		cells: { reel: number; row: number; color: number }[];
@@ -21,7 +21,17 @@
 
 	const context = getContext();
 
-	type Shard = { angle: number; dist: number; size: number };
+	// Underwater burst: the cell pops into a cloud of BUBBLES that scatter, rise with a wobble
+	// and pop away — plus a coloured shock ring on the first beat. No shard streaks.
+	type Bubble = {
+		ox: number; // scatter offset from the cell centre
+		oy: number;
+		rise: number; // how far it floats up over its life
+		r: number;
+		drift: number; // horizontal wobble amplitude
+		phase: number;
+		delay: number; // 0..0.25 of the burst's life
+	};
 	type Burst = {
 		id: number;
 		x: number;
@@ -29,7 +39,7 @@
 		color: number;
 		start: number;
 		duration: number;
-		shards: Shard[];
+		bubbles: Bubble[];
 	};
 
 	let now = $state(performance.now());
@@ -54,14 +64,21 @@
 	context.eventEmitter.subscribeOnMount({
 		boardDebris: ({ cells }) => {
 			const t = performance.now();
-			const duration = 620 / stateBetDerived.timeScale();
+			const duration = 560 / stateBetDerived.timeScale();
 			const spawned = cells.map((cell) => {
-				const count = 11;
-				const shards: Shard[] = Array.from({ length: count }, (_, i) => ({
-					angle: (i / count) * Math.PI * 2 + Math.random() * 0.55,
-					dist: SYMBOL_SIZE * (0.6 + Math.random() * 1.0),
-					size: SYMBOL_SIZE * (0.07 + Math.random() * 0.08),
-				}));
+				const bubbles: Bubble[] = Array.from({ length: 9 }, () => {
+					const angle = Math.random() * Math.PI * 2;
+					const spread = SYMBOL_SIZE * (0.08 + Math.random() * 0.3);
+					return {
+						ox: Math.cos(angle) * spread,
+						oy: Math.sin(angle) * spread * 0.7,
+						rise: SYMBOL_SIZE * (0.45 + Math.random() * 0.6),
+						r: SYMBOL_SIZE * (0.045 + Math.random() * 0.07),
+						drift: SYMBOL_SIZE * (0.05 + Math.random() * 0.08),
+						phase: Math.random() * Math.PI * 2,
+						delay: Math.random() * 0.22,
+					};
+				});
 				return {
 					id: nextId++,
 					x: getPositionX(cell.reel),
@@ -69,7 +86,7 @@
 					color: cell.color,
 					start: t,
 					duration,
-					shards,
+					bubbles,
 				};
 			});
 			bursts = [...bursts, ...spawned];
@@ -81,21 +98,40 @@
 	const drawBurst = (g: import('pixi.js').Graphics, burst: Burst) => {
 		const p = Math.min(1, (now - burst.start) / burst.duration);
 		if (p >= 1) return;
-		const e = easeOut(p);
-		const fade = 1 - p;
-		const gravity = SYMBOL_SIZE * 1.0 * p * p; // shards arc downward as they fly
-		for (const s of burst.shards) {
-			const dist = s.dist * e;
-			const x = Math.cos(s.angle) * dist;
-			const y = Math.sin(s.angle) * dist + gravity;
-			const r = s.size * (1 - p * 0.55);
-			const tail = s.size * 2.2;
-			// motion streak
-			g.moveTo(x - Math.cos(s.angle) * tail, y - Math.sin(s.angle) * tail)
-				.lineTo(x, y)
-				.stroke({ width: Math.max(1, r * 0.7), color: burst.color, alpha: fade * 0.8 });
-			// bright head
-			g.circle(x, y, r * 0.55).fill({ color: 0xffffff, alpha: fade });
+
+		// first beat: a coloured shock ring + soft core bloom at the cell
+		if (p < 0.3) {
+			const ringP = p / 0.3;
+			g.circle(0, 0, SYMBOL_SIZE * (0.22 + ringP * 0.68)).stroke({
+				width: Math.max(1.5, 6 * (1 - ringP)),
+				color: burst.color,
+				alpha: (1 - ringP) * 0.7,
+			});
+			g.circle(0, 0, SYMBOL_SIZE * 0.3 * (1 - ringP * 0.6)).fill({
+				color: 0xffffff,
+				alpha: (1 - ringP) * 0.45,
+			});
+		}
+
+		// bubbles: scatter out, float upward with a wobble, pop away at the end of their life
+		for (const b of burst.bubbles) {
+			const lp = Math.min(1, Math.max(0, (p - b.delay) / (1 - b.delay)));
+			if (lp <= 0 || lp >= 1) continue;
+			const e = easeOut(lp);
+			const x = b.ox * e + Math.sin(lp * 6 + b.phase) * b.drift * lp;
+			const y = b.oy * e - b.rise * lp; // bubbles rise, they don't fall
+			// grow slightly while rising, then pop (fast shrink) over the last 15%
+			const popScale = lp > 0.85 ? Math.max(0, 1 - (lp - 0.85) / 0.15) : 1;
+			const r = b.r * (0.75 + lp * 0.45) * popScale;
+			if (r <= 0.5) continue;
+			const alpha = (1 - lp * 0.55) * popScale;
+			// aqua shell tinted faintly by the symbol colour, plus a white glint
+			g.circle(x, y, r).stroke({ width: 1.5, color: 0xbfeeff, alpha: alpha * 0.8 });
+			g.circle(x, y, r * 0.8).fill({ color: burst.color, alpha: alpha * 0.16 });
+			g.circle(x - r * 0.3, y - r * 0.35, Math.max(0.8, r * 0.25)).fill({
+				color: 0xffffff,
+				alpha: alpha * 0.75,
+			});
 		}
 	};
 </script>

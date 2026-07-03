@@ -28,8 +28,8 @@
 	/>
 {/if}
 
-{#each context.stateGame.board as reel}
+{#each context.stateGame.board as reel, reelIndex}
 	{#if reel.reelState.anticipating}
-		<Anticipation {reel} oncomplete={() => (reel.reelState.anticipating = false)} />
+		<Anticipation {reel} {reelIndex} oncomplete={() => (reel.reelState.anticipating = false)} />
 	{/if}
 {/each}

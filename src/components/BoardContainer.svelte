@@ -99,8 +99,15 @@
 		}
 
 		if (scatterAnticipationStartedAt < 0) return 0;
-		const progress = Math.min(1, (now - scatterAnticipationStartedAt) / 1000);
-		return progress * progress * (3 - 2 * progress);
+		const elapsed = (now - scatterAnticipationStartedAt) / 1000;
+		// lean in over the first second…
+		const p = Math.min(1, elapsed);
+		const smooth = p * p * (3 - 2 * p);
+		// …then keep building instead of holding: a slow creep (up to +50% more zoom over ~4s)
+		// and a faint heartbeat so the hold feels like pressure, not pause.
+		const creep = Math.min(0.5, Math.max(0, elapsed - 1) * 0.12);
+		const heartbeat = elapsed > 1 ? Math.sin((elapsed - 1) * Math.PI * 2.3) * 0.035 : 0;
+		return smooth + creep + heartbeat;
 	});
 	const boardShakeY = $derived(launchMotion * 42);
 	const boardScale = $derived({

@@ -140,6 +140,10 @@ export const stateGame = $state({
 	persistentMult: 1,
 	// Keeps the game scene blurred while the free-spins congratulations banner is awaiting a press.
 	freeSpinIntroActive: false,
+	// True while a tumble refill slides symbols into place. Cascade settles reuse the `land`
+	// symbol state, but they are settles, not landings — components use this to skip the
+	// landing fanfare (e.g. the scatter's flare/ring/rays only fire on real reel-stop lands).
+	cascading: false,
 });
 
 const reelLayout = () =>

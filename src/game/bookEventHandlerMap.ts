@@ -66,6 +66,8 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 			recordBookEvent({ bookEvent });
 		}
 
+		// defensive: never let an interrupted cascade leave the settle flag stuck on
+		stateGame.cascading = false;
 		// reset the spin's Gaze charge for the new board; clear any Eye from the prior spin
 		stateGame.gazeCharge = 0;
 		stateGame.eyeResolvedThisSpin = false;
@@ -319,7 +321,6 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		await eventEmitter.broadcastAsync({ type: 'scatterCelebrate', positions: bookEvent.positions });
 
 		await eventEmitter.broadcastAsync({ type: 'uiHide' });
-		await eventEmitter.broadcastAsync({ type: 'transition' });
 
 		stateGame.freeSpinIntroActive = true;
 		eventEmitter.broadcast({ type: 'freeSpinIntroShow' });
@@ -329,8 +330,10 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 			totalFreeSpins: bookEvent.totalFs,
 		});
 
-		// The player pressed the congratulations artwork. Swap the scene beneath its animated
-		// exit so the new free-spins background, reel frame and Gaze skin are revealed smoothly.
+		// The player pressed the congratulations artwork → the water wall rises OVER the card…
+		await eventEmitter.broadcastAsync({ type: 'transitionCover' });
+		// …and while the screen is fully covered: swap to the free-spins scene (background, reel
+		// frame, Gaze skin), drop the intro card and release the blur — all invisible under water.
 		stateGame.gameType = 'freegame';
 		await eventEmitter.broadcastAsync({ type: 'freeSpinIntroHide' });
 		stateGame.freeSpinIntroActive = false;
@@ -347,6 +350,8 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 			current: undefined,
 			total: bookEvent.totalFs,
 		});
+		// the water passes upward off the screen, revealing the feature ready to play
+		await eventEmitter.broadcastAsync({ type: 'transitionReveal' });
 		await eventEmitter.broadcastAsync({ type: 'uiShow' });
 	},
 
@@ -362,6 +367,9 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	freeSpinRetrigger: async (bookEvent: BookEventOfType<'freeSpinRetrigger'>) => {
 		eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_scatter_win_v2' });
 		await animateSymbols({ positions: bookEvent.positions });
+		// same stakes as the initial trigger — give it the same celebration (sequential scatter
+		// ignites → flash → shockwave) before the retrigger banner
+		await eventEmitter.broadcastAsync({ type: 'scatterCelebrate', positions: bookEvent.positions });
 		await eventEmitter.broadcastAsync({
 			type: 'freeSpinRetriggerShow',
 			totalFreeSpins: bookEvent.totalFs,

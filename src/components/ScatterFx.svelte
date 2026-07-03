@@ -10,24 +10,35 @@
 
 	import { Container, Graphics } from 'pixi-svelte';
 	import { CanvasSizeRectangle, MainContainer } from 'components-layout';
+	import { stateBetDerived } from 'state-shared';
 
 	import BoardContainer from './BoardContainer.svelte';
 	import { getContext } from '../game/context';
 	import { getPositionX, getPositionY } from '../game/utils';
+	import { BOARD_SIZES, SYMBOL_SIZE } from '../game/constants';
 
 	// Board-wide scatter reactions:
-	//  • anticipation (3+ scatters) → dim the screen, set the shared `scatterAnticipating` flag
-	//    (the scatters pulse harder via Symbol) and run a rising audio hum.
-	//  • trigger → pulse the winning scatter cells and flash before the transition.
+	//  • anticipation (3+ scatters) → dim the screen (breathing), set the shared
+	//    `scatterAnticipating` flag (the scatters pulse harder via Symbol) and run a rising hum.
+	//  • trigger → ALL scatters pulse/glow in unison, then the white flash births a shockwave
+	//    ring from the board centre and the board takes the hit.
 	const context = getContext();
 
 	const dim = new Tween(0, { duration: 320 });
-	const celebrate = $state({ link: 0, flash: 0 });
-	let positions = $state<Position[]>([]);
+	// the dim breathes while anticipating — pressure, not a static veil
+	const dimPulse = $state({ v: 0 });
+	let dimPulseTween: gsap.core.Tween | undefined;
+	const celebrate = $state({ flash: 0 });
+	// the trigger scatters' cells (all pulse in unison via cellPulse) + the centre shockwave
+	let cellPulses = $state<{ x: number; y: number; p: number }[]>([]);
+	const cellPulse = $state({ p: 0 });
+	const shock = $state({ p: 0 });
 
 	const stopAnticipation = () => {
 		context.stateGame.scatterAnticipating = false;
 		void dim.set(0);
+		dimPulseTween?.kill();
+		dimPulse.v = 0;
 		context.eventEmitter.broadcast({ type: 'soundStop', name: 'sfx_anticipation' });
 	};
 
@@ -35,50 +46,99 @@
 		reelFrameScatterAnticipationStart: () => {
 			context.stateGame.scatterAnticipating = true;
 			void dim.set(0.4);
+			dimPulseTween?.kill();
+			dimPulseTween = gsap.fromTo(
+				dimPulse,
+				{ v: 0 },
+				{ v: 1, duration: 0.85, ease: 'sine.inOut', repeat: -1, yoyo: true, delay: 0.5 },
+			);
 			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_anticipation_start' });
 			context.eventEmitter.broadcast({ type: 'soundLoop', name: 'sfx_anticipation' });
 		},
 		reelFrameScatterAnticipationEnd: () => stopAnticipation(),
 		scatterCelebrate: async (emitterEvent) => {
-			positions = emitterEvent.positions;
 			stopAnticipation();
 			gsap.killTweensOf(celebrate);
+			gsap.killTweensOf(shock);
+			gsap.killTweensOf(cellPulse);
+
+			// ALL trigger scatters pulse/glow together (two swells), THEN the flash + shockwave + jolt
+			cellPulses = emitterEvent.positions.map((pos) => ({
+				x: getPositionX(pos.reel),
+				y: getPositionY(pos.row),
+				p: 0,
+			}));
+			const PULSE_DURATION = 0.95;
+			const flashAt = PULSE_DURATION + 0.05;
+
 			await new Promise<void>((resolve) => {
-				gsap
-					.timeline({ onComplete: resolve })
-					.set(celebrate, { link: 0, flash: 0 })
-					.to(celebrate, { link: 1, duration: 0.4, ease: 'power2.out' })
-					.to(celebrate, { flash: 0.85, duration: 0.1 }, '-=0.06')
-					.to(celebrate, { flash: 0, duration: 0.4, ease: 'power2.out' })
-					.to(celebrate, { link: 0, duration: 0.3 }, '<');
+				const tl = gsap.timeline({
+					onComplete: () => {
+						cellPulses = [];
+						cellPulse.p = 0;
+						shock.p = 0;
+						resolve();
+					},
+				});
+				tl.timeScale(stateBetDerived.timeScale());
+				tl.set(celebrate, { flash: 0 }).set(shock, { p: 0 }).set(cellPulse, { p: 0 });
+				tl.to(cellPulse, { p: 1, duration: PULSE_DURATION, ease: 'none' }, 0);
+				tl.set(celebrate, { flash: 0.85 }, flashAt)
+					.add(() => context.eventEmitter.broadcast({ type: 'boardEyeImpact' }), flashAt)
+					.to(shock, { p: 1, duration: 0.6, ease: 'power2.out' }, flashAt)
+					.to(celebrate, { flash: 0, duration: 0.4, ease: 'power2.out' }, flashAt + 0.05);
 			});
 		},
 	});
 
-	const drawScatterPulses = (g: import('pixi.js').Graphics) => {
-		const p = celebrate.link;
-		if (p <= 0) return;
-		const points = positions.map((pos) => ({
-			x: getPositionX(pos.reel),
-			y: getPositionY(pos.row),
-		}));
-		for (const point of points) {
-			g.circle(point.x, point.y, 12 * p).fill({ color: 0xffffff, alpha: 0.7 * p });
+	// Every trigger scatter glows in unison: two synced swells (|sin| gives pulse-up, down,
+	// pulse-up again) of a warm bloom over each cell — glow only, no white core.
+	const drawCellIgnites = (g: import('pixi.js').Graphics) => {
+		const p = cellPulse.p;
+		if (p <= 0 || p >= 1 || cellPulses.length === 0) return;
+		const swell = Math.abs(Math.sin(p * Math.PI * 2));
+		for (const cell of cellPulses) {
+			const bloomR = SYMBOL_SIZE * (0.34 + swell * 0.28);
+			g.circle(cell.x, cell.y, bloomR).fill({ color: 0xffd27a, alpha: swell * 0.4 });
 		}
+	};
+
+	// The shockwave the flash gives birth to: a fat gold ring + white chaser expanding from the
+	// board centre out past its corners.
+	const drawShockwave = (g: import('pixi.js').Graphics) => {
+		const p = shock.p;
+		if (p <= 0 || p >= 1) return;
+		const cx = BOARD_SIZES.width / 2;
+		const cy = BOARD_SIZES.height / 2;
+		const maxR = Math.hypot(BOARD_SIZES.width, BOARD_SIZES.height) * 0.6;
+		g.circle(cx, cy, maxR * p).stroke({
+			width: Math.max(2, 20 * (1 - p)),
+			color: 0xffe6a6,
+			alpha: (1 - p) * 0.8,
+		});
+		g.circle(cx, cy, maxR * Math.max(0, p - 0.07)).stroke({
+			width: Math.max(1, 8 * (1 - p)),
+			color: 0xffffff,
+			alpha: (1 - p) * 0.55,
+		});
 	};
 </script>
 
-<!-- anticipation dim (screen space) -->
+<!-- anticipation dim (screen space), breathing while the hold builds -->
 {#if dim.current > 0.001}
-	<CanvasSizeRectangle backgroundColor={0x03060e} backgroundAlpha={dim.current} />
+	<CanvasSizeRectangle
+		backgroundColor={0x03060e}
+		backgroundAlpha={dim.current + dimPulse.v * 0.07}
+	/>
 {/if}
 
-<!-- trigger scatter pulses (board space) -->
-{#if celebrate.link > 0}
+<!-- trigger: sequential scatter ignites + the centre shockwave (board space) -->
+{#if cellPulses.length > 0}
 	<MainContainer>
 		<BoardContainer>
 			<Container blendMode="add">
-				<Graphics draw={drawScatterPulses} />
+				<Graphics draw={drawCellIgnites} />
+				<Graphics draw={drawShockwave} />
 			</Container>
 		</BoardContainer>
 	</MainContainer>

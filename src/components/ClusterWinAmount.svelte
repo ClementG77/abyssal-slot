@@ -25,20 +25,21 @@
 
 	const props: Props = $props();
 	const y = new Tween(0);
-	const scale = new Tween(0.4, { duration: 180, easing: backOut });
+	const scale = new Tween(0.4, { duration: 150, easing: backOut });
 	let show = $state(true);
 
-	// snappy: pop in, float up briefly, then fade — keeps cascades rhythmic, not sluggish
+	// snappy: pop in, a SHORT float up, then fade — this is awaited by winInfo, so its length
+	// directly paces the whole win → tumble rhythm. Keep it tight.
 	onMount(async () => {
 		scale.set(1);
-		await y.set(-SYMBOL_SIZE * 0.7, { duration: (SECOND * 0.8) / stateBetDerived.timeScale() });
+		await y.set(-SYMBOL_SIZE * 0.62, { duration: (SECOND * 0.42) / stateBetDerived.timeScale() });
 		show = false;
 	});
 </script>
 
 <FadeContainer
 	{show}
-	duration={180}
+	duration={130}
 	oncomplete={() => {
 		if (!show) props.win.oncomplete();
 	}}

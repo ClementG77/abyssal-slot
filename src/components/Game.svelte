@@ -120,9 +120,8 @@
 			{/if}
 			<Win />
 			<WinCapCelebration />
-			{#if ['desktop', 'landscape'].includes(context.stateLayoutDerived.layoutType())}
-				<FreeSpinCounter />
-			{/if}
+			<!-- all layouts — the counter positions itself per layout (portrait: above the board) -->
+			<FreeSpinCounter />
 			<FreeSpinOutro />
 			<GameHeader />
 		{/if}
