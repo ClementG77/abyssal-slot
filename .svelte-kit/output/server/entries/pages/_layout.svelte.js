@@ -677,6 +677,9 @@ function backOut(t) {
   const s = 1.70158;
   return --t * t * ((s + 1) * t + s) + 1;
 }
+function cubicIn(t) {
+  return t * t * t;
+}
 function cubicOut(t) {
   const f = t - 1;
   return f * f * f + 1;
@@ -11724,7 +11727,7 @@ const BOARD_SIZES = {
 };
 const VISIBLE_ROW_START = 1;
 const getSymbolFill = (symbolName) => {
-  if (symbolName === "S") return 0.9;
+  if (symbolName === "S") return 1.1;
   if (symbolName === "EYE") return 1.2;
   if (symbolName.startsWith("H")) return 0.95;
   if (symbolName.startsWith("L")) return 0.74;
@@ -12416,7 +12419,11 @@ const stateGame = {
   // Snowball persistent multiplier `M` during a feature (driven by `setPersistentMult`).
   persistentMult: 1,
   // Keeps the game scene blurred while the free-spins congratulations banner is awaiting a press.
-  freeSpinIntroActive: false
+  freeSpinIntroActive: false,
+  // True while a tumble refill slides symbols into place. Cascade settles reuse the `land`
+  // symbol state, but they are settles, not landings — components use this to skip the
+  // landing fanfare (e.g. the scatter's flare/ring/rays only fire on real reel-stop lands).
+  cascading: false
 };
 const reelLayout = () => stateGame.gameType === "freegame" ? REEL_LAYOUT_FREE_SPINS : REEL_LAYOUT_BASE;
 const boardLayout = () => {
@@ -15227,6 +15234,8 @@ const bookEventHandlerMap = {
       eventEmitter.broadcast({ type: "stopButtonEnable" });
       recordBookEvent({ bookEvent });
     }
+    stateGame.cascading = false;
+    eventEmitter.broadcast({ type: "soundScatterCounterClear" });
     stateGame.gazeCharge = 0;
     stateGame.eyeResolvedThisSpin = false;
     stateGame.eyeResolveCell = null;
@@ -15239,7 +15248,6 @@ const bookEventHandlerMap = {
     stateGame.gameType = bookEvent.gameType;
     await stateGameDerived.enhancedBoard.spin({ revealEvent });
     eventEmitter.broadcast({ type: "reelFrameScatterAnticipationEnd" });
-    eventEmitter.broadcast({ type: "soundScatterCounterClear" });
   },
   winInfo: async (bookEvent) => {
     const promiseAnimate = async () => {
@@ -15341,27 +15349,16 @@ const bookEventHandlerMap = {
     eventEmitter.broadcast({ type: "tumbleWinAmountHide" });
   },
   // --- The Eye (end of a winning tumble sequence) -----------------------------------
-  // A fresh Eye drops onto the board mid-cascade (Ultimate). Place it CLOSED at its cell so it
-  // shows, persists through the remaining tumbles, and is there for `eyeReveal` to open. The
-  // board is on-screen at this point (the prior tumbleBoard re-showed it).
+  // The Eye arrives ON the board via the tumble refill (`tumbleBoard.newSymbols`): it falls in
+  // and lands with the cascade like any other symbol (drop animation + eye land reactions play
+  // there). `eyeDrop` is therefore NON-PLACING — it only confirms the cell's closed-Eye flag.
+  // Re-placing or re-dropping here would play the arrival animation twice.
   eyeDrop: async (bookEvent) => {
     const { position } = bookEvent;
     const cell = stateGame.board[position.reel]?.reelState.symbols[position.row];
-    if (!cell) return;
-    cell.rawSymbol = { name: "EYE", eye: true };
-    cell.symbolState = "static";
-    const targetY = cell.symbolY.current;
-    cell.symbolY.set(targetY - REEL_CELL_HEIGHT * 0.95, { duration: 0 });
-    await cell.symbolY.set(targetY, {
-      duration: 260 / stateBetDerived.timeScale(),
-      easing: backOut
-    });
-    stateGameDerived.onSymbolLand({
-      rawSymbol: cell.rawSymbol,
-      reel: position.reel,
-      row: position.row
-    });
-    await waitForTimeout(180 / stateBetDerived.timeScale());
+    if (cell?.rawSymbol.name === "EYE") {
+      cell.rawSymbol = { ...cell.rawSymbol, eye: true };
+    }
   },
   eyeReveal: async (bookEvent) => {
     const landedEye = stateGame.board[bookEvent.position.reel]?.reelState.symbols[bookEvent.position.row];
@@ -15424,7 +15421,6 @@ const bookEventHandlerMap = {
     await animateSymbols({ positions: bookEvent.positions });
     await eventEmitter.broadcastAsync({ type: "scatterCelebrate", positions: bookEvent.positions });
     await eventEmitter.broadcastAsync({ type: "uiHide" });
-    await eventEmitter.broadcastAsync({ type: "transition" });
     stateGame.freeSpinIntroActive = true;
     eventEmitter.broadcast({ type: "freeSpinIntroShow" });
     eventEmitter.broadcast({ type: "soundMusic", name: "bgm_freespin" });
@@ -15432,6 +15428,7 @@ const bookEventHandlerMap = {
       type: "freeSpinIntroUpdate",
       totalFreeSpins: bookEvent.totalFs
     });
+    await eventEmitter.broadcastAsync({ type: "transitionCover" });
     stateGame.gameType = "freegame";
     await eventEmitter.broadcastAsync({ type: "freeSpinIntroHide" });
     stateGame.freeSpinIntroActive = false;
@@ -15445,6 +15442,7 @@ const bookEventHandlerMap = {
       current: void 0,
       total: bookEvent.totalFs
     });
+    await eventEmitter.broadcastAsync({ type: "transitionReveal" });
     await eventEmitter.broadcastAsync({ type: "uiShow" });
   },
   updateFreeSpin: async (bookEvent) => {
@@ -15458,6 +15456,7 @@ const bookEventHandlerMap = {
   freeSpinRetrigger: async (bookEvent) => {
     eventEmitter.broadcast({ type: "soundOnce", name: "sfx_scatter_win_v2" });
     await animateSymbols({ positions: bookEvent.positions });
+    await eventEmitter.broadcastAsync({ type: "scatterCelebrate", positions: bookEvent.positions });
     await eventEmitter.broadcastAsync({
       type: "freeSpinRetriggerShow",
       totalFreeSpins: bookEvent.totalFs
@@ -16134,8 +16133,12 @@ function BoardContainer($$payload, $$props) {
       return Math.max(0, scatterAnticipationReleaseFrom * (1 - releaseElapsed / 0.2));
     }
     if (scatterAnticipationStartedAt < 0) return 0;
-    const progress = Math.min(1, (now2 - scatterAnticipationStartedAt) / 1e3);
-    return progress * progress * (3 - 2 * progress);
+    const elapsed = (now2 - scatterAnticipationStartedAt) / 1e3;
+    const p = Math.min(1, elapsed);
+    const smooth = p * p * (3 - 2 * p);
+    const creep = Math.min(0.5, Math.max(0, elapsed - 1) * 0.12);
+    const heartbeat = elapsed > 1 ? Math.sin((elapsed - 1) * Math.PI * 2.3) * 0.035 : 0;
+    return smooth + creep + heartbeat;
   })();
   const boardShakeY = launchMotion * 42;
   const boardScale = {
@@ -16417,22 +16420,16 @@ function Symbol$1($$payload, $$props) {
   const eyeVariant = isUnresolvedEye ? "close" : props.rawSymbol.eyeType === "MUL" ? "multEmpty" : "addEmpty";
   const winFx = { glow: 0, squashX: 1, squashY: 1 };
   const boomFx = { flash: 0 };
-  const elecFx = { t: 0, glow: 0 };
+  const winGlowFx = { pulse: 0 };
   const isScatter = props.rawSymbol.name === "S";
-  const electricOn = !isEye && !isScatter && (props.state === "win" || props.state === "postWinStatic");
-  const scatterFx = {
-    breathe: 1,
-    flare: 0,
-    ring: 0,
-    connect: 0,
-    rays: 0
-  };
+  const winGlowOn = !isEye && !isScatter && (props.state === "win" || props.state === "postWinStatic");
+  const scatterFx = { breathe: 1, connect: 0, landGlow: 0 };
   const scatterAmb = { t: 0 };
   isScatter && (props.state === "win" || props.state === "postWinStatic");
   onDestroy(() => {
     gsap.killTweensOf(winFx);
     gsap.killTweensOf(boomFx);
-    gsap.killTweensOf(elecFx);
+    gsap.killTweensOf(winGlowFx);
     gsap.killTweensOf(scatterFx);
     gsap.killTweensOf(scatterAmb);
   });
@@ -16453,74 +16450,25 @@ function Symbol$1($$payload, $$props) {
     }
   };
   const eyeSize = Math.max(symbolSize.width, symbolSize.height) * 1.08;
-  const ELEC_COLOR = 8377599;
-  const cellW = REEL_CELL_WIDTH * 0.92;
-  const cellH = REEL_CELL_HEIGHT * 0.92;
-  const drawElectric = (g) => {
-    const w = cellW;
-    const h = cellH;
-    const t = elecFx.t;
-    const glow = elecFx.glow;
-    g.roundRect(-w / 2, -h / 2, w, h, 12).fill({ color: ELEC_COLOR, alpha: 0.06 + glow * 0.07 });
-    g.roundRect(-w / 2, -h / 2, w, h, 12).stroke({
-      width: 2 + glow * 2.5,
-      color: ELEC_COLOR,
-      alpha: 0.4 + glow * 0.5
-    });
-    const edges = [
-      {
-        ax: -w / 2,
-        ay: -h / 2,
-        bx: w / 2,
-        by: -h / 2
-      },
-      { ax: w / 2, ay: -h / 2, bx: w / 2, by: h / 2 },
-      { ax: w / 2, ay: h / 2, bx: -w / 2, by: h / 2 },
-      {
-        ax: -w / 2,
-        ay: h / 2,
-        bx: -w / 2,
-        by: -h / 2
-      }
-    ];
-    const segs = 6;
-    const amp = h * 0.07;
-    edges.forEach((e, ei) => {
-      const dx = e.bx - e.ax;
-      const dy = e.by - e.ay;
-      const len = Math.hypot(dx, dy) || 1;
-      const nx = -dy / len;
-      const ny = dx / len;
-      g.moveTo(e.ax, e.ay);
-      for (let s = 1; s < segs; s++) {
-        const f = s / segs;
-        const off = Math.sin(t * 9 + ei * 2.3 + s * 1.7) * amp;
-        g.lineTo(e.ax + dx * f + nx * off, e.ay + dy * f + ny * off);
-      }
-      g.lineTo(e.bx, e.by);
-    });
-    g.stroke({
-      width: 2,
-      color: 16777215,
-      alpha: 0.45 + glow * 0.45
-    });
-  };
-  const drawScatterRing = (g) => {
-    const p = scatterFx.ring;
-    if (p <= 0 || p >= 1) return;
-    const base = Math.max(symbolSize.width, symbolSize.height) * 0.55;
-    const r = base * (0.7 + p * 1);
-    g.circle(0, 0, r).stroke({
-      width: Math.max(1, 5 * (1 - p)),
-      color: 16770726,
-      alpha: (1 - p) * 0.9
-    });
+  const drawWinBloom = (g) => {
+    const pulse = winGlowFx.pulse;
+    if (pulse <= 0) return;
+    const base = Math.max(symbolSize.width, symbolSize.height) * 0.6;
+    const steps = 4;
+    for (let i = steps; i >= 1; i--) {
+      const f = i / steps;
+      g.circle(0, 0, base * (0.5 + f * 0.7)).fill({
+        color: 12578559,
+        alpha: 0.05 * (1.25 - f) * pulse
+      });
+    }
   };
   const drawScatterGlow = (g) => {
-    const base = Math.max(symbolSize.width, symbolSize.height) * 0.56;
     const anticipating = context2.stateGame.scatterAnticipating;
-    const shimmer = 0.8 + Math.sin(scatterAmb.t * 1.7) * 0.2;
-    const boost = anticipating ? 1.9 : 1;
+    const landGlow = scatterFx.landGlow;
+    const base = Math.max(symbolSize.width, symbolSize.height) * 0.56 * (anticipating ? 1.12 : 1) * (1 + landGlow * 0.22);
+    const shimmer = anticipating ? 0.75 + Math.sin(scatterAmb.t * 3.6) * 0.25 : 0.8 + Math.sin(scatterAmb.t * 1.7) * 0.2;
+    const boost = (anticipating ? 2.6 : 1) + landGlow * 3.2;
     const steps = 4;
     for (let i = steps; i >= 1; i--) {
       const f = i / steps;
@@ -16528,56 +16476,6 @@ function Symbol$1($$payload, $$props) {
         color: 16763236,
         alpha: 0.028 * (1.25 - f) * shimmer * boost
       });
-    }
-  };
-  const SPARKLE_COUNT = 7;
-  const drawScatterSparkles = (g) => {
-    const t = scatterAmb.t;
-    const base = Math.max(symbolSize.width, symbolSize.height);
-    for (let i = 0; i < SPARKLE_COUNT; i++) {
-      const angle = t * 0.45 + i * Math.PI * 2 / SPARKLE_COUNT;
-      const orbit = base * (0.5 + Math.sin(t * 0.8 + i * 2.1) * 0.05);
-      const x = Math.cos(angle) * orbit;
-      const y = Math.sin(angle) * orbit * 0.86;
-      const twinkle = 0.5 + 0.5 * Math.sin(t * 3.1 + i * 1.9);
-      const s = base * 0.028 * (0.5 + twinkle);
-      g.poly([
-        { x, y: y - s * 1.7 },
-        { x: x + s * 0.4, y },
-        { x, y: y + s * 1.7 },
-        { x: x - s * 0.4, y }
-      ]).fill({ color: 16771504, alpha: 0.2 + twinkle * 0.7 });
-      g.poly([
-        { x: x - s * 1.2, y },
-        { x, y: y + s * 0.35 },
-        { x: x + s * 1.2, y },
-        { x, y: y - s * 0.35 }
-      ]).fill({ color: 16774872, alpha: 0.15 + twinkle * 0.5 });
-    }
-  };
-  const RAY_COUNT = 8;
-  const drawScatterRays = (g) => {
-    const p = scatterFx.rays;
-    if (p <= 0 || p >= 1) return;
-    const base = Math.max(symbolSize.width, symbolSize.height) * 0.5;
-    const len = base * (0.9 + p * 1.5);
-    const spread = 0.09;
-    for (let i = 0; i < RAY_COUNT; i++) {
-      const angle = i * Math.PI * 2 / RAY_COUNT + p * 0.35 + 0.4;
-      g.poly([
-        {
-          x: Math.cos(angle - spread) * base * 0.5,
-          y: Math.sin(angle - spread) * base * 0.5
-        },
-        {
-          x: Math.cos(angle) * len,
-          y: Math.sin(angle) * len
-        },
-        {
-          x: Math.cos(angle + spread) * base * 0.5,
-          y: Math.sin(angle + spread) * base * 0.5
-        }
-      ]).fill({ color: 16768906, alpha: (1 - p) * 0.55 });
     }
   };
   Container($$payload, {
@@ -16601,12 +16499,12 @@ function Symbol$1($$payload, $$props) {
         });
       } else {
         $$payload2.out += "<!--[!-->";
-        if (electricOn) {
+        if (winGlowOn) {
           $$payload2.out += "<!--[-->";
           Container($$payload2, {
             blendMode: "add",
             children: ($$payload3) => {
-              Graphics($$payload3, { draw: drawElectric });
+              Graphics($$payload3, { draw: drawWinBloom });
             },
             $$slots: { default: true }
           });
@@ -16626,19 +16524,6 @@ function Symbol$1($$payload, $$props) {
               $$slots: { default: true }
             });
             $$payload2.out += `<!----> `;
-            if (scatterFx.rays > 0 && scatterFx.rays < 1) {
-              $$payload2.out += "<!--[-->";
-              Container($$payload2, {
-                blendMode: "add",
-                children: ($$payload3) => {
-                  Graphics($$payload3, { draw: drawScatterRays });
-                },
-                $$slots: { default: true }
-              });
-            } else {
-              $$payload2.out += "<!--[!-->";
-            }
-            $$payload2.out += `<!--]--> `;
             if (scatterFx.connect > 0) {
               $$payload2.out += "<!--[-->";
               Sprite($$payload2, {
@@ -16661,42 +16546,21 @@ function Symbol$1($$payload, $$props) {
               height: symbolSize.height * scatterFx.breathe
             });
             $$payload2.out += `<!----> `;
-            if (scatterFx.flare > 0) {
+            if (scatterFx.landGlow > 0) {
               $$payload2.out += "<!--[-->";
               Sprite($$payload2, {
                 key: frame,
                 anchor: 0.5,
                 width: symbolSize.width * scatterFx.breathe,
                 height: symbolSize.height * scatterFx.breathe,
-                alpha: scatterFx.flare,
-                tint: 16777215,
+                alpha: Math.min(0.5, scatterFx.landGlow * 0.32),
+                tint: 16765562,
                 blendMode: "add"
               });
             } else {
               $$payload2.out += "<!--[!-->";
             }
-            $$payload2.out += `<!--]--> `;
-            if (scatterFx.ring > 0 && scatterFx.ring < 1) {
-              $$payload2.out += "<!--[-->";
-              Container($$payload2, {
-                blendMode: "add",
-                children: ($$payload3) => {
-                  Graphics($$payload3, { draw: drawScatterRing });
-                },
-                $$slots: { default: true }
-              });
-            } else {
-              $$payload2.out += "<!--[!-->";
-            }
-            $$payload2.out += `<!--]--> `;
-            Container($$payload2, {
-              blendMode: "add",
-              children: ($$payload3) => {
-                Graphics($$payload3, { draw: drawScatterSparkles });
-              },
-              $$slots: { default: true }
-            });
-            $$payload2.out += `<!---->`;
+            $$payload2.out += `<!--]-->`;
           } else {
             $$payload2.out += "<!--[!-->";
             Sprite($$payload2, {
@@ -16722,6 +16586,21 @@ function Symbol$1($$payload, $$props) {
             }
           });
           $$payload2.out += `<!---->`;
+        }
+        $$payload2.out += `<!--]--> `;
+        if (winGlowOn && frame) {
+          $$payload2.out += "<!--[-->";
+          Sprite($$payload2, {
+            key: frame,
+            anchor: 0.5,
+            width: symbolSize.width * 1.05,
+            height: symbolSize.height * 1.05,
+            alpha: winGlowFx.pulse * 0.4,
+            tint: 16777215,
+            blendMode: "add"
+          });
+        } else {
+          $$payload2.out += "<!--[!-->";
         }
         $$payload2.out += `<!--]--> `;
         if (winFx.glow > 0 && frame) {
@@ -16905,6 +16784,50 @@ function Board($$payload, $$props) {
 function Anticipation($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
+  const wash = { t: 0, alpha: 0 };
+  const laneWash = new FillGradient({
+    textureSpace: "local",
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 0 },
+    colorStops: [
+      { offset: 0, color: "rgba(190, 232, 255, 0)" },
+      {
+        offset: 0.5,
+        color: "rgba(214, 242, 255, 0.85)"
+      },
+      { offset: 1, color: "rgba(190, 232, 255, 0)" }
+    ]
+  });
+  const OVERSHOOT = REEL_CELL_HEIGHT * 0.85;
+  const drawColumnWash = (g) => {
+    const laneX = props.reelIndex * REEL_CELL_WIDTH;
+    const w = REEL_CELL_WIDTH;
+    const h = BOARD_SIZES.height;
+    const pulse = 0.9 + Math.sin(wash.t * 2.2) * 0.1;
+    g.rect(laneX, 0, w, h).fill({ fill: laneWash, alpha: 0.16 * pulse });
+    g.rect(laneX + w * 0.16, 0, w * 0.68, h).fill({ fill: laneWash, alpha: 0.12 * pulse });
+    const slices = 4;
+    const sliceH = OVERSHOOT / slices;
+    for (let i = 0; i < slices; i++) {
+      const fade = 1 - (i + 0.5) / slices;
+      const alpha = 0.16 * pulse * fade;
+      g.rect(laneX, -(i + 1) * sliceH, w, sliceH).fill({ fill: laneWash, alpha });
+      g.rect(laneX, h + i * sliceH, w, sliceH).fill({ fill: laneWash, alpha });
+    }
+  };
+  BoardContainer($$payload, {
+    children: ($$payload2) => {
+      Container($$payload2, {
+        blendMode: "add",
+        alpha: wash.alpha,
+        children: ($$payload3) => {
+          Graphics($$payload3, { draw: drawColumnWash });
+        },
+        $$slots: { default: true }
+      });
+    },
+    $$slots: { default: true }
+  });
   pop();
 }
 function Anticipations($$payload, $$props) {
@@ -16924,12 +16847,13 @@ function Anticipations($$payload, $$props) {
     $$payload.out += "<!--[!-->";
   }
   $$payload.out += `<!--]--> <!--[-->`;
-  for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-    let reel = each_array[$$index];
+  for (let reelIndex = 0, $$length = each_array.length; reelIndex < $$length; reelIndex++) {
+    let reel = each_array[reelIndex];
     if (reel.reelState.anticipating) {
       $$payload.out += "<!--[-->";
       Anticipation($$payload, {
         reel,
+        reelIndex,
         oncomplete: () => reel.reelState.anticipating = false
       });
     } else {
@@ -16944,11 +16868,11 @@ function ClusterWinAmount($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
   const y = new Tween(0);
-  const scale = new Tween(0.4, { duration: 180, easing: backOut });
+  const scale = new Tween(0.4, { duration: 150, easing: backOut });
   let show = true;
   FadeContainer($$payload, {
     show,
-    duration: 180,
+    duration: 130,
     oncomplete: () => {
     },
     children: ($$payload2) => {
@@ -17119,6 +17043,7 @@ function TumbleBoard($$payload, $$props) {
       });
     },
     tumbleBoardSlideDown: async () => {
+      context2.stateGame.cascading = true;
       const COLUMN_STAGGER = 80;
       const ts = stateBetDerived.timeScale();
       const spinOptions = stateBet$1.isTurbo ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
@@ -17157,6 +17082,7 @@ function TumbleBoard($$payload, $$props) {
         }));
       });
       await Promise.all(getPromises());
+      context2.stateGame.cascading = false;
     }
   });
   if (show) {
@@ -17205,14 +17131,21 @@ function BoardDebris($$payload, $$props) {
   context2.eventEmitter.subscribeOnMount({
     boardDebris: ({ cells }) => {
       const t = performance.now();
-      const duration = 620 / stateBetDerived.timeScale();
+      const duration = 560 / stateBetDerived.timeScale();
       const spawned = cells.map((cell) => {
-        const count = 11;
-        const shards = Array.from({ length: count }, (_2, i) => ({
-          angle: i / count * Math.PI * 2 + Math.random() * 0.55,
-          dist: SYMBOL_SIZE * (0.6 + Math.random() * 1),
-          size: SYMBOL_SIZE * (0.07 + Math.random() * 0.08)
-        }));
+        const bubbles = Array.from({ length: 9 }, () => {
+          const angle = Math.random() * Math.PI * 2;
+          const spread = SYMBOL_SIZE * (0.08 + Math.random() * 0.3);
+          return {
+            ox: Math.cos(angle) * spread,
+            oy: Math.sin(angle) * spread * 0.7,
+            rise: SYMBOL_SIZE * (0.45 + Math.random() * 0.6),
+            r: SYMBOL_SIZE * (0.045 + Math.random() * 0.07),
+            drift: SYMBOL_SIZE * (0.05 + Math.random() * 0.08),
+            phase: Math.random() * Math.PI * 2,
+            delay: Math.random() * 0.22
+          };
+        });
         return {
           id: nextId++,
           x: getPositionX(cell.reel),
@@ -17220,7 +17153,7 @@ function BoardDebris($$payload, $$props) {
           color: cell.color,
           start: t,
           duration,
-          shards
+          bubbles
         };
       });
       bursts = [...bursts, ...spawned];
@@ -17230,21 +17163,32 @@ function BoardDebris($$payload, $$props) {
   const drawBurst = (g, burst) => {
     const p = Math.min(1, (now2 - burst.start) / burst.duration);
     if (p >= 1) return;
-    const e = easeOut(p);
-    const fade = 1 - p;
-    const gravity = SYMBOL_SIZE * 1 * p * p;
-    for (const s of burst.shards) {
-      const dist = s.dist * e;
-      const x = Math.cos(s.angle) * dist;
-      const y = Math.sin(s.angle) * dist + gravity;
-      const r = s.size * (1 - p * 0.55);
-      const tail = s.size * 2.2;
-      g.moveTo(x - Math.cos(s.angle) * tail, y - Math.sin(s.angle) * tail).lineTo(x, y).stroke({
-        width: Math.max(1, r * 0.7),
+    if (p < 0.3) {
+      const ringP = p / 0.3;
+      g.circle(0, 0, SYMBOL_SIZE * (0.22 + ringP * 0.68)).stroke({
+        width: Math.max(1.5, 6 * (1 - ringP)),
         color: burst.color,
-        alpha: fade * 0.8
+        alpha: (1 - ringP) * 0.7
       });
-      g.circle(x, y, r * 0.55).fill({ color: 16777215, alpha: fade });
+      g.circle(0, 0, SYMBOL_SIZE * 0.3 * (1 - ringP * 0.6)).fill({ color: 16777215, alpha: (1 - ringP) * 0.45 });
+    }
+    for (const b of burst.bubbles) {
+      const lp = Math.min(1, Math.max(0, (p - b.delay) / (1 - b.delay)));
+      if (lp <= 0 || lp >= 1) continue;
+      const e = easeOut(lp);
+      const x = b.ox * e + Math.sin(lp * 6 + b.phase) * b.drift * lp;
+      const y = b.oy * e - b.rise * lp;
+      const popScale = lp > 0.85 ? Math.max(0, 1 - (lp - 0.85) / 0.15) : 1;
+      const r = b.r * (0.75 + lp * 0.45) * popScale;
+      if (r <= 0.5) continue;
+      const alpha = (1 - lp * 0.55) * popScale;
+      g.circle(x, y, r).stroke({
+        width: 1.5,
+        color: 12578559,
+        alpha: alpha * 0.8
+      });
+      g.circle(x, y, r * 0.8).fill({ color: burst.color, alpha: alpha * 0.16 });
+      g.circle(x - r * 0.3, y - r * 0.35, Math.max(0.8, r * 0.25)).fill({ color: 16777215, alpha: alpha * 0.75 });
     }
   };
   BoardContainer($$payload, {
@@ -17567,7 +17511,7 @@ function GazeMeter($$payload, $$props) {
   let flightValue = 0;
   let fx = { burst: 0, textScale: 1, overcharge: 0 };
   const animations = /* @__PURE__ */ new Set();
-  const fill = new Tween(0, { duration: 520, easing: cubicOut });
+  const fill = new Tween(0, { duration: 400, easing: cubicOut });
   const orbFlight = new Tween(0, { duration: 1 });
   const toCenter = new Tween(0, { duration: 1 });
   const liquid = { t: 0 };
@@ -17722,10 +17666,9 @@ function GazeMeter($$payload, $$props) {
         wobble: (Math.random() - 0.5) * SYMBOL_SIZE * 0.9
       }));
       orbFlight.set(0, { duration: 0 });
-      await orbFlight.set(1, { duration: (420 + orbs.length * 55) / ts });
+      await orbFlight.set(1, { duration: (300 + orbs.length * 40) / ts });
       orbs = [];
-      await setCharge(emitterEvent.charge);
-      playChargeFx(emitterEvent.charge > GAZE_METER_MAX_CHARGE);
+      void setCharge(emitterEvent.charge).then(() => playChargeFx(emitterEvent.charge > GAZE_METER_MAX_CHARGE));
     },
     gazeMeterToEye: async () => {
       if (charge <= 0) return;
@@ -18281,17 +18224,32 @@ function ScatterFx($$payload, $$props) {
   push();
   const context2 = getContext();
   const dim = new Tween(0, { duration: 320 });
-  const celebrate = { link: 0, flash: 0 };
-  let positions = [];
+  const dimPulse = { v: 0 };
+  let dimPulseTween;
+  const celebrate = { flash: 0 };
+  let cellPulses = [];
+  const cellPulse = { p: 0 };
+  const shock = { p: 0 };
   const stopAnticipation = () => {
     context2.stateGame.scatterAnticipating = false;
     void dim.set(0);
+    dimPulseTween?.kill();
+    dimPulse.v = 0;
     context2.eventEmitter.broadcast({ type: "soundStop", name: "sfx_anticipation" });
   };
   context2.eventEmitter.subscribeOnMount({
     reelFrameScatterAnticipationStart: () => {
       context2.stateGame.scatterAnticipating = true;
       void dim.set(0.4);
+      dimPulseTween?.kill();
+      dimPulseTween = gsap.fromTo(dimPulse, { v: 0 }, {
+        v: 1,
+        duration: 0.85,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+        delay: 0.5
+      });
       context2.eventEmitter.broadcast({
         type: "soundOnce",
         name: "sfx_anticipation_start"
@@ -18300,36 +18258,70 @@ function ScatterFx($$payload, $$props) {
     },
     reelFrameScatterAnticipationEnd: () => stopAnticipation(),
     scatterCelebrate: async (emitterEvent) => {
-      positions = emitterEvent.positions;
       stopAnticipation();
       gsap.killTweensOf(celebrate);
+      gsap.killTweensOf(shock);
+      gsap.killTweensOf(cellPulse);
+      cellPulses = emitterEvent.positions.map((pos) => ({
+        x: getPositionX(pos.reel),
+        y: getPositionY(pos.row),
+        p: 0
+      }));
+      const PULSE_DURATION = 0.95;
+      const flashAt = PULSE_DURATION + 0.05;
       await new Promise((resolve) => {
-        gsap.timeline({ onComplete: resolve }).set(celebrate, { link: 0, flash: 0 }).to(celebrate, { link: 1, duration: 0.4, ease: "power2.out" }).to(celebrate, { flash: 0.85, duration: 0.1 }, "-=0.06").to(celebrate, { flash: 0, duration: 0.4, ease: "power2.out" }).to(celebrate, { link: 0, duration: 0.3 }, "<");
+        const tl = gsap.timeline({
+          onComplete: () => {
+            cellPulses = [];
+            cellPulse.p = 0;
+            shock.p = 0;
+            resolve();
+          }
+        });
+        tl.timeScale(stateBetDerived.timeScale());
+        tl.set(celebrate, { flash: 0 }).set(shock, { p: 0 }).set(cellPulse, { p: 0 });
+        tl.to(cellPulse, { p: 1, duration: PULSE_DURATION, ease: "none" }, 0);
+        tl.set(celebrate, { flash: 0.85 }, flashAt).add(() => context2.eventEmitter.broadcast({ type: "boardEyeImpact" }), flashAt).to(shock, { p: 1, duration: 0.6, ease: "power2.out" }, flashAt).to(celebrate, { flash: 0, duration: 0.4, ease: "power2.out" }, flashAt + 0.05);
       });
     }
   });
-  const drawScatterPulses = (g) => {
-    const p = celebrate.link;
-    if (p <= 0) return;
-    const points = positions.map((pos) => ({
-      x: getPositionX(pos.reel),
-      y: getPositionY(pos.row)
-    }));
-    for (const point of points) {
-      g.circle(point.x, point.y, 12 * p).fill({ color: 16777215, alpha: 0.7 * p });
+  const drawCellIgnites = (g) => {
+    const p = cellPulse.p;
+    if (p <= 0 || p >= 1 || cellPulses.length === 0) return;
+    const swell = Math.abs(Math.sin(p * Math.PI * 2));
+    for (const cell of cellPulses) {
+      const bloomR = SYMBOL_SIZE * (0.34 + swell * 0.28);
+      g.circle(cell.x, cell.y, bloomR).fill({ color: 16765562, alpha: swell * 0.4 });
     }
+  };
+  const drawShockwave = (g) => {
+    const p = shock.p;
+    if (p <= 0 || p >= 1) return;
+    const cx = BOARD_SIZES.width / 2;
+    const cy = BOARD_SIZES.height / 2;
+    const maxR = Math.hypot(BOARD_SIZES.width, BOARD_SIZES.height) * 0.6;
+    g.circle(cx, cy, maxR * p).stroke({
+      width: Math.max(2, 20 * (1 - p)),
+      color: 16770726,
+      alpha: (1 - p) * 0.8
+    });
+    g.circle(cx, cy, maxR * Math.max(0, p - 0.07)).stroke({
+      width: Math.max(1, 8 * (1 - p)),
+      color: 16777215,
+      alpha: (1 - p) * 0.55
+    });
   };
   if (dim.current > 1e-3) {
     $$payload.out += "<!--[-->";
     CanvasSizeRectangle($$payload, {
       backgroundColor: 198158,
-      backgroundAlpha: dim.current
+      backgroundAlpha: dim.current + dimPulse.v * 0.07
     });
   } else {
     $$payload.out += "<!--[!-->";
   }
   $$payload.out += `<!--]--> `;
-  if (celebrate.link > 0) {
+  if (cellPulses.length > 0) {
     $$payload.out += "<!--[-->";
     MainContainer($$payload, {
       children: ($$payload2) => {
@@ -18338,7 +18330,10 @@ function ScatterFx($$payload, $$props) {
             Container($$payload3, {
               blendMode: "add",
               children: ($$payload4) => {
-                Graphics($$payload4, { draw: drawScatterPulses });
+                Graphics($$payload4, { draw: drawCellIgnites });
+                $$payload4.out += `<!----> `;
+                Graphics($$payload4, { draw: drawShockwave });
+                $$payload4.out += `<!---->`;
               },
               $$slots: { default: true }
             });
@@ -18756,6 +18751,7 @@ function FreeSpinIntro($$payload, $$props) {
   };
   let confirmed = false;
   let animation = void 0;
+  let idleTl = void 0;
   let fx = {
     backdrop: 0,
     alpha: 0,
@@ -18763,8 +18759,10 @@ function FreeSpinIntro($$payload, $$props) {
     y: 48,
     hint: 0
   };
+  const idle = { breathe: 1, glow: 0 };
   const playIntro = () => {
     animation?.kill();
+    idleTl?.kill();
     Object.assign(fx, {
       backdrop: 0,
       alpha: 0,
@@ -18772,6 +18770,7 @@ function FreeSpinIntro($$payload, $$props) {
       y: 48,
       hint: 0
     });
+    Object.assign(idle, { breathe: 1, glow: 0 });
     animation = gsap.timeline({ defaults: { ease: "power2.out" } }).to(fx, { backdrop: 0.72, duration: 0.28 }).to(
       fx,
       {
@@ -18783,9 +18782,16 @@ function FreeSpinIntro($$payload, $$props) {
       },
       "<0.04"
     ).to(fx, { hint: 1, duration: 0.22 }, "-=0.12");
+    idleTl = gsap.timeline({ repeat: -1, yoyo: true, delay: 1.1 }).to(idle, {
+      breathe: 1.012,
+      glow: 1,
+      duration: 1.4,
+      ease: "sine.inOut"
+    });
   };
   const playOutro = () => new Promise((resolve) => {
     animation?.kill();
+    idleTl?.kill();
     animation = gsap.timeline({
       defaults: { ease: "power2.inOut" },
       onComplete: resolve
@@ -18841,7 +18847,7 @@ function FreeSpinIntro($$payload, $$props) {
         Container($$payload2, {
           x: sizes.width / 2,
           y: sizes.height / 2 + fx.y,
-          scale: fx.scale,
+          scale: fx.scale * idle.breathe,
           alpha: fx.alpha,
           eventMode: "static",
           cursor: "pointer",
@@ -18857,6 +18863,21 @@ function FreeSpinIntro($$payload, $$props) {
               onpointerup: confirm
             });
             $$payload3.out += `<!----> `;
+            if (idle.glow > 0) {
+              $$payload3.out += "<!--[-->";
+              Sprite($$payload3, {
+                anchor: 0.5,
+                key: "freeSpinIntro",
+                width: imgW,
+                height: imgH,
+                alpha: idle.glow * 0.14,
+                tint: 16765562,
+                blendMode: "add"
+              });
+            } else {
+              $$payload3.out += "<!--[!-->";
+            }
+            $$payload3.out += `<!--]--> `;
             Text($$payload3, {
               anchor: 0.5,
               y: imgH * 0.49,
@@ -19041,19 +19062,41 @@ function FreeSpinCounter($$payload, $$props) {
   const freeSpinsSize = SYMBOL_SIZE * 2.05;
   const totalMultSize = SYMBOL_SIZE * 1.42;
   const panelGap = SYMBOL_SIZE * 0.18;
-  const scale = 1;
   const boardLayout2 = context2.stateGameDerived.boardLayout();
-  const position = {
+  const isStacked = context2.stateLayoutDerived.isStacked();
+  const position = isStacked ? {
+    x: boardLayout2.x + boardLayout2.width * 0.5 * MOBILE_REEL_DISPLAY_SCALE - totalMultSize * 0.75,
+    y: boardLayout2.y - boardLayout2.height * 0.5 * MOBILE_REEL_DISPLAY_SCALE - SYMBOL_SIZE * 0.62
+  } : {
     x: boardLayout2.x + boardLayout2.width * 0.5 + SYMBOL_SIZE * 1.08,
     y: boardLayout2.y - boardLayout2.height * 0.5 + totalMultSize * 0.5
+  };
+  const groupScale = isStacked ? 0.55 : 1;
+  const spinsPanelOffset = isStacked ? {
+    x: -(totalMultSize * 0.5 + freeSpinsSize * 0.5 + panelGap),
+    y: 0
+  } : {
+    x: 0,
+    y: totalMultSize * 0.5 + freeSpinsSize * 0.5 + panelGap
   };
   let show = false;
   let current = 0;
   let total = 0;
   let lastPersistentMult = context2.stateGame.persistentMult;
   const totalMultPop = new Tween(1, { duration: 160 });
+  const entrance = new Tween(1, { duration: 420, easing: backOut });
   context2.eventEmitter.subscribeOnMount({
-    freeSpinCounterShow: () => show = true,
+    freeSpinCounterShow: async () => {
+      if (!show) {
+        show = true;
+        entrance.set(0.55, { duration: 0 });
+        void entrance.set(1);
+        await totalMultPop.set(1.3);
+        await totalMultPop.set(1);
+        return;
+      }
+      show = true;
+    },
     freeSpinCounterHide: () => show = false,
     freeSpinCounterUpdate: (emitterEvent) => {
       if (emitterEvent.current !== void 0) current = emitterEvent.current;
@@ -19091,37 +19134,73 @@ function FreeSpinCounter($$payload, $$props) {
         { show },
         position,
         {
-          scale,
           children: ($$payload3) => {
             Container($$payload3, {
-              scale: totalMultPop.current,
+              scale: groupScale * entrance.current,
               children: ($$payload4) => {
                 Container($$payload4, {
-                  y: -totalMultSize * 0.58,
+                  scale: totalMultPop.current,
                   children: ($$payload5) => {
-                    BitmapText($$payload5, {
-                      text: "TOTAL MULT",
-                      anchor: 0.5,
-                      style: totalMultLabelStyle
+                    Container($$payload5, {
+                      y: -totalMultSize * 0.58,
+                      children: ($$payload6) => {
+                        BitmapText($$payload6, {
+                          text: "TOTAL MULT",
+                          anchor: 0.5,
+                          style: totalMultLabelStyle
+                        });
+                      },
+                      $$slots: { default: true }
                     });
+                    $$payload5.out += `<!----> `;
+                    Container($$payload5, {
+                      children: ($$payload6) => {
+                        Sprite($$payload6, {
+                          anchor: 0.5,
+                          key: "totalMultBanner",
+                          width: totalMultSize,
+                          height: totalMultSize
+                        });
+                        $$payload6.out += `<!----> `;
+                        ResponsiveBitmapText($$payload6, {
+                          text: `x${context2.stateGame.persistentMult}`,
+                          anchor: 0.5,
+                          maxWidth: totalMultSize * 0.52,
+                          style: totalMultValueStyle
+                        });
+                        $$payload6.out += `<!---->`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload5.out += `<!---->`;
                   },
                   $$slots: { default: true }
                 });
                 $$payload4.out += `<!----> `;
                 Container($$payload4, {
+                  x: spinsPanelOffset.x,
+                  y: spinsPanelOffset.y,
                   children: ($$payload5) => {
                     Sprite($$payload5, {
                       anchor: 0.5,
-                      key: "totalMultBanner",
-                      width: totalMultSize,
-                      height: totalMultSize
+                      key: "freeSpinsCount",
+                      width: freeSpinsSize,
+                      height: freeSpinsSize
                     });
                     $$payload5.out += `<!----> `;
-                    ResponsiveBitmapText($$payload5, {
-                      text: `x${context2.stateGame.persistentMult}`,
+                    BitmapText($$payload5, {
+                      text: "FREE SPINS",
                       anchor: 0.5,
-                      maxWidth: totalMultSize * 0.52,
-                      style: totalMultValueStyle
+                      y: -freeSpinsSize * 0.14,
+                      style: freeSpinsLabelStyle
+                    });
+                    $$payload5.out += `<!----> `;
+                    ResponsiveText($$payload5, {
+                      text: `${current} / ${total}`,
+                      anchor: 0.5,
+                      y: freeSpinsSize * 0.13,
+                      maxWidth: freeSpinsSize * 0.68,
+                      style: freeSpinsValueStyle
                     });
                     $$payload5.out += `<!---->`;
                   },
@@ -19131,36 +19210,6 @@ function FreeSpinCounter($$payload, $$props) {
               },
               $$slots: { default: true }
             });
-            $$payload3.out += `<!----> `;
-            Container($$payload3, {
-              y: totalMultSize * 0.5 + freeSpinsSize * 0.5 + panelGap,
-              children: ($$payload4) => {
-                Sprite($$payload4, {
-                  anchor: 0.5,
-                  key: "freeSpinsCount",
-                  width: freeSpinsSize,
-                  height: freeSpinsSize
-                });
-                $$payload4.out += `<!----> `;
-                BitmapText($$payload4, {
-                  text: "FREE SPINS",
-                  anchor: 0.5,
-                  y: -freeSpinsSize * 0.14,
-                  style: freeSpinsLabelStyle
-                });
-                $$payload4.out += `<!----> `;
-                ResponsiveText($$payload4, {
-                  text: `${current} / ${total}`,
-                  anchor: 0.5,
-                  y: freeSpinsSize * 0.13,
-                  maxWidth: freeSpinsSize * 0.68,
-                  style: freeSpinsValueStyle
-                });
-                $$payload4.out += `<!---->`;
-              },
-              $$slots: { default: true }
-            });
-            $$payload3.out += `<!---->`;
           },
           $$slots: { default: true }
         }
@@ -19233,6 +19282,7 @@ function FreeSpinOutro($$payload, $$props) {
 function Transition($$payload, $$props) {
   push();
   const context2 = getContext();
+  const dive = new Tween(0, { duration: 1 });
   const alpha = new Tween(0, { duration: 320 });
   const irisProgress = new Tween(0, { duration: 680 });
   const FREE_SPIN_EXIT_COVER_DURATION = 350;
@@ -19240,11 +19290,24 @@ function Transition($$payload, $$props) {
   let irisActive = false;
   const sizes = context2.stateLayoutDerived.canvasSizes();
   const irisRadius = (Math.hypot(sizes.width, sizes.height) * 0.5 + 4) * irisProgress.current;
+  const water = { t: 0 };
+  const BUBBLES = Array.from({ length: 26 }, (_2, i) => ({
+    x: i * 0.383 % 1 * 0.96 + 0.02,
+    speed: 0.35 + i * 0.271 % 1 * 0.5,
+    r: 2.5 + i * 0.617 % 1 * 5,
+    phase: i * 0.77
+  }));
   context2.eventEmitter.subscribeOnMount({
-    transition: async () => {
-      const duration = 320 / stateBetDerived.timeScale();
-      await alpha.set(1, { duration });
-      await alpha.set(0, { duration });
+    transitionCover: async () => {
+      const ts = stateBetDerived.timeScale();
+      dive.set(0, { duration: 0 });
+      await dive.set(1, { duration: 620 / ts, easing: cubicOut });
+    },
+    transitionReveal: async () => {
+      const ts = stateBetDerived.timeScale();
+      await waitForTimeout(120 / ts);
+      await dive.set(2, { duration: 640 / ts, easing: cubicIn });
+      dive.set(0, { duration: 0 });
     },
     freeSpinExitCover: async () => {
       irisActive = false;
@@ -19260,6 +19323,59 @@ function Transition($$payload, $$props) {
       irisActive = false;
     }
   });
+  const drawDive = (g) => {
+    const d = dive.current;
+    if (d <= 0 || d >= 2) return;
+    const { width: W, height: H } = sizes;
+    const t = water.t;
+    const crestY = H * (1 - Math.min(d, 1)) - 30;
+    const tailY = d > 1 ? H * (1 - (d - 1)) : H + 40;
+    const steps = 12;
+    const amp = H * 0.018;
+    const crest = [];
+    for (let s = 0; s <= steps; s++) {
+      const x = W * s / steps;
+      crest.push({
+        x,
+        y: crestY + Math.sin(x / W * Math.PI * 4 + t * 5) * amp
+      });
+    }
+    const tail = [];
+    for (let s = steps; s >= 0; s--) {
+      const x = W * s / steps;
+      tail.push({
+        x,
+        y: tailY + Math.sin(x / W * Math.PI * 4 + t * 5 + 1.7) * amp
+      });
+    }
+    g.poly([...crest, ...tail]).fill({ color: 670274, alpha: 1 });
+    g.moveTo(crest[0].x, crest[0].y);
+    for (let s = 1; s < crest.length; s++) g.lineTo(crest[s].x, crest[s].y);
+    g.stroke({ width: 4, color: 9431262, alpha: 0.45 });
+    g.moveTo(crest[0].x, crest[0].y + 10);
+    for (let s = 1; s < crest.length; s++) g.lineTo(crest[s].x, crest[s].y + 10);
+    g.stroke({ width: 14, color: 2789263, alpha: 0.16 });
+    for (const bubble of BUBBLES) {
+      const bx = bubble.x * W + Math.sin(t * 1.6 + bubble.phase) * 14;
+      const travel = (t * bubble.speed * H * 0.35 + bubble.phase * 200) % (H * 1.1);
+      const by = H + 20 - travel;
+      if (by < crestY + 24 || by > tailY) continue;
+      const nearCrest = Math.min(1, (by - crestY) / (H * 0.12));
+      g.circle(bx, by, bubble.r).stroke({
+        width: 1.5,
+        color: 10481894,
+        alpha: 0.4 * nearCrest
+      });
+      g.circle(bx - bubble.r * 0.3, by - bubble.r * 0.3, bubble.r * 0.25).fill({ color: 16777215, alpha: 0.35 * nearCrest });
+    }
+  };
+  if (dive.current > 0 && dive.current < 2) {
+    $$payload.out += "<!--[-->";
+    Graphics($$payload, { zIndex: 40, draw: drawDive });
+  } else {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]--> `;
   if (irisActive) {
     $$payload.out += "<!--[-->";
     Graphics($$payload, {
@@ -20480,22 +20596,23 @@ function GameHeader($$payload, $$props) {
   const scale = Math.max(0.6, Math.min(1, canvas.width / 1200));
   const pad = Math.round(26 * scale);
   const fontSize = Math.round(18 * scale);
-  const nameStyle = {
+  const baseTextStyle = {
     fontFamily: FONT,
     fontWeight: "600",
     fontSize,
-    fill: C.textDim,
     letterSpacing: 4
   };
+  const timeStyle = { ...baseTextStyle, fill: 14220287 };
+  const nameStyle = { ...baseTextStyle, fill: 16768913 };
   Container($$payload, {
     children: ($$payload2) => {
       Text($$payload2, {
         x: pad,
         y: pad,
         anchor: { x: 0, y: 0 },
-        alpha: 0.85,
+        alpha: 0.95,
         text: timeText,
-        style: nameStyle
+        style: timeStyle
       });
       $$payload2.out += `<!----> `;
       Text($$payload2, {
@@ -20919,53 +21036,66 @@ function GameInfo($$payload, $$props) {
     const fx = FRAME[name][0];
     const fy = FRAME[name][1];
     const s = size / CELL_W;
-    $$payload2.out += `<span class="sym-icon svelte-73l26x"${attr("style", `width:${stringify(CELL_W * s)}px; height:${stringify(CELL_H * s)}px; background-image:url('${stringify(ATLAS)}'); background-size:${stringify(ATLAS_W * s)}px ${stringify(ATLAS_H * s)}px; background-position:${stringify(-fx * s)}px ${stringify(-fy * s)}px;`)}></span>`;
+    $$payload2.out += `<span class="sym-icon svelte-19s4fcf"${attr("style", `width:${stringify(CELL_W * s)}px; height:${stringify(CELL_H * s)}px; background-image:url('${stringify(ATLAS)}'); background-size:${stringify(ATLAS_W * s)}px ${stringify(ATLAS_H * s)}px; background-position:${stringify(-fx * s)}px ${stringify(-fy * s)}px;`)}></span>`;
   }
   const each_array = ensure_array_like(steps);
   function payColumn($$payload2, title, list, high) {
     const each_array_1 = ensure_array_like(list);
-    $$payload2.out += `<div${attr("class", to_class("pay-col", "svelte-73l26x", { "high": high }))}><h3 class="svelte-73l26x">${escape_html(title)}</h3> <table class="svelte-73l26x"><thead><tr><th class="sym svelte-73l26x">${escape_html(copy.paytableSymbolHeader)}</th><th class="svelte-73l26x">${escape_html(copy.paytableCount8To9)}</th><th class="svelte-73l26x">${escape_html(copy.paytableCount10To11)}</th><th class="svelte-73l26x">${escape_html(copy.paytableCount12Plus)}</th></tr></thead><tbody class="svelte-73l26x"><!--[-->`;
+    $$payload2.out += `<div${attr("class", to_class("pay-col", "svelte-19s4fcf", { "high": high }))}><h3 class="svelte-19s4fcf">${escape_html(title)}</h3> <table class="svelte-19s4fcf"><thead><tr><th class="sym svelte-19s4fcf">${escape_html(copy.paytableSymbolHeader)}</th><th class="svelte-19s4fcf">${escape_html(copy.paytableCount8To9)}</th><th class="svelte-19s4fcf">${escape_html(copy.paytableCount10To11)}</th><th class="svelte-19s4fcf">${escape_html(copy.paytableCount12Plus)}</th></tr></thead><tbody class="svelte-19s4fcf"><!--[-->`;
     for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
       let s = each_array_1[$$index_1];
-      $$payload2.out += `<tr class="svelte-73l26x"><td class="sym svelte-73l26x">`;
+      $$payload2.out += `<tr class="svelte-19s4fcf"><td class="sym svelte-19s4fcf">`;
       symIcon($$payload2, s.sym);
-      $$payload2.out += `<!----><span>${escape_html(s.name)}</span></td><td class="svelte-73l26x">${escape_html(s.pays[0])}</td><td class="svelte-73l26x">${escape_html(s.pays[1])}</td><td class="svelte-73l26x">${escape_html(s.pays[2])}</td></tr>`;
+      $$payload2.out += `<!----><span>${escape_html(s.name)}</span></td><td class="svelte-19s4fcf">${escape_html(s.pays[0])}</td><td class="svelte-19s4fcf">${escape_html(s.pays[1])}</td><td class="svelte-19s4fcf">${escape_html(s.pays[2])}</td></tr>`;
     }
     $$payload2.out += `<!--]--></tbody></table></div>`;
   }
   const each_array_2 = ensure_array_like(freeSpinBullets);
   const each_array_3 = ensure_array_like(modes);
-  $$payload.out += `<div class="game-info svelte-73l26x"><header class="svelte-73l26x"><h1 class="svelte-73l26x">${escape_html(copy.title)}</h1> <p class="tag svelte-73l26x">${escape_html(copy.tagline)}</p></header> <p class="lead svelte-73l26x">${html(copy.leadHtml)}</p> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.howSpinPlaysTitle)}</h2> <ol class="steps svelte-73l26x"><!--[-->`;
+  $$payload.out += `<div class="game-info svelte-19s4fcf"><header class="svelte-19s4fcf"><h1 class="svelte-19s4fcf">${escape_html(copy.title)}</h1> <p class="tag svelte-19s4fcf">${escape_html(copy.tagline)}</p></header> <p class="lead svelte-19s4fcf">${html(copy.leadHtml)}</p> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.howSpinPlaysTitle)}</h2> <ol class="steps svelte-19s4fcf"><!--[-->`;
   for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
     let step = each_array[$$index];
-    $$payload.out += `<li class="svelte-73l26x">${html(step)}</li>`;
+    $$payload.out += `<li class="svelte-19s4fcf">${html(step)}</li>`;
   }
-  $$payload.out += `<!--]--></ol></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.paytableTitle)}</h2> <p class="note svelte-73l26x">${escape_html(copy.paytableNote)}</p> <div class="paytables svelte-73l26x">`;
+  $$payload.out += `<!--]--></ol></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.paytableTitle)}</h2> <p class="note svelte-19s4fcf">${escape_html(copy.paytableNote)}</p> <div class="paytables svelte-19s4fcf">`;
   payColumn($$payload, copy.paytableHighSymbols, highs, true);
   $$payload.out += `<!----> `;
   payColumn($$payload, copy.paytableLowSymbols, lows, false);
-  $$payload.out += `<!----></div></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.specialSymbolsTitle)}</h2> <div class="specials svelte-73l26x"><div class="special svelte-73l26x">`;
+  $$payload.out += `<!----></div></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.specialSymbolsTitle)}</h2> <div class="specials svelte-19s4fcf"><div class="special svelte-19s4fcf">`;
   symIcon($$payload, "SCATTER", 56);
-  $$payload.out += `<!----> <div class="special-name svelte-73l26x">${escape_html(copy.specialScatterName)}</div> <p class="svelte-73l26x">${html(copy.specialScatterDescriptionHtml)}</p></div> <div class="special svelte-73l26x">`;
+  $$payload.out += `<!----> <div class="special-name svelte-19s4fcf">${escape_html(copy.specialScatterName)}</div> <p class="svelte-19s4fcf">${html(copy.specialScatterDescriptionHtml)}</p></div> <div class="special svelte-19s4fcf">`;
   symIcon($$payload, "ADD_EYE", 56);
-  $$payload.out += `<!----> <div class="special-name svelte-73l26x">${escape_html(copy.specialAddEyeName)}</div> <p class="svelte-73l26x">${html(copy.specialAddEyeDescriptionHtml)}</p></div> <div class="special svelte-73l26x">`;
+  $$payload.out += `<!----> <div class="special-name svelte-19s4fcf">${escape_html(copy.specialAddEyeName)}</div> <p class="svelte-19s4fcf">${html(copy.specialAddEyeDescriptionHtml)}</p></div> <div class="special svelte-19s4fcf">`;
   symIcon($$payload, "MULT_EYE", 56);
-  $$payload.out += `<!----> <div class="special-name svelte-73l26x">${escape_html(copy.specialMultEyeName)}</div> <p class="svelte-73l26x">${html(copy.specialMultEyeDescriptionHtml)}</p></div></div></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${html(copy.eyeGazeTitle)}</h2> <p class="svelte-73l26x">${html(copy.eyeGazeDescriptionHtml)}</p> <p class="note svelte-73l26x">${html(copy.eyeGazeExampleHtml)}</p></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.freeSpinsTitle)}</h2> <ul class="bullets svelte-73l26x"><!--[-->`;
+  $$payload.out += `<!----> <div class="special-name svelte-19s4fcf">${escape_html(copy.specialMultEyeName)}</div> <p class="svelte-19s4fcf">${html(copy.specialMultEyeDescriptionHtml)}</p></div></div></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${html(copy.eyeGazeTitle)}</h2> <p class="svelte-19s4fcf">${html(copy.eyeGazeDescriptionHtml)}</p> <p class="note svelte-19s4fcf">${html(copy.eyeGazeExampleHtml)}</p></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.freeSpinsTitle)}</h2> <ul class="bullets svelte-19s4fcf"><!--[-->`;
   for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
     let bullet = each_array_2[$$index_2];
-    $$payload.out += `<li class="svelte-73l26x">${html(bullet)}</li>`;
+    $$payload.out += `<li class="svelte-19s4fcf">${html(bullet)}</li>`;
   }
-  $$payload.out += `<!--]--></ul></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.waysToPlayTitle)}</h2> <div class="modes svelte-73l26x"><!--[-->`;
+  $$payload.out += `<!--]--></ul></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.waysToPlayTitle)}</h2> <div class="modes svelte-19s4fcf"><!--[-->`;
   for (let $$index_3 = 0, $$length = each_array_3.length; $$index_3 < $$length; $$index_3++) {
     let m = each_array_3[$$index_3];
-    $$payload.out += `<div class="mode svelte-73l26x"><div class="mode-head svelte-73l26x"><span class="mode-name svelte-73l26x">${escape_html(m.name)}</span><span class="mode-cost svelte-73l26x">${escape_html(m.cost)}</span></div> <p class="svelte-73l26x">${escape_html(m.text)}</p></div>`;
+    $$payload.out += `<div class="mode svelte-19s4fcf"><div class="mode-head svelte-19s4fcf"><span class="mode-name svelte-19s4fcf">${escape_html(m.name)}</span><span class="mode-cost svelte-19s4fcf">${escape_html(m.cost)}</span></div> <p class="svelte-19s4fcf">${escape_html(m.text)}</p></div>`;
   }
-  $$payload.out += `<!--]--></div></section> <section class="svelte-73l26x"><h2 class="svelte-73l26x">${escape_html(copy.generalDisclaimerTitle)}</h2> <p class="disclaimer svelte-73l26x">${html(copy.generalDisclaimerHtml)}</p></section></div>`;
+  $$payload.out += `<!--]--></div></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.generalDisclaimerTitle)}</h2> <p class="disclaimer svelte-19s4fcf">${html(copy.generalDisclaimerHtml)}</p></section></div>`;
   pop();
 }
 function BuyBonusModal($$payload, $$props) {
   push();
   const { eventEmitter: eventEmitter2 } = getContextEventEmitter();
+  const SPRITE_URL = new URL("../../assets/bonus/bonus/bonus_buy.png", import.meta.url).href;
+  const SPRITE_POS = {
+    SUPERSPINS: "0% 0%",
+    ANTE: "33.3333% 0%",
+    BONUS: "66.6667% 0%",
+    SUPERBONUS: "100% 0%",
+    ULTIMATE: "0% 100%"
+  };
+  const heroStyle = (m) => {
+    const pos = SPRITE_POS[m.mode.toUpperCase()];
+    if (!pos) return "";
+    return `background-image: url(${SPRITE_URL}); background-size: 400% 200%; background-position: ${pos};`;
+  };
   const cards = [...stateMetaDerived.betModeMetaList()].filter((m) => m.type === "activate" || m.type === "buy").sort((a, b) => a.costMultiplier - b.costMultiplier);
   const isActivate = (m) => m.type === "activate";
   const options = [...stateConfig.betAmountOptions].sort((a, b) => a - b);
@@ -20978,9 +21108,6 @@ function BuyBonusModal($$payload, $$props) {
   const isActive = (m) => stateBet$1.activeBetModeKey.toUpperCase() === m.mode.toUpperCase();
   const close = () => stateModal.modal = null;
   const money = (n) => numberToCurrencyString(n);
-  const heroOf = (m) => m.assets?.dialogImage || m.assets?.icon || "";
-  const BOLTS = [0, 1, 2, 3, 4];
-  const volatilityOf = (m) => Number(m.assets?.volatility) || 0;
   if (stateModal.modal?.name === "buyBonus") {
     $$payload.out += "<!--[-->";
     Popup($$payload, {
@@ -20990,49 +21117,36 @@ function BuyBonusModal($$payload, $$props) {
       onclose: close,
       children: ($$payload2) => {
         const each_array = ensure_array_like(cards);
-        $$payload2.out += `<div class="buy-modal svelte-1cghchn"><div class="bm-bet svelte-1cghchn"><span class="bm-bet-label svelte-1cghchn">BET</span> <div class="bm-stepper svelte-1cghchn"><button class="bm-step svelte-1cghchn"${attr("disabled", decDisabled, true)} aria-label="decrease bet">−</button> <span class="bm-bet-value svelte-1cghchn">${escape_html(money(stateBet$1.betAmount))}</span> <button class="bm-step svelte-1cghchn"${attr("disabled", incDisabled, true)} aria-label="increase bet">+</button></div></div> <div class="bm-grid svelte-1cghchn"><!--[-->`;
-        for (let $$index_1 = 0, $$length = each_array.length; $$index_1 < $$length; $$index_1++) {
-          let m = each_array[$$index_1];
+        $$payload2.out += `<div class="buy-modal svelte-refr9d"><div class="bm-grid svelte-refr9d"><!--[-->`;
+        for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+          let m = each_array[$$index];
           const activate = isActivate(m);
           const active = activate && isActive(m);
-          const each_array_1 = ensure_array_like(BOLTS);
-          $$payload2.out += `<div${attr("class", to_class("bm-card", "svelte-1cghchn", { "active": active }))}><div class="bm-hero svelte-1cghchn">`;
-          if (heroOf(m)) {
-            $$payload2.out += "<!--[-->";
-            $$payload2.out += `<img${attr("src", heroOf(m))}${attr("alt", m.text.title)} class="svelte-1cghchn">`;
-          } else {
-            $$payload2.out += "<!--[!-->";
-          }
-          $$payload2.out += `<!--]--> `;
+          $$payload2.out += `<div${attr("class", to_class("bm-card", "svelte-refr9d", { "active": active }))}><div class="bm-hero svelte-refr9d"><div class="bm-hero-art svelte-refr9d"${attr("style", heroStyle(m))} role="img"${attr("aria-label", m.text.title)}></div> `;
           if (active) {
             $$payload2.out += "<!--[-->";
-            $$payload2.out += `<div class="bm-badge svelte-1cghchn">ACTIVE</div>`;
+            $$payload2.out += `<div class="bm-badge svelte-refr9d">ACTIVE</div>`;
           } else {
             $$payload2.out += "<!--[!-->";
           }
-          $$payload2.out += `<!--]--></div> <div class="bm-panel svelte-1cghchn"><div class="bm-bolts svelte-1cghchn"><!--[-->`;
-          for (let $$index = 0, $$length2 = each_array_1.length; $$index < $$length2; $$index++) {
-            let i = each_array_1[$$index];
-            $$payload2.out += `<svg${attr("class", to_class("bolt", "svelte-1cghchn", { "on": i < volatilityOf(m) }))} viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z" class="svelte-1cghchn"></path></svg>`;
-          }
-          $$payload2.out += `<!--]--></div> <div class="bm-title svelte-1cghchn">${escape_html(m.text.title)}</div> <div class="bm-price svelte-1cghchn">${escape_html(money(costOf(m)))}</div> `;
+          $$payload2.out += `<!--]--></div> <div class="bm-panel svelte-refr9d"><div class="bm-title svelte-refr9d">${escape_html(m.text.title)}</div> <div class="bm-divider svelte-refr9d"></div> <div class="bm-desc svelte-refr9d">${escape_html(m.text.dialog)}</div> <div class="bm-price svelte-refr9d">${escape_html(money(costOf(m)))}</div> `;
           if (activate && active) {
             $$payload2.out += "<!--[-->";
-            $$payload2.out += `<button class="bm-action activate on svelte-1cghchn">DEACTIVATE</button>`;
+            $$payload2.out += `<button class="bm-action activate on svelte-refr9d">DEACTIVATE</button>`;
           } else {
             $$payload2.out += "<!--[!-->";
             if (activate) {
               $$payload2.out += "<!--[-->";
-              $$payload2.out += `<button class="bm-action activate svelte-1cghchn"${attr("disabled", !affordable(m), true)}>ACTIVATE</button>`;
+              $$payload2.out += `<button class="bm-action activate svelte-refr9d"${attr("disabled", !affordable(m), true)}>ACTIVATE</button>`;
             } else {
               $$payload2.out += "<!--[!-->";
-              $$payload2.out += `<button class="bm-action buy svelte-1cghchn"${attr("disabled", !affordable(m), true)}>${escape_html(affordable(m) ? "BUY" : "LOW FUNDS")}</button>`;
+              $$payload2.out += `<button class="bm-action buy svelte-refr9d"${attr("disabled", !affordable(m), true)}>${escape_html(affordable(m) ? "BUY" : "LOW FUNDS")}</button>`;
             }
             $$payload2.out += `<!--]-->`;
           }
           $$payload2.out += `<!--]--></div></div>`;
         }
-        $$payload2.out += `<!--]--></div></div>`;
+        $$payload2.out += `<!--]--></div> <div class="bm-bet svelte-refr9d"><span class="bm-bet-label svelte-refr9d">BET</span> <div class="bm-stepper svelte-refr9d"><button class="bm-step minus svelte-refr9d"${attr("disabled", decDisabled, true)} aria-label="decrease bet">−</button> <span class="bm-bet-value svelte-refr9d">${escape_html(money(stateBet$1.betAmount))}</span> <button class="bm-step plus svelte-refr9d"${attr("disabled", incDisabled, true)} aria-label="increase bet">+</button></div></div></div>`;
       },
       $$slots: { default: true }
     });
@@ -21140,13 +21254,8 @@ function Game($$payload, $$props) {
             $$payload3.out += `<!----> `;
             WinCapCelebration($$payload3);
             $$payload3.out += `<!----> `;
-            if (["desktop", "landscape"].includes(context2.stateLayoutDerived.layoutType())) {
-              $$payload3.out += "<!--[-->";
-              FreeSpinCounter($$payload3);
-            } else {
-              $$payload3.out += "<!--[!-->";
-            }
-            $$payload3.out += `<!--]--> `;
+            FreeSpinCounter($$payload3);
+            $$payload3.out += `<!----> `;
             FreeSpinOutro($$payload3);
             $$payload3.out += `<!----> `;
             GameHeader($$payload3);
@@ -21248,34 +21357,34 @@ function AbyssalLoader($$payload, $$props) {
     const each_array = ensure_array_like(Array.from({ length: 28 }));
     const each_array_1 = ensure_array_like(cards);
     const each_array_2 = ensure_array_like(cards);
-    $$payload.out += `<div${attr("class", to_class("abyssal-loader", "svelte-pm00y7", { "ready": ready, "leaving": leaving }))} role="button" tabindex="0"${attr("aria-label", ready ? copy.cta : copy.loading)}><div class="loader-stage svelte-pm00y7"><div class="background svelte-pm00y7" aria-hidden="true"${attr("style", `background-image: url(${backgroundUrl})`)}></div> <div class="vignette svelte-pm00y7" aria-hidden="true"></div> <div class="light-rays svelte-pm00y7" aria-hidden="true"></div> <div class="bubbles svelte-pm00y7" aria-hidden="true"><!--[-->`;
+    $$payload.out += `<div${attr("class", to_class("abyssal-loader", "svelte-ls07v6", { "ready": ready, "leaving": leaving }))} role="button" tabindex="0"${attr("aria-label", ready ? copy.cta : copy.loading)}><div class="loader-stage svelte-ls07v6"><div class="background svelte-ls07v6" aria-hidden="true"${attr("style", `background-image: url(${backgroundUrl})`)}></div> <div class="vignette svelte-ls07v6" aria-hidden="true"></div> <div class="light-rays svelte-ls07v6" aria-hidden="true"></div> <div class="bubbles svelte-ls07v6" aria-hidden="true"><!--[-->`;
     for (let index = 0, $$length = each_array.length; index < $$length; index++) {
       each_array[index];
-      $$payload.out += `<i${attr("style", `--i: ${index}`)} class="svelte-pm00y7"></i>`;
+      $$payload.out += `<i${attr("style", `--i: ${index}`)} class="svelte-ls07v6"></i>`;
     }
-    $$payload.out += `<!--]--></div> <header class="loader-header svelte-pm00y7">`;
+    $$payload.out += `<!--]--></div> <header class="loader-header svelte-ls07v6">`;
     AbyssalPixiLogo($$payload, { title: copy.logo });
-    $$payload.out += `<!----></header> <div class="cards-grid svelte-pm00y7"><!--[-->`;
+    $$payload.out += `<!----></header> <div class="cards-grid svelte-ls07v6"><!--[-->`;
     for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
       let card = each_array_1[$$index_1];
-      $$payload.out += `<article class="info-card svelte-pm00y7"><img class="card-icon svelte-pm00y7"${attr("src", card.art)} alt=""> <h2 class="svelte-pm00y7">${escape_html(card.title)}</h2> <p class="svelte-pm00y7">${escape_html(card.body)}</p></article>`;
+      $$payload.out += `<article class="info-card svelte-ls07v6"><img class="card-icon svelte-ls07v6"${attr("src", card.art)} alt=""> <h2 class="svelte-ls07v6">${escape_html(card.title)}</h2> <p class="svelte-ls07v6">${escape_html(card.body)}</p></article>`;
     }
-    $$payload.out += `<!--]--></div> <div class="carousel svelte-pm00y7" aria-live="polite"><button class="carousel-arrow previous svelte-pm00y7" type="button"${attr("aria-label", copy.previousCard)}>‹</button> <!---->`;
+    $$payload.out += `<!--]--></div> <div class="carousel svelte-ls07v6" aria-live="polite"><button class="carousel-arrow previous svelte-ls07v6" type="button"${attr("aria-label", copy.previousCard)}>‹</button> <!---->`;
     {
-      $$payload.out += `<div class="slide svelte-pm00y7"><img class="slide-icon svelte-pm00y7"${attr("src", cards[activeCard].art)} alt=""> <div class="slide-text svelte-pm00y7"><h2 class="svelte-pm00y7">${escape_html(cards[activeCard].title)}</h2> <p class="svelte-pm00y7">${escape_html(cards[activeCard].body)}</p></div></div>`;
+      $$payload.out += `<div class="slide svelte-ls07v6"><img class="slide-icon svelte-ls07v6"${attr("src", cards[activeCard].art)} alt=""> <div class="slide-text svelte-ls07v6"><h2 class="svelte-ls07v6">${escape_html(cards[activeCard].title)}</h2> <p class="svelte-ls07v6">${escape_html(cards[activeCard].body)}</p></div></div>`;
     }
-    $$payload.out += `<!----> <button class="carousel-arrow next svelte-pm00y7" type="button"${attr("aria-label", copy.nextCard)}>›</button> <div class="carousel-dots svelte-pm00y7" aria-hidden="true"><!--[-->`;
+    $$payload.out += `<!----> <button class="carousel-arrow next svelte-ls07v6" type="button"${attr("aria-label", copy.nextCard)}>›</button> <div class="carousel-dots svelte-ls07v6" aria-hidden="true"><!--[-->`;
     for (let index = 0, $$length = each_array_2.length; index < $$length; index++) {
       each_array_2[index];
-      $$payload.out += `<i${attr("class", to_class("", "svelte-pm00y7", { "active": index === activeCard }))}></i>`;
+      $$payload.out += `<i${attr("class", to_class("", "svelte-ls07v6", { "active": index === activeCard }))}></i>`;
     }
-    $$payload.out += `<!--]--></div></div> <div class="loader-gate svelte-pm00y7">`;
+    $$payload.out += `<!--]--></div></div> <div class="loader-gate svelte-ls07v6">`;
     if (ready) {
       $$payload.out += "<!--[-->";
-      $$payload.out += `<span class="cta svelte-pm00y7">${escape_html(copy.cta)}</span>`;
+      $$payload.out += `<span class="cta svelte-ls07v6">${escape_html(copy.cta)}</span>`;
     } else {
       $$payload.out += "<!--[!-->";
-      $$payload.out += `<div class="progress svelte-pm00y7"><div class="progress-fill svelte-pm00y7"${attr("style", `width: ${progress}%`)}></div></div> <span class="loading-label svelte-pm00y7">${escape_html(copy.loading)} ${escape_html(progress)}%</span>`;
+      $$payload.out += `<div class="progress svelte-ls07v6"><div class="progress-fill svelte-ls07v6"${attr("style", `width: ${progress}%`)}></div></div> <span class="loading-label svelte-ls07v6">${escape_html(copy.loading)} ${escape_html(progress)}%</span>`;
     }
     $$payload.out += `<!--]--></div></div></div>`;
   }

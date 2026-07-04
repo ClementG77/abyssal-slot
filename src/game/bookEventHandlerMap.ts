@@ -1,13 +1,10 @@
 import _ from 'lodash';
 
 import { recordBookEvent, checkIsMultipleRevealEvents, type BookEventHandlerMap } from 'utils-book';
-import { backOut } from 'svelte/easing';
 
 import { stateBet, stateBetDerived } from 'state-shared';
 import { waitForTimeout } from 'utils-shared/wait';
 import { BOOK_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
-
-import { REEL_CELL_HEIGHT } from './constants';
 
 import { eventEmitter } from './eventEmitter';
 import { winLevelMap, type WinLevel, type WinLevelData } from './winLevelMap';
@@ -68,6 +65,10 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 
 		// defensive: never let an interrupted cascade leave the settle flag stuck on
 		stateGame.cascading = false;
+		// The live scatter count is PER SPIN (reveal lands + cascade drops accumulate toward the
+		// trigger; escalating land sounds/glow read it). Clear it BEFORE the reels spin — clearing
+		// after would make the new spin's first scatter continue the previous spin's escalation.
+		eventEmitter.broadcast({ type: 'soundScatterCounterClear' });
 		// reset the spin's Gaze charge for the new board; clear any Eye from the prior spin
 		stateGame.gazeCharge = 0;
 		stateGame.eyeResolvedThisSpin = false;
@@ -86,7 +87,6 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		stateGame.gameType = bookEvent.gameType;
 		await stateGameDerived.enhancedBoard.spin({ revealEvent });
 		eventEmitter.broadcast({ type: 'reelFrameScatterAnticipationEnd' });
-		eventEmitter.broadcast({ type: 'soundScatterCounterClear' });
 	},
 
 	winInfo: async (bookEvent: BookEventOfType<'winInfo'>) => {
@@ -215,32 +215,16 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	},
 
 	// --- The Eye (end of a winning tumble sequence) -----------------------------------
-	// A fresh Eye drops onto the board mid-cascade (Ultimate). Place it CLOSED at its cell so it
-	// shows, persists through the remaining tumbles, and is there for `eyeReveal` to open. The
-	// board is on-screen at this point (the prior tumbleBoard re-showed it).
+	// The Eye arrives ON the board via the tumble refill (`tumbleBoard.newSymbols`): it falls in
+	// and lands with the cascade like any other symbol (drop animation + eye land reactions play
+	// there). `eyeDrop` is therefore NON-PLACING — it only confirms the cell's closed-Eye flag.
+	// Re-placing or re-dropping here would play the arrival animation twice.
 	eyeDrop: async (bookEvent: BookEventOfType<'eyeDrop'>) => {
 		const { position } = bookEvent;
 		const cell = stateGame.board[position.reel]?.reelState.symbols[position.row];
-		if (!cell) return;
-		cell.rawSymbol = { name: 'EYE', eye: true };
-		cell.symbolState = 'static';
-		// drop it in from just above the cell so it reads as a landing, not an in-place swap.
-		// NOTE: the board is full at this point (eyeDrop arrives after the tumble settled), so the
-		// Eye necessarily takes over this cell; a true gap-fill fall would need the math to send
-		// the Eye inside the tumble's `newSymbols` refill instead of a standalone eyeDrop.
-		const targetY = cell.symbolY.current;
-		cell.symbolY.set(targetY - REEL_CELL_HEIGHT * 0.95, { duration: 0 });
-		await cell.symbolY.set(targetY, {
-			duration: 260 / stateBetDerived.timeScale(),
-			easing: backOut,
-		});
-
-		stateGameDerived.onSymbolLand({
-			rawSymbol: cell.rawSymbol,
-			reel: position.reel,
-			row: position.row,
-		});
-		await waitForTimeout(180 / stateBetDerived.timeScale());
+		if (cell?.rawSymbol.name === 'EYE') {
+			cell.rawSymbol = { ...cell.rawSymbol, eye: true };
+		}
 	},
 
 	eyeReveal: async (bookEvent: BookEventOfType<'eyeReveal'>) => {

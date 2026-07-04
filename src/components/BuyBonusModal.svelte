@@ -17,14 +17,32 @@
 
 	// Abyssal-owned buy-bonus modal. Replaces the SDK's default ModalBuyBonus (wired through the
 	// `buyBonus` snippet on the shared <Modals>). Fully data-driven off `stateMeta.betModeMeta`
-	// (see betModeMeta.ts): every `activate` mode (ante) and every `buy` mode (super spins, free
-	// spins, ultimate, super bonus) renders as a card with a hero image on top. One responsive
-	// CSS grid handles every screen size — no per-orientation components.
+	// (see betModeMeta.ts). Clean “shop card” look: ivory card, mode art on top (cropped from the
+	// bonus_buy sprite sheet), title / description / price, and exactly TWO accent colours —
+	// green for ACTIVATE modes, gold for BUY modes. Bet stepper sits on a white-glass pill.
 	//
 	// Buying reuses the exact action the SDK confirm modal performs: set the active bet mode, then
 	// broadcast `bet` on the shared emitter (the same one the in-game Spin button uses). Activate
 	// (ante) is a toggle and never fires a bet.
 	const { eventEmitter } = getContextEventEmitter<EmitterEventModal>();
+
+	// --- mode art: CSS-sprite crops from static/assets/bonus/bonus/bonus_buy.png ---------------
+	// Frame layout per its sibling spritesheet.json: five 578×342 frames on a 2312×684 sheet
+	// (4 columns × 2 rows). Percent positions map each mode key to its frame.
+	const SPRITE_URL = new URL('../../assets/bonus/bonus/bonus_buy.png', import.meta.url).href;
+	const SPRITE_ASPECT = '578 / 342';
+	const SPRITE_POS: Record<string, string> = {
+		SUPERSPINS: '0% 0%',
+		ANTE: '33.3333% 0%',
+		BONUS: '66.6667% 0%',
+		SUPERBONUS: '100% 0%',
+		ULTIMATE: '0% 100%',
+	};
+	const heroStyle = (m: BetModeData) => {
+		const pos = SPRITE_POS[m.mode.toUpperCase()];
+		if (!pos) return '';
+		return `background-image: url(${SPRITE_URL}); background-size: 400% 200%; background-position: ${pos};`;
+	};
 
 	// every selectable mode in one list, cheapest first. `activate` modes (ante, super spins,
 	// ultimate) toggle on/off; `buy` modes (free spins, super bonus) go through a confirm step.
@@ -95,11 +113,6 @@
 	};
 
 	const money = (n: number) => numberToCurrencyString(n);
-	const heroOf = (m: BetModeData) => m.assets?.dialogImage || m.assets?.icon || '';
-
-	// 5-bolt volatility indicator (filled = gold), driven by assets.volatility in betModeMeta
-	const BOLTS = [0, 1, 2, 3, 4];
-	const volatilityOf = (m: BetModeData) => Number(m.assets?.volatility) || 0;
 
 	// Make the card row scrollable by dragging it (mouse) and by the vertical mouse wheel.
 	// Touch devices already pan natively, so the pointer-drag is limited to the mouse.
@@ -186,44 +199,20 @@
 {#if stateModal.modal?.name === 'buyBonus'}
 	<Popup zIndex={zIndex.modal} closeOnEscape={false} closeOnOutside={false} onclose={close}>
 		<div class="buy-modal">
-			<div class="bm-bet">
-				<span class="bm-bet-label">BET</span>
-				<div class="bm-stepper">
-					<button class="bm-step" disabled={decDisabled} onclick={dec} aria-label="decrease bet">
-						−
-					</button>
-					<span class="bm-bet-value">{money(stateBet.betAmount)}</span>
-					<button class="bm-step" disabled={incDisabled} onclick={inc} aria-label="increase bet">
-						+
-					</button>
-				</div>
-			</div>
-
 			<div class="bm-grid" use:dragScroll>
 				{#each cards as m (m.mode)}
 					{@const activate = isActivate(m)}
 					{@const active = activate && isActive(m)}
 					<div class="bm-card" class:active>
 						<div class="bm-hero">
-							{#if heroOf(m)}<img src={heroOf(m)} alt={m.text.title} />{/if}
+							<div class="bm-hero-art" style={heroStyle(m)} role="img" aria-label={m.text.title}></div>
 							{#if active}<div class="bm-badge">ACTIVE</div>{/if}
 						</div>
 
 						<div class="bm-panel">
-							<div class="bm-bolts">
-								{#each BOLTS as i}
-									<svg
-										class="bolt"
-										class:on={i < volatilityOf(m)}
-										viewBox="0 0 24 24"
-										aria-hidden="true"
-									>
-										<path d="M13 2 4 14h6l-1 8 9-12h-6z" />
-									</svg>
-								{/each}
-							</div>
-
 							<div class="bm-title">{m.text.title}</div>
+							<div class="bm-divider"></div>
+							<div class="bm-desc">{m.text.dialog}</div>
 							<div class="bm-price">{money(costOf(m))}</div>
 
 							{#if activate && active}
@@ -251,6 +240,29 @@
 					</div>
 				{/each}
 			</div>
+
+			<div class="bm-bet">
+				<span class="bm-bet-label">BET</span>
+				<div class="bm-stepper">
+					<button
+						class="bm-step minus"
+						disabled={decDisabled}
+						onclick={dec}
+						aria-label="decrease bet"
+					>
+						−
+					</button>
+					<span class="bm-bet-value">{money(stateBet.betAmount)}</span>
+					<button
+						class="bm-step plus"
+						disabled={incDisabled}
+						onclick={inc}
+						aria-label="increase bet"
+					>
+						+
+					</button>
+				</div>
+			</div>
 		</div>
 	</Popup>
 
@@ -264,9 +276,12 @@
 			onclose={cancelConfirm}
 		>
 			<div class="bm-confirm-panel">
-				{#if heroOf(pending)}
-					<img class="bm-confirm-hero" src={heroOf(pending)} alt={pending.text.title} />
-				{/if}
+				<div
+					class="bm-confirm-hero"
+					style={heroStyle(pending)}
+					role="img"
+					aria-label={pending.text.title}
+				></div>
 				<div class="bm-confirm-title">{pending.text.title}</div>
 				<div class="bm-confirm-dialog">{pending.text.dialog}</div>
 				<div class="bm-confirm-cost">
@@ -288,87 +303,37 @@
 {/if}
 
 <style lang="scss">
-	// deep-sea palette
-	$ink: #04101e;
-	$panel: rgba(8, 24, 44, 0.92);
-	$line: rgba(120, 210, 255, 0.22);
-	$line-strong: rgba(120, 210, 255, 0.55);
-	$aqua: #5fe6ff;
-	$violet: #b083ff;
-	$gold: #ffd66b;
-	$text: #eaf6ff;
-	$dim: rgba(213, 234, 250, 0.62);
+	// Clean two-accent palette: green = activate, gold = buy. Everything else is ivory/navy.
+	$ink: #14243a; // dark navy text
+	$ink-soft: #51607a; // description text
+	$card-bg: #f8f6f0; // ivory card body
+	$card-line: rgba(20, 36, 58, 0.14);
+	$hero-bg: #0b2130; // deep petrol behind the art
+	$green: #17a56b;
+	$green-deep: #0d7f50;
+	$gold: #f0a81c;
+	$gold-light: #ffd34d;
 
-	// no panel background — just the centered bet selector + the cards floating over the game
+	// no panel background — the cards + bet pill float over the dimmed game
 	.buy-modal {
 		position: relative;
 		z-index: 100;
 		box-sizing: border-box;
-		width: min(60rem, 100vw);
+		width: min(64rem, 100vw);
 		max-width: 100vw;
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
-		gap: clamp(0.7rem, 1.6vw, 1.1rem);
-		color: $text;
+		gap: clamp(0.7rem, 1.6vw, 1.2rem);
 
 		* {
 			box-sizing: border-box;
 		}
 	}
 
-	.bm-bet {
-		align-self: center;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.3rem;
-	}
-	.bm-bet-label {
-		font-size: 0.7rem;
-		letter-spacing: 0.18em;
-		color: $dim;
-	}
-	.bm-stepper {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		background: rgba(0, 0, 0, 0.35);
-		border: 1px solid $line;
-		border-radius: 0.7rem;
-		padding: 0.3rem 0.4rem;
-	}
-	.bm-bet-value {
-		min-width: 5.5rem;
-		text-align: center;
-		font-size: 1.05rem;
-		font-weight: 800;
-		color: $gold;
-	}
-	.bm-step {
-		width: 2rem;
-		height: 2rem;
-		border-radius: 0.5rem;
-		border: 1px solid $line-strong;
-		background: linear-gradient(180deg, rgba(95, 230, 255, 0.16), rgba(95, 230, 255, 0.04));
-		color: $text;
-		font-size: 1.25rem;
-		font-weight: 900;
-		line-height: 1;
-		cursor: pointer;
-		transition: filter 0.12s ease;
-		&:hover:not(:disabled) {
-			filter: brightness(1.35);
-		}
-		&:disabled {
-			opacity: 0.3;
-			cursor: default;
-		}
-	}
-
 	.bm-grid {
 		display: flex;
-		gap: clamp(0.5rem, 1.2vw, 0.85rem);
+		gap: clamp(0.55rem, 1.3vw, 0.9rem);
 		// centre the cards when they fit; scroll horizontally when they don't (mobile / small).
 		// `safe center` keeps the first card reachable instead of clipping it on overflow.
 		justify-content: safe center;
@@ -377,7 +342,6 @@
 		overflow-y: visible;
 		padding: 0.4rem 0.5rem 0.85rem;
 		-webkit-overflow-scrolling: touch;
-		// horizontal swipe/drag panning + grab cursor for the mouse drag-to-scroll
 		touch-action: pan-x;
 		cursor: grab;
 		&:active {
@@ -393,47 +357,46 @@
 		}
 	}
 
-	// Cards: cropped hero art on top, a white panel below holding a volatility bolt row, a dark
-	// title, a dark price, and a pill ACTIVATE (pink) / BUY (gold) button — matching the reference.
+	// Cards: mode art on top (sprite crop), ivory body with title / divider / description /
+	// price, and a single pill button. Two accent colours across the whole modal.
+	// Sized so ALL FIVE cards are fully on screen (no scrolling) on every landscape device:
+	// 5 × 17vw + gaps ≈ 90vw, capped at 10.5rem for large screens, floored for Popout L.
 	.bm-card {
-		// fixed width so the row overflows (and scrolls) on small screens instead of shrinking.
-		// kept small enough that all 5 modes are visible at once on desktop / tablet.
 		flex: 0 0 auto;
-		width: clamp(7rem, 24vw, 11rem);
+		width: clamp(7rem, 17vw, 10.5rem);
 		display: flex;
 		flex-direction: column;
-		border-radius: 0.85rem;
+		border-radius: 1rem;
 		overflow: hidden;
-		background: #0a0b0f;
-		border: 1px solid rgba(255, 255, 255, 0.08);
+		background: $card-bg;
+		border: 1px solid rgba(255, 255, 255, 0.75);
+		box-shadow:
+			0 10px 26px rgba(4, 12, 24, 0.45),
+			inset 0 1px 0 rgba(255, 255, 255, 0.8);
 		transition:
 			transform 0.14s ease,
 			box-shadow 0.14s ease;
 
 		&:hover {
 			transform: translateY(-3px);
-			box-shadow: 0 16px 30px rgba(0, 0, 0, 0.5);
+			box-shadow: 0 18px 34px rgba(4, 12, 24, 0.55);
 		}
 		&.active {
 			box-shadow:
-				0 0 0 2px rgba(95, 230, 255, 0.6),
-				0 0 22px rgba(95, 230, 255, 0.32);
+				0 0 0 2px rgba(23, 165, 107, 0.75),
+				0 0 22px rgba(23, 165, 107, 0.35);
 		}
 	}
 
 	.bm-hero {
 		position: relative;
-		// the bonus art is a wide self-contained banner (2172×724 = 3:1) — show it whole, no crop
-		aspect-ratio: 3 / 1;
-		overflow: hidden;
-		background: #0a0d13;
-
-		img {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-			display: block;
-		}
+		aspect-ratio: 578 / 342; // the sprite frames' native shape — no crop
+		background: $hero-bg;
+	}
+	.bm-hero-art {
+		position: absolute;
+		inset: 0;
+		background-repeat: no-repeat;
 	}
 
 	.bm-badge {
@@ -444,68 +407,65 @@
 		font-size: 0.6rem;
 		font-weight: 900;
 		letter-spacing: 0.12em;
-		color: $ink;
-		background: $aqua;
-		padding: 0.12rem 0.4rem;
-		border-radius: 0.35rem;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+		color: #fff;
+		background: $green;
+		padding: 0.14rem 0.45rem;
+		border-radius: 0.4rem;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 	}
 
-	// white content body sitting directly under the banner header
 	.bm-panel {
 		position: relative;
 		z-index: 1;
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: 0.4rem;
-		margin: 0;
-		padding: 0.55rem 0.5rem 0.6rem;
-		background: #ffffff;
-	}
-
-	.bm-bolts {
-		display: flex;
-		justify-content: center;
-		gap: 0.05rem;
-		height: 1.1rem;
-
-		.bolt {
-			width: 0.95rem;
-			height: 1.1rem;
-			fill: #c7ccd6;
-
-			&.on {
-				fill: #ffc01e;
-				filter: drop-shadow(0 1px 1px rgba(214, 150, 0, 0.5));
-			}
-		}
+		gap: 0.35rem;
+		padding: 0.55rem 0.55rem 0.6rem;
 	}
 
 	.bm-title {
-		height: 1.5rem;
+		min-height: 1.4rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		text-align: center;
-		white-space: nowrap;
-		font-size: 0.82rem;
-		font-weight: 900;
-		letter-spacing: 0.02em;
+		font-family: 'Abyssal Cinzel', Georgia, serif;
+		font-size: 0.86rem;
+		font-weight: 800;
+		letter-spacing: 0.03em;
 		text-transform: uppercase;
-		line-height: 1;
-		color: #18233a;
+		line-height: 1.1;
+		color: $ink;
+	}
+
+	.bm-divider {
+		height: 1px;
+		margin: 0 0.4rem;
+		background: $card-line;
+	}
+
+	.bm-desc {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		overflow: hidden;
+		text-align: center;
+		font-size: 0.66rem;
+		line-height: 1.35;
+		color: $ink-soft;
 	}
 
 	.bm-price {
-		height: 1.6rem;
+		height: 1.7rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		text-align: center;
-		font-size: 1.15rem;
+		font-family: 'Abyssal Cinzel', Georgia, serif;
+		font-size: 1.2rem;
 		font-weight: 900;
-		color: #0e1726;
+		color: $ink;
 	}
 
 	.bm-action {
@@ -537,89 +497,166 @@
 			cursor: default;
 		}
 
-		// gold BUY button
+		// gold BUY
 		&.buy {
-			background: linear-gradient(180deg, #ffd34d, #f0a81c);
+			background: linear-gradient(180deg, $gold-light, $gold);
 			box-shadow:
 				inset 0 1px 0 rgba(255, 255, 255, 0.6),
-				0 3px 8px rgba(240, 168, 28, 0.3);
+				0 3px 8px rgba(240, 168, 28, 0.35);
 			text-shadow: 0 1px 2px rgba(140, 90, 0, 0.4);
 		}
-		// pink ACTIVATE button
+		// green ACTIVATE
 		&.activate {
-			background: linear-gradient(180deg, #ff5cb1, #e21d86);
+			background: linear-gradient(180deg, $green, $green-deep);
 			box-shadow:
-				inset 0 1px 0 rgba(255, 255, 255, 0.5),
-				0 3px 8px rgba(226, 29, 134, 0.3);
-			text-shadow: 0 1px 2px rgba(120, 0, 60, 0.4);
+				inset 0 1px 0 rgba(255, 255, 255, 0.45),
+				0 3px 8px rgba(23, 165, 107, 0.35);
+			text-shadow: 0 1px 2px rgba(0, 70, 40, 0.45);
 		}
-		// active state → deeper pink "deactivate"
+		// active state → deeper green "deactivate"
 		&.activate.on {
-			background: linear-gradient(180deg, #b3186a, #7d124b);
-			box-shadow: inset 0 0 0 1.5px rgba(255, 140, 200, 0.8);
+			background: linear-gradient(180deg, #0c6b45, #084b31);
+			box-shadow: inset 0 0 0 1.5px rgba(120, 230, 180, 0.75);
 		}
 		// neutral cancel button in the confirm overlay
 		&.ghost {
-			color: $text;
-			background: rgba(255, 255, 255, 0.1);
-			box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+			color: $ink;
+			background: rgba(20, 36, 58, 0.08);
+			box-shadow: inset 0 0 0 1px rgba(20, 36, 58, 0.22);
 		}
 	}
 
-	// confirm panel — centered by its own Popup's top-layer
+	// --- bet stepper: a white-glass pill ------------------------------------------------------
+	.bm-bet {
+		align-self: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.25rem;
+	}
+	.bm-bet-label {
+		font-family: 'Abyssal Cinzel', Georgia, serif;
+		font-size: 0.72rem;
+		font-weight: 800;
+		letter-spacing: 0.22em;
+		color: #f2f7ff;
+		text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+	}
+	.bm-stepper {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		padding: 0.35rem 0.45rem;
+		border-radius: 999px;
+		border: 1px solid rgba(255, 255, 255, 0.8);
+		background: linear-gradient(
+			to bottom,
+			rgba(255, 255, 255, 0.86),
+			rgba(240, 244, 248, 0.78)
+		);
+		box-shadow:
+			0 10px 24px rgba(4, 12, 24, 0.45),
+			inset 0 1px 0 rgba(255, 255, 255, 0.9);
+		backdrop-filter: blur(8px);
+	}
+	.bm-bet-value {
+		min-width: 6.2rem;
+		padding: 0.3rem 0.8rem;
+		border-radius: 999px;
+		background: $hero-bg;
+		text-align: center;
+		font-family: 'Abyssal Cinzel', Georgia, serif;
+		font-size: 1.02rem;
+		font-weight: 900;
+		color: #ffffff;
+		box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+	}
+	.bm-step {
+		width: 2.2rem;
+		height: 2.2rem;
+		border-radius: 50%;
+		border: none;
+		color: #fff;
+		font-size: 1.3rem;
+		font-weight: 900;
+		line-height: 1;
+		cursor: pointer;
+		transition: filter 0.12s ease;
+		&:hover:not(:disabled) {
+			filter: brightness(1.15);
+		}
+		&:disabled {
+			opacity: 0.35;
+			cursor: default;
+		}
+		// one colour for the whole stepper: navy, matching the value plate
+		&.minus,
+		&.plus {
+			background: linear-gradient(180deg, #1d3a52, $hero-bg);
+			box-shadow:
+				inset 0 1px 0 rgba(255, 255, 255, 0.25),
+				0 2px 6px rgba(4, 12, 24, 0.4);
+		}
+	}
+
+	// --- confirm panel: same ivory language ---------------------------------------------------
 	.bm-confirm-panel {
 		position: relative;
 		z-index: 100;
-		width: min(26rem, 92vw);
+		width: min(24rem, 92vw);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
-		gap: 0.7rem;
-		padding: 1.4rem 1.25rem;
+		gap: 0.6rem;
+		padding: 1.2rem 1.15rem;
 		border-radius: 1rem;
-		background: linear-gradient(180deg, rgba(14, 38, 64, 0.96), rgba(5, 16, 30, 0.98));
-		border: 1px solid $line-strong;
+		background: $card-bg;
+		border: 1px solid rgba(255, 255, 255, 0.8);
 		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+		color: $ink;
 	}
 	.bm-confirm-hero {
-		width: 100%;
-		max-width: 20rem;
-		aspect-ratio: 3 / 1;
-		object-fit: cover;
-		border-radius: 0.5rem;
-		filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.6));
+		width: min(15rem, 80%);
+		aspect-ratio: 578 / 342;
+		border-radius: 0.6rem;
+		background-color: $hero-bg;
+		background-repeat: no-repeat;
+		box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
 	}
 	.bm-confirm-title {
-		font-size: 1.25rem;
+		font-family: 'Abyssal Cinzel', Georgia, serif;
+		font-size: 1.2rem;
 		font-weight: 900;
 		letter-spacing: 0.04em;
+		text-transform: uppercase;
 	}
 	.bm-confirm-dialog {
 		font-size: 0.78rem;
-		line-height: 1.35;
-		color: $dim;
+		line-height: 1.4;
+		color: $ink-soft;
 	}
 	.bm-confirm-cost {
 		display: flex;
 		align-items: baseline;
 		gap: 0.5rem;
-		margin-top: 0.2rem;
+		margin-top: 0.1rem;
 		span {
-			font-size: 0.7rem;
+			font-size: 0.68rem;
 			letter-spacing: 0.16em;
-			color: $dim;
+			color: $ink-soft;
 		}
 		strong {
+			font-family: 'Abyssal Cinzel', Georgia, serif;
 			font-size: 1.5rem;
-			color: $gold;
+			color: $ink;
 		}
 	}
 	.bm-confirm-actions {
 		display: flex;
 		gap: 0.7rem;
 		width: 100%;
-		margin-top: 0.4rem;
+		margin-top: 0.3rem;
 		.bm-action {
 			margin: 0;
 			flex: 1;
@@ -635,20 +672,16 @@
 			scroll-padding-inline: 4vw;
 		}
 		.bm-card {
-			// ~2.5–3 cards visible at a time, the rest reachable by horizontal swipe
-			width: min(38vw, 150px);
+			// ~2.5 cards visible at a time, the rest reachable by horizontal swipe
+			width: min(40vw, 160px);
 			border-radius: 2.5vw;
 		}
-		.bm-bolts {
-			height: min(4.6vw, 20px);
-			.bolt {
-				width: min(4vw, 18px);
-				height: min(4.6vw, 20px);
-			}
-		}
 		.bm-title {
-			height: 6vw;
+			min-height: 6vw;
 			font-size: min(3.8vw, 17px);
+		}
+		.bm-desc {
+			font-size: min(2.9vw, 13px);
 		}
 		.bm-price {
 			height: 7vw;
@@ -666,8 +699,8 @@
 			font-size: min(4.6vw, 20px);
 		}
 		.bm-step {
-			width: min(8.5vw, 38px);
-			height: min(8.5vw, 38px);
+			width: min(9vw, 40px);
+			height: min(9vw, 40px);
 			font-size: min(5.5vw, 24px);
 		}
 		.bm-confirm-title {
@@ -700,16 +733,17 @@
 			font-size: 9px;
 		}
 		.bm-bet-value {
-			min-width: 60px;
+			min-width: 62px;
 			font-size: 13px;
+			padding: 2px 8px;
 		}
 		.bm-stepper {
 			gap: 4px;
 			padding: 2px 3px;
 		}
 		.bm-step {
-			width: 20px;
-			height: 20px;
+			width: 22px;
+			height: 22px;
 			font-size: 15px;
 		}
 		.bm-grid {
@@ -717,48 +751,46 @@
 			padding: 3px 6px 7px;
 		}
 		.bm-card {
-			width: min(28vw, 118px);
+			width: min(24vw, 104px);
 			border-radius: 8px;
 		}
 		.bm-panel {
-			gap: 3px;
+			gap: 2px;
 			padding: 4px 5px 5px;
 		}
-		.bm-bolts {
-			height: 11px;
-			.bolt {
-				width: 10px;
-				height: 11px;
-			}
-		}
 		.bm-title {
-			height: 14px;
-			font-size: 11px;
+			min-height: 13px;
+			font-size: 10px;
+		}
+		.bm-desc {
+			font-size: 8px;
+			-webkit-line-clamp: 1;
+			line-clamp: 1;
 		}
 		.bm-price {
-			height: 16px;
-			font-size: 13px;
+			height: 15px;
+			font-size: 12px;
 		}
 		.bm-action {
-			padding: 5px 4px;
-			font-size: 11px;
+			padding: 4px 4px;
+			font-size: 10px;
 		}
 		// confirm popup also has to fit the short height
 		.bm-confirm-panel {
-			gap: 6px;
+			gap: 5px;
 			padding: 10px 12px;
 		}
 		.bm-confirm-hero {
-			max-width: 13rem;
+			width: 10rem;
 		}
 		.bm-confirm-title {
-			font-size: 15px;
+			font-size: 14px;
 		}
 		.bm-confirm-dialog {
-			font-size: 11px;
+			font-size: 10px;
 		}
 		.bm-confirm-cost strong {
-			font-size: 18px;
+			font-size: 17px;
 		}
 	}
 </style>

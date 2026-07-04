@@ -109,6 +109,7 @@
 		const heartbeat = elapsed > 1 ? Math.sin((elapsed - 1) * Math.PI * 2.3) * 0.035 : 0;
 		return smooth + creep + heartbeat;
 	});
+
 	const boardShakeY = $derived(launchMotion * 42);
 	const boardScale = $derived({
 		x:

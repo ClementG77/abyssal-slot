@@ -1,0 +1,114 @@
+{
+  "frames": {
+    "SUPERSPINS": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 578,
+        "h": 342
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 578,
+        "h": 342
+      },
+      "sourceSize": {
+        "w": 578,
+        "h": 342
+      }
+    },
+    "ANTE": {
+      "frame": {
+        "x": 578,
+        "y": 0,
+        "w": 578,
+        "h": 342
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 578,
+        "h": 342
+      },
+      "sourceSize": {
+        "w": 578,
+        "h": 342
+      }
+    },
+    "BONUS": {
+      "frame": {
+        "x": 1156,
+        "y": 0,
+        "w": 578,
+        "h": 342
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 578,
+        "h": 342
+      },
+      "sourceSize": {
+        "w": 578,
+        "h": 342
+      }
+    },
+    "SUPERBONUS": {
+      "frame": {
+        "x": 1734,
+        "y": 0,
+        "w": 578,
+        "h": 342
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 578,
+        "h": 342
+      },
+      "sourceSize": {
+        "w": 578,
+        "h": 342
+      }
+    },
+    "ULTIMATE": {
+      "frame": {
+        "x": 0,
+        "y": 342,
+        "w": 578,
+        "h": 342
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 578,
+        "h": 342
+      },
+      "sourceSize": {
+        "w": 578,
+        "h": 342
+      }
+    }
+  },
+  "meta": {
+    "app": "spritesheetgen",
+    "image": "bonus_buy.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2312,
+      "h": 684
+    },
+    "scale": "1"
+  }
+}

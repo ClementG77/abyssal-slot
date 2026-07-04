@@ -70,7 +70,7 @@
 	});
 	const animations = new Set<gsap.core.Animation>();
 
-	const fill = new Tween(0, { duration: 520, easing: cubicOut });
+	const fill = new Tween(0, { duration: 400, easing: cubicOut });
 	const orbFlight = new Tween(0, { duration: 1 });
 	const toCenter = new Tween(0, { duration: 1 });
 	// Ambient liquid clock — drives the fill's surface wave, its glowing crest and the rising
@@ -119,7 +119,17 @@
 	const mobileArtworkCenterY = $derived(
 		gazeH * ((GAZE_METER_LAYOUT.visibleBounds.top + GAZE_METER_LAYOUT.visibleBounds.bottom) / 2),
 	);
-	const mobileMeterTop = $derived(BOARD_SIZES.height - SYMBOL_SIZE * 0.02);
+	const mobileArtworkThickness = $derived(
+		gazeW * (GAZE_METER_LAYOUT.visibleBounds.right - GAZE_METER_LAYOUT.visibleBounds.left),
+	);
+	const mobileTumbleWinCenterY = -SYMBOL_SIZE * 0.8;
+	const mobileTumbleWinVisualH = SYMBOL_SIZE * 0.82 * 1.18;
+	const mobileMeterTop = $derived(
+		mobileTumbleWinCenterY -
+			mobileTumbleWinVisualH / 2 -
+			SYMBOL_SIZE * 0.08 -
+			mobileArtworkThickness,
+	);
 	const desktopMeterGap = $derived(SYMBOL_SIZE * 0.22);
 	const position = $derived({
 		x: isMobile
@@ -269,8 +279,9 @@
 				name: 'sfx_reel_stop_1',
 				forcePlay: !stateBetDerived.isContinuousBet(),
 			});
-			// each winning symbol releases an orb; the convoy arcs into the meter with a slight
-			// stagger, then the fill rises and the plaque pops.
+			// Each winning symbol releases an orb; the convoy arcs into the meter with a slight
+			// stagger. Only the FLIGHT blocks the book — the fill rise + plaque pop settle on
+			// their own while the board already explodes/refills, keeping cascades fast.
 			const ts = stateBetDerived.timeScale();
 			orbs = emitterEvent.fromPositions.slice(0, 10).map((position) => ({
 				sx: getPositionX(position.reel),
@@ -278,10 +289,11 @@
 				wobble: (Math.random() - 0.5) * SYMBOL_SIZE * 0.9,
 			}));
 			orbFlight.set(0, { duration: 0 });
-			await orbFlight.set(1, { duration: (420 + orbs.length * 55) / ts });
+			await orbFlight.set(1, { duration: (300 + orbs.length * 40) / ts });
 			orbs = [];
-			await setCharge(emitterEvent.charge);
-			playChargeFx(emitterEvent.charge > GAZE_METER_MAX_CHARGE);
+			void setCharge(emitterEvent.charge).then(() =>
+				playChargeFx(emitterEvent.charge > GAZE_METER_MAX_CHARGE),
+			);
 		},
 		gazeMeterToEye: async () => {
 			if (charge <= 0) return;

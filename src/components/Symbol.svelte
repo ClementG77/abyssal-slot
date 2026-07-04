@@ -90,9 +90,9 @@
 	const scale = new Tween(1, { duration: 120 });
 	const alpha = new Tween(1, { duration: 120 });
 	const ts = () => stateBetDerived.timeScale(); // turbo speed-up
-	// Connected (winning) cells settle QUICKLY at a slight emphasis size and hold there until
-	// they explode — no slow balloon grow.
-	const WIN_GROW_MAX = 1.12;
+	// The win beat: HIGHLIGHT (flash + pulsing glow) → GROW (a big, unmistakable swell right up
+	// to the burst) → EXPLODE into bubbles.
+	const WIN_GROW_MAX = 1.45;
 
 	const isEye = $derived(isUnresolvedEye || isResolvedEye || isSpentEye);
 	// The lifecycle variant fed to the single AbyssalEye instance (see the template comment):
@@ -112,35 +112,29 @@
 	let boomTl: gsap.core.Timeline | undefined;
 	let landTl: gsap.core.Timeline | undefined;
 
-	// Electrified winning cell (Gates-style): an energised border + wiggling arcs while the symbol
-	// is part of a win, right up until it explodes and disappears.
-	const elecFx = $state({ t: 0, glow: 0 });
+	// Winning symbol GLOW (no border): a soft bloom behind the art + a pulsing additive
+	// self-glow on the art itself, while the symbol is part of a win, right up until it
+	// explodes and disappears.
+	const winGlowFx = $state({ pulse: 0 });
 	const isScatter = $derived(props.rawSymbol.name === 'S');
-	const electricOn = $derived(
+	const winGlowOn = $derived(
 		!isEye && !isScatter && (props.state === 'win' || props.state === 'postWinStatic'),
 	);
-	let elecT: gsap.core.Tween | undefined;
-	let elecG: gsap.core.Tween | undefined;
+	let winGlowTween: gsap.core.Tween | undefined;
 
 	$effect(() => {
-		if (!electricOn) {
-			elecT?.kill();
-			elecG?.kill();
-			elecFx.glow = 0;
+		if (!winGlowOn) {
+			winGlowTween?.kill();
+			winGlowFx.pulse = 0;
 			return;
 		}
-		elecT?.kill();
-		elecG?.kill();
-		elecT = gsap.to(elecFx, { t: 60, duration: 60, ease: 'none', repeat: -1 });
-		elecG = gsap.fromTo(
-			elecFx,
-			{ glow: 0.25 },
-			{ glow: 1, duration: 0.45, ease: 'sine.inOut', repeat: -1, yoyo: true },
+		winGlowTween?.kill();
+		winGlowTween = gsap.fromTo(
+			winGlowFx,
+			{ pulse: 0.4 },
+			{ pulse: 1, duration: 0.45, ease: 'sine.inOut', repeat: -1, yoyo: true },
 		);
-		return () => {
-			elecT?.kill();
-			elecG?.kill();
-		};
+		return () => winGlowTween?.kill();
 	});
 
 	// --- Scatter (the leviathan): a hero symbol -----------------------------------------
@@ -240,13 +234,13 @@
 
 	const playWinJuice = () => {
 		winTl?.kill();
+		// HIGHLIGHT: a bright instant flash + a tiny squash accent — short, the electric border
+		// carries the "this one is winning" read while the grow builds underneath.
 		winTl = gsap
 			.timeline()
-			.set(winFx, { glow: 0, squashX: 1, squashY: 1 })
-			.to(winFx, { squashX: 1.16, squashY: 0.86, duration: 0.1, ease: 'power2.out' })
-			.to(winFx, { squashX: 1, squashY: 1, duration: 0.34, ease: 'back.out(2.4)' })
-			.to(winFx, { glow: 0.85, duration: 0.1, ease: 'power1.out' }, 0)
-			.to(winFx, { glow: 0, duration: 0.42, ease: 'power2.out' }, 0.1);
+			.set(winFx, { glow: 0.9, squashX: 1.07, squashY: 0.95 })
+			.to(winFx, { squashX: 1, squashY: 1, duration: 0.22, ease: 'back.out(2)' })
+			.to(winFx, { glow: 0, duration: 0.3, ease: 'power2.out' }, 0.06);
 	};
 
 	const playBoom = () => {
@@ -263,15 +257,14 @@
 		winTl?.kill();
 		boomTl?.kill();
 		landTl?.kill();
-		elecT?.kill();
-		elecG?.kill();
+		winGlowTween?.kill();
 		scatterIdleTl?.kill();
 		scatterAmbTween?.kill();
 		scatterFlareTl?.kill();
 		scatterConnectTl?.kill();
 		gsap.killTweensOf(winFx);
 		gsap.killTweensOf(boomFx);
-		gsap.killTweensOf(elecFx);
+		gsap.killTweensOf(winGlowFx);
 		gsap.killTweensOf(scatterFx);
 		gsap.killTweensOf(scatterAmb);
 	});
@@ -298,17 +291,18 @@
 
 		(async () => {
 			if (state === 'win') {
-				// connection: a quick pop, release the sequence, then keep growing in postWinStatic.
+				// HIGHLIGHT: flash + electric border + a clear pop, resolved fast so the sequence
+				// moves on immediately.
 				if (!isEye) playWinJuice();
-				await scale.set(1.18, { duration: 110 / ts(), easing: backOut });
+				await scale.set(1.12, { duration: 100 / ts(), easing: backOut });
 				if (myToken !== token) return;
 				done();
 			} else if (state === 'postWinStatic') {
 				alpha.set(1, { duration: 0 });
-				// winning symbols ease down from the pop to a slight hold size — quick, no balloon;
-				// the Eye and Scatter have their own treatment.
+				// GROW: a visible swell right up until the burst — the pre-explosion tell; the Eye
+				// and Scatter have their own treatment.
 				if (!isEye && !isScatter) {
-					await scale.set(WIN_GROW_MAX, { duration: 180 / ts() });
+					await scale.set(WIN_GROW_MAX, { duration: 380 / ts() });
 				} else {
 					await scale.set(1, { duration: 120 / ts() });
 				}
@@ -362,46 +356,20 @@
 
 	const eyeSize = $derived(Math.max(symbolSize.width, symbolSize.height) * 1.08);
 
-	// Electrified cell — an energised border + 4 wiggling lightning edges, drawn cell-sized.
-	const ELEC_COLOR = 0x7fd4ff;
-	const cellW = $derived(REEL_CELL_WIDTH * 0.92);
-	const cellH = $derived(REEL_CELL_HEIGHT * 0.92);
-	const drawElectric = (g: import('pixi.js').Graphics) => {
-		const w = cellW;
-		const h = cellH;
-		const t = elecFx.t;
-		const glow = elecFx.glow;
-		// energised fill + glowing border
-		g.roundRect(-w / 2, -h / 2, w, h, 12).fill({ color: ELEC_COLOR, alpha: 0.06 + glow * 0.07 });
-		g.roundRect(-w / 2, -h / 2, w, h, 12).stroke({
-			width: 2 + glow * 2.5,
-			color: ELEC_COLOR,
-			alpha: 0.4 + glow * 0.5,
-		});
-		// wiggling lightning along each edge
-		const edges = [
-			{ ax: -w / 2, ay: -h / 2, bx: w / 2, by: -h / 2 },
-			{ ax: w / 2, ay: -h / 2, bx: w / 2, by: h / 2 },
-			{ ax: w / 2, ay: h / 2, bx: -w / 2, by: h / 2 },
-			{ ax: -w / 2, ay: h / 2, bx: -w / 2, by: -h / 2 },
-		];
-		const segs = 6;
-		const amp = h * 0.07;
-		edges.forEach((e, ei) => {
-			const dx = e.bx - e.ax;
-			const dy = e.by - e.ay;
-			const len = Math.hypot(dx, dy) || 1;
-			const nx = -dy / len;
-			const ny = dx / len;
-			g.moveTo(e.ax, e.ay);
-			for (let s = 1; s < segs; s++) {
-				const f = s / segs;
-				const off = Math.sin(t * 9 + ei * 2.3 + s * 1.7) * amp;
-				g.lineTo(e.ax + dx * f + nx * off, e.ay + dy * f + ny * off);
-			}
-			g.lineTo(e.bx, e.by);
-		});
-		g.stroke({ width: 2, color: 0xffffff, alpha: 0.45 + glow * 0.45 });
+	// Winning-symbol bloom — a soft cool radial glow behind the art (stacked additive discs,
+	// bright core fading to the rim), breathing with the win pulse. No borders, pure light.
+	const drawWinBloom = (g: import('pixi.js').Graphics) => {
+		const pulse = winGlowFx.pulse;
+		if (pulse <= 0) return;
+		const base = Math.max(symbolSize.width, symbolSize.height) * 0.6;
+		const steps = 4;
+		for (let i = steps; i >= 1; i--) {
+			const f = i / steps; // 1 = rim … 0.25 = core
+			g.circle(0, 0, base * (0.5 + f * 0.7)).fill({
+				color: 0xbfeeff,
+				alpha: 0.05 * (1.25 - f) * pulse,
+			});
+		}
 	};
 
 
@@ -455,10 +423,10 @@
 			intensity={isSpentEye ? 0 : gazeIntensity}
 		/>
 	{:else}
-		<!-- electrified winning cell (behind the art) -->
-		{#if electricOn}
+		<!-- winning-symbol bloom (behind the art) -->
+		{#if winGlowOn}
 			<Container blendMode="add">
-				<Graphics draw={drawElectric} />
+				<Graphics draw={drawWinBloom} />
 			</Container>
 		{/if}
 
@@ -516,6 +484,19 @@
 					fontSize: SYMBOL_SIZE * (info.label.length > 2 ? 0.24 : 0.34),
 					fill: isSpecial ? info.glow : 0x05080f,
 				}}
+			/>
+		{/if}
+
+		<!-- pulsing self-glow while winning: an additive copy of the art brightens its own colours -->
+		{#if winGlowOn && frame}
+			<Sprite
+				key={frame}
+				anchor={0.5}
+				width={symbolSize.width * 1.05}
+				height={symbolSize.height * 1.05}
+				alpha={winGlowFx.pulse * 0.4}
+				tint={0xffffff}
+				blendMode="add"
 			/>
 		{/if}
 

@@ -214,7 +214,7 @@ export const getSymbolFill = (symbolName: SymbolName) => {
 	// read as the hero symbol without dominating.
 	if (symbolName === 'S') return 1.1;
 	if (symbolName === 'EYE') return 1.2; // eye a bit bigger
-	if (symbolName.startsWith('H')) return 0.95; // highs a bit bigger
+	if (symbolName.startsWith('H')) return 1; // highs a bit bigger
 	if (symbolName.startsWith('L')) return 0.74; // lows a bit smaller
 
 	return REEL_LAYOUT_BASE.symbolFill;

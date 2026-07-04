@@ -32,7 +32,7 @@
 	// directly paces the whole win → tumble rhythm. Keep it tight.
 	onMount(async () => {
 		scale.set(1);
-		await y.set(-SYMBOL_SIZE * 0.62, { duration: (SECOND * 0.42) / stateBetDerived.timeScale() });
+		await y.set(-SYMBOL_SIZE * 0.6, { duration: (SECOND * 0.36) / stateBetDerived.timeScale() });
 		show = false;
 	});
 </script>
