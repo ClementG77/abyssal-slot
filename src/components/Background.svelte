@@ -36,6 +36,25 @@
 		alpha: 0.018 + i * 0.004,
 	}));
 
+	// ---- Gaze-linked ambience -------------------------------------------------------------
+	// The whole scene holds its breath as the spin's Gaze charge builds (mirrors the reel-frame
+	// heat): god rays brighten and flicker, the ambient glows pulse harder, and the shimmer
+	// filter warms + breathes faster. All amplitude-blended (no frequency modulation) so the
+	// heat ramping in/out never phase-jumps the waves.
+	const AMBIENT_HEAT = {
+		fullCharge: 6, // matches FRAME_HEAT.fullCharge in ReelFrame
+		rayBoost: 1.1, // god-ray alpha multiplier at full heat
+		rayFlicker: 0.35, // fast shimmer added to the ray pulse at full heat
+		glowBoost: 0.9, // ambient-glow alpha multiplier at full heat
+		glowFlicker: 0.4, // fast pulse blended into the ambient glows at full heat
+		hueShift: -9, // extra shimmer hue (degrees) at full heat — warms the palette
+		brightBoost: 0.028, // fast extra brightness breathe at full heat
+	};
+	const heat = new Tween(0, { duration: 650 });
+	$effect(() => {
+		heat.set(Math.min(context.stateGame.gazeCharge / AMBIENT_HEAT.fullCharge, 1));
+	});
+
 	// One light rAF clock for the ambient motion (drift / breathe / shimmer).
 	let t = $state(0);
 	let reduceMotion = $state(false);
@@ -52,9 +71,14 @@
 		let raf = 0;
 		const loop = (now: number) => {
 			t = (now - start) / 1000;
-			// recompose the matrix each frame: gentle breathing brightness + a drifting hue
-			filter.brightness(1 + Math.sin(t * 0.6) * 0.05, false);
-			filter.hue(Math.sin(t * 0.13) * 5, true);
+			const h = heat.current;
+			// recompose the matrix each frame: gentle breathing brightness + a drifting hue,
+			// plus a faster shallow breathe and a warm hue lean while the Gaze charge is hot
+			filter.brightness(
+				1 + Math.sin(t * 0.6) * 0.05 + Math.sin(t * 2.4) * h * AMBIENT_HEAT.brightBoost,
+				false,
+			);
+			filter.hue(Math.sin(t * 0.13) * 5 + h * AMBIENT_HEAT.hueShift, true);
 			raf = requestAnimationFrame(loop);
 		};
 		const startLoop = () => {
@@ -124,42 +148,56 @@
 		const top = height * -0.05;
 		const sway = Math.sin(t * 0.055) * width * 0.035;
 		const color = feature ? 0xbfe6ff : 0xa07bff;
+		const h = heat.current;
 		for (let i = 0; i < 6; i++) {
 			const x = width * (0.16 + i * 0.14) + sway * (i % 2 ? -1 : 1);
 			const w = width * (0.05 + (i % 3) * 0.014);
-			const pulse = 0.55 + Math.sin(t * 0.4 + i) * 0.45;
+			const pulse = Math.max(
+				0,
+				0.55 + Math.sin(t * 0.4 + i) * 0.45 + Math.sin(t * 1.9 + i * 1.7) * AMBIENT_HEAT.rayFlicker * h,
+			);
 			g.moveTo(x, top)
 				.lineTo(x + w, top)
 				.lineTo(x + w * 2.6, height * 0.8)
 				.lineTo(x - w * 1.4, height * 0.8)
-				.fill({ color, alpha: 0.04 * pulse });
+				.fill({ color, alpha: 0.04 * pulse * (1 + h * AMBIENT_HEAT.rayBoost) });
 		}
 	};
 
 	const drawAmbientGlow = (g: import('pixi.js').Graphics) => {
 		const { width, height } = sizes;
 		const color = feature ? 0x5fdcff : 0x6d4cff;
-		const pulse = 0.55 + Math.sin(t * 0.22) * 0.45;
-		const sidePulse = 0.55 + Math.cos(t * 0.18 + 1.3) * 0.45;
+		const h = heat.current;
+		const heatGain = 1 + h * AMBIENT_HEAT.glowBoost;
+		// a faster pulse blends in by amplitude as the charge builds
+		const hotWave = Math.sin(t * 2.1) * AMBIENT_HEAT.glowFlicker * h;
+		const pulse = Math.max(0, 0.55 + Math.sin(t * 0.22) * 0.45 + hotWave);
+		const sidePulse = Math.max(0, 0.55 + Math.cos(t * 0.18 + 1.3) * 0.45 + hotWave);
 
 		g.ellipse(
 			width * 0.52,
 			height * (0.08 + Math.sin(t * 0.11) * 0.015),
 			width * 0.42,
 			height * 0.16,
-		).fill({ color, alpha: 0.032 + pulse * 0.026 });
+		).fill({ color, alpha: (0.032 + pulse * 0.026) * heatGain });
 		g.ellipse(
 			width * (0.22 + Math.sin(t * 0.07) * 0.015),
 			height * 0.64,
 			width * 0.22,
 			height * 0.24,
-		).fill({ color: 0x21f2c5, alpha: feature ? 0.022 + sidePulse * 0.015 : 0.014 });
+		).fill({
+			color: 0x21f2c5,
+			alpha: (feature ? 0.022 + sidePulse * 0.015 : 0.014) * heatGain,
+		});
 		g.ellipse(
 			width * (0.82 + Math.cos(t * 0.08) * 0.018),
 			height * 0.55,
 			width * 0.2,
 			height * 0.2,
-		).fill({ color: 0x9f6bff, alpha: feature ? 0.012 : 0.018 + sidePulse * 0.012 });
+		).fill({
+			color: 0x9f6bff,
+			alpha: (feature ? 0.012 : 0.018 + sidePulse * 0.012) * heatGain,
+		});
 	};
 
 	const drawCaustics = (g: import('pixi.js').Graphics) => {

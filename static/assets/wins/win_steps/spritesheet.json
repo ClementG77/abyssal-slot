@@ -1,0 +1,114 @@
+{
+  "frames": {
+    "BIG_WIN": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 522,
+        "h": 383
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 522,
+        "h": 383
+      },
+      "sourceSize": {
+        "w": 522,
+        "h": 383
+      }
+    },
+    "HUGE_WIN": {
+      "frame": {
+        "x": 522,
+        "y": 0,
+        "w": 522,
+        "h": 383
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 522,
+        "h": 383
+      },
+      "sourceSize": {
+        "w": 522,
+        "h": 383
+      }
+    },
+    "MEGA_WIN": {
+      "frame": {
+        "x": 1044,
+        "y": 0,
+        "w": 522,
+        "h": 383
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 522,
+        "h": 383
+      },
+      "sourceSize": {
+        "w": 522,
+        "h": 383
+      }
+    },
+    "EPIC_WIN": {
+      "frame": {
+        "x": 1566,
+        "y": 0,
+        "w": 522,
+        "h": 383
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 522,
+        "h": 383
+      },
+      "sourceSize": {
+        "w": 522,
+        "h": 383
+      }
+    },
+    "MAX_WIN": {
+      "frame": {
+        "x": 0,
+        "y": 383,
+        "w": 522,
+        "h": 383
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 522,
+        "h": 383
+      },
+      "sourceSize": {
+        "w": 522,
+        "h": 383
+      }
+    }
+  },
+  "meta": {
+    "app": "spritesheetgen",
+    "image": "win_steps.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2088,
+      "h": 766
+    },
+    "scale": "1"
+  }
+}

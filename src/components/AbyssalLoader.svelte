@@ -489,7 +489,7 @@
 		inset: 0;
 		width: 100%;
 		height: 100%;
-		// fill the card edge to edge (centre-crop whatever overflows)
+		// full-bleed: fill the card edge to edge (centre-crop the overflow, never stretch)
 		object-fit: cover;
 		object-position: center;
 		filter: saturate(1.05);
@@ -555,7 +555,7 @@
 		inset: 0;
 		width: 100%;
 		height: 100%;
-		// fill the panel edge to edge (centre-crop whatever overflows)
+		// full-bleed: fill the panel edge to edge (centre-crop the overflow, never stretch)
 		object-fit: cover;
 		object-position: center;
 		filter: saturate(1.05);
@@ -654,41 +654,40 @@
 		gap: 12px;
 	}
 	.progress {
-		// A proper slider: recessed glass track + gradient fill + glowing knob head.
+		// Clean and slim: a hairline glass track — the fill and its light do the talking.
 		position: relative;
 		width: 100%;
-		height: clamp(10px, 1.3vw, 18px);
+		height: clamp(5px, 0.55vw, 8px);
 		border-radius: 999px;
-		background: linear-gradient(to bottom, rgba(2, 6, 22, 0.92), rgba(8, 18, 44, 0.85));
+		background: rgba(4, 10, 26, 0.72);
 		box-shadow:
-			0 0 0 1px rgba(255, 215, 106, 0.4),
-			inset 0 2px 5px rgba(0, 0, 0, 0.85),
-			0 3px 10px rgba(0, 0, 0, 0.6);
+			inset 0 1px 2px rgba(0, 0, 0, 0.7),
+			0 0 0 1px rgba(255, 255, 255, 0.07);
 	}
 	.progress-fill {
 		position: relative;
 		height: 100%;
 		border-radius: inherit;
-		background: linear-gradient(to bottom, #fff3c4 0%, #ffd76a 38%, #c98f1d 78%, #ffdf87 100%);
-		box-shadow:
-			inset 0 1px 0 rgba(255, 255, 255, 0.65),
-			0 0 12px rgba(255, 215, 106, 0.55);
-		transition: width 0.18s ease;
-		// the glowing knob riding the head of the fill
+		background: linear-gradient(90deg, #b8860b, #ffd76a 60%, #ffedb0);
+		box-shadow: 0 0 10px rgba(255, 215, 106, 0.45);
+		transition: width 0.25s ease-out;
+		// a soft luminous tip rides the head of the fill — light, not hardware
 		&::after {
 			content: '';
 			position: absolute;
 			top: 50%;
 			right: 0;
-			width: clamp(16px, 2vw, 28px);
-			height: clamp(16px, 2vw, 28px);
+			width: clamp(12px, 1.3vw, 18px);
+			height: clamp(12px, 1.3vw, 18px);
 			transform: translate(50%, -50%);
-			border: 1px solid rgba(255, 236, 170, 0.95);
 			border-radius: 50%;
-			background: radial-gradient(circle at 34% 30%, #fffbe8, #ffd76a 55%, #b8860b);
-			box-shadow:
-				0 0 14px rgba(255, 215, 106, 0.85),
-				0 2px 6px rgba(0, 0, 0, 0.65);
+			background: radial-gradient(
+				circle,
+				#fff8dc 0%,
+				rgba(255, 215, 106, 0.9) 38%,
+				rgba(255, 215, 106, 0) 72%
+			);
+			animation: tip-breathe 1.4s ease-in-out infinite alternate;
 		}
 	}
 	.loading-label {
@@ -732,6 +731,16 @@
 			opacity: 0.62;
 		}
 	}
+	@keyframes tip-breathe {
+		from {
+			opacity: 0.75;
+			scale: 0.85;
+		}
+		to {
+			opacity: 1;
+			scale: 1.15;
+		}
+	}
 	@keyframes card-float {
 		0%,
 		100% {
@@ -753,10 +762,10 @@
 	}
 	@keyframes card-kenburns {
 		from {
-			transform: scale(1.02);
+			transform: scale(1);
 		}
 		to {
-			transform: scale(1.09);
+			transform: scale(1.04);
 		}
 	}
 
@@ -801,11 +810,11 @@
 			width: 76%;
 		}
 		.progress {
-			height: clamp(12px, 3.4vw, 18px);
+			height: clamp(6px, 1.6vw, 9px);
 		}
 		.progress-fill::after {
-			width: clamp(18px, 5vw, 28px);
-			height: clamp(18px, 5vw, 28px);
+			width: clamp(14px, 3.6vw, 20px);
+			height: clamp(14px, 3.6vw, 20px);
 		}
 		.loading-label {
 			font-size: clamp(11px, 3.2vw, 18px);

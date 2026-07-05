@@ -43,24 +43,11 @@ export default {
 		src: new URL('../../assets/symbols/symbol_black/spritesheet.json', import.meta.url).href,
 		preload: true,
 	},
-	bigWin: {
-		type: 'sprite',
-		src: new URL('../../assets/wins/big_win.png', import.meta.url).href,
-		preload: true,
-	},
-	megaWin: {
-		type: 'sprite',
-		src: new URL('../../assets/wins/mega_win.png', import.meta.url).href,
-		preload: true,
-	},
-	epicWin: {
-		type: 'sprite',
-		src: new URL('../../assets/wins/epic_win.png', import.meta.url).href,
-		preload: true,
-	},
-	maxWin: {
-		type: 'sprite',
-		src: new URL('../../assets/wins/max_win.png', import.meta.url).href,
+	// Win-step plaque frames (BIG_WIN / HUGE_WIN / MEGA_WIN / EPIC_WIN / MAX_WIN): ornate
+	// empty frames with tier crests — WinBanner renders title + amount inside in bitmap font.
+	winSteps: {
+		type: 'sprites',
+		src: new URL('../../assets/wins/win_steps/spritesheet.json', import.meta.url).href,
 		preload: true,
 	},
 	tumbleWin: {

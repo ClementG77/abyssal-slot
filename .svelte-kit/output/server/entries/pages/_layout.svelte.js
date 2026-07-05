@@ -11729,7 +11729,7 @@ const VISIBLE_ROW_START = 1;
 const getSymbolFill = (symbolName) => {
   if (symbolName === "S") return 1.1;
   if (symbolName === "EYE") return 1.2;
-  if (symbolName.startsWith("H")) return 0.95;
+  if (symbolName.startsWith("H")) return 1;
   if (symbolName.startsWith("L")) return 0.74;
   return REEL_LAYOUT_BASE.symbolFill;
 };
@@ -15657,6 +15657,16 @@ function Background($$payload, $$props) {
     amp: 7 + i % 3 * 4,
     alpha: 0.018 + i * 4e-3
   }));
+  const AMBIENT_HEAT = {
+    rayBoost: 1.1,
+    // god-ray alpha multiplier at full heat
+    rayFlicker: 0.35,
+    // fast shimmer added to the ray pulse at full heat
+    glowBoost: 0.9,
+    // ambient-glow alpha multiplier at full heat
+    glowFlicker: 0.4
+  };
+  const heat = new Tween(0, { duration: 650 });
   let t = 0;
   const sizes = context2.stateLayoutDerived.canvasSizes();
   const feature = context2.stateGame.gameType === "freegame";
@@ -15684,26 +15694,36 @@ function Background($$payload, $$props) {
     const top = height * -0.05;
     const sway = Math.sin(t * 0.055) * width * 0.035;
     const color = feature ? 12576511 : 10517503;
+    const h = heat.current;
     for (let i = 0; i < 6; i++) {
       const x = width * (0.16 + i * 0.14) + sway * (i % 2 ? -1 : 1);
       const w = width * (0.05 + i % 3 * 0.014);
-      const pulse = 0.55 + Math.sin(t * 0.4 + i) * 0.45;
-      g.moveTo(x, top).lineTo(x + w, top).lineTo(x + w * 2.6, height * 0.8).lineTo(x - w * 1.4, height * 0.8).fill({ color, alpha: 0.04 * pulse });
+      const pulse = Math.max(0, 0.55 + Math.sin(t * 0.4 + i) * 0.45 + Math.sin(t * 1.9 + i * 1.7) * AMBIENT_HEAT.rayFlicker * h);
+      g.moveTo(x, top).lineTo(x + w, top).lineTo(x + w * 2.6, height * 0.8).lineTo(x - w * 1.4, height * 0.8).fill({
+        color,
+        alpha: 0.04 * pulse * (1 + h * AMBIENT_HEAT.rayBoost)
+      });
     }
   };
   const drawAmbientGlow = (g) => {
     const { width, height } = sizes;
     const color = feature ? 6282495 : 7163135;
-    const pulse = 0.55 + Math.sin(t * 0.22) * 0.45;
-    const sidePulse = 0.55 + Math.cos(t * 0.18 + 1.3) * 0.45;
-    g.ellipse(width * 0.52, height * (0.08 + Math.sin(t * 0.11) * 0.015), width * 0.42, height * 0.16).fill({ color, alpha: 0.032 + pulse * 0.026 });
+    const h = heat.current;
+    const heatGain = 1 + h * AMBIENT_HEAT.glowBoost;
+    const hotWave = Math.sin(t * 2.1) * AMBIENT_HEAT.glowFlicker * h;
+    const pulse = Math.max(0, 0.55 + Math.sin(t * 0.22) * 0.45 + hotWave);
+    const sidePulse = Math.max(0, 0.55 + Math.cos(t * 0.18 + 1.3) * 0.45 + hotWave);
+    g.ellipse(width * 0.52, height * (0.08 + Math.sin(t * 0.11) * 0.015), width * 0.42, height * 0.16).fill({
+      color,
+      alpha: (0.032 + pulse * 0.026) * heatGain
+    });
     g.ellipse(width * (0.22 + Math.sin(t * 0.07) * 0.015), height * 0.64, width * 0.22, height * 0.24).fill({
       color: 2224837,
-      alpha: feature ? 0.022 + sidePulse * 0.015 : 0.014
+      alpha: (feature ? 0.022 + sidePulse * 0.015 : 0.014) * heatGain
     });
     g.ellipse(width * (0.82 + Math.cos(t * 0.08) * 0.018), height * 0.55, width * 0.2, height * 0.2).fill({
       color: 10447871,
-      alpha: feature ? 0.012 : 0.018 + sidePulse * 0.012
+      alpha: (feature ? 0.012 : 0.018 + sidePulse * 0.012) * heatGain
     });
   };
   const drawCaustics = (g) => {
@@ -15872,6 +15892,30 @@ function ReelFrame($$payload, $$props) {
     const b = Math.round(fromB + (toB - fromB) * mix);
     return r << 16 | g << 8 | b;
   };
+  const FRAME_HEAT = {
+    baseAlpha: 0.3,
+    // glow floor at full heat
+    breatheAmp: 0.22,
+    // breathing depth when cool (flattens as heat rises)
+    slowSpeed: 1.7,
+    // rad/s of the cool, calm breathe
+    fastSpeed: 5.2,
+    // rad/s of the hot, urgent breathe
+    coolColor: 8336895,
+    // idle violet
+    midColor: 14182143,
+    // eye purple
+    hotColor: 16757866
+    // hot amber at full charge
+  };
+  const heat = new Tween(0, { duration: 550 });
+  const heatColor = heat.current < 0.5 ? mixColor(FRAME_HEAT.coolColor, FRAME_HEAT.midColor, heat.current * 2) : mixColor(FRAME_HEAT.midColor, FRAME_HEAT.hotColor, (heat.current - 0.5) * 2);
+  const heatAlpha = (() => {
+    const h = heat.current;
+    if (h <= 0.01) return 0;
+    const wave = 0.5 + 0.5 * (Math.sin(t * FRAME_HEAT.slowSpeed) * (1 - h) + Math.sin(t * FRAME_HEAT.fastSpeed) * h);
+    return h * (FRAME_HEAT.baseAlpha + FRAME_HEAT.breatheAmp * (1 - h * 0.55) * wave);
+  })();
   const launchEnergy = getBurstEnergy(launchStartedAt, 0.62);
   const scatterEnergy = getBurstEnergy(scatterStartedAt, 0.52);
   const eyeEnergy = getBurstEnergy(eyeStartedAt, 0.76);
@@ -16033,6 +16077,22 @@ function ReelFrame($$payload, $$props) {
             tint: borderTint
           });
           $$payload2.out += `<!----> `;
+          if (heatAlpha > 0) {
+            $$payload2.out += "<!--[-->";
+            Sprite($$payload2, {
+              key: LAYER_KEYS.border,
+              x: border.x,
+              y: border.y,
+              width: border.width,
+              height: border.height,
+              tint: heatColor,
+              alpha: heatAlpha,
+              blendMode: "add"
+            });
+          } else {
+            $$payload2.out += "<!--[!-->";
+          }
+          $$payload2.out += `<!--]--> `;
           if (props.debug) {
             $$payload2.out += "<!--[-->";
             Graphics($$payload2, {
@@ -16374,18 +16434,18 @@ function Symbol$1($$payload, $$props) {
   const { $$slots, $$events, ...props } = $$props;
   const context2 = getContext();
   const SYMBOL_FRAME = {
-    H1: "H1",
-    // Anglerfish
-    H2: "H2",
-    // Nautilus
+    H1: "H2",
+    // Nautilus art on the top-paying H1 slot
+    H2: "H1",
+    // Anglerfish art on H2
     H3: "H3",
     // Diving helmet
     H4: "H4",
     // Jellyfish
-    L1: "L1",
-    // Cyan gem
-    L2: "L2",
-    // Teal gem
+    L1: "L2",
+    // Teal gem art on L1
+    L2: "L1",
+    // Cyan gem art on L2
     L3: "L3",
     // Sapphire gem
     L4: "L4",
@@ -17544,7 +17604,10 @@ function GazeMeter($$payload, $$props) {
   const multiplierTextRotation = isMobile ? -Math.PI / 2 : 0;
   const mobileArtworkLeft = gazeW * GAZE_METER_LAYOUT.visibleBounds.left;
   const mobileArtworkCenterY = gazeH * ((GAZE_METER_LAYOUT.visibleBounds.top + GAZE_METER_LAYOUT.visibleBounds.bottom) / 2);
-  const mobileMeterTop = BOARD_SIZES.height - SYMBOL_SIZE * 0.02;
+  const mobileArtworkThickness = gazeW * (GAZE_METER_LAYOUT.visibleBounds.right - GAZE_METER_LAYOUT.visibleBounds.left);
+  const mobileTumbleWinCenterY = -SYMBOL_SIZE * 0.8;
+  const mobileTumbleWinVisualH = SYMBOL_SIZE * 0.82 * 1.18;
+  const mobileMeterTop = mobileTumbleWinCenterY - mobileTumbleWinVisualH / 2 - SYMBOL_SIZE * 0.08 - mobileArtworkThickness;
   const desktopMeterGap = SYMBOL_SIZE * 0.22;
   const position = {
     x: isMobile ? BOARD_SIZES.width / 2 + mobileArtworkCenterY : -gazeW * GAZE_METER_LAYOUT.visibleBounds.right - desktopMeterGap,
@@ -19222,23 +19285,77 @@ function FreeSpinCounter($$payload, $$props) {
 function FreeSpinOutro($$payload, $$props) {
   push();
   const context2 = getContext();
+  const COUNT_SECONDS = 2.4;
+  const PLAQUE_CENTER_Y = 523 / 768;
+  const PLAQUE_TEXT_WIDTH = 0.4;
+  const PLAQUE_FONT_SIZE = 0.105;
   let show = false;
   let amount2 = 0;
+  let winLevelData = void 0;
+  let oncomplete = () => {
+  };
+  const ts = () => stateBetDerived.timeScale();
+  const countUp = new Tween(0);
+  const interruptible = createInterruptible();
+  let countUpCompleted = false;
+  const countEase = (t) => 1 - Math.pow(1 - t, 1.6);
+  const runCount = () => countUp.set(amount2, {
+    duration: COUNT_SECONDS * SECOND / ts(),
+    easing: countEase
+  });
+  const cardFx = { scale: 0.85 };
+  const numFx = { scale: 1, flash: 0 };
+  const playEntrance = () => {
+    gsap.killTweensOf(cardFx);
+    gsap.timeline().set(cardFx, { scale: 0.85 }).to(cardFx, {
+      scale: 1,
+      duration: 0.6,
+      ease: "elastic.out(1, 0.6)"
+    });
+  };
+  const playLock = () => {
+    gsap.killTweensOf(numFx);
+    gsap.timeline().set(numFx, { scale: 1, flash: 0 }).to(numFx, {
+      scale: 1.35,
+      duration: 0.12,
+      ease: "back.out(3)"
+    }).to(numFx, {
+      scale: 1,
+      duration: 0.6,
+      ease: "elastic.out(1, 0.5)"
+    }).set(numFx, { flash: 0.95 }, 0).to(numFx, { flash: 0, duration: 0.45, ease: "power2.out" }, 0);
+    context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_winlevel_end" });
+  };
   context2.eventEmitter.subscribeOnMount({
     freeSpinOutroShow: () => show = true,
+    // FadeContainer unmounts its children once the fade-out lands, which re-arms OnMount →
+    // present() for the next bonus — no state reset needed here.
     freeSpinOutroHide: () => show = false,
     freeSpinOutroCountUp: async (emitterEvent) => {
       amount2 = emitterEvent.amount;
-      await waitForTimeout(2200 / stateBetDerived.timeScale());
+      winLevelData = emitterEvent.winLevelData;
+      await waitForResolve((resolve) => oncomplete = resolve);
     }
   });
+  const present = async () => {
+    countUpCompleted = false;
+    numFx.scale = 1;
+    numFx.flash = 0;
+    await countUp.set(0, { duration: 0 });
+    playEntrance();
+    await interruptible.add(runCount);
+    await countUp.set(amount2, { duration: 0 });
+    interruptible.clear();
+    playLock();
+    countUpCompleted = true;
+  };
   const sizes = context2.stateLayoutDerived.canvasSizes();
   const imageAspect = 1408 / 768;
   const imgW = Math.min(sizes.width * 0.88, sizes.height * 0.72 * imageAspect);
   const imgH = imgW / imageAspect;
-  const amountY = imgH * (505 / 768 - 0.5);
-  const amountMaxWidth = imgW * 0.48;
-  const amountStyle = abyssalBitmapStyle({ fontSize: imgH * 0.12 });
+  const amountY = imgH * (PLAQUE_CENTER_Y - 0.5);
+  const amountMaxWidth = imgW * PLAQUE_TEXT_WIDTH;
+  const amountStyle = abyssalBitmapStyle({ fontSize: imgH * PLAQUE_FONT_SIZE });
   FadeContainer($$payload, {
     show,
     zIndex: 45,
@@ -19251,29 +19368,68 @@ function FreeSpinOutro($$payload, $$props) {
         }
       ]));
       $$payload2.out += `<!----> `;
-      Container($$payload2, {
-        x: sizes.width / 2,
-        y: sizes.height / 2,
-        children: ($$payload3) => {
-          Sprite($$payload3, {
-            anchor: 0.5,
-            key: "freeSpinOutro",
-            width: imgW,
-            height: imgH
-          });
-          $$payload3.out += `<!----> `;
-          ResponsiveBitmapText($$payload3, {
-            anchor: 0.5,
-            y: amountY,
-            maxWidth: amountMaxWidth,
-            text: bookEventAmountToCurrencyString(amount2),
-            style: amountStyle
-          });
-          $$payload3.out += `<!---->`;
-        },
-        $$slots: { default: true }
-      });
-      $$payload2.out += `<!---->`;
+      if (winLevelData) {
+        $$payload2.out += "<!--[-->";
+        OnMount($$payload2, { onmount: present });
+        $$payload2.out += `<!----> `;
+        Container($$payload2, {
+          x: sizes.width / 2,
+          y: sizes.height / 2,
+          scale: cardFx.scale,
+          children: ($$payload3) => {
+            Sprite($$payload3, {
+              anchor: 0.5,
+              key: "freeSpinOutro",
+              width: imgW,
+              height: imgH
+            });
+            $$payload3.out += `<!----> `;
+            Container($$payload3, {
+              y: amountY,
+              scale: numFx.scale,
+              children: ($$payload4) => {
+                ResponsiveBitmapText($$payload4, {
+                  anchor: 0.5,
+                  maxWidth: amountMaxWidth,
+                  text: bookEventAmountToCurrencyString(countUp.current),
+                  style: amountStyle
+                });
+                $$payload4.out += `<!----> `;
+                if (numFx.flash > 0) {
+                  $$payload4.out += "<!--[-->";
+                  Container($$payload4, {
+                    alpha: numFx.flash,
+                    blendMode: "add",
+                    children: ($$payload5) => {
+                      ResponsiveBitmapText($$payload5, {
+                        anchor: 0.5,
+                        maxWidth: amountMaxWidth,
+                        text: bookEventAmountToCurrencyString(countUp.current),
+                        style: amountStyle
+                      });
+                    },
+                    $$slots: { default: true }
+                  });
+                } else {
+                  $$payload4.out += "<!--[!-->";
+                }
+                $$payload4.out += `<!--]-->`;
+              },
+              $$slots: { default: true }
+            });
+            $$payload3.out += `<!---->`;
+          },
+          $$slots: { default: true }
+        });
+        $$payload2.out += `<!----> `;
+        PressToContinue($$payload2, {
+          onpress: () => countUpCompleted ? oncomplete() : interruptible.interrupt()
+        });
+        $$payload2.out += `<!---->`;
+      } else {
+        $$payload2.out += "<!--[!-->";
+      }
+      $$payload2.out += `<!--]-->`;
     },
     $$slots: { default: true }
   });
@@ -20859,12 +21015,12 @@ function GameInfo($$payload, $$props) {
   const CELL_W = 495;
   const CELL_H = 501;
   const FRAME = {
-    H1: [990, 0],
-    H2: [1485, 0],
+    H1: [1485, 0],
+    H2: [990, 0],
     H3: [0, 0],
     H4: [495, 0],
-    L1: [1485, 501],
-    L2: [0, 501],
+    L1: [0, 501],
+    L2: [1485, 501],
     L3: [495, 501],
     L4: [990, 501],
     L5: [1485, 1002],
@@ -21428,12 +21584,12 @@ const en = {
   GAME_INFO_PAYTABLE_COUNT_8_TO_9: "8-9",
   GAME_INFO_PAYTABLE_COUNT_10_TO_11: "10-11",
   GAME_INFO_PAYTABLE_COUNT_12_PLUS: "12+",
-  GAME_INFO_SYMBOL_H1: "Anglerfish",
-  GAME_INFO_SYMBOL_H2: "Nautilus",
+  GAME_INFO_SYMBOL_H1: "Nautilus",
+  GAME_INFO_SYMBOL_H2: "Anglerfish",
   GAME_INFO_SYMBOL_H3: "Diving Helmet",
   GAME_INFO_SYMBOL_H4: "Jellyfish",
-  GAME_INFO_SYMBOL_L1: "Cyan gem",
-  GAME_INFO_SYMBOL_L2: "Teal gem",
+  GAME_INFO_SYMBOL_L1: "Teal gem",
+  GAME_INFO_SYMBOL_L2: "Cyan gem",
   GAME_INFO_SYMBOL_L3: "Sapphire gem",
   GAME_INFO_SYMBOL_L4: "Violet gem",
   GAME_INFO_SYMBOL_L5: "Aqua gem",
@@ -21534,12 +21690,12 @@ const zh = {
   GAME_INFO_PAYTABLE_COUNT_8_TO_9: "8-9",
   GAME_INFO_PAYTABLE_COUNT_10_TO_11: "10-11",
   GAME_INFO_PAYTABLE_COUNT_12_PLUS: "12+",
-  GAME_INFO_SYMBOL_H1: "鮟鱇鱼",
-  GAME_INFO_SYMBOL_H2: "鹦鹉螺",
+  GAME_INFO_SYMBOL_H1: "鹦鹉螺",
+  GAME_INFO_SYMBOL_H2: "鮟鱇鱼",
   GAME_INFO_SYMBOL_H3: "潜水头盔",
   GAME_INFO_SYMBOL_H4: "水母",
-  GAME_INFO_SYMBOL_L1: "青色宝石",
-  GAME_INFO_SYMBOL_L2: "蓝绿色宝石",
+  GAME_INFO_SYMBOL_L1: "蓝绿色宝石",
+  GAME_INFO_SYMBOL_L2: "青色宝石",
   GAME_INFO_SYMBOL_L3: "蓝宝石",
   GAME_INFO_SYMBOL_L4: "紫色宝石",
   GAME_INFO_SYMBOL_L5: "水蓝宝石",

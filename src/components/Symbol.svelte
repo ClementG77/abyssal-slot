@@ -36,13 +36,13 @@
 	// Each paying / special symbol maps onto a frame of the `symbols` atlas. Eyes use the atlas's
 	// baked EYE_*_ACTIVE / EYE_*_EMPTY / EYE_PURPLE_CLOSE art through the stateful AbyssalEye component.
 	const SYMBOL_FRAME: Partial<Record<SymbolName, string>> = {
-		H1: 'H1', // Anglerfish
+		H1: 'H3', // Diving helmet art on the top-paying H1 slot
 		H2: 'H2', // Nautilus
-		H3: 'H3', // Diving helmet
+		H3: 'H1', // Anglerfish art on H3
 		H4: 'H4', // Jellyfish
-		L1: 'L1', // Cyan gem
+		L1: 'L3', // Sapphire gem art on L1
 		L2: 'L2', // Teal gem
-		L3: 'L3', // Sapphire gem
+		L3: 'L1', // Cyan gem art on L3
 		L4: 'L4', // Violet gem
 		L5: 'L5', // Aqua gem
 		S: 'SCATTER', // Leviathan scatter

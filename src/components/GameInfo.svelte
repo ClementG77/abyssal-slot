@@ -17,13 +17,13 @@
 	const CELL_H = 501;
 	// Local keys map to the atlas frames (ADD_EYE/MULT_EYE/CLOSE_EYE → the ACTIVE / PURPLE_CLOSE art).
 	const FRAME: Record<string, [number, number]> = {
-		H1: [990, 0],
+		H1: [0, 0],
 		H2: [1485, 0],
-		H3: [0, 0],
+		H3: [990, 0],
 		H4: [495, 0],
-		L1: [1485, 501],
+		L1: [495, 501],
 		L2: [0, 501],
-		L3: [495, 501],
+		L3: [1485, 501],
 		L4: [990, 501],
 		L5: [1485, 1002],
 		SCATTER: [0, 1503],

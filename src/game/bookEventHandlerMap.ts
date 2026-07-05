@@ -161,24 +161,31 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 
 	setWin: async (bookEvent: BookEventOfType<'setWin'>) => {
 		const winLevelData = winLevelMap[bookEvent.winLevel as WinLevel];
+		// 20×+ wins get the centre-screen celebration — and it OWNS the final-amount reveal:
+		// the tumble banner must never count up to the final first (it kills the suspense).
+		const celebrate =
+			bookEvent.amount >= WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER;
 
 		if (stateGame.gazeCharge > 0 && !stateGame.eyeResolvedThisSpin) {
 			await eventEmitter.broadcastAsync({ type: 'gazeMeterDrain' });
 			stateGame.gazeCharge = 0;
 		}
 
-		// If an Eye resolved this spin, carry its multiplier to the tumble-win banner: the ×N flies
-		// from the Eye cell into the banner, then the banner counts the raw win up to the multiplied
-		// final (`bookEvent.amount`). Happens for every Eye win — before any win-tier celebration.
 		if (stateGame.eyeMultPending && stateGame.eyeResolveCell) {
 			stateGame.eyeMultPending = false;
-			await eventEmitter.broadcastAsync({
-				type: 'tumbleWinAmountMultiply',
-				totalWin: bookEvent.amount,
-				// the combine resolves the total at the board centre, so the ×N flies from there
-				fromReel: 2.5,
-				fromRow: 3,
-			});
+			// Sub-celebration Eye wins: carry the multiplier to the tumble-win banner — the ×N
+			// flies from the board centre in, then the banner counts the raw win up to the final.
+			// Celebration wins skip this beat entirely: the combine already showed the ×N, and
+			// the count-up from zero happens inside the takeover.
+			if (!celebrate) {
+				await eventEmitter.broadcastAsync({
+					type: 'tumbleWinAmountMultiply',
+					totalWin: bookEvent.amount,
+					// the combine resolves the total at the board centre, so the ×N flies from there
+					fromReel: 2.5,
+					fromRow: 3,
+				});
+			}
 			// The Eyes have fired their multiplier into the win — mark them `spent`: the number
 			// leaves the eye (Symbol hides it, with a pop) and the plain EMPTY art remains.
 			stateGame.revealedEyes.forEach(({ reel, row }) => {
@@ -192,8 +199,11 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		// Below the celebration threshold (<20×) there is no centre-screen win presentation or
 		// win sounds — the amount is already reflected in the running counters. Keeps small wins
 		// snappy and reserves the takeover for wins that earn it.
-		if (bookEvent.amount < WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER) return;
+		if (!celebrate) return;
 
+		// drop the tumble banner (still showing the pre-mult raw) so the takeover is the only
+		// number on screen while it counts up to the final
+		eventEmitter.broadcast({ type: 'tumbleWinAmountHide' });
 		eventEmitter.broadcast({ type: 'winShow' });
 		winLevelSoundsPlay({ winLevelData });
 		await eventEmitter.broadcastAsync({

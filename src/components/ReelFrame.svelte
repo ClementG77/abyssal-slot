@@ -118,6 +118,38 @@
 
 		return (r << 16) | (g << 8) | b;
 	};
+	// ---- Gaze-linked frame heat -----------------------------------------------------------
+	// The frame is a tension gauge for the Eye: as the spin's Gaze charge climbs, an additive
+	// copy of the border blooms from cool violet toward hot amber, breathing faster and
+	// shallower the hotter it gets. Cools back down on reveal/eyeResolve (gazeCharge → 0).
+	const FRAME_HEAT = {
+		fullCharge: 6, // charge at which the frame reaches full heat (meter caps at 10)
+		baseAlpha: 0.3, // glow floor at full heat
+		breatheAmp: 0.22, // breathing depth when cool (flattens as heat rises)
+		slowSpeed: 1.7, // rad/s of the cool, calm breathe
+		fastSpeed: 5.2, // rad/s of the hot, urgent breathe
+		coolColor: 0x7f35ff, // idle violet
+		midColor: 0xd866ff, // eye purple
+		hotColor: 0xffb46a, // hot amber at full charge
+	};
+	const heat = new Tween(0, { duration: 550 });
+	$effect(() => {
+		heat.set(Math.min(context.stateGame.gazeCharge / FRAME_HEAT.fullCharge, 1));
+	});
+	const heatColor = $derived(
+		heat.current < 0.5
+			? mixColor(FRAME_HEAT.coolColor, FRAME_HEAT.midColor, heat.current * 2)
+			: mixColor(FRAME_HEAT.midColor, FRAME_HEAT.hotColor, (heat.current - 0.5) * 2),
+	);
+	const heatAlpha = $derived.by(() => {
+		const h = heat.current;
+		if (h <= 0.01) return 0;
+		// crossfade slow → fast breathe by amplitude (frequency modulation would phase-jump)
+		const wave =
+			0.5 + 0.5 * (Math.sin(t * FRAME_HEAT.slowSpeed) * (1 - h) + Math.sin(t * FRAME_HEAT.fastSpeed) * h);
+		return h * (FRAME_HEAT.baseAlpha + FRAME_HEAT.breatheAmp * (1 - h * 0.55) * wave);
+	});
+
 	const launchEnergy = $derived(getBurstEnergy(launchStartedAt, 0.62));
 	const scatterEnergy = $derived(getBurstEnergy(scatterStartedAt, 0.52));
 	const eyeEnergy = $derived(getBurstEnergy(eyeStartedAt, 0.76));
@@ -298,6 +330,19 @@
 				height={border.height}
 				tint={borderTint}
 			/>
+			{#if heatAlpha > 0}
+				<!-- gaze heat: additive bloom of the border itself, tinted by the charge ramp -->
+				<Sprite
+					key={LAYER_KEYS.border}
+					x={border.x}
+					y={border.y}
+					width={border.width}
+					height={border.height}
+					tint={heatColor}
+					alpha={heatAlpha}
+					blendMode="add"
+				/>
+			{/if}
 			{#if props.debug}
 				<Graphics draw={(g) => drawDebugGrid(g, variant.layout)} />
 			{/if}
