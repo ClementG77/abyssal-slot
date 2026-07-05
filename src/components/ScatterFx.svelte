@@ -20,15 +20,14 @@
 	// Board-wide scatter reactions:
 	//  • anticipation (3+ scatters) → dim the screen (breathing), set the shared
 	//    `scatterAnticipating` flag (the scatters pulse harder via Symbol) and run a rising hum.
-	//  • trigger → ALL scatters pulse/glow in unison, then the white flash births a shockwave
-	//    ring from the board centre and the board takes the hit.
+	//  • trigger → ALL scatters pulse/glow in unison, then a shockwave ring erupts from the
+	//    board centre and the board takes the hit (no screen flash — glow only).
 	const context = getContext();
 
 	const dim = new Tween(0, { duration: 320 });
 	// the dim breathes while anticipating — pressure, not a static veil
 	const dimPulse = $state({ v: 0 });
 	let dimPulseTween: gsap.core.Tween | undefined;
-	const celebrate = $state({ flash: 0 });
 	// the trigger scatters' cells (all pulse in unison via cellPulse) + the centre shockwave
 	let cellPulses = $state<{ x: number; y: number; p: number }[]>([]);
 	const cellPulse = $state({ p: 0 });
@@ -58,18 +57,17 @@
 		reelFrameScatterAnticipationEnd: () => stopAnticipation(),
 		scatterCelebrate: async (emitterEvent) => {
 			stopAnticipation();
-			gsap.killTweensOf(celebrate);
 			gsap.killTweensOf(shock);
 			gsap.killTweensOf(cellPulse);
 
-			// ALL trigger scatters pulse/glow together (two swells), THEN the flash + shockwave + jolt
+			// ALL trigger scatters pulse/glow together (two swells), THEN the shockwave + jolt
 			cellPulses = emitterEvent.positions.map((pos) => ({
 				x: getPositionX(pos.reel),
 				y: getPositionY(pos.row),
 				p: 0,
 			}));
 			const PULSE_DURATION = 0.95;
-			const flashAt = PULSE_DURATION + 0.05;
+			const shockAt = PULSE_DURATION + 0.05;
 
 			await new Promise<void>((resolve) => {
 				const tl = gsap.timeline({
@@ -81,12 +79,13 @@
 					},
 				});
 				tl.timeScale(stateBetDerived.timeScale());
-				tl.set(celebrate, { flash: 0 }).set(shock, { p: 0 }).set(cellPulse, { p: 0 });
+				tl.set(shock, { p: 0 }).set(cellPulse, { p: 0 });
 				tl.to(cellPulse, { p: 1, duration: PULSE_DURATION, ease: 'none' }, 0);
-				tl.set(celebrate, { flash: 0.85 }, flashAt)
-					.add(() => context.eventEmitter.broadcast({ type: 'boardEyeImpact' }), flashAt)
-					.to(shock, { p: 1, duration: 0.6, ease: 'power2.out' }, flashAt)
-					.to(celebrate, { flash: 0, duration: 0.4, ease: 'power2.out' }, flashAt + 0.05);
+				tl.add(() => context.eventEmitter.broadcast({ type: 'boardEyeImpact' }), shockAt).to(
+					shock,
+					{ p: 1, duration: 0.6, ease: 'power2.out' },
+					shockAt,
+				);
 			});
 		},
 	});
@@ -142,9 +141,4 @@
 			</Container>
 		</BoardContainer>
 	</MainContainer>
-{/if}
-
-<!-- trigger flash (screen space) -->
-{#if celebrate.flash > 0}
-	<CanvasSizeRectangle backgroundColor={0xffffff} backgroundAlpha={celebrate.flash} />
 {/if}

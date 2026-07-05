@@ -71,6 +71,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		eventEmitter.broadcast({ type: 'soundScatterCounterClear' });
 		// reset the spin's Gaze charge for the new board; clear any Eye from the prior spin
 		stateGame.gazeCharge = 0;
+		stateGame.scatterPayAmount = 0;
 		stateGame.eyeResolvedThisSpin = false;
 		stateGame.eyeResolveCell = null;
 		stateGame.eyeMultPending = false;
@@ -135,7 +136,15 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	// amount is already rolled into the round's running totals (setTotalWin / finalWin), the
 	// trigger moment is owned by scatterCelebrate → free-spins intro, and 20×+ totals still get
 	// the Win presentation via setWin. Registered so the event isn't reported as unhandled.
-	scatterPay: async (_bookEvent: BookEventOfType<'scatterPay'>) => {},
+	scatterPay: async (bookEvent: BookEventOfType<'scatterPay'>) => {
+		// no dedicated celebration (the amount is in the running totals) — but the free-spins
+		// intro card writes it, so the player sees the instant pay on the bonus award
+		stateGame.scatterPayAmount = bookEvent.amount;
+		// roll the pay into the bottom WIN readout IMMEDIATELY, so the round total is visible
+		// from the very first free spin. Any following setTotalWin overwrites this with the
+		// authoritative cumulative (which includes the pay), so nothing double-counts.
+		stateBet.winBookEventAmount += bookEvent.amount;
+	},
 
 	tumbleBoard: async (bookEvent: BookEventOfType<'tumbleBoard'>) => {
 		eventEmitter.broadcast({ type: 'boardHide' });
@@ -278,7 +287,14 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		// banner in `setWin` (see eyeMultPending). One code path for single + Ultimate (multi).
 		stateGame.eyeResolvedThisSpin = true;
 		stateGame.eyeMultPending = true;
-		await eventEmitter.broadcastAsync({ type: 'gazeMeterToEye' });
+		// the Gaze seed and (in the feature) the banked ×M fly to the board centre TOGETHER —
+		// everything the combine consumes converges on the same point
+		await Promise.all([
+			eventEmitter.broadcastAsync({ type: 'gazeMeterToEye' }),
+			...(stateGame.gameType === 'freegame' && stateGame.persistentMult > 1
+				? [eventEmitter.broadcastAsync({ type: 'snowballToCombine' })]
+				: []),
+		]);
 		await eventEmitter.broadcastAsync({
 			type: 'eyeBurst',
 			charge: bookEvent.charge,
@@ -381,7 +397,9 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		winLevelSoundsPlay({ winLevelData });
 		await eventEmitter.broadcastAsync({
 			type: 'freeSpinOutroCountUp',
-			amount: bookEvent.amount,
+			// the ROUND total (latest setTotalWin), not just the feature's: it includes any
+			// base-game wins + the scatter pay from the triggering spin
+			amount: stateBet.winBookEventAmount || bookEvent.amount,
 			winLevelData,
 		});
 		winLevelSoundsStop();

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import gsap from 'gsap';
+	import { GlowFilter } from 'pixi-filters/glow';
 	import { Tween } from 'svelte/motion';
 	import { backOut, cubicIn } from 'svelte/easing';
 
@@ -92,7 +93,8 @@
 	const ts = () => stateBetDerived.timeScale(); // turbo speed-up
 	// The win beat: HIGHLIGHT (flash + pulsing glow) → GROW (a big, unmistakable swell right up
 	// to the burst) → EXPLODE into bubbles.
-	const WIN_GROW_MAX = 1.45;
+	const WIN_GROW_MAX = 1.7; // pre-burst hold size — winners tower over the board
+	const WIN_POP = 1.22; // the instant highlight pop when the win is first marked
 
 	const isEye = $derived(isUnresolvedEye || isResolvedEye || isSpentEye);
 	// The lifecycle variant fed to the single AbyssalEye instance (see the template comment):
@@ -137,6 +139,37 @@
 		return () => winGlowTween?.kill();
 	});
 
+	// Shape-hugging AURA: a GlowFilter traces the art's actual silhouette in the symbol's own
+	// colour (same tool as the Eye/GazeBar glows). Created lazily the first time this cell wins,
+	// pulsing via outerStrength; detached (filters=[]) whenever the cell isn't winning.
+	const WIN_AURA = {
+		distance: 26, // how far the aura reaches off the silhouette (px)
+		minStrength: 1.6, // aura at the bottom of the breath
+		maxStrength: 4.4, // aura at the top of the breath
+		quality: 0.3, // filter sample quality (higher = smoother, costlier)
+	};
+	let winAuraFilter = $state<GlowFilter | null>(null);
+	$effect(() => {
+		if (!winGlowOn) return;
+		if (!winAuraFilter) {
+			winAuraFilter = new GlowFilter({
+				distance: WIN_AURA.distance,
+				outerStrength: WIN_AURA.minStrength,
+				innerStrength: 0,
+				color: info.color,
+				quality: WIN_AURA.quality,
+			});
+		}
+		winAuraFilter.color = info.color;
+	});
+	$effect(() => {
+		if (winAuraFilter && winGlowOn) {
+			winAuraFilter.outerStrength =
+				WIN_AURA.minStrength + (WIN_AURA.maxStrength - WIN_AURA.minStrength) * winGlowFx.pulse;
+		}
+	});
+	onDestroy(() => winAuraFilter?.destroy());
+
 	// --- Scatter (the leviathan): a hero symbol -----------------------------------------
 	// A gentle breathe over a golden under-glow; landing is a pure GLOW surge. The soft coloured
 	// halo only blooms on "connect" (when the scatter is part of the trigger), pulsing harder
@@ -155,6 +188,44 @@
 	const scatterConnecting = $derived(
 		isScatter && (props.state === 'win' || props.state === 'postWinStatic'),
 	);
+
+	// Shape-hugging golden AURA around the leviathan's silhouette (replaces the old circular
+	// under-glow discs). One GlowFilter carries every scatter mood through its outerStrength:
+	// idle shimmer → hotter/faster while the board anticipates → spike on landing (count-
+	// scaled via landGlow) → heavy pulse while connecting on the bonus trigger.
+	const SCATTER_AURA = {
+		distance: 30, // reach off the silhouette (px)
+		quality: 0.3,
+		color: 0xffc964, // the scatter gold
+		idle: 1.1, // resting presence
+		anticipation: 2.4, // idle multiplier while the board anticipates the trigger
+		land: 3.4, // added at full landGlow (already count-scaled upstream)
+		connect: 3.0, // added at full connect pulse (the bonus-win celebration)
+	};
+	let scatterAuraFilter = $state<GlowFilter | null>(null);
+	$effect(() => {
+		if (!isScatter || scatterAuraFilter) return;
+		scatterAuraFilter = new GlowFilter({
+			distance: SCATTER_AURA.distance,
+			outerStrength: SCATTER_AURA.idle,
+			innerStrength: 0,
+			color: SCATTER_AURA.color,
+			quality: SCATTER_AURA.quality,
+		});
+	});
+	$effect(() => {
+		if (!scatterAuraFilter || !isScatter) return;
+		const anticipating = context.stateGame.scatterAnticipating;
+		// same shimmer rhythm the disc glow used, now breathing the silhouette instead
+		const shimmer = anticipating
+			? 0.75 + Math.sin(scatterAmb.t * 3.6) * 0.25
+			: 0.8 + Math.sin(scatterAmb.t * 1.7) * 0.2;
+		scatterAuraFilter.outerStrength =
+			SCATTER_AURA.idle * shimmer * (anticipating ? SCATTER_AURA.anticipation : 1) +
+			scatterFx.landGlow * SCATTER_AURA.land +
+			scatterFx.connect * SCATTER_AURA.connect;
+	});
+	onDestroy(() => scatterAuraFilter?.destroy());
 
 	$effect(() => {
 		if (!isScatter) {
@@ -294,7 +365,7 @@
 				// HIGHLIGHT: flash + electric border + a clear pop, resolved fast so the sequence
 				// moves on immediately.
 				if (!isEye) playWinJuice();
-				await scale.set(1.12, { duration: 100 / ts(), easing: backOut });
+				await scale.set(WIN_POP, { duration: 110 / ts(), easing: backOut });
 				if (myToken !== token) return;
 				done();
 			} else if (state === 'postWinStatic') {
@@ -302,7 +373,7 @@
 				// GROW: a visible swell right up until the burst — the pre-explosion tell; the Eye
 				// and Scatter have their own treatment.
 				if (!isEye && !isScatter) {
-					await scale.set(WIN_GROW_MAX, { duration: 380 / ts() });
+					await scale.set(WIN_GROW_MAX, { duration: 420 / ts() });
 				} else {
 					await scale.set(1, { duration: 120 / ts() });
 				}
@@ -312,7 +383,7 @@
 				// while the bubbles (BoardDebris) carry the energy up and away. Alpha only drops
 				// at the very end so the collapse itself reads.
 				scale.set(WIN_GROW_MAX, { duration: 0 });
-				await scale.set(WIN_GROW_MAX * 1.25, { duration: 70 / ts(), easing: backOut });
+				await scale.set(WIN_GROW_MAX * 1.15, { duration: 70 / ts(), easing: backOut });
 				if (myToken !== token) return;
 				alpha.set(0, { duration: 90 / ts(), delay: 40 / ts() });
 				await scale.set(0, { duration: 130 / ts(), easing: cubicIn });
@@ -356,49 +427,11 @@
 
 	const eyeSize = $derived(Math.max(symbolSize.width, symbolSize.height) * 1.08);
 
-	// Winning-symbol bloom — a soft cool radial glow behind the art (stacked additive discs,
-	// bright core fading to the rim), breathing with the win pulse. No borders, pure light.
-	const drawWinBloom = (g: import('pixi.js').Graphics) => {
-		const pulse = winGlowFx.pulse;
-		if (pulse <= 0) return;
-		const base = Math.max(symbolSize.width, symbolSize.height) * 0.6;
-		const steps = 4;
-		for (let i = steps; i >= 1; i--) {
-			const f = i / steps; // 1 = rim … 0.25 = core
-			g.circle(0, 0, base * (0.5 + f * 0.7)).fill({
-				color: 0xbfeeff,
-				alpha: 0.05 * (1.25 - f) * pulse,
-			});
-		}
-	};
 
 
 	// Soft golden under-glow behind the leviathan — the "this one is special" beacon. Stacked
 	// additive discs (bright core fading to the rim), shimmering with the ambient clock and
 	// burning brighter while the board anticipates another scatter.
-	const drawScatterGlow = (g: import('pixi.js').Graphics) => {
-		const anticipating = context.stateGame.scatterAnticipating;
-		const landGlow = scatterFx.landGlow;
-		// while anticipating, the settled scatters "call" the missing one: hotter, faster, wider;
-		// on landing the glow SURGES (landGlow spike, count-scaled)
-		const base =
-			Math.max(symbolSize.width, symbolSize.height) *
-			0.56 *
-			(anticipating ? 1.12 : 1) *
-			(1 + landGlow * 0.22);
-		const shimmer = anticipating
-			? 0.75 + Math.sin(scatterAmb.t * 3.6) * 0.25
-			: 0.8 + Math.sin(scatterAmb.t * 1.7) * 0.2;
-		const boost = (anticipating ? 2.6 : 1) + landGlow * 3.2;
-		const steps = 4;
-		for (let i = steps; i >= 1; i--) {
-			const f = i / steps; // 1 = rim … 0.25 = core
-			g.circle(0, 0, base * (0.45 + f * 0.75) * scatterFx.breathe).fill({
-				color: 0xffc964,
-				alpha: 0.028 * (1.25 - f) * shimmer * boost,
-			});
-		}
-	};
 
 </script>
 
@@ -407,6 +440,11 @@
 	y={props.y}
 	scale={{ x: scale.current * winFx.squashX, y: scale.current * winFx.squashY }}
 	alpha={alpha.current}
+	filters={winGlowOn && winAuraFilter
+		? [winAuraFilter]
+		: isScatter && scatterAuraFilter
+			? [scatterAuraFilter]
+			: []}
 >
 	{#if isEye}
 		<!-- ONE persistent AbyssalEye across the whole lifecycle, so the variant EDGE animates:
@@ -423,24 +461,16 @@
 			intensity={isSpentEye ? 0 : gazeIntensity}
 		/>
 	{:else}
-		<!-- winning-symbol bloom (behind the art) -->
-		{#if winGlowOn}
-			<Container blendMode="add">
-				<Graphics draw={drawWinBloom} />
-			</Container>
-		{/if}
-
-		<!-- base art -->
+		<!-- base art (the winning aura is the GlowFilter on the cell container — it traces the
+		     art's silhouette, so no separate bloom shape is drawn) -->
 		{#if frame}
 			{#if isScatter}
-				<!-- leviathan: breathing body over a golden under-glow, land flare/ring/rays;
-				     the soft coloured halo only blooms on connect.
+				<!-- leviathan: breathing body; the golden aura is the silhouette GlowFilter on the
+				     cell container (idle shimmer / anticipation / land surge / connect all drive
+				     its strength). The soft coloured halo copy only blooms on connect.
 				     NOTE: never set `scale` alongside `width`/`height` on a pixi-svelte Sprite — the
 				     scale prop is applied last and overrides the width/height sizing (rendering the
 				     sprite at its native texture size). Bake the multiplier into width/height. -->
-				<Container blendMode="add">
-					<Graphics draw={drawScatterGlow} />
-				</Container>
 				{#if scatterFx.connect > 0}
 					<Sprite
 						key={frame}
@@ -492,9 +522,9 @@
 			<Sprite
 				key={frame}
 				anchor={0.5}
-				width={symbolSize.width * 1.05}
-				height={symbolSize.height * 1.05}
-				alpha={winGlowFx.pulse * 0.4}
+				width={symbolSize.width * 1.07}
+				height={symbolSize.height * 1.07}
+				alpha={winGlowFx.pulse * 0.55}
 				tint={0xffffff}
 				blendMode="add"
 			/>

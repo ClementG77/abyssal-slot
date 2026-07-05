@@ -81,19 +81,38 @@
 	const enter = async () => {
 		if (!ready || !visible || leaving || !loaderElement) return;
 		leaving = true;
+		context.eventEmitter.broadcast({ type: 'soundPressGeneral' });
 
-		// Mount the slots underneath first, then dissolve the loader over them.
+		// Mount the slots underneath first — the water wall lives in the Pixi scene.
 		context.stateLayout.showLoadingScreen = false;
 		await tick();
 		if (!loaderElement) return;
 
+		// Camera pull-focus: the game starts soft (blurred, a touch zoomed and bright) behind
+		// the dissolving loader, then racks into sharp focus like a lens settling on the reels.
+		// The canvas styles are cleared at the end so the game is left untouched.
+		const canvas = document.querySelector('canvas');
+		if (canvas) {
+			gsap.fromTo(
+				canvas,
+				{ filter: 'blur(16px) brightness(1.18)', scale: 1.07, transformOrigin: '50% 50%' },
+				{
+					filter: 'blur(0px) brightness(1)',
+					scale: 1,
+					duration: 1.3,
+					ease: 'power2.out',
+					clearProps: 'filter,transform',
+				},
+			);
+		}
+
 		exitAnimation = gsap.timeline({ onComplete: () => (visible = false) });
-		exitAnimation.to(loaderElement, { autoAlpha: 0, duration: 1.2, ease: 'power3.inOut' });
+		exitAnimation.to(loaderElement, { autoAlpha: 0, duration: 0.75, ease: 'power2.inOut' });
 		const stage = loaderElement.querySelector('.loader-stage');
 		if (stage) {
 			exitAnimation.to(
 				stage,
-				{ scale: 1.06, filter: 'blur(3px)', duration: 1.2, ease: 'power3.inOut' },
+				{ scale: 1.04, filter: 'blur(5px)', duration: 0.75, ease: 'power2.inOut' },
 				0,
 			);
 		}
@@ -188,20 +207,23 @@
 		onclick={() => enter()}
 		onkeydown={onKey}
 	>
-		<div class="loader-stage">
-			<div
-				class="background"
-				aria-hidden="true"
-				style={`background-image: url(${backgroundUrl})`}
-			></div>
-			<div class="vignette" aria-hidden="true"></div>
-			<div class="light-rays" aria-hidden="true"></div>
-			<div class="bubbles" aria-hidden="true">
-				{#each Array.from({ length: 28 }) as _, index}
-					<i style={`--i: ${index}`}></i>
-				{/each}
-			</div>
+		<!-- atmosphere fills the WHOLE viewport (it used to live inside the aspect-locked stage,
+		     which left bare bars on screens wider/squarer than 16:9); the UI stays framed in
+		     the stage below -->
+		<div
+			class="background"
+			aria-hidden="true"
+			style={`background-image: url(${backgroundUrl})`}
+		></div>
+		<div class="vignette" aria-hidden="true"></div>
+		<div class="light-rays" aria-hidden="true"></div>
+		<div class="bubbles" aria-hidden="true">
+			{#each Array.from({ length: 28 }) as _, index}
+				<i style={`--i: ${index}`}></i>
+			{/each}
+		</div>
 
+		<div class="loader-stage">
 			<header class="loader-header">
 				<AbyssalPixiLogo title={copy.logo} />
 			</header>

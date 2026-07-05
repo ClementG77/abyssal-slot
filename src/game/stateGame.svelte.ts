@@ -64,7 +64,10 @@ const onSymbolLand = ({
 		// land flare (Symbol) + frame-glow surge below.
 		eventEmitter.broadcast({ type: 'reelFrameScatterLand', position });
 		eventEmitter.broadcast({ type: 'soundScatterCounterIncrease' });
-		if (scatterCountAfterLand >= 4 && stateGame.scatterAnticipating) {
+		// the anticipation releases the moment the TRIGGERING scatter lands: the 4th in the
+		// basegame (bonus), the 3rd in the feature (retrigger only needs 3)
+		const triggerCount = stateGame.gameType === 'freegame' ? 3 : 4;
+		if (scatterCountAfterLand >= triggerCount && stateGame.scatterAnticipating) {
 			eventEmitter.broadcast({ type: 'reelFrameScatterAnticipationEnd' });
 		}
 		eventEmitter.broadcast({
@@ -123,6 +126,9 @@ export const stateGame = $state({
 	scatterAnticipating: false,
 	// The Eye's Gaze charge for the current spin (driven by `gazeStep`); reset each reveal.
 	gazeCharge: 0,
+	// Instant scatter pay of the triggering spin (4/5/6 scatters = 3×/5×/100× bet), kept so
+	// the free-spins intro card can show it. Reset each reveal.
+	scatterPayAmount: 0,
 	// Tracks whether the current spin already resolved an Eye. If charge exists and this
 	// stays false by settlement, the meter drains as the intended no-Eye near miss.
 	eyeResolvedThisSpin: false,

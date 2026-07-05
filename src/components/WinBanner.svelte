@@ -49,6 +49,7 @@
 	const BLOOM_IDLE = 0.22; // resting strength of the tier-colored frame glow
 	const TITLE_Y = -0.82; // title centre — a headline ABOVE the frame (clear of the crest)
 	const TITLE_SIZE = 0.22; // title font size, fraction of frame height
+	const TITLE_PULSE = 0.055; // headline scale pulse depth (rides the idle glow rhythm)
 	// shape aura: tier-tinted copies of the frame's own silhouette swelling outward
 	const AURA_SCALES = [1.07, 1.17, 1.3]; // innermost → outermost shell
 	const AURA_ALPHA = 0.55; // alpha of the innermost shell (outer shells fade)
@@ -166,23 +167,19 @@
 		/>
 	</Container>
 
-	<ResponsiveBitmapText
-		anchor={0.5}
-		y={props.height * TITLE_Y}
-		maxWidth={props.width * 1.05}
-		text={title}
-		style={titleStyle}
-	/>
-	<!-- tier-colored bloom of the headline glyphs -->
-	<Container alpha={fx.bloom * 0.5} blendMode="add">
-		<ResponsiveBitmapText
-			anchor={0.5}
-			y={props.height * TITLE_Y}
-			maxWidth={props.width * 1.05}
-			text={title}
-			style={titleStyle}
-			tint={props.color}
-		/>
+	<!-- the headline pulses on its own rhythm (on top of the banner's gentle breathe) -->
+	<Container y={props.height * TITLE_Y} scale={1 + idle.glow * TITLE_PULSE}>
+		<ResponsiveBitmapText anchor={0.5} maxWidth={props.width * 1.05} text={title} style={titleStyle} />
+		<!-- tier-colored bloom of the headline glyphs, swelling with the pulse -->
+		<Container alpha={(0.35 + idle.glow * 0.3) * (0.5 + fx.bloom * 0.5)} blendMode="add">
+			<ResponsiveBitmapText
+				anchor={0.5}
+				maxWidth={props.width * 1.05}
+				text={title}
+				style={titleStyle}
+				tint={props.color}
+			/>
+		</Container>
 	</Container>
 
 	{#if fx.flash > 0}
