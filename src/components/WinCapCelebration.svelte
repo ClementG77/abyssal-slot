@@ -36,7 +36,7 @@
 		<Text
 			anchor={0.5}
 			y={-70}
-			text="MAX WIN"
+			text={context.i18nDerived.winTier('maxWin')}
 			style={{ fontFamily: 'sans-serif', fontWeight: '800', fontSize: 110, fill: 0xffb13c }}
 		/>
 		<Text

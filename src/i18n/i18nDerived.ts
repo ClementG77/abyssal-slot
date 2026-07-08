@@ -3,6 +3,15 @@ import { stateI18nDerived } from 'state-shared';
 import { i18nDerived as i18nDerivedUiPixi } from 'components-ui-pixi';
 import { i18nDerived as i18nDerivedUiHtml } from 'components-ui-html';
 
+const WIN_TIER_KEYS = {
+	bigWin: 'WIN_TIER_BIG',
+	superWin: 'WIN_TIER_SUPER',
+	hugeWin: 'WIN_TIER_HUGE',
+	megaWin: 'WIN_TIER_MEGA',
+	epicWin: 'WIN_TIER_EPIC',
+	maxWin: 'WIN_TIER_MAX',
+} as const;
+
 export const i18nDerived = {
 	...i18nDerivedUiPixi,
 	...i18nDerivedUiHtml,
@@ -24,4 +33,38 @@ export const i18nDerived = {
 	loaderNextCard: () => stateI18nDerived.translate('LOADER_NEXT_CARD'),
 	freeSpinsTapToPlay: () => stateI18nDerived.translate('FREE_SPINS_TAP_TO_PLAY'),
 	freeSpinsTapToSkip: () => stateI18nDerived.translate('FREE_SPINS_TAP_TO_SKIP'),
+	active: () => stateI18nDerived.translate('ACTIVE'),
+	activate: () => stateI18nDerived.translate('ACTIVATE'),
+	deactivate: () => stateI18nDerived.translate('DEACTIVATE'),
+	buy: () => stateI18nDerived.translate('BUY'),
+	bonus: () => stateI18nDerived.translate('BONUS'),
+	lowFunds: () => stateI18nDerived.translate('LOW_FUNDS'),
+	perSpin: () => stateI18nDerived.translate('PER_SPIN'),
+	total: () => stateI18nDerived.translate('TOTAL'),
+	cancel: () => stateI18nDerived.translate('CANCEL'),
+	confirmBuy: () => stateI18nDerived.translate('CONFIRM_BUY'),
+	decreaseBet: () => stateI18nDerived.translate('DECREASE_BET'),
+	increaseBet: () => stateI18nDerived.translate('INCREASE_BET'),
+	music: () => stateI18nDerived.translate('MUSIC'),
+	sfx: () => stateI18nDerived.translate('SFX'),
+	play: () => stateI18nDerived.translate('PLAY'),
+	playAgain: () => stateI18nDerived.translate('PLAY_AGAIN'),
+	loadingReplay: () => stateI18nDerived.translate('LOADING_REPLAY'),
+	replayUnavailable: () => stateI18nDerived.translate('REPLAY_UNAVAILABLE'),
+	replay: () => stateI18nDerived.translate('REPLAY'),
+	speed: () => stateI18nDerived.translate('SPEED'),
+	tumbleWin: () => stateI18nDerived.translate('TUMBLE_WIN'),
+	totalMult: () => stateI18nDerived.translate('TOTAL_MULT'),
+	gaze: () => stateI18nDerived.translate('GAZE'),
+	tapToContinue: () => stateI18nDerived.translate('TAP_TO_CONTINUE'),
+	on: () => stateI18nDerived.translate('ON'),
+	off: () => stateI18nDerived.translate('OFF'),
+	anteSwitchNote: () => stateI18nDerived.translate('ANTE_SWITCH_NOTE'),
+	auto: () => stateI18nDerived.translate('AUTO'),
+	all: () => stateI18nDerived.translate('ALL'),
+	start: () => stateI18nDerived.translate('START'),
+	winTier: (tierKey: keyof typeof WIN_TIER_KEYS) =>
+		stateI18nDerived.translate(WIN_TIER_KEYS[tierKey]),
+	betMode: (mode: string, field: string) =>
+		stateI18nDerived.translate(`BET_MODE_${mode}_${field}`),
 };

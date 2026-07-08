@@ -12,11 +12,15 @@ import {
 import { eventEmitter } from './eventEmitter';
 import type { Bet, BookEventOfType } from './typesBookEvent';
 import { bookEventHandlerMap } from './bookEventHandlerMap';
+import { withSkipBoundaries } from './skip.svelte';
 import type { RawSymbol, SymbolState } from './types';
 
 // general utils
 export const { getEmptyBoard } = createGetEmptyPaddedBoard({ reelsDimensions: BOARD_DIMENSIONS });
-export const { playBookEvent, playBookEvents } = createPlayBookUtils({ bookEventHandlerMap });
+// handlers are wrapped so a screen press skips exactly the CURRENT book event (see skip.svelte)
+export const { playBookEvent, playBookEvents } = createPlayBookUtils({
+	bookEventHandlerMap: withSkipBoundaries(bookEventHandlerMap),
+});
 export const playBet = async (bet: Bet) => {
 	stateBet.winBookEventAmount = 0;
 	await playBookEvents(bet.state);

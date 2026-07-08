@@ -19,7 +19,7 @@
 		anchor={{ x: 0.5, y: 1 }}
 		x={context.stateLayoutDerived.mainLayout().width * 0.5}
 		y={context.stateLayoutDerived.mainLayout().height - 60}
-		text="TAP TO CONTINUE"
+		text={context.i18nDerived.tapToContinue()}
 		style={{
 			fontFamily: 'sans-serif',
 			fontWeight: '800',

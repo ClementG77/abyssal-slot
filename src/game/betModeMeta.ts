@@ -1,5 +1,7 @@
 import type { BetModeData, BetModeMeta } from 'state-shared';
 
+import { i18nDerived } from '../i18n/i18nDerived';
+
 // Provider logo, shown as the small brand mark on each card. Resolved via `new URL(..., import.meta.url)`
 // like every other asset — files in `static/` are served from the ROOT (`/assets/...`, NOT
 // `/static/assets/...`), and this form also respects the deploy base path on Stake.
@@ -29,6 +31,36 @@ const HERO = {
 
 const WIN_CAP = 15000;
 
+const t = (mode: string, field: string) => i18nDerived.betMode(mode, field);
+
+const modeText = (
+	modeKey: string,
+	options: { description?: boolean; betAmountLabel?: boolean } = {},
+) =>
+	({
+		get title() {
+			return t(modeKey, 'TITLE');
+		},
+		get description() {
+			return options.description ? t(modeKey, 'DESCRIPTION') : undefined;
+		},
+		get betAmountLabel() {
+			return options.betAmountLabel ? t(modeKey, 'BET_AMOUNT_LABEL') : undefined;
+		},
+		get dialog() {
+			return t(modeKey, 'DIALOG');
+		},
+		get button() {
+			return t(modeKey, 'BUTTON');
+		},
+		get tickerIdle() {
+			return t(modeKey, 'TICKER_IDLE');
+		},
+		get tickerSpin() {
+			return t(modeKey, 'TICKER_SPIN');
+		},
+	}) as BetModeData['text'];
+
 const baseAssets = {
 	icon: providerLogo, // Celest Studios mark on every bet-mode / buy-bonus card
 	volatility: '',
@@ -44,13 +76,7 @@ const mode = (
 	children: '',
 	maxWin: WIN_CAP,
 	assets: baseAssets,
-	text: {
-		title: data.mode,
-		dialog: '',
-		button: '',
-		tickerIdle: '',
-		tickerSpin: 'GOOD LUCK',
-	},
+	text: modeText(data.mode),
 	...data,
 });
 
@@ -59,88 +85,41 @@ export const ABYSSAL_BET_MODE_META: BetModeMeta = {
 		mode: 'BASE',
 		costMultiplier: 1.0,
 		type: 'default',
-		text: {
-			title: 'BASE',
-			dialog: 'The standard Abyssal spin. The Eye is rare and mostly ADD.',
-			button: '',
-			tickerIdle: 'PLACE YOUR BET',
-			tickerSpin: 'GOOD LUCK',
-		},
+		text: modeText('BASE'),
 	}),
 	ANTE: mode({
 		mode: 'ANTE',
 		costMultiplier: 1.25,
 		type: 'activate',
 		assets: { ...baseAssets, dialogImage: HERO.ANTE, volatility: '2' },
-		text: {
-			title: 'ANTE',
-			description: 'Raise the tide — more frequent Eyes and Scatters.',
-			dialog:
-				'Increases the Eye and Scatter frequency for 1.25× the bet. ANTE BET stays active until disabled.',
-			button: 'ACTIVATE',
-			betAmountLabel: 'ANTE BET',
-			tickerIdle: 'ANTE BET IS ACTIVE',
-			tickerSpin: 'GOOD LUCK',
-		},
+		text: modeText('ANTE', { description: true, betAmountLabel: true }),
 	}),
 	SUPERSPINS: mode({
 		mode: 'SUPERSPINS',
 		costMultiplier: 20,
 		type: 'activate',
 		assets: { ...baseAssets, dialogImage: HERO.SUPERSPINS, volatility: '3' },
-		text: {
-			title: 'EYE SPINS',
-			description: 'One guaranteed-Eye spin — a single build-and-release.',
-			dialog:
-				'A single spin for 20× the bet with the Eye guaranteed to land. No snowball — one punchy build and release.',
-			button: 'ACTIVATE',
-			tickerIdle: 'SUPER SPINS IS ACTIVE',
-			tickerSpin: 'GOOD LUCK',
-		},
+		text: modeText('SUPERSPINS', { description: true }),
 	}),
 	BONUS: mode({
 		mode: 'BONUS',
 		costMultiplier: 100,
 		type: 'buy',
 		assets: { ...baseAssets, dialogImage: HERO.BONUS, volatility: '4' },
-		text: {
-			title: 'BONUS',
-			description: 'Buy straight into the Free Spins snowball feature.',
-			dialog:
-				'Triggers Free Spins for 100× the bet. The persistent multiplier (M) snowballs across the feature as the Eye lands.',
-			button: 'BUY',
-			tickerIdle: 'PLACE YOUR BET',
-			tickerSpin: 'FREE SPINS PURCHASED',
-		},
+		text: modeText('BONUS', { description: true }),
 	}),
 	ULTIMATE: mode({
 		mode: 'ULTIMATE',
 		costMultiplier: 300,
 		type: 'activate',
 		assets: { ...baseAssets, dialogImage: HERO.ULTIMATE, volatility: '4' },
-		text: {
-			title: 'ULTIMATE',
-			description: 'The multi-Eye finale — several Eyes resolve at once.',
-			dialog:
-				'The only mode where multiple Eyes open together for 300× the bet, combining their ADD and MUL values in one resolution.',
-			button: 'ACTIVATE',
-			tickerIdle: 'ULTIMATE IS ACTIVE',
-			tickerSpin: 'GOOD LUCK',
-		},
+		text: modeText('ULTIMATE', { description: true }),
 	}),
 	SUPERBONUS: mode({
 		mode: 'SUPERBONUS',
 		costMultiplier: 500,
 		type: 'buy',
 		assets: { ...baseAssets, dialogImage: HERO.SUPERBONUS, volatility: '5' },
-		text: {
-			title: 'SUPER BONUS',
-			description: 'The tail mode — charge +2 and MUL common.',
-			dialog:
-				'Buys the Free Spins feature for 500× the bet with +2 Gaze charge per connection and MUL Eyes common. The mode that most often approaches the 15,000× cap.',
-			button: 'BUY',
-			tickerIdle: 'PLACE YOUR BET',
-			tickerSpin: 'SUPER BONUS PURCHASED',
-		},
+		text: modeText('SUPERBONUS', { description: true }),
 	}),
 };

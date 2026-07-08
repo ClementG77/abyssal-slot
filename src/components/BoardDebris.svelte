@@ -2,10 +2,14 @@
 	// Board-level burst FX. Spawned when cells explode (TumbleBoard → `boardDebris`), the
 	// bubbles live here instead of on the symbols so they can outlast the cell that collapsed
 	// and got refilled.
-	export type EmitterEventBoardDebris = {
-		type: 'boardDebris';
-		cells: { reel: number; row: number; color: number }[];
-	};
+	export type EmitterEventBoardDebris =
+		| {
+				type: 'boardDebris';
+				cells: { reel: number; row: number; color: number }[];
+		  }
+		// a tiny contact puff at a landing cell (reveal reel-stops + the deepest refill
+		// contact per column) — a few small bubbles, no ring, quieter than an explosion
+		| { type: 'boardLandPuff'; cells: { reel: number; row: number }[] };
 </script>
 
 <script lang="ts">
@@ -40,6 +44,7 @@
 		start: number;
 		duration: number;
 		bubbles: Bubble[];
+		light: boolean; // landing puff — no shock ring, fewer/smaller bubbles
 	};
 
 	let now = $state(performance.now());
@@ -87,6 +92,38 @@
 					start: t,
 					duration,
 					bubbles,
+					light: false,
+				};
+			});
+			bursts = [...bursts, ...spawned];
+		},
+		boardLandPuff: ({ cells }) => {
+			const t = performance.now();
+			const duration = 380 / stateBetDerived.timeScale();
+			const spawned = cells.map((cell) => {
+				// a handful of small bubbles kicked up from the cell's lower half
+				const bubbles: Bubble[] = Array.from({ length: 4 }, () => {
+					const angle = Math.random() * Math.PI * 2;
+					const spread = SYMBOL_SIZE * (0.05 + Math.random() * 0.16);
+					return {
+						ox: Math.cos(angle) * spread,
+						oy: SYMBOL_SIZE * 0.26 + Math.sin(angle) * spread * 0.3,
+						rise: SYMBOL_SIZE * (0.22 + Math.random() * 0.3),
+						r: SYMBOL_SIZE * (0.028 + Math.random() * 0.04),
+						drift: SYMBOL_SIZE * (0.03 + Math.random() * 0.05),
+						phase: Math.random() * Math.PI * 2,
+						delay: Math.random() * 0.15,
+					};
+				});
+				return {
+					id: nextId++,
+					x: getPositionX(cell.reel),
+					y: getPositionY(cell.row),
+					color: 0x9fdcff,
+					start: t,
+					duration,
+					bubbles,
+					light: true,
 				};
 			});
 			bursts = [...bursts, ...spawned];
@@ -99,8 +136,9 @@
 		const p = Math.min(1, (now - burst.start) / burst.duration);
 		if (p >= 1) return;
 
-		// first beat: a coloured shock ring + soft core bloom at the cell
-		if (p < 0.3) {
+		// first beat: a coloured shock ring + soft core bloom at the cell (explosions only —
+		// landing puffs are just the bubbles)
+		if (!burst.light && p < 0.3) {
 			const ringP = p / 0.3;
 			g.circle(0, 0, SYMBOL_SIZE * (0.22 + ringP * 0.68)).stroke({
 				width: Math.max(1.5, 6 * (1 - ringP)),

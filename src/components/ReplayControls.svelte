@@ -104,9 +104,15 @@
 	const winText = $derived(bookEventAmountToCurrencyString(stateBet.winBookEventAmount));
 	const betText = $derived(numberToCurrencyString(stateBetDerived.betCost()));
 	const showButton = $derived(phase !== 'playing' && status === 'ready');
-	const buttonLabel = $derived(phase === 'done' ? 'PLAY AGAIN' : 'PLAY');
+	const buttonLabel = $derived(
+		phase === 'done' ? context.i18nDerived.playAgain() : context.i18nDerived.play(),
+	);
 	const statusText = $derived(
-		status === 'loading' ? 'LOADING REPLAY…' : status === 'error' ? 'REPLAY UNAVAILABLE' : '',
+		status === 'loading'
+			? context.i18nDerived.loadingReplay()
+			: status === 'error'
+				? context.i18nDerived.replayUnavailable()
+				: '',
 	);
 
 	const layout = $derived(context.stateLayoutDerived.mainLayoutStandard());
@@ -156,7 +162,7 @@
 				/>
 				<Text
 					anchor={0.5}
-					text="REPLAY"
+					text={context.i18nDerived.replay()}
 					style={{
 						fontFamily: FONT,
 						fontWeight: '900',
@@ -169,13 +175,13 @@
 
 			<!-- BET (left) -->
 			<Container x={-BAR_W / 2 + 44} y={18}>
-				<Text anchor={{ x: 0, y: 0.5 }} y={-16} text="BET" style={labelStyle} />
+				<Text anchor={{ x: 0, y: 0.5 }} y={-16} text={context.i18nDerived.bet()} style={labelStyle} />
 				<Text anchor={{ x: 0, y: 0.5 }} y={16} text={betText} style={valueStyle} />
 			</Container>
 
 			<!-- WIN (right) -->
 			<Container x={BAR_W / 2 - 44} y={18}>
-				<Text anchor={{ x: 1, y: 0.5 }} y={-16} text="WIN" style={labelStyle} />
+				<Text anchor={{ x: 1, y: 0.5 }} y={-16} text={context.i18nDerived.win()} style={labelStyle} />
 				<Text
 					anchor={{ x: 1, y: 0.5 }}
 					y={16}
@@ -287,7 +293,7 @@
 		<Text
 			anchor={0.5}
 			y={54}
-			text="SPEED"
+			text={context.i18nDerived.speed()}
 			style={{
 				fontFamily: FONT,
 				fontWeight: '800',

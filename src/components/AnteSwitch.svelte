@@ -46,7 +46,7 @@
 		<Text
 			anchor={0.5}
 			y={-48}
-			text="ANTE BET"
+			text={context.i18nDerived.betMode('ANTE', 'BET_AMOUNT_LABEL')}
 			style={{ fontFamily: FONT, fontWeight: '800', fontSize: 18, fill: C.white, letterSpacing: 1 }}
 		/>
 
@@ -64,7 +64,7 @@
 					<Text
 						anchor={0.5}
 						x={anteOn ? -SW * 0.18 : SW * 0.18}
-						text={anteOn ? 'ON' : 'OFF'}
+						text={anteOn ? context.i18nDerived.on() : context.i18nDerived.off()}
 						style={{
 							fontFamily: FONT,
 							fontWeight: '900',
@@ -80,7 +80,7 @@
 		<Text
 			anchor={0.5}
 			y={46}
-			text="More Eyes & Scatters · 1.25× bet"
+			text={context.i18nDerived.anteSwitchNote()}
 			style={{
 				fontFamily: FONT,
 				fontWeight: '600',

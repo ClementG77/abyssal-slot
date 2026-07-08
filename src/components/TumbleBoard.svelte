@@ -17,16 +17,22 @@
 <script lang="ts">
 	import _ from 'lodash';
 	import { Tween } from 'svelte/motion';
-	import { backOut } from 'svelte/easing';
+	import { backOut, quadIn, quadOut } from 'svelte/easing';
 
 	import { BoardContext } from 'components-shared';
 	import { stateBet, stateBetDerived } from 'state-shared';
-	import { waitForResolve, waitForTimeout } from 'utils-shared/wait';
+	import { waitForResolve } from 'utils-shared/wait';
 
 	import TumbleBoardBase from './TumbleBoardBase.svelte';
 	import BoardContainer from './BoardContainer.svelte';
 	import BoardMask from './BoardMask.svelte';
-	import { REEL_CELL_HEIGHT, SPIN_OPTIONS_DEFAULT, SPIN_OPTIONS_FAST } from '../game/constants';
+	import {
+		REEL_CELL_HEIGHT,
+		SPIN_OPTIONS_DEFAULT,
+		SPIN_OPTIONS_FAST,
+		VISIBLE_ROW_START,
+	} from '../game/constants';
+	import { raceSkip, skipActive, skippableWait } from '../game/skip.svelte';
 	import { getPaddedRowIndex, getSymbolInfo, getSymbolY } from '../game/utils';
 	import { getContext } from '../game/context';
 
@@ -139,15 +145,22 @@
 			// Drop the refill reel-by-reel (left → right), like the initial spin, instead of every
 			// column at once.
 			const COLUMN_STAGGER = 80;
-			const ts = stateBetDerived.timeScale();
-			const spinOptions = stateBet.isTurbo ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
+			// read per tween start — an armed skip (press-to-skip) drops like turbo, mid-beat
+			const getSpinOptions = () =>
+				skipActive() || stateBet.isTurbo ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
 			const getPromises = () =>
 				context.stateGameDerived.tumbleBoardCombined().map(async (tumbleReel, reelIndex) => {
-					if (reelIndex > 0) await waitForTimeout((reelIndex * COLUMN_STAGGER) / ts);
+					// no stagger while a skip is armed — every column drops together; a click
+					// mid-stagger releases the remaining columns at once (skippableWait)
+					if (reelIndex > 0 && !skipActive())
+						await skippableWait((reelIndex * COLUMN_STAGGER) / stateBetDerived.timeScale());
 					const reelLengthInBoard = tumbleReel.length - 2;
+					// the deepest cell that actually lands in this column → one contact puff
+					let deepestLandedRow = -1;
 
 					await Promise.all(
 						tumbleReel.map(async (tumbleSymbol, symbolIndex) => {
+							const spinOptions = getSpinOptions();
 							const symbolIndexOfBoard = symbolIndex - 1; // Refer to initTumbleBoardBase
 							const targetY = getSymbolY(symbolIndexOfBoard);
 							if (targetY === tumbleSymbol.symbolY.current) return;
@@ -155,23 +168,14 @@
 							const distance = targetY - tumbleSymbol.symbolY.current;
 							const delay =
 								spinOptions.symbolFallInInterval * (reelLengthInBoard - symbolIndexOfBoard);
-							const bounceDistance = REEL_CELL_HEIGHT * spinOptions.symbolFallInBounceSizeMulti;
-							const bounceDuration = bounceDistance / spinOptions.symbolFallInBounceSpeed;
-							const landDuration = Math.max(
-								0,
-								(distance - bounceDistance) / spinOptions.symbolFallInSpeed,
-							);
 							const isInner = symbolIndex > 0 && symbolIndex < tumbleReel.length - 1;
 							const isExistingEye = tumbleSymbol.rawSymbol.name === 'EYE' && !tumbleSymbol.isRefill;
 							let landComplete: Promise<void> | undefined;
 
-							await tumbleSymbol.symbolY.set(targetY - bounceDistance, {
-								duration: landDuration,
-								delay,
-							});
-
-							// Land reactions fire at the same contact point as the first board draw.
-							if (isInner && !isExistingEye) {
+							const land = () => {
+								// Land reactions fire at the same contact point as the first board draw.
+								if (!isInner || isExistingEye) return;
+								if (symbolIndexOfBoard > deepestLandedRow) deepestLandedRow = symbolIndexOfBoard;
 								tumbleSymbol.symbolState = 'land';
 								context.stateGameDerived.onSymbolLand({
 									rawSymbol: tumbleSymbol.rawSymbol,
@@ -184,15 +188,66 @@
 										resolve();
 									};
 								});
-							}
+							};
 
-							await tumbleSymbol.symbolY.set(targetY, {
-								duration: bounceDuration,
-								easing: backOut,
-							});
+							if (spinOptions.symbolFallInEasing && spinOptions.symbolFallInReboundMulti) {
+								// gravity feel — same model as the reveal drop: accelerate all the way
+								// to contact, then a small rebound settle (see createReelForCascading).
+								// A press-to-skip snaps the slide (delay included) straight home.
+								const duration = distance / spinOptions.symbolFallInSpeed;
+								const reboundDistance = REEL_CELL_HEIGHT * spinOptions.symbolFallInReboundMulti;
+								const reboundDuration = reboundDistance / spinOptions.symbolFallInBounceSpeed;
+
+								const raced = await raceSkip(
+									tumbleSymbol.symbolY.set(targetY, {
+										duration,
+										delay,
+										easing: spinOptions.symbolFallInEasing,
+									}),
+								);
+								if (raced === 'skipped') {
+									void tumbleSymbol.symbolY.set(targetY, { duration: 0 });
+									land();
+									await landComplete;
+									return;
+								}
+								land();
+								await tumbleSymbol.symbolY.set(targetY - reboundDistance, {
+									duration: reboundDuration,
+									easing: quadOut,
+								});
+								await tumbleSymbol.symbolY.set(targetY, {
+									duration: reboundDuration,
+									easing: quadIn,
+								});
+							} else {
+								const bounceDistance = REEL_CELL_HEIGHT * spinOptions.symbolFallInBounceSizeMulti;
+								const bounceDuration = bounceDistance / spinOptions.symbolFallInBounceSpeed;
+								const landDuration = Math.max(
+									0,
+									(distance - bounceDistance) / spinOptions.symbolFallInSpeed,
+								);
+
+								await tumbleSymbol.symbolY.set(targetY - bounceDistance, {
+									duration: landDuration,
+									delay,
+								});
+								land();
+								await tumbleSymbol.symbolY.set(targetY, {
+									duration: bounceDuration,
+									easing: backOut,
+								});
+							}
 							await landComplete;
 						}),
 					);
+
+					if (deepestLandedRow >= 0) {
+						context.eventEmitter.broadcast({
+							type: 'boardLandPuff',
+							cells: [{ reel: reelIndex, row: VISIBLE_ROW_START + deepestLandedRow }],
+						});
+					}
 				});
 
 			await Promise.all(getPromises());

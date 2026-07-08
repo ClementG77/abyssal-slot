@@ -27,7 +27,7 @@
 			<Text
 				anchor={0.5}
 				y={-40}
-				text="ABYSSAL"
+				text={context.i18nDerived.loaderLogo()}
 				style={{
 					fontFamily: 'sans-serif',
 					fontWeight: '900',

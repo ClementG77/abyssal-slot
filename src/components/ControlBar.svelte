@@ -22,6 +22,7 @@
 	import { ABYSSAL_CONTROL_BAR_LAYOUT as HUD } from '../controlbar/hudLayout';
 	import { drawControlGlyph } from '../controlbar/vectorIcons';
 	import { getContext } from '../game/context';
+	import { requestSkip } from '../game/skip.svelte';
 	import { icons, type IconKey } from './controls/icons';
 
 	const context = getContext();
@@ -379,9 +380,14 @@
 	const decDisabled = $derived(!isIdle || stateBet.betAmount <= smallest);
 	const incDisabled = $derived(!isIdle || stateBet.betAmount >= biggest);
 	const spinDisabled = $derived(!isIdle || !stateBetDerived.isBetCostAvailable());
+	// the button only LOOKS disabled when a new bet is unaffordable — while a spin plays it
+	// stays lit and acts as the SKIP button (stop glyph, see spin())
+	const spinButtonDimmed = $derived(isIdle && !stateBetDerived.isBetCostAvailable());
 
 	const winText = $derived(bookEventAmountToCurrencyString(stateBet.winBookEventAmount));
-	const betLabelText = $derived(stateBetDerived.activeBetMode()?.text?.betAmountLabel || 'BET');
+	const betLabelText = $derived(
+		stateBetDerived.activeBetMode()?.text?.betAmountLabel || context.i18nDerived.bet(),
+	);
 
 	const spinning = $derived(!isIdle);
 
@@ -443,17 +449,20 @@
 
 	const spin = () => {
 		context.eventEmitter.broadcast({ type: 'soundPressBet' });
-		if (spinDisabled) return;
-		if (isIdle) {
-			if (autoSpinArmed) {
-				beginAutoSpin();
-				return;
-			}
-			if (shouldResetBuyModeBeforeManualSpin()) stateBet.activeBetModeKey = 'BASE';
-			context.eventEmitter.broadcast({ type: 'bet' });
+		if (!isIdle) {
+			// playing: the spin button doubles as SKIP — same as a press on the screen
+			// (skip the current beat at turbo pace + snap the falling symbols home)
+			requestSkip();
+			context.stateGameDerived.skipCurrentSpin();
 			return;
 		}
-		context.stateGameDerived.speedUpCurrentSpin();
+		if (spinDisabled) return;
+		if (autoSpinArmed) {
+			beginAutoSpin();
+			return;
+		}
+		if (shouldResetBuyModeBeforeManualSpin()) stateBet.activeBetModeKey = 'BASE';
+		context.eventEmitter.broadcast({ type: 'bet' });
 	};
 
 	const decreaseBet = () =>
@@ -657,17 +666,17 @@
 		if (stateBet.autoSpinsCounter > 9) return 68;
 		return 78;
 	});
-	const menuActions: { icon: IconKey; label: string; y: number; onpress: () => void }[] = [
+	const menuActions: { icon: IconKey; label: () => string; y: number; onpress: () => void }[] = [
 		{
 			icon: 'info',
-			label: 'info',
+			label: () => context.i18nDerived.info(),
 			y: -158,
 			onpress: () => press(() => (stateModal.modal = { name: 'gameRules' })),
 		},
 	];
-	const menuVolumeSliders: { key: 'music' | 'sfx'; label: string; y: number }[] = [
-		{ key: 'music', label: 'MUSIC', y: -96 },
-		{ key: 'sfx', label: 'SFX', y: -34 },
+	const menuVolumeSliders: { key: 'music' | 'sfx'; label: () => string; y: number }[] = [
+		{ key: 'music', label: () => context.i18nDerived.music(), y: -96 },
+		{ key: 'sfx', label: () => context.i18nDerived.sfx(), y: -34 },
 	];
 	const menuPopupPanel = {
 		...MENU_POPUP_PANEL,
@@ -898,7 +907,7 @@
 	};
 </script>
 
-<OnHotkey hotkey="Space" disabled={spinDisabled} onpress={spin} />
+<OnHotkey hotkey="Space" disabled={spinButtonDimmed} onpress={spin} />
 
 <Container zIndex={30} sortableChildren>
 	<!-- click-outside scrim: above the controls but below the popups (22/45/46); closes any open popup -->
@@ -959,7 +968,7 @@
 			{#snippet children({ center })}
 				<Container x={center.x} y={center.y} scale={responsive.controls.balanceScale}>
 					<Graphics draw={(g) => drawGlassPanel(g, balancePanelWidth, HUD.left.balance.h, 22)} />
-					<Text anchor={0.5} y={-25} text="BALANCE" style={readoutLabelStyle} />
+					<Text anchor={0.5} y={-25} text={context.i18nDerived.balance()} style={readoutLabelStyle} />
 					<Text
 						anchor={0.5}
 						y={18}
@@ -1016,7 +1025,7 @@
 						<!-- active mode → "DEACTIVATE" glyph instead of the provider logo -->
 						<Text
 							anchor={0.5}
-							text="DEACTIVATE"
+							text={context.i18nDerived.deactivate()}
 							style={{
 								fontFamily: BAR_FONT,
 								fontWeight: '900',
@@ -1121,21 +1130,21 @@
 			anchor={0.5}
 			sizes={{ width: HUD.right.spin.size, height: HUD.right.spin.size }}
 			onpress={spin}
-			disabled={spinDisabled}
+			disabled={spinButtonDimmed}
 			zIndex={12}
 		>
 			{#snippet children({ center, hovered, pressed })}
 				<Container
 					x={center.x}
 					y={center.y}
-					scale={buttonScale(pressed, hovered, spinDisabled) * responsive.controls.spinScale}
+					scale={buttonScale(pressed, hovered, spinButtonDimmed) * responsive.controls.spinScale}
 					rotation={-0.035}
-					alpha={spinDisabled ? 0.48 : 1}
+					alpha={spinButtonDimmed ? 0.48 : 1}
 				>
 					<Graphics
 						draw={(g) => {
 							drawSpinPanel(g, HUD.right.spin.size);
-							if (hovered && !spinDisabled) {
+							if (hovered && !spinButtonDimmed) {
 								drawPanelHoverStroke(g, HUD.right.spin.size * 1.08, HUD.right.spin.size * 0.76, 28);
 							}
 						}}
@@ -1159,7 +1168,7 @@
 							draw={(g) =>
 								drawControlGlyph(g, 'spin', HUD.right.spin.size * 0.72, {
 									active: spinning,
-									disabled: spinDisabled,
+									disabled: spinButtonDimmed,
 									stop: spinning,
 								})}
 						/>
@@ -1515,7 +1524,7 @@
 					<Text
 						anchor={{ x: 0, y: 0.5 }}
 						x={MENU_SLIDER.labelX}
-						text={slider.label}
+						text={slider.label()}
 						style={{
 							fontFamily: BAR_FONT,
 							fontWeight: '850',
@@ -1554,7 +1563,7 @@
 							<Text
 								anchor={{ x: 0, y: 0.5 }}
 								x={MENU_ACTION_BUTTON.labelX}
-								text={item.label}
+								text={item.label()}
 								style={{
 									fontFamily: BAR_FONT,
 									fontWeight: '850',
@@ -1573,7 +1582,7 @@
 	{#if stateBet.winBookEventAmount > 0}
 		<Container x={responsive.win.x} y={responsive.win.y} scale={responsive.scale} zIndex={7}>
 			<Graphics draw={(g) => drawGlassPanel(g, 300, 78, 18)} />
-			<Text anchor={0.5} y={-17} text="WIN" style={{ ...labelStyle, fontSize: 15 }} />
+			<Text anchor={0.5} y={-17} text={context.i18nDerived.win()} style={{ ...labelStyle, fontSize: 15 }} />
 			<Text anchor={0.5} y={16} text={winText} style={{ ...valueStyle, fontSize: 28 }} />
 		</Container>
 	{/if}

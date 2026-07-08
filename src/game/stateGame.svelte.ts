@@ -8,6 +8,7 @@ import { createGetWinLevelDataByWinLevelAlias } from 'utils-shared/winLevel';
 import type { EyeType, GameType, Position, RawSymbol, SymbolState } from './types';
 import { winLevelMap } from './winLevelMap';
 import { eventEmitter } from './eventEmitter';
+import { skipActive } from './skip.svelte';
 import {
 	REEL_CELL_HEIGHT,
 	INITIAL_BOARD,
@@ -16,6 +17,7 @@ import {
 	SPIN_OPTIONS_FAST,
 	INITIAL_SYMBOL_STATE,
 	SCATTER_LAND_SOUND_MAP,
+	VISIBLE_ROW_START,
 	REEL_LAYOUT_BASE,
 	REEL_LAYOUT_FREE_SPINS,
 	getReelDisplayGrid,
@@ -94,12 +96,20 @@ const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
 				name: 'sfx_reel_stop_1',
 				forcePlay: !stateBet.isTurbo,
 			});
+			// contact feedback: the column's weight lands — a tiny frame dip + a bubble puff
+			// at the bottom row (the reel stop fires at the bottom symbol's contact)
+			eventEmitter.broadcast({ type: 'reelFrameReelStop' });
+			eventEmitter.broadcast({
+				type: 'boardLandPuff',
+				cells: [{ reel: reelIndex, row: VISIBLE_ROW_START + BOARD_DIMENSIONS.y - 1 }],
+			});
 		},
 		onSymbolLand,
 	});
 
+	// read at each tween's start — an armed skip drops exactly like turbo, mid-beat
 	reel.reelState.spinOptions = () =>
-		reel.reelState.spinType === 'fast' ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
+		skipActive() || reel.reelState.spinType === 'fast' ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
 
 	return reel;
 });
@@ -126,9 +136,6 @@ export const stateGame = $state({
 	scatterAnticipating: false,
 	// The Eye's Gaze charge for the current spin (driven by `gazeStep`); reset each reveal.
 	gazeCharge: 0,
-	// Instant scatter pay of the triggering spin (4/5/6 scatters = 3×/5×/100× bet), kept so
-	// the free-spins intro card can show it. Reset each reveal.
-	scatterPayAmount: 0,
 	// Tracks whether the current spin already resolved an Eye. If charge exists and this
 	// stays false by settlement, the meter drains as the intended no-Eye near miss.
 	eyeResolvedThisSpin: false,
@@ -192,6 +199,14 @@ const speedUpCurrentSpin = () => {
 	enhancedBoard.stop();
 };
 
+// Press-to-skip's spin treatment: turbo speeds AND every in-flight fall snaps straight to
+// its slot (finishFall) — all columns settle together instead of finishing out of step.
+// (Turbo enable keeps the softer speedUpCurrentSpin: it accelerates, it doesn't snap.)
+const skipCurrentSpin = () => {
+	speedUpCurrentSpin();
+	enhancedBoard.board.forEach((reel) => reel.finishFall());
+};
+
 const enableTurbo = () => {
 	stateBetDerived.updateIsTurbo(true, { persistent: true });
 	speedUpCurrentSpin();
@@ -212,6 +227,7 @@ export const stateGameDerived = {
 	scatterLandIndex,
 	enhancedBoard,
 	speedUpCurrentSpin,
+	skipCurrentSpin,
 	enableTurbo,
 	getWinLevelDataByWinLevelAlias,
 };

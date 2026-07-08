@@ -10,12 +10,9 @@
 	import gsap from 'gsap';
 
 	import { Container, Rectangle, Sprite, Text } from 'pixi-svelte';
-	import { ResponsiveBitmapText } from 'components-pixi';
 	import { waitForResolve } from 'utils-shared/wait';
-	import { bookEventAmountToCurrencyString } from 'utils-shared/amount';
 
 	import { getContext } from '../game/context';
-	import { abyssalBitmapStyle } from '../game/constants';
 	import { i18nDerived } from '../i18n/i18nDerived';
 
 	// Free-spins intro: shows the freespins banner (the awarded count is baked into the art) and
@@ -92,10 +89,6 @@
 	const imageAspect = 1408 / 768;
 	const imgW = $derived(Math.min(sizes.width * 0.88, sizes.height * 0.72 * imageAspect));
 	const imgH = $derived(imgW / imageAspect);
-	// the triggering spin's instant scatter pay (4/5/6 scatters) — written on the award card
-	const SCATTER_PAY_Y = 0.38; // fraction of card height below centre (above TAP TO PLAY)
-	const scatterPay = $derived(context.stateGame.scatterPayAmount);
-	const scatterPayStyle = $derived(abyssalBitmapStyle({ fontSize: imgH * 0.075 }));
 </script>
 
 {#if show}
@@ -137,17 +130,6 @@
 					alpha={idle.glow * 0.14}
 					tint={0xffd27a}
 					blendMode="add"
-				/>
-			{/if}
-			{#if scatterPay > 0}
-				<!-- the instant scatter pay of the triggering spin, in the branded gold face -->
-				<ResponsiveBitmapText
-					anchor={0.5}
-					y={imgH * SCATTER_PAY_Y}
-					alpha={fx.hint}
-					maxWidth={imgW * 0.5}
-					text={`SCATTER PAY ${bookEventAmountToCurrencyString(scatterPay)}`}
-					style={scatterPayStyle}
 				/>
 			{/if}
 			<Text

@@ -91,6 +91,32 @@
 	const scale = new Tween(1, { duration: 120 });
 	const alpha = new Tween(1, { duration: 120 });
 	const ts = () => stateBetDerived.timeScale(); // turbo speed-up
+
+	// --- Falling stretch -----------------------------------------------------------------
+	// While the cell travels (spin fall-in/out, tumble slides) it stretches vertically with
+	// its actual velocity — measured from the y prop, so BOTH drop paths get it for free —
+	// and releases into the land squash on contact. Volume-preserving (thins as it stretches).
+	const FALL_STRETCH = 0.055; // stretch per px/ms of vertical speed
+	const FALL_STRETCH_MAX = 1.16; // cap
+	const stretchFx = $state({ v: 1 });
+	let stretchLastY = props.y ?? 0;
+	let stretchLastT = 0;
+	$effect(() => {
+		const y = props.y ?? 0;
+		const t = performance.now();
+		const dy = Math.abs(y - stretchLastY);
+		const dt = t - stretchLastT;
+		// ignore teleports (the reveal's "hanging" jump) and stale frames
+		if (dt > 0 && dt < 100 && dy > 0.5 && dy < REEL_CELL_HEIGHT * 1.2) {
+			const target = Math.min(FALL_STRETCH_MAX, 1 + (dy / dt) * FALL_STRETCH);
+			if (target > stretchFx.v) stretchFx.v = target;
+			// re-armed every moving frame; when motion stops this decays the stretch out
+			gsap.to(stretchFx, { v: 1, duration: 0.13, ease: 'power2.out', overwrite: true, delay: 0.03 });
+		}
+		stretchLastY = y;
+		stretchLastT = t;
+	});
+	onDestroy(() => gsap.killTweensOf(stretchFx));
 	// The win beat: HIGHLIGHT (flash + pulsing glow) → GROW (a big, unmistakable swell right up
 	// to the burst) → EXPLODE into bubbles.
 	const WIN_GROW_MAX = 1.7; // pre-burst hold size — winners tower over the board
@@ -438,7 +464,10 @@
 <Container
 	x={props.x}
 	y={props.y}
-	scale={{ x: scale.current * winFx.squashX, y: scale.current * winFx.squashY }}
+	scale={{
+		x: (scale.current * winFx.squashX) / Math.sqrt(stretchFx.v),
+		y: scale.current * winFx.squashY * stretchFx.v,
+	}}
 	alpha={alpha.current}
 	filters={winGlowOn && winAuraFilter
 		? [winAuraFilter]

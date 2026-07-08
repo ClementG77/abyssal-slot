@@ -209,7 +209,12 @@
 		<!-- the running equation value, resolved at the board centre -->
 		<Container x={center.x} y={center.y}>
 			{#if gazeLabel}
-				<Text anchor={0.5} y={-SYMBOL_SIZE * 0.62} text="GAZE" style={gazeStyle} />
+				<Text
+					anchor={0.5}
+					y={-SYMBOL_SIZE * 0.62}
+					text={context.i18nDerived.gaze()}
+					style={gazeStyle}
+				/>
 			{/if}
 			<Container scale={centerFx.scale} filters={numberGlow ? [numberGlow] : []}>
 				<Text anchor={0.5} text={`${running}`} style={totalStyle} />

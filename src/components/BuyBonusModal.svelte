@@ -15,6 +15,8 @@
 	import { numberToCurrencyString } from 'utils-shared/amount';
 	import type { EmitterEventModal } from 'components-ui-html';
 
+	import { i18nDerived } from '../i18n/i18nDerived';
+
 	// Abyssal-owned buy-bonus modal. Replaces the SDK's default ModalBuyBonus (wired through the
 	// `buyBonus` snippet on the shared <Modals>). Fully data-driven off `stateMeta.betModeMeta`
 	// (see betModeMeta.ts). Clean “shop card” look: ivory card, mode art on top (cropped from the
@@ -204,9 +206,9 @@
 					{@const activate = isActivate(m)}
 					{@const active = activate && isActive(m)}
 					<div class="bm-card" class:active>
-						<div class="bm-hero">
+							<div class="bm-hero">
 							<div class="bm-hero-art" style={heroStyle(m)} role="img" aria-label={m.text.title}></div>
-							{#if active}<div class="bm-badge">ACTIVE</div>{/if}
+							{#if active}<div class="bm-badge">{i18nDerived.active()}</div>{/if}
 						</div>
 
 						<div class="bm-panel">
@@ -217,7 +219,7 @@
 
 							{#if activate && active}
 								<button class="bm-action activate on" onclick={() => deactivate(m)}>
-									DEACTIVATE
+									{i18nDerived.deactivate()}
 								</button>
 							{:else if activate}
 								<button
@@ -225,7 +227,7 @@
 									disabled={!affordable(m)}
 									onclick={() => openConfirm(m)}
 								>
-									ACTIVATE
+									{i18nDerived.activate()}
 								</button>
 							{:else}
 								<button
@@ -233,7 +235,7 @@
 									disabled={!affordable(m)}
 									onclick={() => openConfirm(m)}
 								>
-									{affordable(m) ? 'BUY' : 'LOW FUNDS'}
+									{affordable(m) ? i18nDerived.buy() : i18nDerived.lowFunds()}
 								</button>
 							{/if}
 						</div>
@@ -242,13 +244,13 @@
 			</div>
 
 			<div class="bm-bet">
-				<span class="bm-bet-label">BET</span>
+				<span class="bm-bet-label">{i18nDerived.bet()}</span>
 				<div class="bm-stepper">
 					<button
 						class="bm-step minus"
 						disabled={decDisabled}
 						onclick={dec}
-						aria-label="decrease bet"
+						aria-label={i18nDerived.decreaseBet()}
 					>
 						−
 					</button>
@@ -257,7 +259,7 @@
 						class="bm-step plus"
 						disabled={incDisabled}
 						onclick={inc}
-						aria-label="increase bet"
+						aria-label={i18nDerived.increaseBet()}
 					>
 						+
 					</button>
@@ -285,16 +287,16 @@
 				<div class="bm-confirm-title">{pending.text.title}</div>
 				<div class="bm-confirm-dialog">{pending.text.dialog}</div>
 				<div class="bm-confirm-cost">
-					<span>{pending.type === 'activate' ? 'PER SPIN' : 'TOTAL'}</span>
+					<span>{pending.type === 'activate' ? i18nDerived.perSpin() : i18nDerived.total()}</span>
 					<strong>{money(costOf(pending))}</strong>
 				</div>
 				<div class="bm-confirm-actions">
-					<button class="bm-action ghost" onclick={cancelConfirm}>CANCEL</button>
+					<button class="bm-action ghost" onclick={cancelConfirm}>{i18nDerived.cancel()}</button>
 					<button
 						class="bm-action {pending.type === 'activate' ? 'activate' : 'buy'}"
 						onclick={confirmChoice}
 					>
-						{pending.type === 'activate' ? 'ACTIVATE' : 'CONFIRM BUY'}
+						{pending.type === 'activate' ? i18nDerived.activate() : i18nDerived.confirmBuy()}
 					</button>
 				</div>
 			</div>

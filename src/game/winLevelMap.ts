@@ -1,5 +1,7 @@
 import { SECOND } from 'constants-shared/time';
 
+import { i18nDerived } from '../i18n/i18nDerived';
+
 export const winLevelMap = {
 	1: {
 		level: 1,
@@ -50,7 +52,9 @@ export const winLevelMap = {
 		level: 6,
 		alias: 'big',
 		type: 'big',
-		text: 'BIG WIN',
+		get text() {
+			return i18nDerived.winTier('bigWin');
+		},
 		presentDuration: 6 * SECOND,
 		sound: { sfx: undefined, bgm: 'bgm_winlevel_big' },
 		animation: { intro: 'big_win_intro', idle: 'big_win_idle', outro: 'big_win_exit' },
@@ -59,7 +63,9 @@ export const winLevelMap = {
 		level: 7,
 		alias: 'superwin',
 		type: 'big',
-		text: 'SUPER WIN',
+		get text() {
+			return i18nDerived.winTier('superWin');
+		},
 		presentDuration: 18 * SECOND,
 		sound: { sfx: undefined, bgm: 'bgm_winlevel_superwin' },
 		animation: { intro: 'super_win_intro', idle: 'super_win_idle', outro: 'super_win_exit' },
@@ -68,7 +74,9 @@ export const winLevelMap = {
 		level: 8,
 		alias: 'mega',
 		type: 'big',
-		text: 'MEGA WIN',
+		get text() {
+			return i18nDerived.winTier('megaWin');
+		},
 		presentDuration: 20 * SECOND,
 		sound: { sfx: undefined, bgm: 'bgm_winlevel_mega' },
 		animation: { intro: 'mega_win_intro', idle: 'mega_win_idle', outro: 'mega_win_exit' },
@@ -77,7 +85,9 @@ export const winLevelMap = {
 		level: 9,
 		alias: 'epic',
 		type: 'big',
-		text: 'EPIC WIN!',
+		get text() {
+			return i18nDerived.winTier('epicWin');
+		},
 		presentDuration: 26 * SECOND,
 		sound: { sfx: undefined, bgm: 'bgm_winlevel_epic' },
 		animation: { intro: 'epic_win_intro', idle: 'epic_win_idle', outro: 'epic_win_exit' },
@@ -86,7 +96,9 @@ export const winLevelMap = {
 		level: 10,
 		alias: 'max',
 		type: 'big',
-		text: 'MAX WIN',
+		get text() {
+			return i18nDerived.winTier('maxWin');
+		},
 		presentDuration: 32 * SECOND,
 		sound: { sfx: undefined, bgm: 'bgm_winlevel_max' },
 		animation: { intro: 'max_win_intro', idle: 'max_win_idle', outro: 'max_win_exit' },

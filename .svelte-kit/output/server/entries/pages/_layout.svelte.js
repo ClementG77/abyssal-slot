@@ -1,4 +1,4 @@
-import { f as is_array, g as get_prototype_of, o as object_prototype, n as noop, h as current_component, j as getContext$1, s as setContext$1, e as pop, p as push, k as attr, t as to_class, l as stringify, m as spread_attributes, q as ensure_array_like, u as escape_html, v as clsx, w as copy_payload, x as assign_payload, y as spread_props, z as bind_props } from "../../chunks/index.js";
+import { f as is_array, g as get_prototype_of, o as object_prototype, n as noop, h as current_component, j as getContext$1, s as setContext$1, p as push, e as pop, k as attr, t as to_class, l as stringify, m as spread_attributes, q as ensure_array_like, u as escape_html, v as clsx, w as copy_payload, x as assign_payload, y as spread_props, z as bind_props } from "../../chunks/index.js";
 import { p as page } from "../../chunks/index2.js";
 import * as PIXI$1 from "pixi.js";
 import { Texture as Texture$1, LoaderParserPriority, ExtensionType, extensions, checkExtension, path, TextureSource, copySearchParams, DOMAdapter, Resolver, Geometry, Buffer, BufferUsage, Shader, compileHighShaderGlProgram, colorBitGl, generateTextureBatchBitGl, roundPixelsBitGl, compileHighShaderGpuProgram, colorBit, generateTextureBatchBit, roundPixelsBit, getBatchSamplersUniformGroup, Batcher, Color as Color$1, collectAllRenderables, Point, Ticker, Sprite as Sprite$1, CanvasTextMetrics, TextStyle, FillGradient } from "pixi.js";
@@ -670,19 +670,25 @@ function LoadI18n($$payload, $$props) {
   $$payload.out += `<!--]-->`;
   pop();
 }
-function linear(t) {
-  return t;
+function linear(t2) {
+  return t2;
 }
-function backOut(t) {
+function backOut(t2) {
   const s = 1.70158;
-  return --t * t * ((s + 1) * t + s) + 1;
+  return --t2 * t2 * ((s + 1) * t2 + s) + 1;
 }
-function cubicIn(t) {
-  return t * t * t;
+function cubicIn(t2) {
+  return t2 * t2 * t2;
 }
-function cubicOut(t) {
-  const f = t - 1;
+function cubicOut(t2) {
+  const f = t2 - 1;
   return f * f * f + 1;
+}
+function quadIn(t2) {
+  return t2 * t2;
+}
+function quadOut(t2) {
+  return -t2 * (t2 - 2);
 }
 function Popup($$payload, $$props) {
   push();
@@ -781,7 +787,7 @@ function get_interpolator(a, b) {
         );
       })
     );
-    return (t) => arr.map((fn) => fn(t));
+    return (t2) => arr.map((fn) => fn(t2));
   }
   if (type === "object") {
     if (!a || !b) {
@@ -791,17 +797,17 @@ function get_interpolator(a, b) {
       const an = a.getTime();
       const bn = b.getTime();
       const delta = bn - an;
-      return (t) => new Date(an + t * delta);
+      return (t2) => new Date(an + t2 * delta);
     }
     const keys = Object.keys(b);
     const interpolators = {};
     keys.forEach((key) => {
       interpolators[key] = get_interpolator(a[key], b[key]);
     });
-    return (t) => {
+    return (t2) => {
       const result = {};
       keys.forEach((key) => {
-        result[key] = interpolators[key](t);
+        result[key] = interpolators[key](t2);
       });
       return result;
     };
@@ -812,7 +818,7 @@ function get_interpolator(a, b) {
       b - /** @type {number} */
       a
     );
-    return (t) => a + t * delta;
+    return (t2) => a + t2 * delta;
   }
   return () => b;
 }
@@ -2689,15 +2695,15 @@ class VertexAttachment extends Attachment {
       }
       return;
     }
-    let v = 0, skip = 0;
+    let v = 0, skip2 = 0;
     for (let i = 0; i < start; i += 2) {
       let n = bones[v];
       v += n + 1;
-      skip += n;
+      skip2 += n;
     }
     let skeletonBones = skeleton.bones;
     if (deformArray.length == 0) {
-      for (let w = offset, b = skip * 3; w < count; w += stride) {
+      for (let w = offset, b = skip2 * 3; w < count; w += stride) {
         let wx = 0, wy = 0;
         let n = bones[v++];
         n += v;
@@ -2712,7 +2718,7 @@ class VertexAttachment extends Attachment {
       }
     } else {
       let deform = deformArray;
-      for (let w = offset, b = skip * 3, f = skip << 1; w < count; w += stride) {
+      for (let w = offset, b = skip2 * 3, f = skip2 << 1; w < count; w += stride) {
         let wx = 0, wy = 0;
         let n = bones[v++];
         n += v;
@@ -5583,7 +5589,7 @@ function requireWebfontloader() {
         this.c = this.o.document;
       }
       var da = !!window.FontFace;
-      function t(a, b, c, d) {
+      function t2(a, b, c, d) {
         b = a.c.createElement(b);
         if (c) for (var e in c) c.hasOwnProperty(e) && ("style" == e ? b.style.cssText = c[e] : b.setAttribute(e, c[e]));
         d && b.appendChild(a.c.createTextNode(d));
@@ -5629,7 +5635,7 @@ function requireWebfontloader() {
         function d() {
           m && e && f && (m(g), m = null);
         }
-        b = t(a, "link", { rel: "stylesheet", href: b, media: "all" });
+        b = t2(a, "link", { rel: "stylesheet", href: b, media: "all" });
         var e = false, f = true, g = null, m = c || null;
         da ? (b.onload = function() {
           e = true;
@@ -5647,7 +5653,7 @@ function requireWebfontloader() {
       function A(a, b, c, d) {
         var e = a.c.getElementsByTagName("head")[0];
         if (e) {
-          var f = t(a, "script", { src: b }), g = false;
+          var f = t2(a, "script", { src: b }), g = false;
           f.onload = f.onreadystatechange = function() {
             g || this.readyState && "loaded" != this.readyState && "complete" != this.readyState || (g = true, c && c(null), f.onload = f.onreadystatechange = null, "HEAD" == f.parentNode.tagName && e.removeChild(f));
           };
@@ -5754,7 +5760,7 @@ function requireWebfontloader() {
       function M(a, b) {
         this.c = a;
         this.f = b;
-        this.a = t(this.c, "span", { "aria-hidden": "true" }, this.f);
+        this.a = t2(this.c, "span", { "aria-hidden": "true" }, this.f);
       }
       function N(a) {
         u(a.c, "body", a.a);
@@ -6493,9 +6499,9 @@ function generateEase(segments) {
   const oneOverQty = 1 / qty;
   return function(time) {
     const i = qty * time | 0;
-    const t = (time - i * oneOverQty) * qty;
+    const t2 = (time - i * oneOverQty) * qty;
     const s = segments[i] || segments[qty - 1];
-    return s.s + t * (2 * (1 - t) * (s.cp - s.s) + t * (s.e - s.s));
+    return s.s + t2 * (2 * (1 - t2) * (s.cp - s.s) + t2 * (s.e - s.s));
   };
 }
 function getBlendMode(name) {
@@ -9478,7 +9484,7 @@ function formatTransition(stateNode, descriptor, transitionConfig) {
     toJSON: () => ({
       ...transition,
       source: `#${stateNode.id}`,
-      target: target ? target.map((t) => `#${t.id}`) : void 0
+      target: target ? target.map((t2) => `#${t2.id}`) : void 0
     })
   };
   return transition;
@@ -9491,25 +9497,25 @@ function formatTransitions(stateNode) {
         throw new Error('Null events ("") cannot be specified as a transition key. Use `always: { ... }` instead.');
       }
       const transitionsConfig = stateNode.config.on[descriptor];
-      transitions.set(descriptor, toTransitionConfigArray(transitionsConfig).map((t) => formatTransition(stateNode, descriptor, t)));
+      transitions.set(descriptor, toTransitionConfigArray(transitionsConfig).map((t2) => formatTransition(stateNode, descriptor, t2)));
     }
   }
   if (stateNode.config.onDone) {
     const descriptor = `xstate.done.state.${stateNode.id}`;
-    transitions.set(descriptor, toTransitionConfigArray(stateNode.config.onDone).map((t) => formatTransition(stateNode, descriptor, t)));
+    transitions.set(descriptor, toTransitionConfigArray(stateNode.config.onDone).map((t2) => formatTransition(stateNode, descriptor, t2)));
   }
   for (const invokeDef of stateNode.invoke) {
     if (invokeDef.onDone) {
       const descriptor = `xstate.done.actor.${invokeDef.id}`;
-      transitions.set(descriptor, toTransitionConfigArray(invokeDef.onDone).map((t) => formatTransition(stateNode, descriptor, t)));
+      transitions.set(descriptor, toTransitionConfigArray(invokeDef.onDone).map((t2) => formatTransition(stateNode, descriptor, t2)));
     }
     if (invokeDef.onError) {
       const descriptor = `xstate.error.actor.${invokeDef.id}`;
-      transitions.set(descriptor, toTransitionConfigArray(invokeDef.onError).map((t) => formatTransition(stateNode, descriptor, t)));
+      transitions.set(descriptor, toTransitionConfigArray(invokeDef.onError).map((t2) => formatTransition(stateNode, descriptor, t2)));
     }
     if (invokeDef.onSnapshot) {
       const descriptor = `xstate.snapshot.${invokeDef.id}`;
-      transitions.set(descriptor, toTransitionConfigArray(invokeDef.onSnapshot).map((t) => formatTransition(stateNode, descriptor, t)));
+      transitions.set(descriptor, toTransitionConfigArray(invokeDef.onSnapshot).map((t2) => formatTransition(stateNode, descriptor, t2)));
     }
   }
   for (const delayedTransition of stateNode.after) {
@@ -9579,7 +9585,7 @@ function resolveHistoryDefaultTransition(stateNode) {
     return stateNode.parent.initial;
   }
   return {
-    target: normalizedTarget.map((t) => typeof t === "string" ? getStateNodeByPath(stateNode.parent, t) : t)
+    target: normalizedTarget.map((t2) => typeof t2 === "string" ? getStateNodeByPath(stateNode.parent, t2) : t2)
   };
 }
 function isHistoryNode(stateNode) {
@@ -9804,10 +9810,10 @@ function getTransitionDomain(transition, historyValue) {
 }
 function computeExitSet(transitions, stateNodeSet, historyValue) {
   const statesToExit = /* @__PURE__ */ new Set();
-  for (const t of transitions) {
-    if (t.target?.length) {
-      const domain = getTransitionDomain(t, historyValue);
-      if (t.reenter && t.source === domain) {
+  for (const t2 of transitions) {
+    if (t2.target?.length) {
+      const domain = getTransitionDomain(t2, historyValue);
+      if (t2.reenter && t2.source === domain) {
         statesToExit.add(domain);
       }
       for (const stateNode of stateNodeSet) {
@@ -9841,7 +9847,7 @@ function microstep(transitions, currentSnapshot, actorScope, event2, isInitial, 
   if (!isInitial) {
     [nextState, historyValue] = exitStates(nextState, event2, actorScope, filteredTransitions, mutStateNodeSet, historyValue, internalQueue, actorScope.actionExecutor);
   }
-  nextState = resolveActionsAndContext(nextState, event2, actorScope, filteredTransitions.flatMap((t) => t.actions), internalQueue, void 0);
+  nextState = resolveActionsAndContext(nextState, event2, actorScope, filteredTransitions.flatMap((t2) => t2.actions), internalQueue, void 0);
   nextState = enterStates(nextState, event2, actorScope, filteredTransitions, mutStateNodeSet, internalQueue, historyValue, isInitial);
   const nextStateNodes = [...mutStateNodeSet];
   if (nextState.status === "done") {
@@ -9915,26 +9921,26 @@ function enterStates(currentSnapshot, event2, actorScope, filteredTransitions, m
   return nextSnapshot;
 }
 function computeEntrySet(transitions, historyValue, statesForDefaultEntry, statesToEnter) {
-  for (const t of transitions) {
-    const domain = getTransitionDomain(t, historyValue);
-    for (const s of t.target || []) {
+  for (const t2 of transitions) {
+    const domain = getTransitionDomain(t2, historyValue);
+    for (const s of t2.target || []) {
       if (!isHistoryNode(s) && // if the target is different than the source then it will *definitely* be entered
-      (t.source !== s || // we know that the domain can't lie within the source
+      (t2.source !== s || // we know that the domain can't lie within the source
       // if it's different than the source then it's outside of it and it means that the target has to be entered as well
-      t.source !== domain || // reentering transitions always enter the target, even if it's the source itself
-      t.reenter)) {
+      t2.source !== domain || // reentering transitions always enter the target, even if it's the source itself
+      t2.reenter)) {
         statesToEnter.add(s);
         statesForDefaultEntry.add(s);
       }
       addDescendantStatesToEnter(s, historyValue, statesForDefaultEntry, statesToEnter);
     }
-    const targetStates = getEffectiveTargetStates(t, historyValue);
+    const targetStates = getEffectiveTargetStates(t2, historyValue);
     for (const s of targetStates) {
       const ancestors = getProperAncestors(s, domain);
       if (domain?.type === "parallel") {
         ancestors.push(domain);
       }
-      addAncestorStatesToEnter(statesToEnter, historyValue, statesForDefaultEntry, ancestors, !t.source.parent && t.reenter ? void 0 : domain);
+      addAncestorStatesToEnter(statesToEnter, historyValue, statesForDefaultEntry, ancestors, !t2.source.parent && t2.reenter ? void 0 : domain);
     }
   }
 }
@@ -10218,7 +10224,7 @@ const machineSnapshotHasTag = function hasTag(tag) {
 const machineSnapshotCan = function can(event2) {
   const transitionData = this.machine.getTransitionData(this, event2);
   return !!transitionData?.length && // Check that at least one transition is not forbidden
-  transitionData.some((t) => t.target !== void 0 || t.actions.length);
+  transitionData.some((t2) => t2.target !== void 0 || t2.actions.length);
 };
 const machineSnapshotToJSON = function toJSON() {
   const {
@@ -10643,7 +10649,7 @@ class StateNode {
   _initialize() {
     this.transitions = formatTransitions(this);
     if (this.config.always) {
-      this.always = toTransitionConfigArray(this.config.always).map((t) => formatTransition(this, NULL_EVENT, t));
+      this.always = toTransitionConfigArray(this.config.always).map((t2) => formatTransition(this, NULL_EVENT, t2));
     }
     Object.keys(this.states).forEach((key) => {
       this.states[key]._initialize();
@@ -10663,7 +10669,7 @@ class StateNode {
         eventType: null,
         reenter: false,
         toJSON: () => ({
-          target: this.initial.target.map((t) => `#${t.id}`),
+          target: this.initial.target.map((t2) => `#${t2.id}`),
           source: `#${this.id}`,
           actions: this.initial.actions.map(toSerializableAction),
           eventType: null
@@ -10674,9 +10680,9 @@ class StateNode {
         return state.definition;
       }),
       on: this.on,
-      transitions: [...this.transitions.values()].flat().map((t) => ({
-        ...t,
-        actions: t.actions.map(toSerializableAction)
+      transitions: [...this.transitions.values()].flat().map((t2) => ({
+        ...t2,
+        actions: t2.actions.map(toSerializableAction)
       })),
       entry: this.entry.map(toSerializableAction),
       exit: this.exit.map(toSerializableAction),
@@ -10726,7 +10732,7 @@ class StateNode {
   get on() {
     return memo(this, "on", () => {
       const transitions = this.transitions;
-      return [...transitions].flatMap(([descriptor, t]) => t.map((t2) => [descriptor, t2])).reduce((map, [descriptor, transition]) => {
+      return [...transitions].flatMap(([descriptor, t2]) => t2.map((t3) => [descriptor, t3])).reduce((map, [descriptor, transition]) => {
         map[descriptor] = map[descriptor] || [];
         map[descriptor].push(transition);
         return map;
@@ -11844,19 +11850,25 @@ const SPIN_OPTIONS_SHARED = {
 };
 const SPIN_OPTIONS_DEFAULT = {
   ...SPIN_OPTIONS_SHARED,
-  symbolFallInSpeed: 3.5,
+  symbolFallInSpeed: 3.1,
   symbolFallInInterval: 30,
   symbolFallInBounceSpeed: 0.15,
-  symbolFallInBounceSizeMulti: 0.5,
+  symbolFallInBounceSizeMulti: 0.3,
+  symbolFallInEasing: quadIn,
+  symbolFallInReboundMulti: 0.12,
   symbolFallOutSpeed: 3.5,
   symbolFallOutInterval: 20
 };
 const SPIN_OPTIONS_FAST = {
   ...SPIN_OPTIONS_SHARED,
+  reelFallOutDelay: 0,
+  // fast/skip spins clear all columns together
   symbolFallInSpeed: 7,
   symbolFallInInterval: 0,
   symbolFallInBounceSpeed: 0.3,
-  symbolFallInBounceSizeMulti: 0.25,
+  symbolFallInBounceSizeMulti: 0.2,
+  symbolFallInEasing: quadIn,
+  symbolFallInReboundMulti: 0.07,
   symbolFallOutSpeed: 7,
   symbolFallOutInterval: 0
 };
@@ -11916,24 +11928,11 @@ const assets = {
     src: new URL("../../assets/symbols/symbol_black/spritesheet.json", import.meta.url).href,
     preload: true
   },
-  bigWin: {
-    type: "sprite",
-    src: new URL("../../assets/wins/big_win.png", import.meta.url).href,
-    preload: true
-  },
-  megaWin: {
-    type: "sprite",
-    src: new URL("../../assets/wins/mega_win.png", import.meta.url).href,
-    preload: true
-  },
-  epicWin: {
-    type: "sprite",
-    src: new URL("../../assets/wins/epic_win.png", import.meta.url).href,
-    preload: true
-  },
-  maxWin: {
-    type: "sprite",
-    src: new URL("../../assets/wins/max_win.png", import.meta.url).href,
+  // Win-step plaque frames (BIG_WIN / HUGE_WIN / MEGA_WIN / EPIC_WIN / MAX_WIN): ornate
+  // empty frames with tier crests — WinBanner renders title + amount inside in bitmap font.
+  winSteps: {
+    type: "sprites",
+    src: new URL("../../assets/wins/win_steps/spritesheet.json", import.meta.url).href,
     preload: true
   },
   tumbleWin: {
@@ -12007,6 +12006,24 @@ function createReelForCascading(reelOptions) {
   const reelLength = reelOptions.initialSymbols.length;
   const reelLengthInBoard = reelLength - 2;
   const interruptible = createInterruptible();
+  let fallInterrupted = false;
+  let fallInterruptResolvers = [];
+  const fallInterruptSignal = () => new Promise((resolve) => fallInterruptResolvers.push(resolve));
+  const raceFall = (promise) => {
+    if (fallInterrupted) return Promise.resolve("skipped");
+    return Promise.race([
+      promise.then(() => "done"),
+      fallInterruptSignal().then(() => "skipped")
+    ]);
+  };
+  const beginFallPhase = () => {
+    fallInterrupted = false;
+    fallInterruptResolvers = [];
+  };
+  const finishFall = () => {
+    fallInterrupted = true;
+    fallInterruptResolvers.splice(0).forEach((resolve) => resolve());
+  };
   const reelState = {
     symbols: createReelSymbols(reelOptions.initialSymbols),
     motion: "stopped",
@@ -12036,6 +12053,7 @@ function createReelForCascading(reelOptions) {
   };
   const fallOut = async () => {
     reelState.motion = "fallingOut";
+    beginFallPhase();
     await moveAllSymbolsWith(async (reelSymbol) => {
       const oldSymbolY = reelSymbol.symbolY.current;
       const newSymbolY = getSymbolY2(reelSymbol.symbolIndexOfBoard + reelLength);
@@ -12044,7 +12062,8 @@ function createReelForCascading(reelOptions) {
       const delay = reelState.spinOptions().symbolFallOutInterval * (reelLengthInBoard - reelSymbol.symbolIndexOfBoard);
       await waitForTimeout(delay);
       reelSymbol.symbolState = "spin";
-      await reelSymbol.symbolY.set(newSymbolY, { duration });
+      const raced = await raceFall(reelSymbol.symbolY.set(newSymbolY, { duration }));
+      if (raced === "skipped") void reelSymbol.symbolY.set(newSymbolY, { duration: 0 });
     });
     reelState.motion = "hanging";
   };
@@ -12066,25 +12085,54 @@ function createReelForCascading(reelOptions) {
       await interruptible.add(waitToStartFallingIn);
     }
     reelState.motion = "fallingIn";
+    beginFallPhase();
     await moveAllSymbolsWith(async (reelSymbol) => {
+      const spinOptions = reelState.spinOptions();
       const oldSymbolY = reelSymbol.symbolY.current;
       const newSymbolY = getSymbolY2(reelSymbol.symbolIndexOfBoard);
       const distance = newSymbolY - oldSymbolY;
-      const delay = reelState.spinOptions().symbolFallInInterval * (reelLengthInBoard - reelSymbol.symbolIndexOfBoard);
-      const bounceDistance = reelOptions.symbolHeight * reelState.spinOptions().symbolFallInBounceSizeMulti;
-      const bounceDuration = bounceDistance / reelState.spinOptions().symbolFallInBounceSpeed;
-      const landDuration = (distance - bounceDistance) / reelState.spinOptions().symbolFallInSpeed;
-      await reelSymbol.symbolY.set(newSymbolY - bounceDistance, { duration: landDuration, delay });
-      reelSymbol.symbolState = "land";
-      reelOptions.onSymbolLand({
-        rawSymbol: reelSymbol.rawSymbol,
-        reel: reelOptions.reelIndex,
-        row: reelSymbol.symbolIndexOfBoard
-      });
-      if (reelSymbol.symbolIndexOfBoard === reelLengthInBoard - 1) {
-        onSpinFinishing();
+      const delay = spinOptions.symbolFallInInterval * (reelLengthInBoard - reelSymbol.symbolIndexOfBoard);
+      const land = () => {
+        reelSymbol.symbolState = "land";
+        reelOptions.onSymbolLand({
+          rawSymbol: reelSymbol.rawSymbol,
+          reel: reelOptions.reelIndex,
+          row: reelSymbol.symbolIndexOfBoard
+        });
+        if (reelSymbol.symbolIndexOfBoard === reelLengthInBoard - 1) {
+          onSpinFinishing();
+        }
+      };
+      if (spinOptions.symbolFallInEasing && spinOptions.symbolFallInReboundMulti) {
+        const duration = distance / spinOptions.symbolFallInSpeed;
+        const reboundDistance = reelOptions.symbolHeight * spinOptions.symbolFallInReboundMulti;
+        const reboundDuration = reboundDistance / spinOptions.symbolFallInBounceSpeed;
+        const raced = await raceFall(reelSymbol.symbolY.set(newSymbolY, {
+          duration,
+          delay,
+          easing: spinOptions.symbolFallInEasing
+        }));
+        if (raced === "skipped") {
+          void reelSymbol.symbolY.set(newSymbolY, { duration: 0 });
+          land();
+          return;
+        }
+        land();
+        await reelSymbol.symbolY.set(newSymbolY - reboundDistance, { duration: reboundDuration, easing: quadOut });
+        await reelSymbol.symbolY.set(newSymbolY, { duration: reboundDuration, easing: quadIn });
+      } else {
+        const bounceDistance = reelOptions.symbolHeight * spinOptions.symbolFallInBounceSizeMulti;
+        const bounceDuration = bounceDistance / spinOptions.symbolFallInBounceSpeed;
+        const landDuration = (distance - bounceDistance) / spinOptions.symbolFallInSpeed;
+        const raced = await raceFall(reelSymbol.symbolY.set(newSymbolY - bounceDistance, { duration: landDuration, delay }));
+        if (raced === "skipped") {
+          void reelSymbol.symbolY.set(newSymbolY, { duration: 0 });
+          land();
+          return;
+        }
+        land();
+        await reelSymbol.symbolY.set(newSymbolY, { duration: bounceDuration, easing: backOut });
       }
-      await reelSymbol.symbolY.set(newSymbolY, { duration: bounceDuration, easing: backOut });
     });
     reelState.motion = "stopped";
   };
@@ -12142,6 +12190,7 @@ function createReelForCascading(reelOptions) {
     prepareToSpin,
     spin,
     stop,
+    finishFall,
     setSymbolsWithRawSymbols,
     readyToSpinEffect
   };
@@ -12252,6 +12301,100 @@ function createGetWinLevelDataByWinLevelAlias({ winLevelMap: winLevelMap2 }) {
   };
   return { getWinLevelDataByWinLevelAlias: getWinLevelDataByWinLevelAlias2 };
 }
+const i18nDerived$1 = {
+  audio: () => stateI18nDerived.translate("AUDIO"),
+  balance: () => stateI18nDerived.translate("BALANCE"),
+  win: () => stateI18nDerived.translate("WIN"),
+  bet: () => stateUrlDerived.social() ? "SPIN" : stateI18nDerived.translate("BET"),
+  stop: () => stateI18nDerived.translate("STOP"),
+  buyBonus: () => stateUrlDerived.social() ? "PLAY BONUS" : stateI18nDerived.translate("BUY BONUS"),
+  disable: () => stateI18nDerived.translate("DISABLE"),
+  freeSpins: () => stateI18nDerived.translate("FREE SPINS"),
+  //
+  decrease: () => stateI18nDerived.translate("-"),
+  increase: () => stateI18nDerived.translate("+"),
+  menu: () => stateI18nDerived.translate("MENU"),
+  turbo: () => stateI18nDerived.translate("TURBO"),
+  autoSpin: () => stateI18nDerived.translate("AUTO SPIN"),
+  payTable: () => stateI18nDerived.translate("PAYTABLE"),
+  info: () => stateI18nDerived.translate("INFO"),
+  settings: () => stateI18nDerived.translate("SETTINGS"),
+  soundOn: () => stateI18nDerived.translate("SOUND ON"),
+  soundOff: () => stateI18nDerived.translate("SOUND OFF"),
+  menuExit: () => stateI18nDerived.translate("EXIT")
+};
+const en$1 = {
+  SETTINGS: "SETTINGS"
+};
+const zh$1 = {
+  SETTINGS: "设置"
+};
+const messagesMap$1 = {
+  en: en$1,
+  zh: zh$1
+};
+const WIN_TIER_KEYS = {
+  bigWin: "WIN_TIER_BIG",
+  superWin: "WIN_TIER_SUPER",
+  hugeWin: "WIN_TIER_HUGE",
+  megaWin: "WIN_TIER_MEGA",
+  epicWin: "WIN_TIER_EPIC",
+  maxWin: "WIN_TIER_MAX"
+};
+const i18nDerived = {
+  ...i18nDerived$1,
+  ...i18nDerived$2,
+  home: () => stateI18nDerived.translate("HOME"),
+  notTranslated: () => stateI18nDerived.translate("NOT TRANSLATED"),
+  gameInfo: (key) => stateI18nDerived.translate(`GAME_INFO_${key}`),
+  loaderSubtitle: () => stateI18nDerived.translate("LOADER_SUBTITLE"),
+  loaderLogo: () => stateI18nDerived.translate("LOADER_LOGO"),
+  loaderCard1Title: () => stateI18nDerived.translate("LOADER_CARD_1_TITLE"),
+  loaderCard1Body: () => stateI18nDerived.translate("LOADER_CARD_1_BODY"),
+  loaderCard2Title: () => stateI18nDerived.translate("LOADER_CARD_2_TITLE"),
+  loaderCard2Body: () => stateI18nDerived.translate("LOADER_CARD_2_BODY"),
+  loaderCard3Title: () => stateI18nDerived.translate("LOADER_CARD_3_TITLE"),
+  loaderCard3Body: () => stateI18nDerived.translate("LOADER_CARD_3_BODY"),
+  loaderCta: () => stateI18nDerived.translate("LOADER_CTA"),
+  loaderLoading: () => stateI18nDerived.translate("LOADER_LOADING"),
+  loaderCardsLabel: () => stateI18nDerived.translate("LOADER_CARDS_LABEL"),
+  loaderPreviousCard: () => stateI18nDerived.translate("LOADER_PREVIOUS_CARD"),
+  loaderNextCard: () => stateI18nDerived.translate("LOADER_NEXT_CARD"),
+  freeSpinsTapToPlay: () => stateI18nDerived.translate("FREE_SPINS_TAP_TO_PLAY"),
+  freeSpinsTapToSkip: () => stateI18nDerived.translate("FREE_SPINS_TAP_TO_SKIP"),
+  active: () => stateI18nDerived.translate("ACTIVE"),
+  activate: () => stateI18nDerived.translate("ACTIVATE"),
+  deactivate: () => stateI18nDerived.translate("DEACTIVATE"),
+  buy: () => stateI18nDerived.translate("BUY"),
+  bonus: () => stateI18nDerived.translate("BONUS"),
+  lowFunds: () => stateI18nDerived.translate("LOW_FUNDS"),
+  perSpin: () => stateI18nDerived.translate("PER_SPIN"),
+  total: () => stateI18nDerived.translate("TOTAL"),
+  cancel: () => stateI18nDerived.translate("CANCEL"),
+  confirmBuy: () => stateI18nDerived.translate("CONFIRM_BUY"),
+  decreaseBet: () => stateI18nDerived.translate("DECREASE_BET"),
+  increaseBet: () => stateI18nDerived.translate("INCREASE_BET"),
+  music: () => stateI18nDerived.translate("MUSIC"),
+  sfx: () => stateI18nDerived.translate("SFX"),
+  play: () => stateI18nDerived.translate("PLAY"),
+  playAgain: () => stateI18nDerived.translate("PLAY_AGAIN"),
+  loadingReplay: () => stateI18nDerived.translate("LOADING_REPLAY"),
+  replayUnavailable: () => stateI18nDerived.translate("REPLAY_UNAVAILABLE"),
+  replay: () => stateI18nDerived.translate("REPLAY"),
+  speed: () => stateI18nDerived.translate("SPEED"),
+  tumbleWin: () => stateI18nDerived.translate("TUMBLE_WIN"),
+  totalMult: () => stateI18nDerived.translate("TOTAL_MULT"),
+  gaze: () => stateI18nDerived.translate("GAZE"),
+  tapToContinue: () => stateI18nDerived.translate("TAP_TO_CONTINUE"),
+  on: () => stateI18nDerived.translate("ON"),
+  off: () => stateI18nDerived.translate("OFF"),
+  anteSwitchNote: () => stateI18nDerived.translate("ANTE_SWITCH_NOTE"),
+  auto: () => stateI18nDerived.translate("AUTO"),
+  all: () => stateI18nDerived.translate("ALL"),
+  start: () => stateI18nDerived.translate("START"),
+  winTier: (tierKey) => stateI18nDerived.translate(WIN_TIER_KEYS[tierKey]),
+  betMode: (mode2, field) => stateI18nDerived.translate(`BET_MODE_${mode2}_${field}`)
+};
 const winLevelMap = {
   1: {
     level: 1,
@@ -12302,7 +12445,9 @@ const winLevelMap = {
     level: 6,
     alias: "big",
     type: "big",
-    text: "BIG WIN",
+    get text() {
+      return i18nDerived.winTier("bigWin");
+    },
     presentDuration: 6 * SECOND,
     sound: { sfx: void 0, bgm: "bgm_winlevel_big" },
     animation: { intro: "big_win_intro", idle: "big_win_idle", outro: "big_win_exit" }
@@ -12311,7 +12456,9 @@ const winLevelMap = {
     level: 7,
     alias: "superwin",
     type: "big",
-    text: "SUPER WIN",
+    get text() {
+      return i18nDerived.winTier("superWin");
+    },
     presentDuration: 18 * SECOND,
     sound: { sfx: void 0, bgm: "bgm_winlevel_superwin" },
     animation: { intro: "super_win_intro", idle: "super_win_idle", outro: "super_win_exit" }
@@ -12320,7 +12467,9 @@ const winLevelMap = {
     level: 8,
     alias: "mega",
     type: "big",
-    text: "MEGA WIN",
+    get text() {
+      return i18nDerived.winTier("megaWin");
+    },
     presentDuration: 20 * SECOND,
     sound: { sfx: void 0, bgm: "bgm_winlevel_mega" },
     animation: { intro: "mega_win_intro", idle: "mega_win_idle", outro: "mega_win_exit" }
@@ -12329,7 +12478,9 @@ const winLevelMap = {
     level: 9,
     alias: "epic",
     type: "big",
-    text: "EPIC WIN!",
+    get text() {
+      return i18nDerived.winTier("epicWin");
+    },
     presentDuration: 26 * SECOND,
     sound: { sfx: void 0, bgm: "bgm_winlevel_epic" },
     animation: { intro: "epic_win_intro", idle: "epic_win_idle", outro: "epic_win_exit" }
@@ -12338,12 +12489,77 @@ const winLevelMap = {
     level: 10,
     alias: "max",
     type: "big",
-    text: "MAX WIN",
+    get text() {
+      return i18nDerived.winTier("maxWin");
+    },
     presentDuration: 32 * SECOND,
     sound: { sfx: void 0, bgm: "bgm_winlevel_max" },
     animation: { intro: "max_win_intro", idle: "max_win_idle", outro: "max_win_exit" }
   }
 };
+const SKIP_TIME_SCALE = 2;
+const skip = { armed: false };
+let playingDepth = 0;
+const resolvers = [];
+const raceListeners = [];
+const PATCHED = Symbol.for("abyssal.skipTimeScalePatched");
+const base = stateBetDerived.timeScale;
+if (!base[PATCHED]) {
+  const wrapped = () => skip.armed ? Math.max(SKIP_TIME_SCALE, base()) : base();
+  wrapped[PATCHED] = true;
+  stateBetDerived.timeScale = wrapped;
+}
+const skipActive = () => skip.armed;
+const requestSkip = () => {
+  if (playingDepth <= 0) return false;
+  skip.armed = true;
+  resolvers.splice(0).forEach((resolve) => resolve());
+  raceListeners.splice(0).forEach((fire) => fire());
+  return true;
+};
+const raceSkip = (promise) => {
+  if (skip.armed) return Promise.resolve("skipped");
+  return new Promise((resolve) => {
+    let settled = false;
+    const settle = (result) => {
+      if (settled) return;
+      settled = true;
+      const index = raceListeners.indexOf(onskip);
+      if (index >= 0) raceListeners.splice(index, 1);
+      resolve(result);
+    };
+    const onskip = () => settle("skipped");
+    raceListeners.push(onskip);
+    void Promise.resolve(promise).then(() => settle("done"));
+  });
+};
+const skippableWait = (ms) => new Promise((resolve) => {
+  const done = () => {
+    clearTimeout(timeout);
+    resolve();
+  };
+  const timeout = setTimeout(
+    () => {
+      const index = resolvers.indexOf(done);
+      if (index >= 0) resolvers.splice(index, 1);
+      resolve();
+    },
+    ms
+  );
+  resolvers.push(done);
+});
+const withSkipBoundaries = (handlerMap) => Object.fromEntries(Object.entries(handlerMap).map(([type, handler]) => [
+  type,
+  async (...args) => {
+    playingDepth += 1;
+    try {
+      await handler(...args);
+    } finally {
+      playingDepth -= 1;
+      skip.armed = false;
+    }
+  }
+]));
 const getScatterLandSoundIndex = (scatterCount) => {
   if (scatterCount > 5) return 5;
   if (scatterCount < 1) return 1;
@@ -12361,7 +12577,8 @@ const onSymbolLand = ({ rawSymbol, reel, row }) => {
     const scatterCountAfterLand = stateGame.scatterCounter + 1;
     eventEmitter.broadcast({ type: "reelFrameScatterLand", position });
     eventEmitter.broadcast({ type: "soundScatterCounterIncrease" });
-    if (scatterCountAfterLand >= 4 && stateGame.scatterAnticipating) {
+    const triggerCount = stateGame.gameType === "freegame" ? 3 : 4;
+    if (scatterCountAfterLand >= triggerCount && stateGame.scatterAnticipating) {
       eventEmitter.broadcast({ type: "reelFrameScatterAnticipationEnd" });
     }
     eventEmitter.broadcast({
@@ -12386,10 +12603,20 @@ const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
         name: "sfx_reel_stop_1",
         forcePlay: !stateBet$1.isTurbo
       });
+      eventEmitter.broadcast({ type: "reelFrameReelStop" });
+      eventEmitter.broadcast({
+        type: "boardLandPuff",
+        cells: [
+          {
+            reel: reelIndex,
+            row: VISIBLE_ROW_START + BOARD_DIMENSIONS.y - 1
+          }
+        ]
+      });
     },
     onSymbolLand
   });
-  reel.reelState.spinOptions = () => reel.reelState.spinType === "fast" ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
+  reel.reelState.spinOptions = () => skipActive() || reel.reelState.spinType === "fast" ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
   return reel;
 });
 const stateGame = {
@@ -12454,6 +12681,10 @@ const speedUpCurrentSpin = () => {
   enhancedBoard.board.forEach((reel) => reel.reelState.spinType = "fast");
   enhancedBoard.stop();
 };
+const skipCurrentSpin = () => {
+  speedUpCurrentSpin();
+  enhancedBoard.board.forEach((reel) => reel.finishFall());
+};
 const enableTurbo = () => {
   stateBetDerived.updateIsTurbo(true, { persistent: true });
   speedUpCurrentSpin();
@@ -12468,6 +12699,7 @@ const stateGameDerived = {
   scatterLandIndex,
   enhancedBoard,
   speedUpCurrentSpin,
+  skipCurrentSpin,
   enableTurbo,
   getWinLevelDataByWinLevelAlias
 };
@@ -12480,6 +12712,30 @@ const HERO = {
   SUPERBONUS: new URL("../../assets/bonus/superbonus.png", import.meta.url).href
 };
 const WIN_CAP = 15e3;
+const t = (mode2, field) => i18nDerived.betMode(mode2, field);
+const modeText = (modeKey, options = {}) => ({
+  get title() {
+    return t(modeKey, "TITLE");
+  },
+  get description() {
+    return options.description ? t(modeKey, "DESCRIPTION") : void 0;
+  },
+  get betAmountLabel() {
+    return options.betAmountLabel ? t(modeKey, "BET_AMOUNT_LABEL") : void 0;
+  },
+  get dialog() {
+    return t(modeKey, "DIALOG");
+  },
+  get button() {
+    return t(modeKey, "BUTTON");
+  },
+  get tickerIdle() {
+    return t(modeKey, "TICKER_IDLE");
+  },
+  get tickerSpin() {
+    return t(modeKey, "TICKER_SPIN");
+  }
+});
 const baseAssets = {
   icon: providerLogo,
   // Celest Studios mark on every bet-mode / buy-bonus card
@@ -12493,13 +12749,7 @@ const mode = (data) => ({
   children: "",
   maxWin: WIN_CAP,
   assets: baseAssets,
-  text: {
-    title: data.mode,
-    dialog: "",
-    button: "",
-    tickerIdle: "",
-    tickerSpin: "GOOD LUCK"
-  },
+  text: modeText(data.mode),
   ...data
 });
 const ABYSSAL_BET_MODE_META = {
@@ -12507,139 +12757,43 @@ const ABYSSAL_BET_MODE_META = {
     mode: "BASE",
     costMultiplier: 1,
     type: "default",
-    text: {
-      title: "BASE",
-      dialog: "The standard Abyssal spin. The Eye is rare and mostly ADD.",
-      button: "",
-      tickerIdle: "PLACE YOUR BET",
-      tickerSpin: "GOOD LUCK"
-    }
+    text: modeText("BASE")
   }),
   ANTE: mode({
     mode: "ANTE",
     costMultiplier: 1.25,
     type: "activate",
     assets: { ...baseAssets, dialogImage: HERO.ANTE, volatility: "2" },
-    text: {
-      title: "ANTE",
-      description: "Raise the tide — more frequent Eyes and Scatters.",
-      dialog: "Increases the Eye and Scatter frequency for 1.25× the bet. ANTE BET stays active until disabled.",
-      button: "ACTIVATE",
-      betAmountLabel: "ANTE BET",
-      tickerIdle: "ANTE BET IS ACTIVE",
-      tickerSpin: "GOOD LUCK"
-    }
+    text: modeText("ANTE", { description: true, betAmountLabel: true })
   }),
   SUPERSPINS: mode({
     mode: "SUPERSPINS",
     costMultiplier: 20,
     type: "activate",
     assets: { ...baseAssets, dialogImage: HERO.SUPERSPINS, volatility: "3" },
-    text: {
-      title: "EYE SPINS",
-      description: "One guaranteed-Eye spin — a single build-and-release.",
-      dialog: "A single spin for 20× the bet with the Eye guaranteed to land. No snowball — one punchy build and release.",
-      button: "ACTIVATE",
-      tickerIdle: "SUPER SPINS IS ACTIVE",
-      tickerSpin: "GOOD LUCK"
-    }
+    text: modeText("SUPERSPINS", { description: true })
   }),
   BONUS: mode({
     mode: "BONUS",
     costMultiplier: 100,
     type: "buy",
     assets: { ...baseAssets, dialogImage: HERO.BONUS, volatility: "4" },
-    text: {
-      title: "BONUS",
-      description: "Buy straight into the Free Spins snowball feature.",
-      dialog: "Triggers Free Spins for 100× the bet. The persistent multiplier (M) snowballs across the feature as the Eye lands.",
-      button: "BUY",
-      tickerIdle: "PLACE YOUR BET",
-      tickerSpin: "FREE SPINS PURCHASED"
-    }
+    text: modeText("BONUS", { description: true })
   }),
   ULTIMATE: mode({
     mode: "ULTIMATE",
     costMultiplier: 300,
     type: "activate",
     assets: { ...baseAssets, dialogImage: HERO.ULTIMATE, volatility: "4" },
-    text: {
-      title: "ULTIMATE",
-      description: "The multi-Eye finale — several Eyes resolve at once.",
-      dialog: "The only mode where multiple Eyes open together for 300× the bet, combining their ADD and MUL values in one resolution.",
-      button: "ACTIVATE",
-      tickerIdle: "ULTIMATE IS ACTIVE",
-      tickerSpin: "GOOD LUCK"
-    }
+    text: modeText("ULTIMATE", { description: true })
   }),
   SUPERBONUS: mode({
     mode: "SUPERBONUS",
     costMultiplier: 500,
     type: "buy",
     assets: { ...baseAssets, dialogImage: HERO.SUPERBONUS, volatility: "5" },
-    text: {
-      title: "SUPER BONUS",
-      description: "The tail mode — charge +2 and MUL common.",
-      dialog: "Buys the Free Spins feature for 500× the bet with +2 Gaze charge per connection and MUL Eyes common. The mode that most often approaches the 15,000× cap.",
-      button: "BUY",
-      tickerIdle: "PLACE YOUR BET",
-      tickerSpin: "SUPER BONUS PURCHASED"
-    }
+    text: modeText("SUPERBONUS", { description: true })
   })
-};
-const i18nDerived$1 = {
-  audio: () => stateI18nDerived.translate("AUDIO"),
-  balance: () => stateI18nDerived.translate("BALANCE"),
-  win: () => stateI18nDerived.translate("WIN"),
-  bet: () => stateUrlDerived.social() ? "SPIN" : stateI18nDerived.translate("BET"),
-  stop: () => stateI18nDerived.translate("STOP"),
-  buyBonus: () => stateUrlDerived.social() ? "PLAY BONUS" : stateI18nDerived.translate("BUY BONUS"),
-  disable: () => stateI18nDerived.translate("DISABLE"),
-  freeSpins: () => stateI18nDerived.translate("FREE SPINS"),
-  //
-  decrease: () => stateI18nDerived.translate("-"),
-  increase: () => stateI18nDerived.translate("+"),
-  menu: () => stateI18nDerived.translate("MENU"),
-  turbo: () => stateI18nDerived.translate("TURBO"),
-  autoSpin: () => stateI18nDerived.translate("AUTO SPIN"),
-  payTable: () => stateI18nDerived.translate("PAYTABLE"),
-  info: () => stateI18nDerived.translate("INFO"),
-  settings: () => stateI18nDerived.translate("SETTINGS"),
-  soundOn: () => stateI18nDerived.translate("SOUND ON"),
-  soundOff: () => stateI18nDerived.translate("SOUND OFF"),
-  menuExit: () => stateI18nDerived.translate("EXIT")
-};
-const en$1 = {
-  SETTINGS: "SETTINGS"
-};
-const zh$1 = {
-  SETTINGS: "设置"
-};
-const messagesMap$1 = {
-  en: en$1,
-  zh: zh$1
-};
-const i18nDerived = {
-  ...i18nDerived$1,
-  ...i18nDerived$2,
-  home: () => stateI18nDerived.translate("HOME"),
-  notTranslated: () => stateI18nDerived.translate("NOT TRANSLATED"),
-  gameInfo: (key) => stateI18nDerived.translate(`GAME_INFO_${key}`),
-  loaderSubtitle: () => stateI18nDerived.translate("LOADER_SUBTITLE"),
-  loaderLogo: () => stateI18nDerived.translate("LOADER_LOGO"),
-  loaderCard1Title: () => stateI18nDerived.translate("LOADER_CARD_1_TITLE"),
-  loaderCard1Body: () => stateI18nDerived.translate("LOADER_CARD_1_BODY"),
-  loaderCard2Title: () => stateI18nDerived.translate("LOADER_CARD_2_TITLE"),
-  loaderCard2Body: () => stateI18nDerived.translate("LOADER_CARD_2_BODY"),
-  loaderCard3Title: () => stateI18nDerived.translate("LOADER_CARD_3_TITLE"),
-  loaderCard3Body: () => stateI18nDerived.translate("LOADER_CARD_3_BODY"),
-  loaderCta: () => stateI18nDerived.translate("LOADER_CTA"),
-  loaderLoading: () => stateI18nDerived.translate("LOADER_LOADING"),
-  loaderCardsLabel: () => stateI18nDerived.translate("LOADER_CARDS_LABEL"),
-  loaderPreviousCard: () => stateI18nDerived.translate("LOADER_PREVIOUS_CARD"),
-  loaderNextCard: () => stateI18nDerived.translate("LOADER_NEXT_CARD"),
-  freeSpinsTapToPlay: () => stateI18nDerived.translate("FREE_SPINS_TAP_TO_PLAY"),
-  freeSpinsTapToSkip: () => stateI18nDerived.translate("FREE_SPINS_TAP_TO_SKIP")
 };
 const setContext = () => {
   setContextEventEmitter({ eventEmitter });
@@ -15288,7 +15442,22 @@ const bookEventHandlerMap = {
   // amount is already rolled into the round's running totals (setTotalWin / finalWin), the
   // trigger moment is owned by scatterCelebrate → free-spins intro, and 20×+ totals still get
   // the Win presentation via setWin. Registered so the event isn't reported as unhandled.
-  scatterPay: async (_bookEvent) => {
+  scatterPay: async (bookEvent) => {
+    stateBet$1.winBookEventAmount += bookEvent.amount;
+    if (bookEvent.amount >= WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER) {
+      const mult = bookEvent.amount / BOOK_AMOUNT_MULTIPLIER;
+      const winLevelData = mult >= 250 ? winLevelMap[9] : mult >= 100 ? winLevelMap[8] : winLevelMap[6];
+      eventEmitter.broadcast({ type: "tumbleWinAmountHide" });
+      eventEmitter.broadcast({ type: "winShow" });
+      winLevelSoundsPlay({ winLevelData });
+      await eventEmitter.broadcastAsync({
+        type: "winUpdate",
+        amount: bookEvent.amount,
+        winLevelData
+      });
+      winLevelSoundsStop();
+      eventEmitter.broadcast({ type: "winHide" });
+    }
   },
   tumbleBoard: async (bookEvent) => {
     eventEmitter.broadcast({ type: "boardHide" });
@@ -15311,19 +15480,22 @@ const bookEventHandlerMap = {
   },
   setWin: async (bookEvent) => {
     const winLevelData = winLevelMap[bookEvent.winLevel];
+    const celebrate = bookEvent.amount >= WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER;
     if (stateGame.gazeCharge > 0 && !stateGame.eyeResolvedThisSpin) {
       await eventEmitter.broadcastAsync({ type: "gazeMeterDrain" });
       stateGame.gazeCharge = 0;
     }
     if (stateGame.eyeMultPending && stateGame.eyeResolveCell) {
       stateGame.eyeMultPending = false;
-      await eventEmitter.broadcastAsync({
-        type: "tumbleWinAmountMultiply",
-        totalWin: bookEvent.amount,
-        // the combine resolves the total at the board centre, so the ×N flies from there
-        fromReel: 2.5,
-        fromRow: 3
-      });
+      if (!celebrate) {
+        await eventEmitter.broadcastAsync({
+          type: "tumbleWinAmountMultiply",
+          totalWin: bookEvent.amount,
+          // the combine resolves the total at the board centre, so the ×N flies from there
+          fromReel: 2.5,
+          fromRow: 3
+        });
+      }
       stateGame.revealedEyes.forEach(({ reel, row }) => {
         const cell = stateGame.board[reel]?.reelState.symbols[row];
         if (cell?.rawSymbol.name === "EYE") {
@@ -15331,7 +15503,8 @@ const bookEventHandlerMap = {
         }
       });
     }
-    if (bookEvent.amount < WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER) return;
+    if (!celebrate) return;
+    eventEmitter.broadcast({ type: "tumbleWinAmountHide" });
     eventEmitter.broadcast({ type: "winShow" });
     winLevelSoundsPlay({ winLevelData });
     await eventEmitter.broadcastAsync({
@@ -15384,12 +15557,15 @@ const bookEventHandlerMap = {
       eyeType: bookEvent.eyeType,
       startValue: bookEvent.startValue
     });
-    await waitForTimeout(700 / stateBetDerived.timeScale());
+    await skippableWait(700 / stateBetDerived.timeScale());
   },
   eyeResolve: async (bookEvent) => {
     stateGame.eyeResolvedThisSpin = true;
     stateGame.eyeMultPending = true;
-    await eventEmitter.broadcastAsync({ type: "gazeMeterToEye" });
+    await Promise.all([
+      eventEmitter.broadcastAsync({ type: "gazeMeterToEye" }),
+      ...stateGame.gameType === "freegame" && stateGame.persistentMult > 1 ? [eventEmitter.broadcastAsync({ type: "snowballToCombine" })] : []
+    ]);
     await eventEmitter.broadcastAsync({
       type: "eyeBurst",
       charge: bookEvent.charge,
@@ -15472,7 +15648,9 @@ const bookEventHandlerMap = {
     winLevelSoundsPlay({ winLevelData });
     await eventEmitter.broadcastAsync({
       type: "freeSpinOutroCountUp",
-      amount: bookEvent.amount,
+      // the ROUND total (latest setTotalWin), not just the feature's: it includes any
+      // base-game wins + the scatter pay from the triggering spin
+      amount: stateBet$1.winBookEventAmount || bookEvent.amount,
       winLevelData
     });
     winLevelSoundsStop();
@@ -15521,7 +15699,9 @@ const bookEventHandlerMap = {
     if (lastSetTotalWin) stateBet$1.winBookEventAmount = lastSetTotalWin.amount;
   }
 };
-const { playBookEvents } = createPlayBookUtils({ bookEventHandlerMap });
+const { playBookEvents } = createPlayBookUtils({
+  bookEventHandlerMap: withSkipBoundaries(bookEventHandlerMap)
+});
 const playBet = async (bet) => {
   stateBet$1.winBookEventAmount = 0;
   await playBookEvents(bet.state);
@@ -15667,13 +15847,13 @@ function Background($$payload, $$props) {
     glowFlicker: 0.4
   };
   const heat = new Tween(0, { duration: 650 });
-  let t = 0;
+  let t2 = 0;
   const sizes = context2.stateLayoutDerived.canvasSizes();
   const feature = context2.stateGame.gameType === "freegame";
   const featureMix = new Tween(0, { duration: 720 });
-  const driftX = Math.sin(t * 0.06) * 14;
-  const driftY = Math.cos(t * 0.045) * 10;
-  const breathe = 1 + Math.sin(t * 0.08) * 0.014;
+  const driftX = Math.sin(t2 * 0.06) * 14;
+  const driftY = Math.cos(t2 * 0.045) * 10;
+  const breathe = 1 + Math.sin(t2 * 0.08) * 0.014;
   const cover = (() => {
     const { width: cw, height: ch } = sizes;
     let w = cw;
@@ -15692,13 +15872,13 @@ function Background($$payload, $$props) {
   const drawGodRays = (g) => {
     const { width, height } = sizes;
     const top = height * -0.05;
-    const sway = Math.sin(t * 0.055) * width * 0.035;
+    const sway = Math.sin(t2 * 0.055) * width * 0.035;
     const color = feature ? 12576511 : 10517503;
     const h = heat.current;
     for (let i = 0; i < 6; i++) {
       const x = width * (0.16 + i * 0.14) + sway * (i % 2 ? -1 : 1);
       const w = width * (0.05 + i % 3 * 0.014);
-      const pulse = Math.max(0, 0.55 + Math.sin(t * 0.4 + i) * 0.45 + Math.sin(t * 1.9 + i * 1.7) * AMBIENT_HEAT.rayFlicker * h);
+      const pulse = Math.max(0, 0.55 + Math.sin(t2 * 0.4 + i) * 0.45 + Math.sin(t2 * 1.9 + i * 1.7) * AMBIENT_HEAT.rayFlicker * h);
       g.moveTo(x, top).lineTo(x + w, top).lineTo(x + w * 2.6, height * 0.8).lineTo(x - w * 1.4, height * 0.8).fill({
         color,
         alpha: 0.04 * pulse * (1 + h * AMBIENT_HEAT.rayBoost)
@@ -15710,18 +15890,18 @@ function Background($$payload, $$props) {
     const color = feature ? 6282495 : 7163135;
     const h = heat.current;
     const heatGain = 1 + h * AMBIENT_HEAT.glowBoost;
-    const hotWave = Math.sin(t * 2.1) * AMBIENT_HEAT.glowFlicker * h;
-    const pulse = Math.max(0, 0.55 + Math.sin(t * 0.22) * 0.45 + hotWave);
-    const sidePulse = Math.max(0, 0.55 + Math.cos(t * 0.18 + 1.3) * 0.45 + hotWave);
-    g.ellipse(width * 0.52, height * (0.08 + Math.sin(t * 0.11) * 0.015), width * 0.42, height * 0.16).fill({
+    const hotWave = Math.sin(t2 * 2.1) * AMBIENT_HEAT.glowFlicker * h;
+    const pulse = Math.max(0, 0.55 + Math.sin(t2 * 0.22) * 0.45 + hotWave);
+    const sidePulse = Math.max(0, 0.55 + Math.cos(t2 * 0.18 + 1.3) * 0.45 + hotWave);
+    g.ellipse(width * 0.52, height * (0.08 + Math.sin(t2 * 0.11) * 0.015), width * 0.42, height * 0.16).fill({
       color,
       alpha: (0.032 + pulse * 0.026) * heatGain
     });
-    g.ellipse(width * (0.22 + Math.sin(t * 0.07) * 0.015), height * 0.64, width * 0.22, height * 0.24).fill({
+    g.ellipse(width * (0.22 + Math.sin(t2 * 0.07) * 0.015), height * 0.64, width * 0.22, height * 0.24).fill({
       color: 2224837,
       alpha: (feature ? 0.022 + sidePulse * 0.015 : 0.014) * heatGain
     });
-    g.ellipse(width * (0.82 + Math.cos(t * 0.08) * 0.018), height * 0.55, width * 0.2, height * 0.2).fill({
+    g.ellipse(width * (0.82 + Math.cos(t2 * 0.08) * 0.018), height * 0.55, width * 0.2, height * 0.2).fill({
       color: 10447871,
       alpha: (feature ? 0.012 : 0.018 + sidePulse * 0.012) * heatGain
     });
@@ -15732,14 +15912,14 @@ function Background($$payload, $$props) {
     const segmentCount = 12;
     for (const [i, band] of CAUSTIC_BANDS.entries()) {
       g.beginPath();
-      const baseY = height * band.y + Math.sin(t * 0.13 + band.phase) * height * 0.012;
+      const baseY = height * band.y + Math.sin(t2 * 0.13 + band.phase) * height * 0.012;
       for (let segment = 0; segment <= segmentCount; segment++) {
         const x = segment / segmentCount * width;
-        const wave = Math.sin(segment * 1.35 + t * 0.32 + band.phase) * band.amp + Math.sin(segment * 0.7 - t * 0.19 + i) * band.amp * 0.55;
+        const wave = Math.sin(segment * 1.35 + t2 * 0.32 + band.phase) * band.amp + Math.sin(segment * 0.7 - t2 * 0.19 + i) * band.amp * 0.55;
         if (segment === 0) g.moveTo(x, baseY + wave);
         else g.lineTo(x, baseY + wave);
       }
-      const pulse = 0.55 + Math.sin(t * 0.48 + band.phase) * 0.45;
+      const pulse = 0.55 + Math.sin(t2 * 0.48 + band.phase) * 0.45;
       g.stroke({
         width: 1 + i % 2 * 0.6,
         color,
@@ -15750,9 +15930,9 @@ function Background($$payload, $$props) {
   const drawParticles = (g) => {
     const { width, height } = sizes;
     for (const p of PARTICLES) {
-      const px = (p.x / 1e3 * width + Math.sin(t * 0.21 + p.phase) * 26 * p.depth) % width;
-      const py = (p.y / 1e3 * height - t * height * p.speed * p.depth) % height + height * 0.02;
-      const pulse = 0.65 + Math.sin(t * 1.1 + p.phase) * 0.35;
+      const px = (p.x / 1e3 * width + Math.sin(t2 * 0.21 + p.phase) * 26 * p.depth) % width;
+      const py = (p.y / 1e3 * height - t2 * height * p.speed * p.depth) % height + height * 0.02;
+      const pulse = 0.65 + Math.sin(t2 * 1.1 + p.phase) * 0.35;
       g.circle(px, py < 0 ? py + height : py, p.r * p.depth * pulse).fill({
         color: 14350847,
         alpha: p.alpha * (0.65 + p.depth * 0.35)
@@ -15764,10 +15944,10 @@ function Background($$payload, $$props) {
     const color = feature ? 14876159 : 13358847;
     const travelRange = height * 1.12;
     for (const bubble of BUBBLES) {
-      const px = (bubble.x / 1e3 * width + Math.sin(t * 0.42 + bubble.phase) * bubble.wander + width) % width;
-      const travel = (t * height * bubble.speed + bubble.y / 1e3 * travelRange) % travelRange;
+      const px = (bubble.x / 1e3 * width + Math.sin(t2 * 0.42 + bubble.phase) * bubble.wander + width) % width;
+      const travel = (t2 * height * bubble.speed + bubble.y / 1e3 * travelRange) % travelRange;
       const py = height * 1.04 - travel;
-      const pulse = 0.75 + Math.sin(t * 0.9 + bubble.phase) * 0.25;
+      const pulse = 0.75 + Math.sin(t2 * 0.9 + bubble.phase) * 0.25;
       const radius = bubble.r * pulse;
       g.circle(px, py, radius).stroke({ width: 1, color, alpha: bubble.alpha });
       g.circle(px - radius * 0.3, py - radius * 0.35, Math.max(0.9, radius * 0.18)).fill({ color: 16777215, alpha: bubble.alpha * 0.55 });
@@ -15854,16 +16034,18 @@ function ReelFrame($$payload, $$props) {
   let now2 = 0;
   let boosted = false;
   let launchStartedAt = -1;
+  let reelStopStartedAt = -1;
   let scatterStartedAt = -1;
   let eyeStartedAt = -1;
   let scatterAnticipationStartedAt = -1;
   let scatterAnticipationReleasedAt = -1;
   let scatterAnticipationReleaseFrom = 0;
-  const t = now2 / 1e3;
+  const t2 = now2 / 1e3;
   context2.eventEmitter.subscribeOnMount({
     reelFrameGlowShow: () => boosted = true,
     reelFrameGlowHide: () => boosted = false,
     reelFrameSpinLaunch: () => launchStartedAt = performance.now(),
+    reelFrameReelStop: () => reelStopStartedAt = performance.now(),
     reelFrameScatterLand: () => scatterStartedAt = performance.now(),
     reelFrameEyeLand: () => eyeStartedAt = performance.now(),
     reelFrameScatterAnticipationStart: () => {
@@ -15913,7 +16095,7 @@ function ReelFrame($$payload, $$props) {
   const heatAlpha = (() => {
     const h = heat.current;
     if (h <= 0.01) return 0;
-    const wave = 0.5 + 0.5 * (Math.sin(t * FRAME_HEAT.slowSpeed) * (1 - h) + Math.sin(t * FRAME_HEAT.fastSpeed) * h);
+    const wave = 0.5 + 0.5 * (Math.sin(t2 * FRAME_HEAT.slowSpeed) * (1 - h) + Math.sin(t2 * FRAME_HEAT.fastSpeed) * h);
     return h * (FRAME_HEAT.baseAlpha + FRAME_HEAT.breatheAmp * (1 - h * 0.55) * wave);
   })();
   const launchEnergy = getBurstEnergy(launchStartedAt, 0.62);
@@ -15925,6 +16107,9 @@ function ReelFrame($$payload, $$props) {
   const effectColor = eyeEnergy > scatterEnergy ? 14182143 : scatterEnergy > 0 ? 5041407 : frame.glowColor;
   const borderTint = mixColor(16777215, 14182143, eyeColorPopEnergy);
   const launchMotion = launchEnergy > 0 ? Math.sin((1 - launchEnergy) * Math.PI) : 0;
+  const REEL_STOP_DIP = 6;
+  const stopEnergy = getBurstEnergy(reelStopStartedAt, 0.24);
+  const stopMotion = stopEnergy > 0 ? Math.sin((1 - stopEnergy) * Math.PI) : 0;
   const scatterAnticipationProgress = (() => {
     if (scatterAnticipationReleasedAt >= 0) {
       const releaseElapsed = (now2 - scatterAnticipationReleasedAt) / 1e3;
@@ -15934,7 +16119,7 @@ function ReelFrame($$payload, $$props) {
     const progress = Math.min(1, (now2 - scatterAnticipationStartedAt) / 1e3);
     return progress * progress * (3 - 2 * progress);
   })();
-  const frameShakeY = launchMotion * 42;
+  const frameShakeY = launchMotion * 42 + stopMotion * REEL_STOP_DIP;
   const getFrameTransform = (layout) => {
     const position = getReelPosition(layout);
     const displayScale = getReelDisplayScale(layout);
@@ -15948,7 +16133,7 @@ function ReelFrame($$payload, $$props) {
       scale: displayScale * mobileReelScale * (1 + launchMotion * 0.045 + scatterAnticipationProgress * 0.06)
     };
   };
-  const getGlintX = (layout) => layout.gridX + t * 180 % Math.max(layout.gridWidth, 1);
+  const getGlintX = (layout) => layout.gridX + t2 * 180 % Math.max(layout.gridWidth, 1);
   const getBorderPlacement = (layout) => {
     const scaleX = layout.gridWidth / BORDER_INNER_WINDOW.width;
     const scaleY = layout.gridHeight / BORDER_INNER_WINDOW.height;
@@ -16304,10 +16489,10 @@ function AbyssalEye($$payload, $$props) {
     const r = width * 0.68;
     const steps = 5;
     for (let i = steps; i >= 1; i--) {
-      const t = i / steps;
-      g.circle(0, 0, r * t).fill({
+      const t2 = i / steps;
+      g.circle(0, 0, r * t2).fill({
         color: effectColor,
-        alpha: 0.1 * (1 - t) + 0.03
+        alpha: 0.1 * (1 - t2) + 0.03
       });
     }
   };
@@ -16434,20 +16619,20 @@ function Symbol$1($$payload, $$props) {
   const { $$slots, $$events, ...props } = $$props;
   const context2 = getContext();
   const SYMBOL_FRAME = {
-    H1: "H2",
-    // Nautilus art on the top-paying H1 slot
-    H2: "H1",
-    // Anglerfish art on H2
-    H3: "H3",
-    // Diving helmet
+    H1: "H3",
+    // Diving helmet art on the top-paying H1 slot
+    H2: "H2",
+    // Nautilus
+    H3: "H1",
+    // Anglerfish art on H3
     H4: "H4",
     // Jellyfish
-    L1: "L2",
-    // Teal gem art on L1
-    L2: "L1",
-    // Cyan gem art on L2
-    L3: "L3",
-    // Sapphire gem
+    L1: "L3",
+    // Sapphire gem art on L1
+    L2: "L2",
+    // Teal gem
+    L3: "L1",
+    // Cyan gem art on L3
     L4: "L4",
     // Violet gem
     L5: "L5",
@@ -16476,6 +16661,9 @@ function Symbol$1($$payload, $$props) {
   const PAD = SYMBOL_SIZE * 0.06;
   const scale = new Tween(1, { duration: 120 });
   const alpha = new Tween(1, { duration: 120 });
+  const stretchFx = { v: 1 };
+  props.y ?? 0;
+  onDestroy(() => gsap.killTweensOf(stretchFx));
   const isEye = isUnresolvedEye || isResolvedEye || isSpentEye;
   const eyeVariant = isUnresolvedEye ? "close" : props.rawSymbol.eyeType === "MUL" ? "multEmpty" : "addEmpty";
   const winFx = { glow: 0, squashX: 1, squashY: 1 };
@@ -16483,9 +16671,13 @@ function Symbol$1($$payload, $$props) {
   const winGlowFx = { pulse: 0 };
   const isScatter = props.rawSymbol.name === "S";
   const winGlowOn = !isEye && !isScatter && (props.state === "win" || props.state === "postWinStatic");
+  let winAuraFilter = null;
+  onDestroy(() => winAuraFilter?.destroy());
   const scatterFx = { breathe: 1, connect: 0, landGlow: 0 };
   const scatterAmb = { t: 0 };
   isScatter && (props.state === "win" || props.state === "postWinStatic");
+  let scatterAuraFilter = null;
+  onDestroy(() => scatterAuraFilter?.destroy());
   onDestroy(() => {
     gsap.killTweensOf(winFx);
     gsap.killTweensOf(boomFx);
@@ -16510,42 +16702,15 @@ function Symbol$1($$payload, $$props) {
     }
   };
   const eyeSize = Math.max(symbolSize.width, symbolSize.height) * 1.08;
-  const drawWinBloom = (g) => {
-    const pulse = winGlowFx.pulse;
-    if (pulse <= 0) return;
-    const base = Math.max(symbolSize.width, symbolSize.height) * 0.6;
-    const steps = 4;
-    for (let i = steps; i >= 1; i--) {
-      const f = i / steps;
-      g.circle(0, 0, base * (0.5 + f * 0.7)).fill({
-        color: 12578559,
-        alpha: 0.05 * (1.25 - f) * pulse
-      });
-    }
-  };
-  const drawScatterGlow = (g) => {
-    const anticipating = context2.stateGame.scatterAnticipating;
-    const landGlow = scatterFx.landGlow;
-    const base = Math.max(symbolSize.width, symbolSize.height) * 0.56 * (anticipating ? 1.12 : 1) * (1 + landGlow * 0.22);
-    const shimmer = anticipating ? 0.75 + Math.sin(scatterAmb.t * 3.6) * 0.25 : 0.8 + Math.sin(scatterAmb.t * 1.7) * 0.2;
-    const boost = (anticipating ? 2.6 : 1) + landGlow * 3.2;
-    const steps = 4;
-    for (let i = steps; i >= 1; i--) {
-      const f = i / steps;
-      g.circle(0, 0, base * (0.45 + f * 0.75) * scatterFx.breathe).fill({
-        color: 16763236,
-        alpha: 0.028 * (1.25 - f) * shimmer * boost
-      });
-    }
-  };
   Container($$payload, {
     x: props.x,
     y: props.y,
     scale: {
-      x: scale.current * winFx.squashX,
-      y: scale.current * winFx.squashY
+      x: scale.current * winFx.squashX / Math.sqrt(stretchFx.v),
+      y: scale.current * winFx.squashY * stretchFx.v
     },
     alpha: alpha.current,
+    filters: winGlowOn && winAuraFilter ? [winAuraFilter] : isScatter && scatterAuraFilter ? [scatterAuraFilter] : [],
     children: ($$payload2) => {
       if (isEye) {
         $$payload2.out += "<!--[-->";
@@ -16559,31 +16724,10 @@ function Symbol$1($$payload, $$props) {
         });
       } else {
         $$payload2.out += "<!--[!-->";
-        if (winGlowOn) {
-          $$payload2.out += "<!--[-->";
-          Container($$payload2, {
-            blendMode: "add",
-            children: ($$payload3) => {
-              Graphics($$payload3, { draw: drawWinBloom });
-            },
-            $$slots: { default: true }
-          });
-        } else {
-          $$payload2.out += "<!--[!-->";
-        }
-        $$payload2.out += `<!--]--> `;
         if (frame) {
           $$payload2.out += "<!--[-->";
           if (isScatter) {
             $$payload2.out += "<!--[-->";
-            Container($$payload2, {
-              blendMode: "add",
-              children: ($$payload3) => {
-                Graphics($$payload3, { draw: drawScatterGlow });
-              },
-              $$slots: { default: true }
-            });
-            $$payload2.out += `<!----> `;
             if (scatterFx.connect > 0) {
               $$payload2.out += "<!--[-->";
               Sprite($$payload2, {
@@ -16653,9 +16797,9 @@ function Symbol$1($$payload, $$props) {
           Sprite($$payload2, {
             key: frame,
             anchor: 0.5,
-            width: symbolSize.width * 1.05,
-            height: symbolSize.height * 1.05,
-            alpha: winGlowFx.pulse * 0.4,
+            width: symbolSize.width * 1.07,
+            height: symbolSize.height * 1.07,
+            alpha: winGlowFx.pulse * 0.55,
             tint: 16777215,
             blendMode: "add"
           });
@@ -17105,25 +17249,24 @@ function TumbleBoard($$payload, $$props) {
     tumbleBoardSlideDown: async () => {
       context2.stateGame.cascading = true;
       const COLUMN_STAGGER = 80;
-      const ts = stateBetDerived.timeScale();
-      const spinOptions = stateBet$1.isTurbo ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
+      const getSpinOptions = () => skipActive() || stateBet$1.isTurbo ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
       const getPromises = () => context2.stateGameDerived.tumbleBoardCombined().map(async (tumbleReel, reelIndex) => {
-        if (reelIndex > 0) await waitForTimeout(reelIndex * COLUMN_STAGGER / ts);
+        if (reelIndex > 0 && !skipActive()) await skippableWait(reelIndex * COLUMN_STAGGER / stateBetDerived.timeScale());
         const reelLengthInBoard = tumbleReel.length - 2;
+        let deepestLandedRow = -1;
         await Promise.all(tumbleReel.map(async (tumbleSymbol, symbolIndex) => {
+          const spinOptions = getSpinOptions();
           const symbolIndexOfBoard = symbolIndex - 1;
           const targetY = getSymbolY(symbolIndexOfBoard);
           if (targetY === tumbleSymbol.symbolY.current) return;
           const distance = targetY - tumbleSymbol.symbolY.current;
           const delay = spinOptions.symbolFallInInterval * (reelLengthInBoard - symbolIndexOfBoard);
-          const bounceDistance = REEL_CELL_HEIGHT * spinOptions.symbolFallInBounceSizeMulti;
-          const bounceDuration = bounceDistance / spinOptions.symbolFallInBounceSpeed;
-          const landDuration = Math.max(0, (distance - bounceDistance) / spinOptions.symbolFallInSpeed);
           const isInner = symbolIndex > 0 && symbolIndex < tumbleReel.length - 1;
           const isExistingEye = tumbleSymbol.rawSymbol.name === "EYE" && !tumbleSymbol.isRefill;
           let landComplete;
-          await tumbleSymbol.symbolY.set(targetY - bounceDistance, { duration: landDuration, delay });
-          if (isInner && !isExistingEye) {
+          const land = () => {
+            if (!isInner || isExistingEye) return;
+            if (symbolIndexOfBoard > deepestLandedRow) deepestLandedRow = symbolIndexOfBoard;
             tumbleSymbol.symbolState = "land";
             context2.stateGameDerived.onSymbolLand({
               rawSymbol: tumbleSymbol.rawSymbol,
@@ -17136,10 +17279,46 @@ function TumbleBoard($$payload, $$props) {
                 resolve();
               };
             });
+          };
+          if (spinOptions.symbolFallInEasing && spinOptions.symbolFallInReboundMulti) {
+            const duration = distance / spinOptions.symbolFallInSpeed;
+            const reboundDistance = REEL_CELL_HEIGHT * spinOptions.symbolFallInReboundMulti;
+            const reboundDuration = reboundDistance / spinOptions.symbolFallInBounceSpeed;
+            const raced = await raceSkip(tumbleSymbol.symbolY.set(targetY, {
+              duration,
+              delay,
+              easing: spinOptions.symbolFallInEasing
+            }));
+            if (raced === "skipped") {
+              void tumbleSymbol.symbolY.set(targetY, { duration: 0 });
+              land();
+              await landComplete;
+              return;
+            }
+            land();
+            await tumbleSymbol.symbolY.set(targetY - reboundDistance, { duration: reboundDuration, easing: quadOut });
+            await tumbleSymbol.symbolY.set(targetY, { duration: reboundDuration, easing: quadIn });
+          } else {
+            const bounceDistance = REEL_CELL_HEIGHT * spinOptions.symbolFallInBounceSizeMulti;
+            const bounceDuration = bounceDistance / spinOptions.symbolFallInBounceSpeed;
+            const landDuration = Math.max(0, (distance - bounceDistance) / spinOptions.symbolFallInSpeed);
+            await tumbleSymbol.symbolY.set(targetY - bounceDistance, { duration: landDuration, delay });
+            land();
+            await tumbleSymbol.symbolY.set(targetY, { duration: bounceDuration, easing: backOut });
           }
-          await tumbleSymbol.symbolY.set(targetY, { duration: bounceDuration, easing: backOut });
           await landComplete;
         }));
+        if (deepestLandedRow >= 0) {
+          context2.eventEmitter.broadcast({
+            type: "boardLandPuff",
+            cells: [
+              {
+                reel: reelIndex,
+                row: VISIBLE_ROW_START + deepestLandedRow
+              }
+            ]
+          });
+        }
       });
       await Promise.all(getPromises());
       context2.stateGame.cascading = false;
@@ -17190,7 +17369,7 @@ function BoardDebris($$payload, $$props) {
   let nextId = 0;
   context2.eventEmitter.subscribeOnMount({
     boardDebris: ({ cells }) => {
-      const t = performance.now();
+      const t2 = performance.now();
       const duration = 560 / stateBetDerived.timeScale();
       const spawned = cells.map((cell) => {
         const bubbles = Array.from({ length: 9 }, () => {
@@ -17211,9 +17390,40 @@ function BoardDebris($$payload, $$props) {
           x: getPositionX(cell.reel),
           y: getPositionY(cell.row),
           color: cell.color,
-          start: t,
+          start: t2,
           duration,
-          bubbles
+          bubbles,
+          light: false
+        };
+      });
+      bursts = [...bursts, ...spawned];
+    },
+    boardLandPuff: ({ cells }) => {
+      const t2 = performance.now();
+      const duration = 380 / stateBetDerived.timeScale();
+      const spawned = cells.map((cell) => {
+        const bubbles = Array.from({ length: 4 }, () => {
+          const angle = Math.random() * Math.PI * 2;
+          const spread = SYMBOL_SIZE * (0.05 + Math.random() * 0.16);
+          return {
+            ox: Math.cos(angle) * spread,
+            oy: SYMBOL_SIZE * 0.26 + Math.sin(angle) * spread * 0.3,
+            rise: SYMBOL_SIZE * (0.22 + Math.random() * 0.3),
+            r: SYMBOL_SIZE * (0.028 + Math.random() * 0.04),
+            drift: SYMBOL_SIZE * (0.03 + Math.random() * 0.05),
+            phase: Math.random() * Math.PI * 2,
+            delay: Math.random() * 0.15
+          };
+        });
+        return {
+          id: nextId++,
+          x: getPositionX(cell.reel),
+          y: getPositionY(cell.row),
+          color: 10476799,
+          start: t2,
+          duration,
+          bubbles,
+          light: true
         };
       });
       bursts = [...bursts, ...spawned];
@@ -17223,7 +17433,7 @@ function BoardDebris($$payload, $$props) {
   const drawBurst = (g, burst) => {
     const p = Math.min(1, (now2 - burst.start) / burst.duration);
     if (p >= 1) return;
-    if (p < 0.3) {
+    if (!burst.light && p < 0.3) {
       const ringP = p / 0.3;
       g.circle(0, 0, SYMBOL_SIZE * (0.22 + ringP * 0.68)).stroke({
         width: Math.max(1.5, 6 * (1 - ringP)),
@@ -17282,19 +17492,18 @@ function TumbleWinAmount($$payload, $$props) {
   push();
   const context2 = getContext();
   const ts = () => stateBetDerived.timeScale();
-  const PANEL_H = SYMBOL_SIZE * 0.82;
-  const PANEL_W = PANEL_H * 3.9;
-  const BANNER_SIZE = PANEL_W;
-  const INNER_W = BANNER_SIZE * 0.73;
-  const INNER_H = BANNER_SIZE * 0.2;
+  const BANNER_W = SYMBOL_SIZE * 2.85;
+  const BANNER_H = BANNER_W * (1122 / 1402);
+  const INNER_W = BANNER_W * 0.78;
+  const INNER_H = BANNER_H * 0.42;
   const INNER_RADIUS = INNER_H * 0.22;
   const desktopPosition = {
     x: context2.stateGameDerived.boardLayout().width * 0.5,
-    y: -SYMBOL_SIZE * 0.74
+    y: -SYMBOL_SIZE * 0.55
   };
   const portraitPosition = {
     x: context2.stateGameDerived.boardLayout().width * (context2.stateGame.gameType === "basegame" ? 0.5 : 0.37),
-    y: -SYMBOL_SIZE * 0.8
+    y: -SYMBOL_SIZE * 0.62
   };
   const position = context2.stateLayoutDerived.isStacked() ? portraitPosition : desktopPosition;
   const bannerScale = context2.stateLayoutDerived.isStacked() ? 1.18 : 1;
@@ -17328,6 +17537,7 @@ function TumbleWinAmount($$payload, $$props) {
       name: "sfx_multiplier_landing"
     });
   };
+  let flightTl;
   const flyMultiplier = ({ mult, fromReel, fromRow }) => new Promise((resolve) => {
     flyFx.mult = mult;
     flyFx.active = true;
@@ -17338,6 +17548,7 @@ function TumbleWinAmount($$payload, $$props) {
         resolve();
       }
     });
+    flightTl = tl;
     tl.timeScale(ts());
     tl.set(flyFx, {
       x: getPositionX(fromReel),
@@ -17399,26 +17610,30 @@ function TumbleWinAmount($$payload, $$props) {
       const mult = raw > 0 ? Math.max(1, Math.round(emitterEvent.totalWin / raw)) : 1;
       if (mult >= 2) {
         const rawText = bookEventAmountToCurrencyString(raw);
-        await flyMultiplier({
+        const flight = flyMultiplier({
           mult,
           fromReel: emitterEvent.fromReel,
           fromRow: emitterEvent.fromRow
         });
+        if (await raceSkip(flight) === "skipped") flightTl?.progress(1);
         multiplyExpr = { rawText, mult };
         numScale.set(1.32, { duration: 0 });
         numScale.set(1, { duration: 320 / ts(), easing: backOut });
-        await waitForTimeout(750 / ts());
+        await skippableWait(750 / ts());
         multiplyExpr = null;
       }
       await waitForResolve((resolve) => {
         amount2 = emitterEvent.totalWin;
       });
-      await waitForTimeout(500 / ts());
+      await skippableWait(500 / ts());
     }
   });
-  const labelStyle = abyssalBitmapStyle({ fontSize: PANEL_H * 0.17, letterSpacing: 2 });
-  const amountStyle = abyssalBitmapStyle({ fontSize: PANEL_H * 0.38 });
-  const exprStyle = abyssalBitmapStyle({ fontSize: PANEL_H * 0.33 });
+  const labelStyle = abyssalBitmapStyle({
+    fontSize: SYMBOL_SIZE * 0.14,
+    letterSpacing: 2
+  });
+  const amountStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.31 });
+  const exprStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.27 });
   const multStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.6 });
   const drawGlow = (g) => {
     g.roundRect(-INNER_W / 2 - 12, -INNER_H / 2 - 12, INNER_W + 24, INNER_H + 24, INNER_RADIUS + 10).fill({ color: 16764506, alpha: 0.28 });
@@ -17482,8 +17697,8 @@ function TumbleWinAmount($$payload, $$props) {
                     Sprite($$payload5, {
                       anchor: 0.5,
                       key: "tumbleWin",
-                      width: BANNER_SIZE,
-                      height: BANNER_SIZE
+                      width: BANNER_W,
+                      height: BANNER_H
                     });
                     $$payload5.out += `<!----> `;
                     if (panelFx.flash > 0) {
@@ -17502,14 +17717,14 @@ function TumbleWinAmount($$payload, $$props) {
                     $$payload5.out += `<!--]--> `;
                     BitmapText($$payload5, {
                       anchor: 0.5,
-                      y: -PANEL_H * 0.2,
-                      text: "TUMBLE WIN",
+                      y: -BANNER_H * 0.12,
+                      text: context2.i18nDerived.tumbleWin(),
                       style: labelStyle
                     });
                     $$payload5.out += `<!----> `;
                     Container($$payload5, {
                       scale: numScale.current,
-                      y: PANEL_H * 0.16,
+                      y: BANNER_H * 0.06,
                       children: ($$payload6) => {
                         if (multiplyExpr) {
                           $$payload6.out += "<!--[-->";
@@ -17752,13 +17967,13 @@ function GazeMeter($$payload, $$props) {
   });
   const ORB_TRAVEL_FRACTION = 0.6;
   const drawOrbs = (g) => {
-    const t = orbFlight.current;
-    if (t <= 0 || orbs.length === 0) return;
+    const t2 = orbFlight.current;
+    if (t2 <= 0 || orbs.length === 0) return;
     const count = orbs.length;
     const stagger = count > 1 ? (1 - ORB_TRAVEL_FRACTION) / (count - 1) : 0;
     const baseR = SYMBOL_SIZE * 0.09;
     orbs.forEach((orb, index) => {
-      const p = Math.min(Math.max((t - index * stagger) / ORB_TRAVEL_FRACTION, 0), 1);
+      const p = Math.min(Math.max((t2 - index * stagger) / ORB_TRAVEL_FRACTION, 0), 1);
       if (p <= 0 || p >= 1) return;
       const cx = (orb.sx + meterEnergyX) / 2;
       const cy = Math.min(orb.sy, meterEnergyY) - SYMBOL_SIZE * 0.45 + orb.wobble;
@@ -17828,11 +18043,11 @@ function GazeMeter($$payload, $$props) {
     const innerH = Math.max(0, fillH - inset * 2);
     const shineW = segment.w * 0.2;
     const edgeInset = 2 * nativeScale;
-    const t = liquid.t;
+    const t2 = liquid.t;
     const maxAmp = Math.max(0, fillY - segment.y - inset);
     const waveAmp = Math.min(nativeScale * (1.7 + fx.burst * 5.5), maxAmp);
     const waveK = Math.PI * 2 / (segment.w * 0.85);
-    const surfaceY = (x) => fillY + Math.sin(x * waveK + t * 3.1) * waveAmp;
+    const surfaceY = (x) => fillY + Math.sin(x * waveK + t2 * 3.1) * waveAmp;
     const steps = 9;
     const surface = [];
     for (let s = 0; s <= steps; s++) {
@@ -17866,9 +18081,9 @@ function GazeMeter($$payload, $$props) {
       const bubbleR = Math.max(1.4, 2.6 * nativeScale);
       for (let i = 0; i < 6; i++) {
         const speed = (10 + i % 3 * 6) * nativeScale;
-        const travel = (t * speed + i * 37 * nativeScale) % Math.max(1, fillH - inset * 2);
+        const travel = (t2 * speed + i * 37 * nativeScale) % Math.max(1, fillH - inset * 2);
         const by = segment.y + segment.h - inset - travel;
-        const bx = segment.x + segment.w * (0.2 + 0.6 * (i * 0.618 % 1)) + Math.sin(t * 1.8 + i * 2.1) * segment.w * 0.07;
+        const bx = segment.x + segment.w * (0.2 + 0.6 * (i * 0.618 % 1)) + Math.sin(t2 * 1.8 + i * 2.1) * segment.w * 0.07;
         const nearSurface = Math.min(1, (by - fillY) / (segment.w * 0.4));
         if (nearSurface <= 0) continue;
         const r = bubbleR * (0.45 + i * 0.7 % 1 * 0.55);
@@ -18213,7 +18428,7 @@ function Eye($$payload, $$props) {
                 Text($$payload4, {
                   anchor: 0.5,
                   y: -SYMBOL_SIZE * 0.62,
-                  text: "GAZE",
+                  text: context2.i18nDerived.gaze(),
                   style: gazeStyle
                 });
               } else {
@@ -18289,7 +18504,6 @@ function ScatterFx($$payload, $$props) {
   const dim = new Tween(0, { duration: 320 });
   const dimPulse = { v: 0 };
   let dimPulseTween;
-  const celebrate = { flash: 0 };
   let cellPulses = [];
   const cellPulse = { p: 0 };
   const shock = { p: 0 };
@@ -18322,7 +18536,6 @@ function ScatterFx($$payload, $$props) {
     reelFrameScatterAnticipationEnd: () => stopAnticipation(),
     scatterCelebrate: async (emitterEvent) => {
       stopAnticipation();
-      gsap.killTweensOf(celebrate);
       gsap.killTweensOf(shock);
       gsap.killTweensOf(cellPulse);
       cellPulses = emitterEvent.positions.map((pos) => ({
@@ -18331,7 +18544,7 @@ function ScatterFx($$payload, $$props) {
         p: 0
       }));
       const PULSE_DURATION = 0.95;
-      const flashAt = PULSE_DURATION + 0.05;
+      const shockAt = PULSE_DURATION + 0.05;
       await new Promise((resolve) => {
         const tl = gsap.timeline({
           onComplete: () => {
@@ -18342,9 +18555,9 @@ function ScatterFx($$payload, $$props) {
           }
         });
         tl.timeScale(stateBetDerived.timeScale());
-        tl.set(celebrate, { flash: 0 }).set(shock, { p: 0 }).set(cellPulse, { p: 0 });
+        tl.set(shock, { p: 0 }).set(cellPulse, { p: 0 });
         tl.to(cellPulse, { p: 1, duration: PULSE_DURATION, ease: "none" }, 0);
-        tl.set(celebrate, { flash: 0.85 }, flashAt).add(() => context2.eventEmitter.broadcast({ type: "boardEyeImpact" }), flashAt).to(shock, { p: 1, duration: 0.6, ease: "power2.out" }, flashAt).to(celebrate, { flash: 0, duration: 0.4, ease: "power2.out" }, flashAt + 0.05);
+        tl.add(() => context2.eventEmitter.broadcast({ type: "boardEyeImpact" }), shockAt).to(shock, { p: 1, duration: 0.6, ease: "power2.out" }, shockAt);
       });
     }
   });
@@ -18409,16 +18622,6 @@ function ScatterFx($$payload, $$props) {
   } else {
     $$payload.out += "<!--[!-->";
   }
-  $$payload.out += `<!--]--> `;
-  if (celebrate.flash > 0) {
-    $$payload.out += "<!--[-->";
-    CanvasSizeRectangle($$payload, {
-      backgroundColor: 16777215,
-      backgroundAlpha: celebrate.flash
-    });
-  } else {
-    $$payload.out += "<!--[!-->";
-  }
   $$payload.out += `<!--]-->`;
   pop();
 }
@@ -18456,7 +18659,7 @@ function WinCapCelebration($$payload, $$props) {
           Text($$payload3, {
             anchor: 0.5,
             y: -70,
-            text: "MAX WIN",
+            text: context2.i18nDerived.winTier("maxWin"),
             style: {
               fontFamily: "sans-serif",
               fontWeight: "800",
@@ -18486,13 +18689,13 @@ function WinCapCelebration($$payload, $$props) {
   });
   pop();
 }
-function WinCoins($$payload, $$props) {
+function WinBubbles($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
   const context2 = getContext();
   let raf2 = 0;
   context2.stateLayoutDerived.canvasSizes();
-  props.levelAlias === "max" ? 1.6 : props.levelAlias === "epic" ? 1.3 : props.levelAlias === "mega" ? 1.1 : 0.9;
+  props.levelAlias === "max" ? 1.7 : props.levelAlias === "epic" ? 1.35 : props.levelAlias === "mega" ? 1.1 : 0.9;
   onDestroy(() => cancelAnimationFrame(raf2));
   {
     $$payload.out += "<!--[!-->";
@@ -18500,60 +18703,155 @@ function WinCoins($$payload, $$props) {
   $$payload.out += `<!--]-->`;
   pop();
 }
-function WinBackdrop($$payload, $$props) {
-  push();
-  const { $$slots, $$events, ...props } = $$props;
-  const color = props.color ?? 16757052;
-  let rot = 0;
-  let glow = 0.5;
-  let raf2 = 0;
-  onDestroy(() => cancelAnimationFrame(raf2));
-  const RAYS = 14;
-  const raysDraw = (g) => {
-    const R = props.radius * 1.8;
-    for (let i = 0; i < RAYS; i++) {
-      const a0 = i / RAYS * Math.PI * 2;
-      const a1 = a0 + Math.PI * 2 / RAYS * 0.5;
-      g.moveTo(0, 0).lineTo(Math.cos(a0) * R, Math.sin(a0) * R).lineTo(Math.cos(a1) * R, Math.sin(a1) * R).fill({ color, alpha: 0.05 });
-    }
-  };
-  const glowDraw = (g) => {
-    const R = props.radius;
-    g.circle(0, 0, R).fill({ color, alpha: 0.16 });
-    g.circle(0, 0, R * 0.6).fill({ color, alpha: 0.18 });
-  };
-  Container($$payload, {
-    rotation: rot,
-    children: ($$payload2) => {
-      Graphics($$payload2, { draw: raysDraw });
-    },
-    $$slots: { default: true }
-  });
-  $$payload.out += `<!----> `;
-  Container($$payload, {
-    alpha: 0.45 + glow * 0.4,
-    scale: 0.9 + glow * 0.14,
-    children: ($$payload2) => {
-      Graphics($$payload2, { draw: glowDraw });
-    },
-    $$slots: { default: true }
-  });
-  $$payload.out += `<!---->`;
-  pop();
-}
 function WinBanner($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
-  const scale = new Tween(1, { duration: 240, easing: backOut });
+  const TIER_FRAMES = {
+    bigWin: "BIG_WIN",
+    hugeWin: "HUGE_WIN",
+    megaWin: "MEGA_WIN",
+    epicWin: "MAX_WIN",
+    // purple eye
+    maxWin: "EPIC_WIN"
+    // red dragon
+  };
+  const BLOOM_IDLE = 0.22;
+  const TITLE_Y = -0.82;
+  const TITLE_SIZE = 0.22;
+  const TITLE_PULSE = 0.055;
+  const AURA_SCALES = [1.07, 1.17, 1.3];
+  const AURA_ALPHA = 0.55;
+  const SHADOW_LAYERS = [
+    { scale: 1.02, offset: 0.035, alpha: 0.4 },
+    { scale: 1.06, offset: 0.06, alpha: 0.22 }
+  ];
+  const fx = { scale: 1, bloom: BLOOM_IDLE };
+  const idle = { breathe: 1, glow: 0 };
+  const frameKey = TIER_FRAMES[props.tierKey];
+  const title = i18nDerived.winTier(props.tierKey);
+  const titleStyle = abyssalBitmapStyle({
+    fontSize: props.height * TITLE_SIZE,
+    letterSpacing: props.height * 0.01
+  });
+  const drawPlaqueBg = (g) => {
+    const w = props.width;
+    const h = props.height;
+    const x = -w * 0.45;
+    const y = -h * 0.15;
+    const pw = w * 0.9;
+    const ph = h * 0.47;
+    g.roundRect(x, y, pw, ph, h * 0.1).fill({ color: 528409, alpha: 0.94 });
+    g.roundRect(x, y, pw, ph, h * 0.1).fill({ color: props.color, alpha: 0.07 });
+  };
   Container($$payload, {
-    scale: scale.current,
+    scale: fx.scale * idle.breathe,
     children: ($$payload2) => {
+      const each_array_1 = ensure_array_like(SHADOW_LAYERS);
+      Container($$payload2, {
+        alpha: (0.6 + fx.bloom * 0.4) * (0.75 + idle.glow * 0.25),
+        blendMode: "add",
+        children: ($$payload3) => {
+          const each_array = ensure_array_like(AURA_SCALES);
+          $$payload3.out += `<!--[-->`;
+          for (let i = 0, $$length = each_array.length; i < $$length; i++) {
+            let shellScale = each_array[i];
+            Container($$payload3, {
+              scale: shellScale + idle.glow * 0.02 * (i + 1),
+              children: ($$payload4) => {
+                Sprite($$payload4, {
+                  anchor: 0.5,
+                  key: frameKey,
+                  width: props.width,
+                  height: props.height,
+                  tint: props.color,
+                  alpha: AURA_ALPHA * (1 - i / AURA_SCALES.length)
+                });
+              },
+              $$slots: { default: true }
+            });
+          }
+          $$payload3.out += `<!--]-->`;
+        },
+        $$slots: { default: true }
+      });
+      $$payload2.out += `<!----> <!--[-->`;
+      for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+        let shadow = each_array_1[$$index_1];
+        Container($$payload2, {
+          y: props.height * shadow.offset,
+          scale: shadow.scale,
+          children: ($$payload3) => {
+            Sprite($$payload3, {
+              anchor: 0.5,
+              key: frameKey,
+              width: props.width,
+              height: props.height,
+              tint: 0,
+              alpha: shadow.alpha
+            });
+          },
+          $$slots: { default: true }
+        });
+      }
+      $$payload2.out += `<!--]--> `;
+      Graphics($$payload2, { draw: drawPlaqueBg });
+      $$payload2.out += `<!----> `;
       Sprite($$payload2, {
         anchor: 0.5,
-        key: props.tierKey,
+        key: frameKey,
         width: props.width,
         height: props.height
       });
+      $$payload2.out += `<!----> `;
+      Container($$payload2, {
+        alpha: fx.bloom * (0.4 + idle.glow * 0.3),
+        blendMode: "add",
+        children: ($$payload3) => {
+          Sprite($$payload3, {
+            anchor: 0.5,
+            key: frameKey,
+            width: props.width,
+            height: props.height,
+            tint: props.color
+          });
+        },
+        $$slots: { default: true }
+      });
+      $$payload2.out += `<!----> `;
+      Container($$payload2, {
+        y: props.height * TITLE_Y,
+        scale: 1 + idle.glow * TITLE_PULSE,
+        children: ($$payload3) => {
+          ResponsiveBitmapText($$payload3, {
+            anchor: 0.5,
+            maxWidth: props.width * 1.05,
+            text: title,
+            style: titleStyle
+          });
+          $$payload3.out += `<!----> `;
+          Container($$payload3, {
+            alpha: (0.35 + idle.glow * 0.3) * (0.5 + fx.bloom * 0.5),
+            blendMode: "add",
+            children: ($$payload4) => {
+              ResponsiveBitmapText($$payload4, {
+                anchor: 0.5,
+                maxWidth: props.width * 1.05,
+                text: title,
+                style: titleStyle,
+                tint: props.color
+              });
+            },
+            $$slots: { default: true }
+          });
+          $$payload3.out += `<!---->`;
+        },
+        $$slots: { default: true }
+      });
+      $$payload2.out += `<!----> `;
+      {
+        $$payload2.out += "<!--[!-->";
+      }
+      $$payload2.out += `<!--]-->`;
     },
     $$slots: { default: true }
   });
@@ -18570,7 +18868,7 @@ function PressToContinue($$payload, $$props) {
         anchor: { x: 0.5, y: 1 },
         x: context2.stateLayoutDerived.mainLayout().width * 0.5,
         y: context2.stateLayoutDerived.mainLayout().height - 60,
-        text: "TAP TO CONTINUE",
+        text: context2.i18nDerived.tapToContinue(),
         style: {
           fontFamily: "sans-serif",
           fontWeight: "800",
@@ -18596,24 +18894,36 @@ function Win($$payload, $$props) {
   push();
   const context2 = getContext();
   const WIN_TIERS = [
-    { min: 15e3, key: "maxWin", seconds: 7 },
-    { min: 150, key: "epicWin", seconds: 5.5 },
-    { min: 50, key: "megaWin", seconds: 4.5 },
-    { min: 20, key: "bigWin", seconds: 3.5 }
+    { min: 15e3, key: "maxWin" },
+    { min: 250, key: "epicWin" },
+    { min: 100, key: "megaWin" },
+    { min: 50, key: "hugeWin" },
+    { min: 20, key: "bigWin" }
   ];
+  const STEP_BASE_SECONDS = 6;
+  const STEP_ACCEL = 0.72;
+  const STEP_MIN_SECONDS = 1.3;
+  const FINAL_STEP_MIN_SECONDS = 3.6;
+  const CRAWL_EXPONENT = 2.6;
+  const SCENE_TINT_ALPHA = 0.06;
   const TIER_COLOR = {
-    bigWin: 16757052,
-    // gold
-    megaWin: 2285823,
-    // cyan
-    epicWin: 10185983,
-    // violet
-    maxWin: 16738876
-    // ember
+    bigWin: 3133548,
+    // emerald (seahorse)
+    hugeWin: 4164863,
+    // sapphire (jellyfish)
+    megaWin: 16757052,
+    // amber (nautilus)
+    epicWin: 11820287,
+    // amethyst (the Eye)
+    maxWin: 16729144
+    // ruby (dragon) — the 15,000× moment only
   };
-  const tierFor = (mult) => WIN_TIERS.find((t) => mult >= t.min);
+  const tierFor = (mult) => WIN_TIERS.find((t2) => mult >= t2.min);
   const lowestTier = WIN_TIERS[WIN_TIERS.length - 1];
-  const amountStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.95 });
+  const AMOUNT_Y = 0.08;
+  const AMOUNT_SIZE = 0.22;
+  const AMOUNT_MAX_WIDTH = 0.66;
+  const BANNER_SHIFT = 0.12;
   let show = false;
   let amount2 = 0;
   let winLevelData = void 0;
@@ -18622,24 +18932,41 @@ function Win($$payload, $$props) {
   const ts = () => stateBetDerived.timeScale();
   const multiplier = amount2 / BOOK_AMOUNT_MULTIPLIER;
   const finalTier = tierFor(multiplier);
-  const duration = (finalTier ? finalTier.seconds * SECOND : 0) / ts();
   const boardWidth = context2.stateGameDerived.boardLayout().width;
   const imgW = boardWidth * 1.05;
-  const imgH = imgW / 1.5;
+  const frameW = imgW * 0.62;
+  const frameH = frameW * (383 / 522);
+  const amountStyle = abyssalBitmapStyle({ fontSize: frameH * AMOUNT_SIZE });
   const countUp = new Tween(0);
   const interruptible = createInterruptible();
   let countUpCompleted = false;
-  const countEase = (t) => 1 - Math.pow(1 - t, 1.6);
-  const runCount = () => countUp.set(amount2, { duration, easing: countEase });
-  const finishCountUp = () => interruptible.interrupt();
+  const countEase = (t2) => 1 - Math.pow(1 - t2, CRAWL_EXPONENT);
+  const skipToNextStep = () => interruptible.interrupt();
   const startCountUp = async () => {
-    await interruptible.add(runCount);
-    await countUp.set(amount2, { duration: 0 });
-    interruptible.clear();
+    const boundaries = [...WIN_TIERS].reverse().slice(1).map((tier) => tier.min * BOOK_AMOUNT_MULTIPLIER).filter((boundary) => boundary < amount2);
+    const targets = [...boundaries, amount2];
+    for (const [index, target] of targets.entries()) {
+      const paced = STEP_BASE_SECONDS * Math.pow(STEP_ACCEL, index);
+      const seconds = Math.max(paced, index === targets.length - 1 ? FINAL_STEP_MIN_SECONDS : STEP_MIN_SECONDS);
+      const { interrupted } = await interruptible.add(() => countUp.set(target, {
+        duration: seconds * SECOND / ts(),
+        easing: countEase
+      }));
+      await countUp.set(target, { duration: 0 });
+      interruptible.clear();
+      if (interrupted && index < targets.length - 1) {
+        gsap.killTweensOf(numFx, "scale");
+        gsap.fromTo(numFx, { scale: 1.22 }, {
+          scale: 1,
+          duration: 0.34,
+          ease: "back.out(2.5)"
+        });
+      }
+    }
   };
   const liveMult = countUp.current / BOOK_AMOUNT_MULTIPLIER;
   const bannerTier = tierFor(liveMult) ?? lowestTier;
-  const numFx = { scale: 1, flash: 0 };
+  const numFx = { scale: 1, flash: 0, throb: 1 };
   const groupFx = { scale: 0.6, alpha: 0 };
   const shake = { x: 0, y: 0 };
   let burstKey = 0;
@@ -18680,9 +19007,20 @@ function Win($$payload, $$props) {
       0
     );
   };
+  const startThrob = () => {
+    gsap.killTweensOf(numFx);
+    numFx.throb = 1;
+    gsap.to(numFx, {
+      throb: 1.045,
+      duration: 0.38,
+      yoyo: true,
+      repeat: -1,
+      ease: "sine.inOut"
+    });
+  };
   const playLock = () => {
     gsap.killTweensOf(numFx);
-    gsap.timeline().set(numFx, { scale: 1, flash: 0 }).to(numFx, {
+    gsap.timeline().set(numFx, { scale: 1, flash: 0, throb: 1 }).to(numFx, {
       scale: 1.4,
       duration: 0.12,
       ease: "back.out(3)"
@@ -18699,6 +19037,9 @@ function Win($$payload, $$props) {
     winShow: () => show = true,
     winHide: () => show = false,
     winUpdate: async (emitterEvent) => {
+      countUp.set(0, { duration: 0 });
+      groupFx.alpha = 0;
+      groupFx.scale = 0.6;
       amount2 = emitterEvent.amount;
       winLevelData = emitterEvent.winLevelData;
       await waitForResolve((resolve) => oncomplete = resolve);
@@ -18708,14 +19049,16 @@ function Win($$payload, $$props) {
     countUpCompleted = false;
     numFx.scale = 1;
     numFx.flash = 0;
+    numFx.throb = 1;
     shake.x = 0;
     shake.y = 0;
     await countUp.set(0, { duration: 0 });
     playEntrance();
+    startThrob();
     await startCountUp();
     playLock();
     countUpCompleted = true;
-    await waitForTimeout(SECOND * 0.5 / ts());
+    await waitForTimeout(SECOND * 2.6 / ts());
     oncomplete();
   };
   FadeContainer($$payload, {
@@ -18727,10 +19070,15 @@ function Win($$payload, $$props) {
         $$payload2.out += `<!----> `;
         CanvasSizeRectangle($$payload2, {
           backgroundColor: 0,
-          backgroundAlpha: 0.6 * groupFx.alpha
+          backgroundAlpha: 0.72 * groupFx.alpha
         });
         $$payload2.out += `<!----> `;
-        WinCoins($$payload2, { burstKey, levelAlias: winLevelData.alias });
+        CanvasSizeRectangle($$payload2, {
+          backgroundColor: TIER_COLOR[bannerTier.key],
+          backgroundAlpha: SCENE_TINT_ALPHA * groupFx.alpha
+        });
+        $$payload2.out += `<!----> `;
+        WinBubbles($$payload2, { burstKey, levelAlias: winLevelData.alias });
         $$payload2.out += `<!----> `;
         MainContainer($$payload2, {
           children: ($$payload3) => {
@@ -18740,52 +19088,54 @@ function Win($$payload, $$props) {
               scale: groupFx.scale,
               alpha: groupFx.alpha,
               children: ($$payload4) => {
-                WinBackdrop($$payload4, {
-                  radius: imgW * 0.6,
-                  color: TIER_COLOR[bannerTier.key]
-                });
-                $$payload4.out += `<!----> `;
-                WinBanner($$payload4, {
-                  tierKey: bannerTier.key,
-                  width: imgW,
-                  height: imgH
-                });
-                $$payload4.out += `<!----> `;
                 Container($$payload4, {
-                  scale: numFx.scale,
+                  y: frameH * BANNER_SHIFT,
                   children: ($$payload5) => {
-                    ResponsiveBitmapText($$payload5, {
-                      anchor: 0.5,
-                      y: imgH * 0.17,
-                      maxWidth: imgW * 0.6,
-                      text: bookEventAmountToCurrencyString(countUp.current),
-                      style: amountStyle
+                    WinBanner($$payload5, {
+                      tierKey: bannerTier.key,
+                      color: TIER_COLOR[bannerTier.key],
+                      width: frameW,
+                      height: frameH
                     });
                     $$payload5.out += `<!----> `;
-                    if (numFx.flash > 0) {
-                      $$payload5.out += "<!--[-->";
-                      Container($$payload5, {
-                        alpha: numFx.flash,
-                        blendMode: "add",
-                        children: ($$payload6) => {
-                          ResponsiveBitmapText($$payload6, {
-                            anchor: 0.5,
-                            y: imgH * 0.17,
-                            maxWidth: imgW * 0.6,
-                            text: bookEventAmountToCurrencyString(countUp.current),
-                            style: amountStyle
+                    Container($$payload5, {
+                      scale: numFx.scale * numFx.throb,
+                      children: ($$payload6) => {
+                        ResponsiveBitmapText($$payload6, {
+                          anchor: 0.5,
+                          y: frameH * AMOUNT_Y,
+                          maxWidth: frameW * AMOUNT_MAX_WIDTH,
+                          text: bookEventAmountToCurrencyString(countUp.current),
+                          style: amountStyle
+                        });
+                        $$payload6.out += `<!----> `;
+                        if (numFx.flash > 0) {
+                          $$payload6.out += "<!--[-->";
+                          Container($$payload6, {
+                            alpha: numFx.flash,
+                            blendMode: "add",
+                            children: ($$payload7) => {
+                              ResponsiveBitmapText($$payload7, {
+                                anchor: 0.5,
+                                y: frameH * AMOUNT_Y,
+                                maxWidth: frameW * AMOUNT_MAX_WIDTH,
+                                text: bookEventAmountToCurrencyString(countUp.current),
+                                style: amountStyle
+                              });
+                            },
+                            $$slots: { default: true }
                           });
-                        },
-                        $$slots: { default: true }
-                      });
-                    } else {
-                      $$payload5.out += "<!--[!-->";
-                    }
-                    $$payload5.out += `<!--]-->`;
+                        } else {
+                          $$payload6.out += "<!--[!-->";
+                        }
+                        $$payload6.out += `<!--]-->`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload5.out += `<!---->`;
                   },
                   $$slots: { default: true }
                 });
-                $$payload4.out += `<!---->`;
               },
               $$slots: { default: true }
             });
@@ -18794,7 +19144,7 @@ function Win($$payload, $$props) {
         });
         $$payload2.out += `<!----> `;
         PressToContinue($$payload2, {
-          onpress: () => countUpCompleted ? oncomplete() : finishCountUp()
+          onpress: () => countUpCompleted ? oncomplete() : skipToNextStep()
         });
         $$payload2.out += `<!---->`;
       } else {
@@ -19208,7 +19558,7 @@ function FreeSpinCounter($$payload, $$props) {
                       y: -totalMultSize * 0.58,
                       children: ($$payload6) => {
                         BitmapText($$payload6, {
-                          text: "TOTAL MULT",
+                          text: context2.i18nDerived.totalMult(),
                           anchor: 0.5,
                           style: totalMultLabelStyle
                         });
@@ -19228,7 +19578,7 @@ function FreeSpinCounter($$payload, $$props) {
                         ResponsiveBitmapText($$payload6, {
                           text: `x${context2.stateGame.persistentMult}`,
                           anchor: 0.5,
-                          maxWidth: totalMultSize * 0.52,
+                          maxWidth: totalMultSize * 0.46,
                           style: totalMultValueStyle
                         });
                         $$payload6.out += `<!---->`;
@@ -19252,17 +19602,17 @@ function FreeSpinCounter($$payload, $$props) {
                     });
                     $$payload5.out += `<!----> `;
                     BitmapText($$payload5, {
-                      text: "FREE SPINS",
+                      text: context2.i18nDerived.freeSpins(),
                       anchor: 0.5,
-                      y: -freeSpinsSize * 0.14,
+                      y: -freeSpinsSize * 0.13,
                       style: freeSpinsLabelStyle
                     });
                     $$payload5.out += `<!----> `;
                     ResponsiveText($$payload5, {
                       text: `${current} / ${total}`,
                       anchor: 0.5,
-                      y: freeSpinsSize * 0.13,
-                      maxWidth: freeSpinsSize * 0.68,
+                      y: freeSpinsSize * 0.14,
+                      maxWidth: freeSpinsSize * 0.56,
                       style: freeSpinsValueStyle
                     });
                     $$payload5.out += `<!---->`;
@@ -19298,7 +19648,7 @@ function FreeSpinOutro($$payload, $$props) {
   const countUp = new Tween(0);
   const interruptible = createInterruptible();
   let countUpCompleted = false;
-  const countEase = (t) => 1 - Math.pow(1 - t, 1.6);
+  const countEase = (t2) => 1 - Math.pow(1 - t2, 1.6);
   const runCount = () => countUp.set(amount2, {
     duration: COUNT_SECONDS * SECOND / ts(),
     easing: countEase
@@ -19483,7 +19833,7 @@ function Transition($$payload, $$props) {
     const d = dive.current;
     if (d <= 0 || d >= 2) return;
     const { width: W, height: H } = sizes;
-    const t = water.t;
+    const t2 = water.t;
     const crestY = H * (1 - Math.min(d, 1)) - 30;
     const tailY = d > 1 ? H * (1 - (d - 1)) : H + 40;
     const steps = 12;
@@ -19493,7 +19843,7 @@ function Transition($$payload, $$props) {
       const x = W * s / steps;
       crest.push({
         x,
-        y: crestY + Math.sin(x / W * Math.PI * 4 + t * 5) * amp
+        y: crestY + Math.sin(x / W * Math.PI * 4 + t2 * 5) * amp
       });
     }
     const tail = [];
@@ -19501,7 +19851,7 @@ function Transition($$payload, $$props) {
       const x = W * s / steps;
       tail.push({
         x,
-        y: tailY + Math.sin(x / W * Math.PI * 4 + t * 5 + 1.7) * amp
+        y: tailY + Math.sin(x / W * Math.PI * 4 + t2 * 5 + 1.7) * amp
       });
     }
     g.poly([...crest, ...tail]).fill({ color: 670274, alpha: 1 });
@@ -19512,8 +19862,8 @@ function Transition($$payload, $$props) {
     for (let s = 1; s < crest.length; s++) g.lineTo(crest[s].x, crest[s].y + 10);
     g.stroke({ width: 14, color: 2789263, alpha: 0.16 });
     for (const bubble of BUBBLES) {
-      const bx = bubble.x * W + Math.sin(t * 1.6 + bubble.phase) * 14;
-      const travel = (t * bubble.speed * H * 0.35 + bubble.phase * 200) % (H * 1.1);
+      const bx = bubble.x * W + Math.sin(t2 * 1.6 + bubble.phase) * 14;
+      const travel = (t2 * bubble.speed * H * 0.35 + bubble.phase * 200) % (H * 1.1);
       const by = H + 20 - travel;
       if (by < crestY + 24 || by > tailY) continue;
       const nearCrest = Math.min(1, (by - crestY) / (H * 0.12));
@@ -19584,6 +19934,30 @@ function Transition($$payload, $$props) {
     $$payload.out += `<!--]-->`;
   }
   $$payload.out += `<!--]-->`;
+  pop();
+}
+function SkipPress($$payload, $$props) {
+  push();
+  const context2 = getContext();
+  let owners = 0;
+  const acquire = () => owners += 1;
+  const release = () => owners = Math.max(0, owners - 1);
+  context2.eventEmitter.subscribeOnMount({
+    winShow: acquire,
+    winHide: release,
+    freeSpinIntroShow: acquire,
+    freeSpinIntroHide: release,
+    freeSpinOutroShow: acquire,
+    freeSpinOutroHide: release
+  });
+  OnPressFullScreen($$payload, {
+    onpress: () => {
+      if (owners > 0) return;
+      if (requestSkip()) {
+        context2.stateGameDerived.skipCurrentSpin();
+      }
+    }
+  });
   pop();
 }
 const ABYSSAL_CONTROL_BAR_LAYOUT = {
@@ -19957,8 +20331,9 @@ function ControlBar($$payload, $$props) {
   const decDisabled = !isIdle || stateBet$1.betAmount <= smallest;
   const incDisabled = !isIdle || stateBet$1.betAmount >= biggest;
   const spinDisabled = !isIdle || !stateBetDerived.isBetCostAvailable();
+  const spinButtonDimmed = isIdle && !stateBetDerived.isBetCostAvailable();
   const winText = bookEventAmountToCurrencyString(stateBet$1.winBookEventAmount);
-  const betLabelText = stateBetDerived.activeBetMode()?.text?.betAmountLabel || "BET";
+  const betLabelText = stateBetDerived.activeBetMode()?.text?.betAmountLabel || context2.i18nDerived.bet();
   const spinning = !isIdle;
   const press = (fn) => {
     context2.eventEmitter.broadcast({ type: "soundPressGeneral" });
@@ -19980,17 +20355,18 @@ function ControlBar($$payload, $$props) {
   };
   const spin = () => {
     context2.eventEmitter.broadcast({ type: "soundPressBet" });
-    if (spinDisabled) return;
-    if (isIdle) {
-      if (autoSpinArmed) {
-        beginAutoSpin();
-        return;
-      }
-      if (shouldResetBuyModeBeforeManualSpin()) stateBet$1.activeBetModeKey = "BASE";
-      context2.eventEmitter.broadcast({ type: "bet" });
+    if (!isIdle) {
+      requestSkip();
+      context2.stateGameDerived.skipCurrentSpin();
       return;
     }
-    context2.stateGameDerived.speedUpCurrentSpin();
+    if (spinDisabled) return;
+    if (autoSpinArmed) {
+      beginAutoSpin();
+      return;
+    }
+    if (shouldResetBuyModeBeforeManualSpin()) stateBet$1.activeBetModeKey = "BASE";
+    context2.eventEmitter.broadcast({ type: "bet" });
   };
   const decreaseBet = () => press(() => {
     if (!isIdle) return;
@@ -20169,7 +20545,7 @@ function ControlBar($$payload, $$props) {
   };
   OnHotkey($$payload, {
     hotkey: "Space",
-    disabled: spinDisabled,
+    disabled: spinButtonDimmed,
     onpress: spin
   });
   $$payload.out += `<!----> `;
@@ -20262,7 +20638,7 @@ function ControlBar($$payload, $$props) {
                   Text($$payload5, {
                     anchor: 0.5,
                     y: -25,
-                    text: "BALANCE",
+                    text: context2.i18nDerived.balance(),
                     style: readoutLabelStyle
                   });
                   $$payload5.out += `<!----> `;
@@ -20321,7 +20697,7 @@ function ControlBar($$payload, $$props) {
                     $$payload5.out += "<!--[-->";
                     Text($$payload5, {
                       anchor: 0.5,
-                      text: "DEACTIVATE",
+                      text: context2.i18nDerived.deactivate(),
                       style: {
                         fontFamily: BAR_FONT,
                         fontWeight: "900",
@@ -20472,14 +20848,14 @@ function ControlBar($$payload, $$props) {
               Container($$payload4, {
                 x: center.x,
                 y: center.y,
-                scale: buttonScale(pressed, hovered, spinDisabled) * responsive.controls.spinScale,
+                scale: buttonScale(pressed, hovered, spinButtonDimmed) * responsive.controls.spinScale,
                 rotation: -0.035,
-                alpha: spinDisabled ? 0.48 : 1,
+                alpha: spinButtonDimmed ? 0.48 : 1,
                 children: ($$payload5) => {
                   Graphics($$payload5, {
                     draw: (g) => {
                       drawSpinPanel(g, ABYSSAL_CONTROL_BAR_LAYOUT.right.spin.size);
-                      if (hovered && !spinDisabled) {
+                      if (hovered && !spinButtonDimmed) {
                         drawPanelHoverStroke(g, ABYSSAL_CONTROL_BAR_LAYOUT.right.spin.size * 1.08, ABYSSAL_CONTROL_BAR_LAYOUT.right.spin.size * 0.76, 28);
                       }
                     }
@@ -20510,7 +20886,7 @@ function ControlBar($$payload, $$props) {
                       rotation: 0.035,
                       draw: (g) => drawControlGlyph(g, "spin", ABYSSAL_CONTROL_BAR_LAYOUT.right.spin.size * 0.72, {
                         active: spinning,
-                        disabled: spinDisabled,
+                        disabled: spinButtonDimmed,
                         stop: spinning
                       })
                     });
@@ -20529,7 +20905,7 @@ function ControlBar($$payload, $$props) {
                 height: ABYSSAL_CONTROL_BAR_LAYOUT.right.spin.size
               },
               onpress: spin,
-              disabled: spinDisabled,
+              disabled: spinButtonDimmed,
               zIndex: 12,
               children,
               $$slots: { default: true }
@@ -20698,7 +21074,7 @@ function ControlBar($$payload, $$props) {
             Text($$payload3, {
               anchor: 0.5,
               y: -17,
-              text: "WIN",
+              text: context2.i18nDerived.win(),
               style: { ...labelStyle, fontSize: 15 }
             });
             $$payload3.out += `<!----> `;
@@ -20801,7 +21177,8 @@ function ReplayControls($$payload, $$props) {
   };
   const winText = bookEventAmountToCurrencyString(stateBet$1.winBookEventAmount);
   const betText = numberToCurrencyString(stateBetDerived.betCost());
-  const statusText = "LOADING REPLAY…";
+  context2.i18nDerived.play();
+  const statusText = context2.i18nDerived.loadingReplay();
   const layout = context2.stateLayoutDerived.mainLayoutStandard();
   const BAR_W = 820;
   const BAR_H = 168;
@@ -20852,7 +21229,7 @@ function ReplayControls($$payload, $$props) {
                   $$payload5.out += `<!----> `;
                   Text($$payload5, {
                     anchor: 0.5,
-                    text: "REPLAY",
+                    text: context2.i18nDerived.replay(),
                     style: {
                       fontFamily: FONT,
                       fontWeight: "900",
@@ -20873,7 +21250,7 @@ function ReplayControls($$payload, $$props) {
                   Text($$payload5, {
                     anchor: { x: 0, y: 0.5 },
                     y: -16,
-                    text: "BET",
+                    text: context2.i18nDerived.bet(),
                     style: labelStyle
                   });
                   $$payload5.out += `<!----> `;
@@ -20895,7 +21272,7 @@ function ReplayControls($$payload, $$props) {
                   Text($$payload5, {
                     anchor: { x: 1, y: 0.5 },
                     y: -16,
-                    text: "WIN",
+                    text: context2.i18nDerived.win(),
                     style: labelStyle
                   });
                   $$payload5.out += `<!----> `;
@@ -20912,7 +21289,7 @@ function ReplayControls($$payload, $$props) {
               $$payload4.out += `<!----> `;
               {
                 $$payload4.out += "<!--[!-->";
-                {
+                if (statusText) {
                   $$payload4.out += "<!--[-->";
                   Text($$payload4, {
                     anchor: 0.5,
@@ -20926,6 +21303,8 @@ function ReplayControls($$payload, $$props) {
                       letterSpacing: 1
                     }
                   });
+                } else {
+                  $$payload4.out += "<!--[!-->";
                 }
                 $$payload4.out += `<!--]-->`;
               }
@@ -20988,7 +21367,7 @@ function ReplayControls($$payload, $$props) {
           Text($$payload3, {
             anchor: 0.5,
             y: 54,
-            text: "SPEED",
+            text: context2.i18nDerived.speed(),
             style: {
               fontFamily: FONT,
               fontWeight: "800",
@@ -21015,13 +21394,13 @@ function GameInfo($$payload, $$props) {
   const CELL_W = 495;
   const CELL_H = 501;
   const FRAME = {
-    H1: [1485, 0],
-    H2: [990, 0],
-    H3: [0, 0],
+    H1: [0, 0],
+    H2: [1485, 0],
+    H3: [990, 0],
     H4: [495, 0],
-    L1: [0, 501],
-    L2: [1485, 501],
-    L3: [495, 501],
+    L1: [495, 501],
+    L2: [0, 501],
+    L3: [1485, 501],
     L4: [990, 501],
     L5: [1485, 1002],
     SCATTER: [0, 1503],
@@ -21029,52 +21408,52 @@ function GameInfo($$payload, $$props) {
     MULT_EYE: [1485, 1503],
     CLOSE_EYE: [0, 1002]
   };
-  const t = (key) => i18nDerived.gameInfo(key);
-  const pay = (symbol, tier) => t(`PAY_${symbol}_${tier}`);
+  const t2 = (key) => i18nDerived.gameInfo(key);
+  const pay = (symbol, tier) => t2(`PAY_${symbol}_${tier}`);
   const copy = {
-    title: t("TITLE"),
-    tagline: t("TAGLINE"),
-    leadHtml: t("LEAD_HTML"),
-    howSpinPlaysTitle: t("HOW_SPIN_PLAYS_TITLE"),
-    paytableTitle: t("PAYTABLE_TITLE"),
-    paytableNote: t("PAYTABLE_NOTE"),
-    paytableHighSymbols: t("PAYTABLE_HIGH_SYMBOLS"),
-    paytableLowSymbols: t("PAYTABLE_LOW_SYMBOLS"),
-    paytableSymbolHeader: t("PAYTABLE_SYMBOL_HEADER"),
-    paytableCount8To9: t("PAYTABLE_COUNT_8_TO_9"),
-    paytableCount10To11: t("PAYTABLE_COUNT_10_TO_11"),
-    paytableCount12Plus: t("PAYTABLE_COUNT_12_PLUS"),
-    specialSymbolsTitle: t("SPECIAL_SYMBOLS_TITLE"),
-    specialScatterName: t("SPECIAL_SCATTER_NAME"),
-    specialScatterDescriptionHtml: t("SPECIAL_SCATTER_DESCRIPTION_HTML"),
-    specialAddEyeName: t("SPECIAL_ADD_EYE_NAME"),
-    specialAddEyeDescriptionHtml: t("SPECIAL_ADD_EYE_DESCRIPTION_HTML"),
-    specialMultEyeName: t("SPECIAL_MULT_EYE_NAME"),
-    specialMultEyeDescriptionHtml: t("SPECIAL_MULT_EYE_DESCRIPTION_HTML"),
-    eyeGazeTitle: t("EYE_GAZE_TITLE"),
-    eyeGazeDescriptionHtml: t("EYE_GAZE_DESCRIPTION_HTML"),
-    eyeGazeExampleHtml: t("EYE_GAZE_EXAMPLE_HTML"),
-    freeSpinsTitle: t("FREE_SPINS_TITLE"),
-    waysToPlayTitle: t("WAYS_TO_PLAY_TITLE"),
-    generalDisclaimerTitle: t("GENERAL_DISCLAIMER_TITLE"),
-    generalDisclaimerHtml: t("GENERAL_DISCLAIMER_HTML")
+    title: t2("TITLE"),
+    tagline: t2("TAGLINE"),
+    leadHtml: t2("LEAD_HTML"),
+    howSpinPlaysTitle: t2("HOW_SPIN_PLAYS_TITLE"),
+    paytableTitle: t2("PAYTABLE_TITLE"),
+    paytableNote: t2("PAYTABLE_NOTE"),
+    paytableHighSymbols: t2("PAYTABLE_HIGH_SYMBOLS"),
+    paytableLowSymbols: t2("PAYTABLE_LOW_SYMBOLS"),
+    paytableSymbolHeader: t2("PAYTABLE_SYMBOL_HEADER"),
+    paytableCount8To9: t2("PAYTABLE_COUNT_8_TO_9"),
+    paytableCount10To11: t2("PAYTABLE_COUNT_10_TO_11"),
+    paytableCount12Plus: t2("PAYTABLE_COUNT_12_PLUS"),
+    specialSymbolsTitle: t2("SPECIAL_SYMBOLS_TITLE"),
+    specialScatterName: t2("SPECIAL_SCATTER_NAME"),
+    specialScatterDescriptionHtml: t2("SPECIAL_SCATTER_DESCRIPTION_HTML"),
+    specialAddEyeName: t2("SPECIAL_ADD_EYE_NAME"),
+    specialAddEyeDescriptionHtml: t2("SPECIAL_ADD_EYE_DESCRIPTION_HTML"),
+    specialMultEyeName: t2("SPECIAL_MULT_EYE_NAME"),
+    specialMultEyeDescriptionHtml: t2("SPECIAL_MULT_EYE_DESCRIPTION_HTML"),
+    eyeGazeTitle: t2("EYE_GAZE_TITLE"),
+    eyeGazeDescriptionHtml: t2("EYE_GAZE_DESCRIPTION_HTML"),
+    eyeGazeExampleHtml: t2("EYE_GAZE_EXAMPLE_HTML"),
+    freeSpinsTitle: t2("FREE_SPINS_TITLE"),
+    waysToPlayTitle: t2("WAYS_TO_PLAY_TITLE"),
+    generalDisclaimerTitle: t2("GENERAL_DISCLAIMER_TITLE"),
+    generalDisclaimerHtml: t2("GENERAL_DISCLAIMER_HTML")
   };
   const steps = [
-    t("HOW_SPIN_PLAYS_STEP_1"),
-    t("HOW_SPIN_PLAYS_STEP_2"),
-    t("HOW_SPIN_PLAYS_STEP_3_HTML"),
-    t("HOW_SPIN_PLAYS_STEP_4")
+    t2("HOW_SPIN_PLAYS_STEP_1"),
+    t2("HOW_SPIN_PLAYS_STEP_2"),
+    t2("HOW_SPIN_PLAYS_STEP_3_HTML"),
+    t2("HOW_SPIN_PLAYS_STEP_4")
   ];
   const freeSpinBullets = [
-    t("FREE_SPINS_BULLET_1_HTML"),
-    t("FREE_SPINS_BULLET_2_HTML"),
-    t("FREE_SPINS_BULLET_3_HTML"),
-    t("FREE_SPINS_BULLET_4_HTML")
+    t2("FREE_SPINS_BULLET_1_HTML"),
+    t2("FREE_SPINS_BULLET_2_HTML"),
+    t2("FREE_SPINS_BULLET_3_HTML"),
+    t2("FREE_SPINS_BULLET_4_HTML")
   ];
   const highs = [
     {
       sym: "H1",
-      name: t("SYMBOL_H1"),
+      name: t2("SYMBOL_H1"),
       pays: [
         pay("H1", "8_TO_9"),
         pay("H1", "10_TO_11"),
@@ -21083,7 +21462,7 @@ function GameInfo($$payload, $$props) {
     },
     {
       sym: "H2",
-      name: t("SYMBOL_H2"),
+      name: t2("SYMBOL_H2"),
       pays: [
         pay("H2", "8_TO_9"),
         pay("H2", "10_TO_11"),
@@ -21092,7 +21471,7 @@ function GameInfo($$payload, $$props) {
     },
     {
       sym: "H3",
-      name: t("SYMBOL_H3"),
+      name: t2("SYMBOL_H3"),
       pays: [
         pay("H3", "8_TO_9"),
         pay("H3", "10_TO_11"),
@@ -21101,7 +21480,7 @@ function GameInfo($$payload, $$props) {
     },
     {
       sym: "H4",
-      name: t("SYMBOL_H4"),
+      name: t2("SYMBOL_H4"),
       pays: [
         pay("H4", "8_TO_9"),
         pay("H4", "10_TO_11"),
@@ -21112,7 +21491,7 @@ function GameInfo($$payload, $$props) {
   const lows = [
     {
       sym: "L1",
-      name: t("SYMBOL_L1"),
+      name: t2("SYMBOL_L1"),
       pays: [
         pay("L1", "8_TO_9"),
         pay("L1", "10_TO_11"),
@@ -21121,7 +21500,7 @@ function GameInfo($$payload, $$props) {
     },
     {
       sym: "L2",
-      name: t("SYMBOL_L2"),
+      name: t2("SYMBOL_L2"),
       pays: [
         pay("L2", "8_TO_9"),
         pay("L2", "10_TO_11"),
@@ -21130,7 +21509,7 @@ function GameInfo($$payload, $$props) {
     },
     {
       sym: "L3",
-      name: t("SYMBOL_L3"),
+      name: t2("SYMBOL_L3"),
       pays: [
         pay("L3", "8_TO_9"),
         pay("L3", "10_TO_11"),
@@ -21139,7 +21518,7 @@ function GameInfo($$payload, $$props) {
     },
     {
       sym: "L4",
-      name: t("SYMBOL_L4"),
+      name: t2("SYMBOL_L4"),
       pays: [
         pay("L4", "8_TO_9"),
         pay("L4", "10_TO_11"),
@@ -21148,7 +21527,7 @@ function GameInfo($$payload, $$props) {
     },
     {
       sym: "L5",
-      name: t("SYMBOL_L5"),
+      name: t2("SYMBOL_L5"),
       pays: [
         pay("L5", "8_TO_9"),
         pay("L5", "10_TO_11"),
@@ -21158,34 +21537,34 @@ function GameInfo($$payload, $$props) {
   ];
   const modes = [
     {
-      name: t("MODE_BASE_NAME"),
-      cost: t("MODE_BASE_COST"),
-      text: t("MODE_BASE_TEXT")
+      name: t2("MODE_BASE_NAME"),
+      cost: t2("MODE_BASE_COST"),
+      text: t2("MODE_BASE_TEXT")
     },
     {
-      name: t("MODE_ANTE_NAME"),
-      cost: t("MODE_ANTE_COST"),
-      text: t("MODE_ANTE_TEXT")
+      name: t2("MODE_ANTE_NAME"),
+      cost: t2("MODE_ANTE_COST"),
+      text: t2("MODE_ANTE_TEXT")
     },
     {
-      name: t("MODE_BUY_FREE_SPINS_NAME"),
-      cost: t("MODE_BUY_FREE_SPINS_COST"),
-      text: t("MODE_BUY_FREE_SPINS_TEXT")
+      name: t2("MODE_BUY_FREE_SPINS_NAME"),
+      cost: t2("MODE_BUY_FREE_SPINS_COST"),
+      text: t2("MODE_BUY_FREE_SPINS_TEXT")
     },
     {
-      name: t("MODE_SUPER_SPINS_NAME"),
-      cost: t("MODE_SUPER_SPINS_COST"),
-      text: t("MODE_SUPER_SPINS_TEXT")
+      name: t2("MODE_SUPER_SPINS_NAME"),
+      cost: t2("MODE_SUPER_SPINS_COST"),
+      text: t2("MODE_SUPER_SPINS_TEXT")
     },
     {
-      name: t("MODE_SUPER_BONUS_NAME"),
-      cost: t("MODE_SUPER_BONUS_COST"),
-      text: t("MODE_SUPER_BONUS_TEXT")
+      name: t2("MODE_SUPER_BONUS_NAME"),
+      cost: t2("MODE_SUPER_BONUS_COST"),
+      text: t2("MODE_SUPER_BONUS_TEXT")
     },
     {
-      name: t("MODE_ULTIMATE_NAME"),
-      cost: t("MODE_ULTIMATE_COST"),
-      text: t("MODE_ULTIMATE_TEXT")
+      name: t2("MODE_ULTIMATE_NAME"),
+      cost: t2("MODE_ULTIMATE_COST"),
+      text: t2("MODE_ULTIMATE_TEXT")
     }
   ];
   function symIcon($$payload2, name, size = 30) {
@@ -21281,28 +21660,28 @@ function BuyBonusModal($$payload, $$props) {
           $$payload2.out += `<div${attr("class", to_class("bm-card", "svelte-refr9d", { "active": active }))}><div class="bm-hero svelte-refr9d"><div class="bm-hero-art svelte-refr9d"${attr("style", heroStyle(m))} role="img"${attr("aria-label", m.text.title)}></div> `;
           if (active) {
             $$payload2.out += "<!--[-->";
-            $$payload2.out += `<div class="bm-badge svelte-refr9d">ACTIVE</div>`;
+            $$payload2.out += `<div class="bm-badge svelte-refr9d">${escape_html(i18nDerived.active())}</div>`;
           } else {
             $$payload2.out += "<!--[!-->";
           }
           $$payload2.out += `<!--]--></div> <div class="bm-panel svelte-refr9d"><div class="bm-title svelte-refr9d">${escape_html(m.text.title)}</div> <div class="bm-divider svelte-refr9d"></div> <div class="bm-desc svelte-refr9d">${escape_html(m.text.dialog)}</div> <div class="bm-price svelte-refr9d">${escape_html(money(costOf(m)))}</div> `;
           if (activate && active) {
             $$payload2.out += "<!--[-->";
-            $$payload2.out += `<button class="bm-action activate on svelte-refr9d">DEACTIVATE</button>`;
+            $$payload2.out += `<button class="bm-action activate on svelte-refr9d">${escape_html(i18nDerived.deactivate())}</button>`;
           } else {
             $$payload2.out += "<!--[!-->";
             if (activate) {
               $$payload2.out += "<!--[-->";
-              $$payload2.out += `<button class="bm-action activate svelte-refr9d"${attr("disabled", !affordable(m), true)}>ACTIVATE</button>`;
+              $$payload2.out += `<button class="bm-action activate svelte-refr9d"${attr("disabled", !affordable(m), true)}>${escape_html(i18nDerived.activate())}</button>`;
             } else {
               $$payload2.out += "<!--[!-->";
-              $$payload2.out += `<button class="bm-action buy svelte-refr9d"${attr("disabled", !affordable(m), true)}>${escape_html(affordable(m) ? "BUY" : "LOW FUNDS")}</button>`;
+              $$payload2.out += `<button class="bm-action buy svelte-refr9d"${attr("disabled", !affordable(m), true)}>${escape_html(affordable(m) ? i18nDerived.buy() : i18nDerived.lowFunds())}</button>`;
             }
             $$payload2.out += `<!--]-->`;
           }
           $$payload2.out += `<!--]--></div></div>`;
         }
-        $$payload2.out += `<!--]--></div> <div class="bm-bet svelte-refr9d"><span class="bm-bet-label svelte-refr9d">BET</span> <div class="bm-stepper svelte-refr9d"><button class="bm-step minus svelte-refr9d"${attr("disabled", decDisabled, true)} aria-label="decrease bet">−</button> <span class="bm-bet-value svelte-refr9d">${escape_html(money(stateBet$1.betAmount))}</span> <button class="bm-step plus svelte-refr9d"${attr("disabled", incDisabled, true)} aria-label="increase bet">+</button></div></div></div>`;
+        $$payload2.out += `<!--]--></div> <div class="bm-bet svelte-refr9d"><span class="bm-bet-label svelte-refr9d">${escape_html(i18nDerived.bet())}</span> <div class="bm-stepper svelte-refr9d"><button class="bm-step minus svelte-refr9d"${attr("disabled", decDisabled, true)}${attr("aria-label", i18nDerived.decreaseBet())}>−</button> <span class="bm-bet-value svelte-refr9d">${escape_html(money(stateBet$1.betAmount))}</span> <button class="bm-step plus svelte-refr9d"${attr("disabled", incDisabled, true)}${attr("aria-label", i18nDerived.increaseBet())}>+</button></div></div></div>`;
       },
       $$slots: { default: true }
     });
@@ -21397,6 +21776,8 @@ function Game($$payload, $$props) {
             });
             $$payload3.out += `<!----> `;
             ScatterFx($$payload3);
+            $$payload3.out += `<!----> `;
+            SkipPress($$payload3);
             $$payload3.out += `<!----> `;
             if (stateUrlDerived.replay()) {
               $$payload3.out += "<!--[-->";
@@ -21513,34 +21894,34 @@ function AbyssalLoader($$payload, $$props) {
     const each_array = ensure_array_like(Array.from({ length: 28 }));
     const each_array_1 = ensure_array_like(cards);
     const each_array_2 = ensure_array_like(cards);
-    $$payload.out += `<div${attr("class", to_class("abyssal-loader", "svelte-ls07v6", { "ready": ready, "leaving": leaving }))} role="button" tabindex="0"${attr("aria-label", ready ? copy.cta : copy.loading)}><div class="loader-stage svelte-ls07v6"><div class="background svelte-ls07v6" aria-hidden="true"${attr("style", `background-image: url(${backgroundUrl})`)}></div> <div class="vignette svelte-ls07v6" aria-hidden="true"></div> <div class="light-rays svelte-ls07v6" aria-hidden="true"></div> <div class="bubbles svelte-ls07v6" aria-hidden="true"><!--[-->`;
+    $$payload.out += `<div${attr("class", to_class("abyssal-loader", "svelte-ar2twb", { "ready": ready, "leaving": leaving }))} role="button" tabindex="0"${attr("aria-label", ready ? copy.cta : copy.loading)}><div class="background svelte-ar2twb" aria-hidden="true"${attr("style", `background-image: url(${backgroundUrl})`)}></div> <div class="vignette svelte-ar2twb" aria-hidden="true"></div> <div class="light-rays svelte-ar2twb" aria-hidden="true"></div> <div class="bubbles svelte-ar2twb" aria-hidden="true"><!--[-->`;
     for (let index = 0, $$length = each_array.length; index < $$length; index++) {
       each_array[index];
-      $$payload.out += `<i${attr("style", `--i: ${index}`)} class="svelte-ls07v6"></i>`;
+      $$payload.out += `<i${attr("style", `--i: ${index}`)} class="svelte-ar2twb"></i>`;
     }
-    $$payload.out += `<!--]--></div> <header class="loader-header svelte-ls07v6">`;
+    $$payload.out += `<!--]--></div> <div class="loader-stage svelte-ar2twb"><header class="loader-header svelte-ar2twb">`;
     AbyssalPixiLogo($$payload, { title: copy.logo });
-    $$payload.out += `<!----></header> <div class="cards-grid svelte-ls07v6"><!--[-->`;
+    $$payload.out += `<!----></header> <div class="cards-grid svelte-ar2twb"><!--[-->`;
     for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
       let card = each_array_1[$$index_1];
-      $$payload.out += `<article class="info-card svelte-ls07v6"><img class="card-icon svelte-ls07v6"${attr("src", card.art)} alt=""> <h2 class="svelte-ls07v6">${escape_html(card.title)}</h2> <p class="svelte-ls07v6">${escape_html(card.body)}</p></article>`;
+      $$payload.out += `<article class="info-card svelte-ar2twb"><img class="card-icon svelte-ar2twb"${attr("src", card.art)} alt=""> <h2 class="svelte-ar2twb">${escape_html(card.title)}</h2> <p class="svelte-ar2twb">${escape_html(card.body)}</p></article>`;
     }
-    $$payload.out += `<!--]--></div> <div class="carousel svelte-ls07v6" aria-live="polite"><button class="carousel-arrow previous svelte-ls07v6" type="button"${attr("aria-label", copy.previousCard)}>‹</button> <!---->`;
+    $$payload.out += `<!--]--></div> <div class="carousel svelte-ar2twb" aria-live="polite"><button class="carousel-arrow previous svelte-ar2twb" type="button"${attr("aria-label", copy.previousCard)}>‹</button> <!---->`;
     {
-      $$payload.out += `<div class="slide svelte-ls07v6"><img class="slide-icon svelte-ls07v6"${attr("src", cards[activeCard].art)} alt=""> <div class="slide-text svelte-ls07v6"><h2 class="svelte-ls07v6">${escape_html(cards[activeCard].title)}</h2> <p class="svelte-ls07v6">${escape_html(cards[activeCard].body)}</p></div></div>`;
+      $$payload.out += `<div class="slide svelte-ar2twb"><img class="slide-icon svelte-ar2twb"${attr("src", cards[activeCard].art)} alt=""> <div class="slide-text svelte-ar2twb"><h2 class="svelte-ar2twb">${escape_html(cards[activeCard].title)}</h2> <p class="svelte-ar2twb">${escape_html(cards[activeCard].body)}</p></div></div>`;
     }
-    $$payload.out += `<!----> <button class="carousel-arrow next svelte-ls07v6" type="button"${attr("aria-label", copy.nextCard)}>›</button> <div class="carousel-dots svelte-ls07v6" aria-hidden="true"><!--[-->`;
+    $$payload.out += `<!----> <button class="carousel-arrow next svelte-ar2twb" type="button"${attr("aria-label", copy.nextCard)}>›</button> <div class="carousel-dots svelte-ar2twb" aria-hidden="true"><!--[-->`;
     for (let index = 0, $$length = each_array_2.length; index < $$length; index++) {
       each_array_2[index];
-      $$payload.out += `<i${attr("class", to_class("", "svelte-ls07v6", { "active": index === activeCard }))}></i>`;
+      $$payload.out += `<i${attr("class", to_class("", "svelte-ar2twb", { "active": index === activeCard }))}></i>`;
     }
-    $$payload.out += `<!--]--></div></div> <div class="loader-gate svelte-ls07v6">`;
+    $$payload.out += `<!--]--></div></div> <div class="loader-gate svelte-ar2twb">`;
     if (ready) {
       $$payload.out += "<!--[-->";
-      $$payload.out += `<span class="cta svelte-ls07v6">${escape_html(copy.cta)}</span>`;
+      $$payload.out += `<span class="cta svelte-ar2twb">${escape_html(copy.cta)}</span>`;
     } else {
       $$payload.out += "<!--[!-->";
-      $$payload.out += `<div class="progress svelte-ls07v6"><div class="progress-fill svelte-ls07v6"${attr("style", `width: ${progress}%`)}></div></div> <span class="loading-label svelte-ls07v6">${escape_html(copy.loading)} ${escape_html(progress)}%</span>`;
+      $$payload.out += `<div class="progress svelte-ar2twb"><div class="progress-fill svelte-ar2twb"${attr("style", `width: ${progress}%`)}></div></div> <span class="loading-label svelte-ar2twb">${escape_html(copy.loading)} ${escape_html(progress)}%</span>`;
     }
     $$payload.out += `<!--]--></div></div></div>`;
   }
@@ -21568,6 +21949,85 @@ const en = {
   LOADER_NEXT_CARD: "Next card",
   FREE_SPINS_TAP_TO_PLAY: "TAP ANYWHERE TO PLAY",
   FREE_SPINS_TAP_TO_SKIP: "TAP ANYWHERE TO SKIP",
+  ACTIVE: "ACTIVE",
+  ACTIVATE: "ACTIVATE",
+  DEACTIVATE: "DEACTIVATE",
+  BUY: "BUY",
+  BONUS: "BONUS",
+  LOW_FUNDS: "LOW FUNDS",
+  PER_SPIN: "PER SPIN",
+  TOTAL: "TOTAL",
+  CANCEL: "CANCEL",
+  CONFIRM_BUY: "CONFIRM BUY",
+  DECREASE_BET: "decrease bet",
+  INCREASE_BET: "increase bet",
+  BALANCE: "BALANCE",
+  WIN: "WIN",
+  BET: "BET",
+  "FREE SPINS": "FREE SPINS",
+  STOP: "STOP",
+  "AUTO SPINS": "AUTO SPINS",
+  INFO: "INFO",
+  MUSIC: "MUSIC",
+  SFX: "SFX",
+  PLAY: "PLAY",
+  PLAY_AGAIN: "PLAY AGAIN",
+  LOADING_REPLAY: "LOADING REPLAY...",
+  REPLAY_UNAVAILABLE: "REPLAY UNAVAILABLE",
+  REPLAY: "REPLAY",
+  SPEED: "SPEED",
+  WIN_TIER_BIG: "BIG WIN",
+  WIN_TIER_SUPER: "SUPER WIN",
+  WIN_TIER_HUGE: "HUGE WIN",
+  WIN_TIER_MEGA: "MEGA WIN",
+  WIN_TIER_EPIC: "EPIC WIN",
+  WIN_TIER_MAX: "MAX WIN",
+  TUMBLE_WIN: "TUMBLE WIN",
+  TOTAL_MULT: "TOTAL MULT",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "TAP TO CONTINUE",
+  ON: "ON",
+  OFF: "OFF",
+  ANTE_SWITCH_NOTE: "More Eyes & Scatters - 1.25x bet",
+  AUTO: "AUTO",
+  ALL: "ALL",
+  START: "START",
+  BET_MODE_BASE_TITLE: "BASE",
+  BET_MODE_BASE_DIALOG: "The standard Abyssal spin. The Eye is rare and mostly ADD.",
+  BET_MODE_BASE_BUTTON: "",
+  BET_MODE_BASE_TICKER_IDLE: "PLACE YOUR BET",
+  BET_MODE_BASE_TICKER_SPIN: "GOOD LUCK",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "Raise the tide - more frequent Eyes and Scatters.",
+  BET_MODE_ANTE_DIALOG: "Increases the Eye and Scatter frequency for 1.25x the bet. ANTE BET stays active until disabled.",
+  BET_MODE_ANTE_BUTTON: "ACTIVATE",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "ANTE BET",
+  BET_MODE_ANTE_TICKER_IDLE: "ANTE BET IS ACTIVE",
+  BET_MODE_ANTE_TICKER_SPIN: "GOOD LUCK",
+  BET_MODE_SUPERSPINS_TITLE: "EYE SPINS",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "One guaranteed-Eye spin - a single build-and-release.",
+  BET_MODE_SUPERSPINS_DIALOG: "A single spin for 20x the bet with the Eye guaranteed to land. No snowball - one punchy build and release.",
+  BET_MODE_SUPERSPINS_BUTTON: "ACTIVATE",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS IS ACTIVE",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "GOOD LUCK",
+  BET_MODE_BONUS_TITLE: "BONUS",
+  BET_MODE_BONUS_DESCRIPTION: "Buy straight into the Free Spins snowball feature.",
+  BET_MODE_BONUS_DIALOG: "Triggers Free Spins for 100x the bet. The persistent multiplier (M) snowballs across the feature as the Eye lands.",
+  BET_MODE_BONUS_BUTTON: "BUY",
+  BET_MODE_BONUS_TICKER_IDLE: "PLACE YOUR BET",
+  BET_MODE_BONUS_TICKER_SPIN: "FREE SPINS PURCHASED",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "The multi-Eye finale - several Eyes resolve at once.",
+  BET_MODE_ULTIMATE_DIALOG: "The only mode where multiple Eyes open together for 300x the bet, combining their ADD and MUL values in one resolution.",
+  BET_MODE_ULTIMATE_BUTTON: "ACTIVATE",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE IS ACTIVE",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "GOOD LUCK",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "The tail mode - charge +2 and MUL common.",
+  BET_MODE_SUPERBONUS_DIALOG: "Buys the Free Spins feature for 500x the bet with +2 Gaze charge per connection and MUL Eyes common. The mode that most often approaches the 15,000x cap.",
+  BET_MODE_SUPERBONUS_BUTTON: "BUY",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "PLACE YOUR BET",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS PURCHASED",
   GAME_INFO_TITLE: "ABYSSAL",
   GAME_INFO_TAGLINE: "DEEP-SEA TUMBLE SLOT",
   GAME_INFO_LEAD_HTML: "Symbols drop onto a <strong>6&times;5 board</strong>. You win whenever <strong>8 or more of the same symbol</strong> land <strong>anywhere</strong> &ndash; no paylines. Winners burst and new symbols tumble in, which can chain into more wins from a single spin. There is <strong>no wild</strong>; the <strong>Eye</strong> is the sole multiplier.",
@@ -21584,13 +22044,13 @@ const en = {
   GAME_INFO_PAYTABLE_COUNT_8_TO_9: "8-9",
   GAME_INFO_PAYTABLE_COUNT_10_TO_11: "10-11",
   GAME_INFO_PAYTABLE_COUNT_12_PLUS: "12+",
-  GAME_INFO_SYMBOL_H1: "Nautilus",
-  GAME_INFO_SYMBOL_H2: "Anglerfish",
-  GAME_INFO_SYMBOL_H3: "Diving Helmet",
+  GAME_INFO_SYMBOL_H1: "Diving Helmet",
+  GAME_INFO_SYMBOL_H2: "Nautilus",
+  GAME_INFO_SYMBOL_H3: "Anglerfish",
   GAME_INFO_SYMBOL_H4: "Jellyfish",
-  GAME_INFO_SYMBOL_L1: "Teal gem",
-  GAME_INFO_SYMBOL_L2: "Cyan gem",
-  GAME_INFO_SYMBOL_L3: "Sapphire gem",
+  GAME_INFO_SYMBOL_L1: "Sapphire gem",
+  GAME_INFO_SYMBOL_L2: "Teal gem",
+  GAME_INFO_SYMBOL_L3: "Cyan gem",
   GAME_INFO_SYMBOL_L4: "Violet gem",
   GAME_INFO_SYMBOL_L5: "Aqua gem",
   GAME_INFO_PAY_H1_8_TO_9: "10.00x",
@@ -21674,6 +22134,85 @@ const zh = {
   LOADER_NEXT_CARD: "下一张卡片",
   FREE_SPINS_TAP_TO_PLAY: "点击任意处开始",
   FREE_SPINS_TAP_TO_SKIP: "点击任意处跳过",
+  ACTIVE: "激活中",
+  ACTIVATE: "激活",
+  DEACTIVATE: "停用",
+  BUY: "购买",
+  BONUS: "奖励",
+  LOW_FUNDS: "余额不足",
+  PER_SPIN: "每次旋转",
+  TOTAL: "总计",
+  CANCEL: "取消",
+  CONFIRM_BUY: "确认购买",
+  DECREASE_BET: "减少下注",
+  INCREASE_BET: "增加下注",
+  BALANCE: "余额",
+  WIN: "赢分",
+  BET: "下注",
+  "FREE SPINS": "免费旋转",
+  STOP: "停止",
+  "AUTO SPINS": "自动旋转",
+  INFO: "信息",
+  MUSIC: "音乐",
+  SFX: "音效",
+  PLAY: "播放",
+  PLAY_AGAIN: "再次播放",
+  LOADING_REPLAY: "正在加载回放...",
+  REPLAY_UNAVAILABLE: "回放不可用",
+  REPLAY: "回放",
+  SPEED: "速度",
+  WIN_TIER_BIG: "大奖",
+  WIN_TIER_SUPER: "超级赢分",
+  WIN_TIER_HUGE: "巨奖",
+  WIN_TIER_MEGA: "超级大奖",
+  WIN_TIER_EPIC: "史诗大奖",
+  WIN_TIER_MAX: "最高赢分",
+  TUMBLE_WIN: "连消赢分",
+  TOTAL_MULT: "总倍数",
+  GAZE: "凝视",
+  TAP_TO_CONTINUE: "点击继续",
+  ON: "开启",
+  OFF: "关闭",
+  ANTE_SWITCH_NOTE: "更多眼睛和 Scatter - 1.25x 下注",
+  AUTO: "自动",
+  ALL: "全部",
+  START: "开始",
+  BET_MODE_BASE_TITLE: "基础",
+  BET_MODE_BASE_DIALOG: "标准 Abyssal 旋转。眼睛较少出现，通常为 ADD 类型。",
+  BET_MODE_BASE_BUTTON: "",
+  BET_MODE_BASE_TICKER_IDLE: "请下注",
+  BET_MODE_BASE_TICKER_SPIN: "祝您好运",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "提高眼睛和 Scatter 的出现频率。",
+  BET_MODE_ANTE_DIALOG: "以 1.25x 下注提高眼睛和 Scatter 的出现频率。ANTE BET 会保持激活直到停用。",
+  BET_MODE_ANTE_BUTTON: "激活",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "ANTE 下注",
+  BET_MODE_ANTE_TICKER_IDLE: "ANTE 下注已激活",
+  BET_MODE_ANTE_TICKER_SPIN: "祝您好运",
+  BET_MODE_SUPERSPINS_TITLE: "眼睛旋转",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "一次保证出现眼睛的旋转。",
+  BET_MODE_SUPERSPINS_DIALOG: "以 20x 下注进行一次旋转，并保证眼睛落下。无累积奖励，一次直接的蓄力和释放。",
+  BET_MODE_SUPERSPINS_BUTTON: "激活",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "超级旋转已激活",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "祝您好运",
+  BET_MODE_BONUS_TITLE: "奖励",
+  BET_MODE_BONUS_DESCRIPTION: "直接购买进入免费旋转累积功能。",
+  BET_MODE_BONUS_DIALOG: "以 100x 下注触发免费旋转。持久倍数 (M) 会在功能中随眼睛落下而累积。",
+  BET_MODE_BONUS_BUTTON: "购买",
+  BET_MODE_BONUS_TICKER_IDLE: "请下注",
+  BET_MODE_BONUS_TICKER_SPIN: "已购买免费旋转",
+  BET_MODE_ULTIMATE_TITLE: "终极",
+  BET_MODE_ULTIMATE_DESCRIPTION: "多个眼睛同时结算的终局模式。",
+  BET_MODE_ULTIMATE_DIALOG: "唯一会让多个眼睛同时开启的模式，300x 下注，并在一次结算中组合 ADD 和 MUL 数值。",
+  BET_MODE_ULTIMATE_BUTTON: "激活",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "终极模式已激活",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "祝您好运",
+  BET_MODE_SUPERBONUS_TITLE: "超级奖励",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "充能 +2 且 MUL 更常见的尾端模式。",
+  BET_MODE_SUPERBONUS_DIALOG: "以 500x 下注购买免费旋转功能，每次连接提供 +2 凝视充能，且 MUL 眼睛更常见。最容易接近 15,000x 上限的模式。",
+  BET_MODE_SUPERBONUS_BUTTON: "购买",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "请下注",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "已购买超级奖励",
   GAME_INFO_TITLE: "ABYSSAL",
   GAME_INFO_TAGLINE: "深海连消老虎机",
   GAME_INFO_LEAD_HTML: "符号会落入 <strong>6&times;5 盘面</strong>。只要<strong>任意位置</strong>出现 <strong>8 个或更多相同符号</strong>即可获胜，无需 paylines。获胜符号会爆开，新符号继续下落，单次旋转可连锁产生更多赢分。游戏中<strong>没有百搭符号</strong>；<strong>眼睛</strong>是唯一倍数来源。",
@@ -21690,13 +22229,13 @@ const zh = {
   GAME_INFO_PAYTABLE_COUNT_8_TO_9: "8-9",
   GAME_INFO_PAYTABLE_COUNT_10_TO_11: "10-11",
   GAME_INFO_PAYTABLE_COUNT_12_PLUS: "12+",
-  GAME_INFO_SYMBOL_H1: "鹦鹉螺",
-  GAME_INFO_SYMBOL_H2: "鮟鱇鱼",
-  GAME_INFO_SYMBOL_H3: "潜水头盔",
+  GAME_INFO_SYMBOL_H1: "潜水头盔",
+  GAME_INFO_SYMBOL_H2: "鹦鹉螺",
+  GAME_INFO_SYMBOL_H3: "鮟鱇鱼",
   GAME_INFO_SYMBOL_H4: "水母",
-  GAME_INFO_SYMBOL_L1: "蓝绿色宝石",
-  GAME_INFO_SYMBOL_L2: "青色宝石",
-  GAME_INFO_SYMBOL_L3: "蓝宝石",
+  GAME_INFO_SYMBOL_L1: "蓝宝石",
+  GAME_INFO_SYMBOL_L2: "蓝绿色宝石",
+  GAME_INFO_SYMBOL_L3: "青色宝石",
   GAME_INFO_SYMBOL_L4: "紫色宝石",
   GAME_INFO_SYMBOL_L5: "水蓝宝石",
   GAME_INFO_PAY_H1_8_TO_9: "10.00x",
@@ -21764,7 +22303,22 @@ const zh = {
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "故障将使所有赢分和游戏无效。需要稳定的互联网连接。如发生断线，请重新加载游戏以完成任何未完成回合。预期返还率按大量游戏计算。游戏显示不代表任何实体设备，仅用于说明。赢分以远程游戏服务器收到的金额为准，而非网页浏览器内事件。TM 和 &copy; 2026 Stake Engine。"
 };
 const messagesMapGame = {
+  ar: en,
+  de: en,
   en,
+  es: en,
+  fi: en,
+  fr: en,
+  hi: en,
+  id: en,
+  ja: en,
+  ko: en,
+  pl: en,
+  po: en,
+  pt: en,
+  ru: en,
+  tr: en,
+  vi: en,
   zh
 };
 const messagesMap = mergeMessagesMaps([messagesMapGame, messagesMap$1, messagesMap$2]);

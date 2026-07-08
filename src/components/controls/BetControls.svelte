@@ -43,7 +43,9 @@
 	const cy = 104;
 
 	const balance = $derived(numberToCurrencyString(stateBet.balanceAmount));
-	const betLabel = $derived(stateBetDerived.activeBetMode()?.text.betAmountLabel || 'BET');
+	const betLabel = $derived(
+		stateBetDerived.activeBetMode()?.text.betAmountLabel || context.i18nDerived.bet(),
+	);
 	const bet = $derived(numberToCurrencyString(stateBetDerived.betCost()));
 	const win = $derived(bookEventAmountToCurrencyString(stateBet.winBookEventAmount));
 	const autoActive = $derived(stateBetDerived.hasAutoBetCounter());
@@ -111,7 +113,8 @@
 	const textBlockX = 22;
 	const labelY = -13;
 	const valueY = 13;
-	const displayAutoSpinText = (value: AutoSpinsText) => (value === INFINITY_MARK ? 'ALL' : value);
+	const displayAutoSpinText = (value: AutoSpinsText) =>
+		value === INFINITY_MARK ? context.i18nDerived.all() : value;
 	const popupDraw = (g: import('pixi.js').Graphics) => {
 		g.poly([-12, 0, 12, 0, 0, 14]).fill({ color: C.navyDeep, alpha: 0.96 });
 		g.poly([-12, 0, 12, 0, 0, 14]).stroke({
@@ -227,7 +230,13 @@
 					width={controls.sections.balance.w}
 					height={54}
 				/>
-				<Text anchor={left} x={textBlockX} y={labelY} text="BALANCE" style={labelStyle} />
+				<Text
+					anchor={left}
+					x={textBlockX}
+					y={labelY}
+					text={context.i18nDerived.balance()}
+					style={labelStyle}
+				/>
 				<Text anchor={left} x={textBlockX} y={valueY} text={balance} style={valueStyle} />
 			</Container>
 
@@ -296,7 +305,7 @@
 					anchor={0.5}
 					x={controls.sections.win.w * 0.5}
 					y={labelY}
-					text="WIN"
+					text={context.i18nDerived.win()}
 					style={labelStyle}
 				/>
 				<Text
@@ -340,7 +349,7 @@
 				anchor={0.5}
 				x={controls.sections.autoplay.x + controls.sections.autoplay.w * 0.5}
 				y={cy + 43}
-				text={autoActive ? 'STOP' : 'AUTO'}
+				text={autoActive ? context.i18nDerived.stop() : context.i18nDerived.auto()}
 				style={{
 					fontFamily: FONT,
 					fontWeight: '800',
@@ -357,7 +366,7 @@
 					<Text
 						anchor={0.5}
 						y={-124}
-						text="AUTO SPINS"
+						text={context.i18nDerived.autoSpins()}
 						style={{
 							fontFamily: FONT,
 							fontWeight: '900',
@@ -397,7 +406,7 @@
 								/>
 								<Text
 									anchor={0.5}
-									text="START"
+									text={context.i18nDerived.start()}
 									style={{
 										fontFamily: FONT,
 										fontWeight: '900',

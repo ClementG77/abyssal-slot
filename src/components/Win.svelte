@@ -47,7 +47,7 @@
 	] as const;
 	// Step pacing: the FIRST step is the slowest (savour the arrival), then each step up the
 	// ladder runs quicker — momentum builds as the win grows. The landing step never rushes.
-	const STEP_BASE_SECONDS = 5.2; // duration of the first step
+	const STEP_BASE_SECONDS = 6.0; // duration of the first step
 	const STEP_ACCEL = 0.72; // each next step takes ×0.72 of the previous (accelerates)
 	const STEP_MIN_SECONDS = 1.3; // intermediate steps never faster than this
 	const FINAL_STEP_MIN_SECONDS = 3.6; // the landing step never faster than this
@@ -215,6 +215,12 @@
 		winShow: () => (show = true),
 		winHide: () => (show = false),
 		winUpdate: async (emitterEvent) => {
+			// reset BEFORE the subtree renders: countUp/groupFx keep the PREVIOUS win's values
+			// between takeovers, so without this the first frames show the old final amount
+			// instead of counting from 0
+			countUp.set(0, { duration: 0 });
+			groupFx.alpha = 0;
+			groupFx.scale = 0.6;
 			amount = emitterEvent.amount;
 			winLevelData = emitterEvent.winLevelData;
 			await waitForResolve((resolve) => (oncomplete = resolve));

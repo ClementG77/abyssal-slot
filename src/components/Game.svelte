@@ -35,6 +35,7 @@
 	import FreeSpinCounter from './FreeSpinCounter.svelte';
 	import FreeSpinOutro from './FreeSpinOutro.svelte';
 	import Transition from './Transition.svelte';
+	import SkipPress from './SkipPress.svelte';
 	import ControlBar from './ControlBar.svelte';
 	import GameHeader from './GameHeader.svelte';
 	import ReplayControls from './ReplayControls.svelte';
@@ -112,6 +113,10 @@
 			</MainContainer>
 
 			<ScatterFx />
+
+			<!-- press-to-skip: clicks on the open screen fast-forward the current beat; sits
+			     BELOW the UI and overlays so their own click handling shadows it -->
+			<SkipPress />
 
 			{#if stateUrlDerived.replay()}
 				<ReplayControls />

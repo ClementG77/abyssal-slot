@@ -1,4 +1,5 @@
 import type { TextStyleOptions } from 'pixi.js';
+import { quadIn } from 'svelte/easing';
 
 import type { RawSymbol, SymbolState, SymbolName } from './types';
 
@@ -394,22 +395,30 @@ const SPIN_OPTIONS_SHARED = {
 	reelFallOutDelay: 145,
 };
 
+// Drops use the GRAVITY feel (see CascadingReelSpinOptions): the fall accelerates the whole
+// way down (quadIn — arrives at full speed) and reacts on contact with a small rebound,
+// instead of the old linear travel that decelerated into place.
 export const SPIN_OPTIONS_DEFAULT = {
 	...SPIN_OPTIONS_SHARED,
-	symbolFallInSpeed: 3.5,
+	symbolFallInSpeed: 3.1,
 	symbolFallInInterval: 30,
 	symbolFallInBounceSpeed: 0.15,
-	symbolFallInBounceSizeMulti: 0.5,
+	symbolFallInBounceSizeMulti: 0.3,
+	symbolFallInEasing: quadIn,
+	symbolFallInReboundMulti: 0.12,
 	symbolFallOutSpeed: 3.5,
 	symbolFallOutInterval: 20,
 };
 
 export const SPIN_OPTIONS_FAST = {
 	...SPIN_OPTIONS_SHARED,
+	reelFallOutDelay: 0, // fast/skip spins clear all columns together
 	symbolFallInSpeed: 7,
 	symbolFallInInterval: 0,
 	symbolFallInBounceSpeed: 0.3,
-	symbolFallInBounceSizeMulti: 0.25,
+	symbolFallInBounceSizeMulti: 0.2,
+	symbolFallInEasing: quadIn,
+	symbolFallInReboundMulti: 0.07,
 	symbolFallOutSpeed: 7,
 	symbolFallOutInterval: 0,
 };

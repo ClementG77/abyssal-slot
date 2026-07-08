@@ -5,6 +5,7 @@
 		| { type: 'reelFrameGlowShow' }
 		| { type: 'reelFrameGlowHide' }
 		| { type: 'reelFrameSpinLaunch' }
+		| { type: 'reelFrameReelStop' }
 		| { type: 'reelFrameScatterLand'; position?: Position }
 		| { type: 'reelFrameEyeLand'; position?: Position }
 		| { type: 'reelFrameScatterAnticipationStart' }
@@ -67,6 +68,7 @@
 	let now = $state(0);
 	let boosted = $state(false);
 	let launchStartedAt = $state(-1);
+	let reelStopStartedAt = $state(-1);
 	let scatterStartedAt = $state(-1);
 	let eyeStartedAt = $state(-1);
 	let scatterAnticipationStartedAt = $state(-1);
@@ -88,6 +90,7 @@
 		reelFrameGlowShow: () => (boosted = true),
 		reelFrameGlowHide: () => (boosted = false),
 		reelFrameSpinLaunch: () => (launchStartedAt = performance.now()),
+		reelFrameReelStop: () => (reelStopStartedAt = performance.now()),
 		reelFrameScatterLand: () => (scatterStartedAt = performance.now()),
 		reelFrameEyeLand: () => (eyeStartedAt = performance.now()),
 		reelFrameScatterAnticipationStart: () => {
@@ -161,6 +164,10 @@
 	);
 	const borderTint = $derived(mixColor(0xffffff, 0xd866ff, eyeColorPopEnergy));
 	const launchMotion = $derived(launchEnergy > 0 ? Math.sin((1 - launchEnergy) * Math.PI) : 0);
+	// each reel stop dips the frame a touch — the column's weight hits the chassis
+	const REEL_STOP_DIP = 6; // px at the dip's peak
+	const stopEnergy = $derived(getBurstEnergy(reelStopStartedAt, 0.24));
+	const stopMotion = $derived(stopEnergy > 0 ? Math.sin((1 - stopEnergy) * Math.PI) : 0);
 	const scatterAnticipationProgress = $derived.by(() => {
 		if (scatterAnticipationReleasedAt >= 0) {
 			const releaseElapsed = (now - scatterAnticipationReleasedAt) / 1000;
@@ -171,7 +178,7 @@
 		const progress = Math.min(1, (now - scatterAnticipationStartedAt) / 1000);
 		return progress * progress * (3 - 2 * progress);
 	});
-	const frameShakeY = $derived(launchMotion * 42);
+	const frameShakeY = $derived(launchMotion * 42 + stopMotion * REEL_STOP_DIP);
 	const getFrameTransform = (layout: ReelFrameLayout) => {
 		const position = getReelPosition(layout);
 		const displayScale = getReelDisplayScale(layout);

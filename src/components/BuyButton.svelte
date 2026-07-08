@@ -73,7 +73,7 @@
 						<Text
 							anchor={0.5}
 							y={H * 0.12}
-							text="BUY"
+							text={context.i18nDerived.buy()}
 							style={{
 								fontFamily: FONT,
 								fontWeight: '900',
@@ -84,7 +84,7 @@
 						<Text
 							anchor={0.5}
 							y={H * 0.32}
-							text="BONUS"
+							text={context.i18nDerived.bonus()}
 							style={{
 								fontFamily: FONT,
 								fontWeight: '800',

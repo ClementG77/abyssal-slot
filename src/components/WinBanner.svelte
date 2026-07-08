@@ -10,6 +10,7 @@
 	import { ResponsiveBitmapText } from 'components-pixi';
 
 	import { abyssalBitmapStyle } from '../game/constants';
+	import { i18nDerived } from '../i18n/i18nDerived';
 
 	// The win-step screen: the tier's ornate plaque frame from the win_steps sheet (crest +
 	// gem inlays baked in the art), the tier name in the branded AbyssalBitmap face inside the
@@ -35,13 +36,6 @@
 		megaWin: 'MEGA_WIN',
 		epicWin: 'MAX_WIN', // purple eye
 		maxWin: 'EPIC_WIN', // red dragon
-	};
-	const TIER_TITLES: Record<WinTierKey, string> = {
-		bigWin: 'BIG WIN',
-		hugeWin: 'HUGE WIN',
-		megaWin: 'MEGA WIN',
-		epicWin: 'EPIC WIN',
-		maxWin: 'MAX WIN',
 	};
 
 	// ---- Tunable knobs ----------------------------------------------------------------------
@@ -97,7 +91,7 @@
 	});
 
 	const frameKey = $derived(TIER_FRAMES[props.tierKey]);
-	const title = $derived(TIER_TITLES[props.tierKey]);
+	const title = $derived(i18nDerived.winTier(props.tierKey));
 	const titleStyle = $derived(
 		abyssalBitmapStyle({
 			fontSize: props.height * TITLE_SIZE,

@@ -17,7 +17,9 @@
 	const biggest = $derived(options[options.length - 1]);
 	const decDisabled = $derived(!idle || stateBet.betAmount <= smallest);
 	const incDisabled = $derived(!idle || stateBet.betAmount >= biggest);
-	const betLabel = $derived(stateBetDerived.activeBetMode()?.text.betAmountLabel || 'BET');
+	const betLabel = $derived(
+		stateBetDerived.activeBetMode()?.text.betAmountLabel || context.i18nDerived.bet(),
+	);
 	const betValue = $derived(numberToCurrencyString(stateBetDerived.betCost()));
 
 	const dec = () => {

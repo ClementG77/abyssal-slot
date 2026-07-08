@@ -7,6 +7,7 @@ import { waitForTimeout } from 'utils-shared/wait';
 import { BOOK_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
 
 import { eventEmitter } from './eventEmitter';
+import { skippableWait } from './skip.svelte';
 import { winLevelMap, type WinLevel, type WinLevelData } from './winLevelMap';
 import { stateGame, stateGameDerived } from './stateGame.svelte';
 import type { BookEvent, BookEventOfType, BookEventContext } from './typesBookEvent';
@@ -71,7 +72,6 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		eventEmitter.broadcast({ type: 'soundScatterCounterClear' });
 		// reset the spin's Gaze charge for the new board; clear any Eye from the prior spin
 		stateGame.gazeCharge = 0;
-		stateGame.scatterPayAmount = 0;
 		stateGame.eyeResolvedThisSpin = false;
 		stateGame.eyeResolveCell = null;
 		stateGame.eyeMultPending = false;
@@ -137,13 +137,27 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	// trigger moment is owned by scatterCelebrate → free-spins intro, and 20×+ totals still get
 	// the Win presentation via setWin. Registered so the event isn't reported as unhandled.
 	scatterPay: async (bookEvent: BookEventOfType<'scatterPay'>) => {
-		// no dedicated celebration (the amount is in the running totals) — but the free-spins
-		// intro card writes it, so the player sees the instant pay on the bonus award
-		stateGame.scatterPayAmount = bookEvent.amount;
 		// roll the pay into the bottom WIN readout IMMEDIATELY, so the round total is visible
 		// from the very first free spin. Any following setTotalWin overwrites this with the
 		// authoritative cumulative (which includes the pay), so nothing double-counts.
 		stateBet.winBookEventAmount += bookEvent.amount;
+
+		// A 6-scatter pay is 100× — that earns the full win-steps takeover, same gate as
+		// setWin (≥20×). 4/5 scatters (3×/5×) stay quiet: the totals already reflect them.
+		if (bookEvent.amount >= WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER) {
+			const mult = bookEvent.amount / BOOK_AMOUNT_MULTIPLIER;
+			const winLevelData = mult >= 250 ? winLevelMap[9] : mult >= 100 ? winLevelMap[8] : winLevelMap[6];
+			eventEmitter.broadcast({ type: 'tumbleWinAmountHide' });
+			eventEmitter.broadcast({ type: 'winShow' });
+			winLevelSoundsPlay({ winLevelData });
+			await eventEmitter.broadcastAsync({
+				type: 'winUpdate',
+				amount: bookEvent.amount,
+				winLevelData,
+			});
+			winLevelSoundsStop();
+			eventEmitter.broadcast({ type: 'winHide' });
+		}
 	},
 
 	tumbleBoard: async (bookEvent: BookEventOfType<'tumbleBoard'>) => {
@@ -277,7 +291,8 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		// rawSymbol change above — there's no emitter handshake to await). Squeeze + edge-on +
 		// spring-open + number pop runs ~0.7s; only then may eyeResolve fly the Gaze seed to the
 		// centre. Also paces Ultimate nicely: several Eyes flip one after another.
-		await waitForTimeout(700 / stateBetDerived.timeScale());
+		// (skippableWait: a screen press releases the hold instantly — see game/skip.svelte)
+		await skippableWait(700 / stateBetDerived.timeScale());
 	},
 
 	eyeResolve: async (bookEvent: BookEventOfType<'eyeResolve'>) => {
