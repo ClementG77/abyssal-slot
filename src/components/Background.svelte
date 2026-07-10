@@ -42,7 +42,7 @@
 	// filter warms + breathes faster. All amplitude-blended (no frequency modulation) so the
 	// heat ramping in/out never phase-jumps the waves.
 	const AMBIENT_HEAT = {
-		fullCharge: 6, // matches FRAME_HEAT.fullCharge in ReelFrame
+		fullCharge: 18, // matches FRAME_HEAT.fullCharge in ReelFrame (essence economy, cap 30)
 		rayBoost: 1.1, // god-ray alpha multiplier at full heat
 		rayFlicker: 0.35, // fast shimmer added to the ray pulse at full heat
 		glowBoost: 0.9, // ambient-glow alpha multiplier at full heat

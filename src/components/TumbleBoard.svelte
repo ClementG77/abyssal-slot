@@ -145,13 +145,16 @@
 			// Drop the refill reel-by-reel (left → right), like the initial spin, instead of every
 			// column at once.
 			const COLUMN_STAGGER = 80;
+			// skip: every symbol finishes in this shared short time → whole board lands together,
+			// fast turbo-like pace (matches createReelForCascading's FINISH_FALL_MS)
+			const FINISH_FALL_MS = 90;
 			// read per tween start — an armed skip (press-to-skip) drops like turbo, mid-beat
 			const getSpinOptions = () =>
 				skipActive() || stateBet.isTurbo ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
 			const getPromises = () =>
 				context.stateGameDerived.tumbleBoardCombined().map(async (tumbleReel, reelIndex) => {
-					// no stagger while a skip is armed — every column drops together; a click
-					// mid-stagger releases the remaining columns at once (skippableWait)
+					// no stagger while a skip is armed — all columns slide together (a press
+					// mid-stagger shortens the remaining holds via skippableWait)
 					if (reelIndex > 0 && !skipActive())
 						await skippableWait((reelIndex * COLUMN_STAGGER) / stateBetDerived.timeScale());
 					const reelLengthInBoard = tumbleReel.length - 2;
@@ -193,7 +196,8 @@
 							if (spinOptions.symbolFallInEasing && spinOptions.symbolFallInReboundMulti) {
 								// gravity feel — same model as the reveal drop: accelerate all the way
 								// to contact, then a small rebound settle (see createReelForCascading).
-								// A press-to-skip snaps the slide (delay included) straight home.
+								// A press-to-skip FINISHES the fall at the turbo drop speed (no snap) —
+								// the beat plays like a spacebar-hold turbo.
 								const duration = distance / spinOptions.symbolFallInSpeed;
 								const reboundDistance = REEL_CELL_HEIGHT * spinOptions.symbolFallInReboundMulti;
 								const reboundDuration = reboundDistance / spinOptions.symbolFallInBounceSpeed;
@@ -206,7 +210,12 @@
 									}),
 								);
 								if (raced === 'skipped') {
-									void tumbleSymbol.symbolY.set(targetY, { duration: 0 });
+									// skip = finish the refill in one shared short time so the whole
+									// board lands together at a fast, turbo-like pace (not a snap)
+									await tumbleSymbol.symbolY.set(targetY, {
+										duration: FINISH_FALL_MS,
+										easing: spinOptions.symbolFallInEasing,
+									});
 									land();
 									await landComplete;
 									return;

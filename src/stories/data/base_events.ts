@@ -72,7 +72,8 @@ export default {
 		index: 3,
 		type: 'gazeStep',
 		fromPositions: l2Positions,
-		charge: 1,
+		// essence economy: the 9-symbol L2 cluster charges +2 (tiers: +2/+3/+5 by size, cap 30)
+		charge: 2,
 	},
 
 	tumbleBoard: {
@@ -103,8 +104,15 @@ export default {
 		amount: 20,
 	},
 
-	finalWin: {
+	// the 15,000× cap — arrives after setTotalWin; drives the MAX WIN trophy takeover
+	wincap: {
 		index: 7,
+		type: 'wincap',
+		amount: 1500000,
+	},
+
+	finalWin: {
+		index: 8,
 		type: 'finalWin',
 		amount: 20,
 		capped: false,

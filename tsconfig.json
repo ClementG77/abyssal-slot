@@ -1,5 +1,13 @@
 {
 	"extends": "config-ts/base.json",
+	"compilerOptions": {
+		// Vite/esbuild do all transpiling — tsc is a type-checker only. Without this, a bare
+		// `tsc` run EMITS .js twins next to every .ts source, and SvelteKit then 500s with
+		// "Multiple universal layout module files found" (+layout.js vs +layout.ts).
+		"noEmit": true
+	},
 	"include": ["."],
-	"exclude": ["dist", "build", "node_modules"]
+	// `docs` holds the animation-reference-bundle snapshot — copied sources that can't resolve
+	// their imports and would drown svelte-check/tsc output in phantom errors.
+	"exclude": ["dist", "build", "node_modules", "docs"]
 }

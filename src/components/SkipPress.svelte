@@ -2,7 +2,7 @@
 	import { OnPressFullScreen } from 'components-layout';
 
 	import { getContext } from '../game/context';
-	import { requestSkip } from '../game/skip.svelte';
+	import { armSkip } from '../game/skip.svelte';
 
 	// Press-to-skip: any click on the game screen fast-forwards the current animation beat
 	// (tumbles, gaze fill, eye reveal…). Pixi hit-testing already routes clicks to the topmost
@@ -25,12 +25,15 @@
 	});
 </script>
 
+<!-- cursor stays default — only the control bar's buttons advertise clickability -->
 <OnPressFullScreen
+	cursor="default"
 	onpress={() => {
 		if (owners > 0) return;
-		if (requestSkip()) {
-			// turbo speeds + every falling symbol snaps to its slot (columns settle together)
-			context.stateGameDerived.skipCurrentSpin();
-		}
+		// only while a round is playing (never pre-arm a skip for the next round)
+		if (context.stateXstateDerived.isIdle()) return;
+		// same treatment as holding the spacebar: everything accelerates to turbo (no snapping)
+		armSkip();
+		context.stateGameDerived.speedUpCurrentSpin();
 	}}
 />

@@ -9,6 +9,7 @@ import { eventEmitter } from './eventEmitter';
 import { stateXstateDerived } from './stateXstate';
 import { playBet, convertTorResumableBet } from './utils';
 import { stateGameDerived } from './stateGame.svelte';
+import { disarmSkip } from './skip.svelte';
 
 const STICKY_BET_MODE_KEYS = new Set(['ANTE', 'SUPERSPINS']);
 let stickyBetModeKey: string | null = null;
@@ -33,6 +34,9 @@ const primaryMachines = createPrimaryMachines<Bet>({
 		if (lastRevealEvent) stateGameDerived.enhancedBoard.settle(lastRevealEvent.board);
 	},
 	onNewGameStart: async () => {
+		// clear any skip left armed by a click near the previous round's boundary, so this
+		// round's exit fall-out runs at normal (not leaked-fast) speed
+		disarmSkip();
 		rememberStickyBetMode();
 		if ((stateBet.isTurbo && stateXstateDerived.isAutoBetting()) || stateBet.isSpaceHold) return;
 		stateBet.winBookEventAmount = 0;

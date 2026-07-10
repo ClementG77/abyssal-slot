@@ -7,7 +7,6 @@ import type { EmitterEventBoardDebris } from '../components/BoardDebris.svelte';
 import type { EmitterEventScatterFx } from '../components/ScatterFx.svelte';
 import type { EmitterEventGazeMeter } from '../components/GazeMeter.svelte';
 import type { EmitterEventEye } from '../components/Eye.svelte';
-import type { EmitterEventPersistentMultiplier } from '../components/PersistentMultiplier.svelte';
 import type { EmitterEventWinCapCelebration } from '../components/WinCapCelebration.svelte';
 import type { EmitterEventFreeSpinIntro } from '../components/FreeSpinIntro.svelte';
 import type { EmitterEventFreeSpinRetrigger } from '../components/FreeSpinRetrigger.svelte';
@@ -27,7 +26,6 @@ export type EmitterEventGame =
 	| EmitterEventScatterFx
 	| EmitterEventGazeMeter
 	| EmitterEventEye
-	| EmitterEventPersistentMultiplier
 	| EmitterEventWinCapCelebration
 	| EmitterEventWin
 	| EmitterEventFreeSpinIntro

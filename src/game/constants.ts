@@ -48,7 +48,20 @@ export const REEL_FRAME_FREE_SPINS_IMAGE_SIZE = { width: 1448, height: 1086 };
 // Source dimensions and measured artwork bounds for the finished Win/Gaze meter export.
 // Coordinates are kept as source-space fractions so the component scales cleanly on every viewport.
 export const GAZE_METER_IMAGE_SIZE = { width: 1254, height: 1254 };
-export const GAZE_METER_MAX_CHARGE = 10;
+// ---- Essence Gaze economy (2026-07 math rework) -------------------------------------------
+// Every winning CLUSTER charges the Gaze by essence graded on the cluster's size (the same
+// bands as the paytable): +2 (8-9 symbols), +3 (10-11), +5 (12+). Super Bonus charges double
+// (+4/+6/+10). The charge hard-caps at 30. The meter VISUAL keeps a 10-wide track and LAPS it:
+// 0-10 tide teal → 11-20 abyssal purple → 21-30 ember red (see GazeMeter's GAZE_LAPS).
+export const GAZE_METER_MAX_CHARGE = 30;
+export const GAZE_LAP_SIZE = 10;
+// essence value per cluster-size tier: [8-9, 10-11, 12+]
+export const ESSENCE_TIER_VALUES = [2, 3, 5] as const;
+export const getEssenceTier = (count: number): 1 | 2 | 3 =>
+	count >= 12 ? 3 : count >= 10 ? 2 : 1;
+// The closed Eye's tension glow reaches full brightness here — deliberately BELOW the 30 cap
+// (a 0-30 normalizer would leave the eye visibly cold on almost every spin).
+export const GAZE_EYE_INTENSITY_FULL = 15;
 export const GAZE_METER_LAYOUT = {
 	imageWidth: GAZE_METER_IMAGE_SIZE.width,
 	imageHeight: GAZE_METER_IMAGE_SIZE.height,

@@ -22,7 +22,7 @@
 	import { ABYSSAL_CONTROL_BAR_LAYOUT as HUD } from '../controlbar/hudLayout';
 	import { drawControlGlyph } from '../controlbar/vectorIcons';
 	import { getContext } from '../game/context';
-	import { requestSkip } from '../game/skip.svelte';
+	import { armSkip } from '../game/skip.svelte';
 	import { icons, type IconKey } from './controls/icons';
 
 	const context = getContext();
@@ -373,16 +373,30 @@
 	// an `activate` mode (Ante / Eye Spins / Ultimate) is currently toggled on → the buy-bonus
 	// button turns red and acts as a one-tap "deactivate back to BASE".
 	const buyBonusIndicatorActive = $derived(stateBetDerived.activeBetMode()?.type === 'activate');
-	const autoDisabled = $derived(
-		!autoActive && !autoSpinArmed && (!isIdle || !stateBetDerived.isBetCostAvailable()),
-	);
+
+	// Per-mode RGS bet cap for the ACTIVE mode (ante / super spins / ultimate raise the cost,
+	// so their `maxBet` can be below the top bet level). Spinning above it returns ERR_VAL, so
+	// gate the spin the same way the buy modal gates a purchase. `maxBet` is in display units;
+	// unknown / base mode → no cap.
+	const activeModeMaxBet = $derived.by(() => {
+		const key = stateBet.activeBetModeKey.toUpperCase();
+		const entry = stateConfig.gameModes.find((gm) => gm.mode.toUpperCase() === key);
+		return entry && entry.maxBet > 0 ? entry.maxBet : Infinity;
+	});
+	const betOverModeMax = $derived(stateBet.betAmount > activeModeMaxBet);
+	const canPlaceBet = $derived(stateBetDerived.isBetCostAvailable() && !betOverModeMax);
+
+	// autobet is NOT disabled by affordability/cap — the player can open it and start it, and
+	// beginAutoSpin surfaces a "can't place this bet" popup instead of a dead button
+	const autoDisabled = $derived(!autoActive && !autoSpinArmed && !isIdle);
 	const turboDisabled = $derived(stateBet.isSpaceHold);
 	const decDisabled = $derived(!isIdle || stateBet.betAmount <= smallest);
 	const incDisabled = $derived(!isIdle || stateBet.betAmount >= biggest);
-	const spinDisabled = $derived(!isIdle || !stateBetDerived.isBetCostAvailable());
-	// the button only LOOKS disabled when a new bet is unaffordable — while a spin plays it
-	// stays lit and acts as the SKIP button (stop glyph, see spin())
-	const spinButtonDimmed = $derived(isIdle && !stateBetDerived.isBetCostAvailable());
+
+	const spinDisabled = $derived(!isIdle || !canPlaceBet);
+	// the button only LOOKS disabled when a new bet is unaffordable / over the mode cap — while a
+	// spin plays it stays lit and acts as the SKIP button (stop glyph, see spin())
+	const spinButtonDimmed = $derived(isIdle && !canPlaceBet);
 
 	const winText = $derived(bookEventAmountToCurrencyString(stateBet.winBookEventAmount));
 	const betLabelText = $derived(
@@ -431,7 +445,14 @@
 		stateBet.activeBetModeKey.toUpperCase() !== 'SUPERSPINS';
 
 	const beginAutoSpin = () => {
-		if (!stateBetDerived.isBetCostAvailable()) return;
+		// don't silently block autobet when the bet can't be placed (unaffordable / over the
+		// mode's cap) — tell the player why with the SDK's notification popup
+		if (!canPlaceBet) {
+			stateModal.modal = { name: 'autoSpinMessage', message: 'insufficientFunds' };
+			autoSpinArmed = false;
+			showAutoPopup = false;
+			return;
+		}
 		stateBet.autoSpinsCounter = AUTO_SPINS_TEXT_OPTION_MAP[stateUi.autoSpinsText];
 		stateBet.autoSpinsLossLimitAmount = Infinity;
 		stateBet.autoSpinsSingleWinLimitAmount = Infinity;
@@ -451,9 +472,9 @@
 		context.eventEmitter.broadcast({ type: 'soundPressBet' });
 		if (!isIdle) {
 			// playing: the spin button doubles as SKIP — same as a press on the screen
-			// (skip the current beat at turbo pace + snap the falling symbols home)
-			requestSkip();
-			context.stateGameDerived.skipCurrentSpin();
+			// (the current beat accelerates to turbo pace, like holding the spacebar)
+			armSkip();
+			context.stateGameDerived.speedUpCurrentSpin();
 			return;
 		}
 		if (spinDisabled) return;
@@ -499,7 +520,8 @@
 
 	const toggleAutoSpinChoice = (option: AutoSpinsText) =>
 		press(() => {
-			if (!isIdle || !stateBetDerived.isBetCostAvailable()) return;
+			// allow arming even if the bet can't be placed — beginAutoSpin shows the popup
+			if (!isIdle) return;
 			if (autoSpinArmed && stateUi.autoSpinsText === option) {
 				autoSpinArmed = false;
 				showAutoPopup = false;

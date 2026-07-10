@@ -7,6 +7,7 @@ import { waitForTimeout } from 'utils-shared/wait';
 import { BOOK_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
 
 import { eventEmitter } from './eventEmitter';
+import { ESSENCE_TIER_VALUES, getEssenceTier } from './constants';
 import { skippableWait } from './skip.svelte';
 import { winLevelMap, type WinLevel, type WinLevelData } from './winLevelMap';
 import { stateGame, stateGameDerived } from './stateGame.svelte';
@@ -72,6 +73,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		eventEmitter.broadcast({ type: 'soundScatterCounterClear' });
 		// reset the spin's Gaze charge for the new board; clear any Eye from the prior spin
 		stateGame.gazeCharge = 0;
+		stateGame.pendingGazeClusters = [];
 		stateGame.eyeResolvedThisSpin = false;
 		stateGame.eyeResolveCell = null;
 		stateGame.eyeMultPending = false;
@@ -91,6 +93,14 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	},
 
 	winInfo: async (bookEvent: BookEventOfType<'winInfo'>) => {
+		// stash this tumble's clusters for the FOLLOWING gazeStep — it turns them into
+		// per-cluster essence orbs (+2/+3/+5 by cluster size, flying from each overlay cell)
+		stateGame.pendingGazeClusters = bookEvent.wins.map((win) => ({
+			count: win.count,
+			reel: win.meta.overlay.reel,
+			row: win.meta.overlay.row,
+		}));
+
 		const promiseAnimate = async () => {
 			eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_winlevel_small' });
 			await animateSymbols({ positions: _.flatten(bookEvent.wins.map((win) => win.positions)) });
@@ -124,18 +134,47 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	},
 
 	gazeStep: async (bookEvent: BookEventOfType<'gazeStep'>) => {
+		// Per-cluster essence breakdown for the meter's hero orbs + "+N" chips, from the
+		// clusters winInfo stashed. `charge` is the authoritative total; the per-cluster values
+		// are presentation. The essence multiplier (Super Bonus charges ×2) is derived from the
+		// actual charge delta when it divides cleanly; the cap at 30 can obscure the delta, so
+		// the mode key is the fallback — chips then still show the TRUE essence earned while
+		// the meter clamps.
+		const tierValues = stateGame.pendingGazeClusters.map(
+			(cluster) => ESSENCE_TIER_VALUES[getEssenceTier(cluster.count) - 1],
+		);
+		const tierSum = tierValues.reduce((a, b) => a + b, 0);
+		const delta = bookEvent.charge - stateGame.gazeCharge;
+		const essenceMult =
+			tierSum > 0 && delta === tierSum * 2
+				? 2
+				: tierSum > 0 && delta === tierSum
+					? 1
+					: stateBet.activeBetModeKey.toUpperCase() === 'SUPERBONUS'
+						? 2
+						: 1;
+		const clusters = stateGame.pendingGazeClusters.map((cluster, index) => ({
+			value: tierValues[index] * essenceMult,
+			tier: getEssenceTier(cluster.count),
+			reel: cluster.reel,
+			row: cluster.row,
+		}));
+		stateGame.pendingGazeClusters = [];
+
 		stateGame.gazeCharge = bookEvent.charge;
 		await eventEmitter.broadcastAsync({
 			type: 'gazeMeterFill',
 			fromPositions: bookEvent.fromPositions,
 			charge: bookEvent.charge,
+			clusters,
 		});
 	},
 
-	// Instant scatter pay (4 = 3×, 5 = 5×, 6 = 100× the bet). No dedicated celebration: the
-	// amount is already rolled into the round's running totals (setTotalWin / finalWin), the
-	// trigger moment is owned by scatterCelebrate → free-spins intro, and 20×+ totals still get
-	// the Win presentation via setWin. Registered so the event isn't reported as unhandled.
+	// Instant scatter pay (4 = 3×, 5 = 5×, 6 = 100× the bet). Fires on ANY trigger spin —
+	// base/ante organic triggers AND bonus/superbonus buy trigger boards (2026-07 math rework;
+	// every buy pays at least the 3× trigger cash). Only the forced max-win corner skips it;
+	// superspins/ultimate have no scatters so never emit it. The event arrives between the
+	// trigger spin's setTotalWin and freeSpinTrigger, i.e. BEFORE the bonus starts.
 	scatterPay: async (bookEvent: BookEventOfType<'scatterPay'>) => {
 		// roll the pay into the bottom WIN readout IMMEDIATELY, so the round total is visible
 		// from the very first free spin. Any following setTotalWin overwrites this with the
@@ -143,7 +182,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		stateBet.winBookEventAmount += bookEvent.amount;
 
 		// A 6-scatter pay is 100× — that earns the full win-steps takeover, same gate as
-		// setWin (≥20×). 4/5 scatters (3×/5×) stay quiet: the totals already reflect them.
+		// setWin (≥20×). 4/5 scatters (3×/5×) show on the WIN readout instead.
 		if (bookEvent.amount >= WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER) {
 			const mult = bookEvent.amount / BOOK_AMOUNT_MULTIPLIER;
 			const winLevelData = mult >= 250 ? winLevelMap[9] : mult >= 100 ? winLevelMap[8] : winLevelMap[6];
@@ -157,6 +196,10 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 			});
 			winLevelSoundsStop();
 			eventEmitter.broadcast({ type: 'winHide' });
+		} else {
+			// 4/5 scatters: hold a beat so the pay visibly lands on the WIN readout before the
+			// trigger celebration → intro takes the screen (a press skips the hold)
+			await skippableWait(900 / stateBetDerived.timeScale());
 		}
 	},
 
@@ -184,8 +227,9 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 
 	setWin: async (bookEvent: BookEventOfType<'setWin'>) => {
 		const winLevelData = winLevelMap[bookEvent.winLevel as WinLevel];
-		// 20×+ wins get the centre-screen celebration — and it OWNS the final-amount reveal:
-		// the tumble banner must never count up to the final first (it kills the suspense).
+		// 20×+ wins get the centre-screen win-steps celebration. The Eye multiplier still lands
+		// on the tumble banner first (see below) — the takeover then re-counts from zero as the
+		// escalation ladder.
 		const celebrate =
 			bookEvent.amount >= WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER;
 
@@ -196,19 +240,20 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 
 		if (stateGame.eyeMultPending && stateGame.eyeResolveCell) {
 			stateGame.eyeMultPending = false;
-			// Sub-celebration Eye wins: carry the multiplier to the tumble-win banner — the ×N
-			// flies from the board centre in, then the banner counts the raw win up to the final.
-			// Celebration wins skip this beat entirely: the combine already showed the ×N, and
-			// the count-up from zero happens inside the takeover.
-			if (!celebrate) {
-				await eventEmitter.broadcastAsync({
-					type: 'tumbleWinAmountMultiply',
-					totalWin: bookEvent.amount,
-					// the combine resolves the total at the board centre, so the ×N flies from there
-					fromReel: 2.5,
-					fromRow: 3,
-				});
-			}
+			// Carry the multiplier to the tumble-win banner: the ×N flies from the board centre
+			// in, the banner shows "raw × mult" and counts up to the final. This now plays for
+			// ALL Eye wins — including celebration (≥20×) ones — so the multiplier visibly lands
+			// on the win amount BEFORE the win-steps takeover, instead of jumping straight to it.
+			await eventEmitter.broadcastAsync({
+				type: 'tumbleWinAmountMultiply',
+				totalWin: bookEvent.amount,
+				// the combine resolves the total at the board centre, so the ×N flies from there
+				fromReel: 2.5,
+				fromRow: 3,
+				// celebration wins stop on the "raw × mult" equation — the win-steps takeover
+				// reveals the final, so it isn't shown on the banner first
+				countToFinal: !celebrate,
+			});
 			// The Eyes have fired their multiplier into the win — mark them `spent`: the number
 			// leaves the eye (Symbol hides it, with a pop) and the plain EMPTY art remains.
 			stateGame.revealedEyes.forEach(({ reel, row }) => {
@@ -234,7 +279,10 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 			amount: bookEvent.amount,
 			winLevelData,
 		});
-		winLevelSoundsStop();
+		// A max-level setWin (winLevel 10 — capped books only) is always followed by `wincap`:
+		// keep the UI hidden and the max-win music rolling so the ladder hands straight off to
+		// the trophy takeover; the wincap handler below restores both when the trophy closes.
+		if (winLevelData?.alias !== 'max') winLevelSoundsStop();
 		eventEmitter.broadcast({ type: 'winHide' });
 	},
 
@@ -302,14 +350,11 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		// banner in `setWin` (see eyeMultPending). One code path for single + Ultimate (multi).
 		stateGame.eyeResolvedThisSpin = true;
 		stateGame.eyeMultPending = true;
-		// the Gaze seed and (in the feature) the banked ×M fly to the board centre TOGETHER —
-		// everything the combine consumes converges on the same point
-		await Promise.all([
-			eventEmitter.broadcastAsync({ type: 'gazeMeterToEye' }),
-			...(stateGame.gameType === 'freegame' && stateGame.persistentMult > 1
-				? [eventEmitter.broadcastAsync({ type: 'snowballToCombine' })]
-				: []),
-		]);
+		// The combine consumes its pieces in reading order: the Gaze seed flies to the centre
+		// FIRST; the Eye chips then fold in during eyeBurst, and (in the feature) the banked ×M
+		// is the LAST arrival — eyeBurst awaits snowballToCombine right before the hero total
+		// (see Eye.svelte), so the multiplier visibly joins the equation instead of pre-flying.
+		await eventEmitter.broadcastAsync({ type: 'gazeMeterToEye' });
 		await eventEmitter.broadcastAsync({
 			type: 'eyeBurst',
 			charge: bookEvent.charge,
@@ -334,8 +379,16 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	},
 
 	// --- Win-cap (15,000×) ------------------------------------------------------------
+	// Fires on the ROUND cumulative hitting the cap — possibly right after a win ladder that
+	// never reached MAX WIN (a small spin win can tip the total over). The trophy takeover is
+	// therefore the authoritative MAX WIN reveal: the red-dragon plaque slams in at the end of
+	// the win celebrations and holds until a press (see WinCapCelebration.svelte).
 	wincap: async (bookEvent: BookEventOfType<'wincap'>) => {
+		const winLevelData = winLevelMap[10]; // alias 'max' → hides the UI + max-win music
+		eventEmitter.broadcast({ type: 'tumbleWinAmountHide' });
+		winLevelSoundsPlay({ winLevelData });
 		await eventEmitter.broadcastAsync({ type: 'winCapTrigger', amount: bookEvent.amount });
+		winLevelSoundsStop();
 	},
 
 	// --- Free Spins lifecycle ---------------------------------------------------------

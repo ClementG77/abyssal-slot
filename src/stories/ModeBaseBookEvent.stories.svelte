@@ -106,6 +106,16 @@
 />
 
 <Story
+	name="wincap"
+	args={templateArgs({
+		skipLoadingScreen: true,
+		data: events.wincap,
+		action: async (data) => await playBookEvent(data, { bookEvents: [] }),
+	})}
+	{template}
+/>
+
+<Story
 	name="finalWin"
 	args={templateArgs({
 		skipLoadingScreen: true,

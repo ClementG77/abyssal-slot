@@ -10,12 +10,14 @@ Grounded in the actual emitters: [game_events.py](games/abyssal/game_events.py),
 [ABYSSAL_FRONTEND_GUIDE.md](ABYSSAL_FRONTEND_GUIDE.md); the math itself in
 [ABYSSAL_MATH_SPEC.md](ABYSSAL_MATH_SPEC.md).
 
-> **Math status (production):** all **six** bet modes are finalized and validated at **500k
-> sims/mode** — each hits **96.00% RTP**, reaches the **15,000× cap**, and is **fully compliant
-> on the Stake Engine ACP**. The optimizer tuning that produced the current lookup tables is
-> *event-invisible* (it only reweights books — it changes no event types, payloads, or order),
-> so this guide is unaffected by it. **Paste current 500k books** into the Storybook data
-> (§11.5), not older draws.
+> **Math status:** all **six** bet modes carry the full 2026-07 rework — the **Essence Gaze**
+> (+2/+3/+5 per winning cluster, cap 30), Gates-style **mid-cascade Eye drops**, ~2× Eye
+> frequency, scatter pay on **all** trigger modes (incl. bonus/superbonus buys), the de-grinded
+> base (~28% hit rate) and honest ante (2× triggers). Validated **fully compliant (2★ + 3★) at
+> 100k sims/mode**, 96.00% RTP each, 15,000× reachable; the production-lock run (500k/1M) is
+> pending. Optimizer re-tuning is *event-invisible* (it only reweights books — no event types,
+> payloads, or order change), so this guide survives it. **Paste books from the current build**
+> into the Storybook data (§11.5), not older draws.
 
 ---
 
@@ -27,9 +29,10 @@ Grounded in the actual emitters: [game_events.py](games/abyssal/game_events.py),
 3. A spin is: **reveal → (winInfo → updateTumbleWin → gazeStep → tumbleBoard)\* → eyeReveal\* →
    eyeResolve → setPersistentMult? → setWin → setTotalWin**, then optionally scatter pay and
    the free-spins feature, then **finalWin**.
-4. **The Eye is already on the board at `reveal`** (board cell has `eye:true`); it only *opens*
-   (shows type + value) at the end of the tumble sequence via `eyeReveal`/`eyeResolve`.
-5. The **Gaze** (charge) builds +1 per winning tumble and is the number the Eye multiplies.
+4. **An Eye can be on the board at `reveal`** (board cell has `eye:true`) **or drop in
+   mid-cascade** (arriving inside `tumbleBoard.newSymbols`, cued by `eyeDrop`); either way it
+   only *opens* (shows type + value) at the end of the tumble sequence via `eyeReveal`/`eyeResolve`.
+5. The **Gaze** (charge) builds with **ESSENCE per winning cluster** — +2 (8-9 symbols), +3 (10-11), +5 (12+), summed when several clusters win the same tumble, ×2 in the Super Bonus feature, hard-capped at **30** — and is the number the Eye multiplies. (Same size tiers as the paytable.)
 
 ---
 
@@ -84,7 +87,7 @@ Every event type the math emits, with payload and render duty. **Bold** = Abyssa
 | 1 | `reveal` | `board` (6×7, padding embedded), `paddingPositions` (per-reel strip stops), `gameType` (`basegame`/`freegame`), `anticipation` (per-reel int array) | start of **every** spin (base + each free spin) | Spin reels to `paddingPositions`, drop the new board. The **Eye is already here** (`eye:true` cell) — show it *closed/glowing*, value hidden. Slow-roll any reel whose `anticipation[reel] > 0`. |
 | 2 | `winInfo` | `totalWin`, `wins:[{symbol,count,win,positions,meta:{winWithoutMult}}]` | once per winning tumble (after the board settles, before it explodes) | Highlight each winning cluster; show per-symbol win. `win`/`totalWin` are ×100. `count` = symbols in the cluster. |
 | 3 | `updateTumbleWin` | `amount` | immediately after each `winInfo` | Update the running "tumble win" ticker for this spin (×100, cumulative across the spin's tumbles). |
-| 4 | **`gazeStep`** | `fromPositions:[{reel,row}]`, `charge` | after each winning tumble (only if it won) | Animate energy flowing from the winning cells into the **Gaze meter**; set meter = `charge`. This is the running cascade count this spin. |
+| 4 | **`gazeStep`** | `fromPositions:[{reel,row}]`, `charge` | after each winning tumble (only if it won) | Animate energy flowing from the winning cells into the **Gaze meter**; set meter = `charge` (the running ESSENCE this spin: +2/+3/+5 per cluster by size, cap **30** — meter scale is 0-30; at 30 play a "GAZE MAXED" beat). Pulse once per highlighted cluster for a double win. |
 | 5 | `tumbleBoard` | `explodingSymbols:[{reel,row}]`, `newSymbols:[[...]]` | after `gazeStep`, if the sequence continues | Explode the listed cells, drop `newSymbols` from the top per reel to refill. **Eye cells never explode** — they fall/stay. New scatters can arrive here (organic). A Gates-style **dropped Eye also arrives HERE**, as one of `newSymbols` (a closed `EYE` cell) — render it via your normal cascade-refill path, identical to any other dropping symbol. |
 | 5b | **`eyeDrop`** | `position:{reel,row}` | **mid-cascade**, emitted right **after** the `tumbleBoard` that carried the dropped Eye | **Non-placing cue.** The Eye is already on the board — it came in this tumble's `tumbleBoard.newSymbols` at `position` (see row 5). Do **not** place a sprite from this event; use it only as a count/SFX/“an Eye dropped!” signal. The Eye is closed (type/value hidden), charges with the Gaze for the rest of the cascade, and reveals at the end. Multiple can drop across one spin; an Eye can also already be present from `reveal`. |
 | 6 | **`eyeReveal`** | `position:{reel,row}`, `eyeType` (`ADD`/`MUL`), `startValue` | at end of sequence, **once per Eye** (incl. dropped ones), only if an Eye is present *and* the spin won | "Open" the Eye at `position`: flip it to show ADD/MUL + its number. Multiple in a row for the Ultimate / any Gates spin that caught several. |
@@ -93,7 +96,7 @@ Every event type the math emits, with payload and render duty. **Bold** = Abyssa
 | 8 | **`setPersistentMult`** | `mult` | **feature spins only, and only on Eye spins** | The **additive banked multiplier** `M` after this Eye (MUL Eyes multiply the Gaze, then add to `M`); this is the multiplier applied to *this* spin. Update the persistent-multiplier badge. (Never emitted on Eye-less spins — see §6.3.) |
 | 9 | `setWin` | `amount`, `winLevel` | after the Eye resolves, if spin win > 0 | The **final win for this single spin** (post-Eye, post-snowball), ×100. Use `winLevel` to pick the win presentation (small/big/mega…). |
 | 10 | `setTotalWin` | `amount` | after `setWin`, and again after a scatter pay | The **round cumulative** win so far (×100). Drives the big round ticker. |
-| 11 | **`scatterPay`** | `count`, `amount` | base/ante **trigger** spins only, after the Eye | Instant scatter cash bonus: `count` 4/5/6 → `amount` 300/500/10000 (×100 = 3×/5×/100×). Pop a coin/scatter-pay banner. **Not** multiplied by the Eye. Followed by an updated `setTotalWin`. |
+| 11 | **`scatterPay`** | `count`, `amount` | ANY **trigger** spin (base/ante + bonus/superbonus buys), after the Eye | Instant scatter cash bonus: `count` 4/5/6 → `amount` 300/500/10000 (×100 = 3×/5×/100×). Pop a coin/scatter-pay banner. **Not** multiplied by the Eye. Followed by an updated `setTotalWin`. |
 | 12 | `wincap` | `amount` | once, the moment cumulative win hits 15,000× | Trigger the MAX-WIN takeover sequence. Spin logic stops cascading after this. |
 | 13 | `freeSpinTrigger` | `totalFs`, `positions:[{reel,row}]` | when ≥4 scatters trigger the feature (from base/ante) | The feature-entry moment: show "15 Free Spins", highlight the trigger scatters, transition into the feature scene. `totalFs` = 15. |
 | 14 | `updateFreeSpin` | `amount` (current spin #), `total` (`totalFs`) | at the **start of each free spin**, before its `reveal` | Update the "spin X / Y" counter. |
@@ -114,24 +117,26 @@ This is the precise sequence from [gamestate.py `run_spin`](games/abyssal/gamest
 `( … )*` = repeats per tumble; `[ … ]?` = conditional.
 
 ```
-reveal                                  # new board; Eye(s) already present but closed
-( winInfo → updateTumbleWin → gazeStep → tumbleBoard )?   # 1st connection (no tumbleBoard if it's the last)
-( winInfo → updateTumbleWin → gazeStep → tumbleBoard )*   # further cascades; scatters may drop in
+reveal                                  # new board; Eye(s) may already be present (closed)
+( winInfo → updateTumbleWin → gazeStep → tumbleBoard [→ eyeDrop]? )*
+                                          # cascades: scatters may drop in; a CLOSED Eye may drop
+                                          # in via tumbleBoard.newSymbols (eyeDrop = non-placing cue)
                                           # loop ends when a drop yields no win (or wincap / 20-tumble guard)
 [ eyeReveal × N → eyeResolve ]?          # only if Eye present AND spin won
 [ setPersistentMult ]?                   # feature spins only, Eye spins only (NOT in base/ante base spin)
 [ setWin ]?                              # if spin win > 0
 setTotalWin                              # round cumulative
 [ wincap ]?                              # if 15,000× hit anywhere above
-[ scatterPay → setTotalWin ]?            # base/ante trigger spins: 4/5/6 scatter cash
+[ scatterPay → setTotalWin ]?            # any trigger spin (base/ante + buys): 4/5/6 scatter cash
 [ freeSpinTrigger → <FEATURE> → freeSpinEnd ]?   # if ≥4 scatters → feature (see §5)
 finalWin                                 # settle (last event)
 ```
 
 Key ordering facts the renderer must respect:
-- **`reveal` already contains the Eye.** There is no "eye drops in" event — the Eye is a board
-  cell from the first frame. It can be carried down by `tumbleBoard` (it never explodes). Show
-  it as a closed/charging eye; only `eyeReveal` opens it.
+- **Eyes arrive two ways:** already on the `reveal` board, **or dropped mid-cascade inside
+  `tumbleBoard.newSymbols`** (the following `eyeDrop` is a non-placing count/SFX cue). Once on
+  the board an Eye is carried down by later tumbles (it never explodes). Show every Eye as a
+  closed/charging eye; only `eyeReveal` opens it.
 - **Win → Gaze → Tumble, in that order, every cascade.** Highlight the win, flow energy into
   the Gaze, *then* explode + refill.
 - **The Eye resolves once, at the very end of the cascade chain** — not per tumble.
@@ -150,7 +155,7 @@ freeSpinTrigger            # totalFs = 15; highlight trigger scatters; enter fea
   ┌── per free spin ──────────────────────────────────────────────┐
   │ updateFreeSpin          # "spin X / Y"                          │
   │ reveal                  # new feature board (gameType=freegame) │
-  │ ( winInfo → updateTumbleWin → gazeStep → tumbleBoard )*         │
+  │ ( winInfo → updateTumbleWin → gazeStep → tumbleBoard [→ eyeDrop]? )*  │
   │ [ eyeReveal × N → eyeResolve → setPersistentMult ]?  # Eye spin │
   │ [ setWin ]? → setTotalWin                                       │
   │ [ wincap ]?                                                     │
@@ -162,7 +167,7 @@ finalWin                   # (back in the base round) settle + endRound
 ```
 
 - **Flat 15 spins** every trigger (`base_freespins`). Scatter *count* does **not** change the
-  spin count — it pays the instant `scatterPay` instead (base/ante triggers only).
+  spin count — it pays the instant `scatterPay` instead (on every trigger: base/ante + buys).
 - **Retrigger** = ≥3 scatters in-feature → `freeSpinRetrigger`, `+5` spins, hard cap **30**.
 - **No scatters after the 30-cap:** once `total` hits 30, the math draws scatter-free boards,
   so you will **not** see scatters (and no misleading "about to retrigger"). If you ever see a
@@ -184,8 +189,9 @@ The Eye is the whole game; get this exactly right.
 ### 6.1 Lifecycle within a spin
 1. **`reveal`**: an Eye cell (`eye:true`) **may** already be on the board — render it **closed /
    slowly glowing**, value hidden. (Often there is none here — it can still arrive later.)
-2. **`gazeStep`** (each winning tumble): the **Gaze** meter climbs (`charge`). This is the
-   number the Eye will use.
+2. **`gazeStep`** (each winning tumble): the **Gaze** meter climbs (`charge`) by ESSENCE —
+   +2/+3/+5 per winning cluster by size (summed for double wins, ×2 in the Super Bonus
+   feature, cap 30). This is the number the Eye will use.
 3. **`eyeDrop`** (Gates, mid-cascade): an Eye can **drop in on any tumble**, closed. So a spin
    that started Eye-less is **never dead** — keep tumbling and one may still land on your
    built-up Gaze. Several can drop across one spin (they accumulate).
@@ -219,9 +225,10 @@ multiplies the **Gaze** (not the whole `M`), then that result is added to `M`. (
 - **On an Eye-less spin (or an Eye spin that didn't win):** the spin pays its **raw win**; `M`
   is **not** applied and **no `setPersistentMult` is emitted**. The banked badge stays put.
 
-> **MUL Eyes are the prized, rarer drop** (≈12% of feature Eyes in base/ante/bonus, 20% in
-> superbonus): a MUL multiplies your **Gaze** (so a long cascade + a MUL adds a big chunk to
-> `M`), while ADD adds a small flat amount. `M` climbs **linearly** across the feature. The
+> **MUL Eyes are the prized, rarer drop** (≈20% of feature Eyes in base/bonus/superbonus,
+> 25% in ante): a MUL multiplies your **Gaze** (so a long ESSENCE-charged cascade + a MUL adds
+> a big chunk to `M`), while ADD adds a small flat amount. `M` climbs **linearly** across the
+> feature — and with feature Eyes landing ~1 spin in 5, the badge ticks every few spins. The
 > persistent multiplier **climbs only on Eye spins and pays off only on Eye spins**: a dry,
 > Eye-less free spin pays its plain tumble win even if `M` is large. **Do not** multiply Eye-less
 > spins by `M` — the only signal to apply `M` is the presence of `setPersistentMult` on that spin.
@@ -238,7 +245,9 @@ fizzle if the sequence truly ends Eye-less. (The math records a `chargeNoEye` fo
 `charge ≥ 5`, but that's QA-only — not an event.)
 
 ### 6.5 Multiple Eyes (Ultimate only)
-`reveal` can show 1–5 Eye cells. At resolve: **N `eyeReveal` events** (open each) then **one
+`reveal` **always shows at least 2 Eye cells** (2–5 at the draw — a single- or zero-Eye
+Ultimate spin cannot happen), and more can `eyeDrop` in mid-cascade. At resolve: **N
+`eyeReveal` events** (open each) then **one
 `eyeResolve` carrying `eyes:[…]`**, then a dedicated **`ultimateResolve`** event that spells out
 the whole combine for you. Render the combine: sum the ADD `startValue`s, multiply the
 MUL `startValue`s, fold in the Gaze: `(charge + ΣADD) × ΠMUL = totalMult`. Ultimate is a
@@ -274,9 +283,10 @@ Suggested render: show `rawWin`, then build `(Gaze + ΣADD) × ΠMUL = totalMult
   Keep a **live on-board scatter count** as `tumbleBoard` events arrive.
 - **3 scatters = the "bait":** a base/ante spin can settle at 3 (a near-trigger). Use the
   `reveal.anticipation` field to slow-roll the reels when a trigger is close.
-- **Scatter pays (`scatterPay`)** fire only on a base/ante **trigger** (count 4/5/6 →
-  3×/5×/100×), added on top, **not** Eye-multiplied. Buys and the forced max-win corner don't
-  pay scatter.
+- **Scatter pays (`scatterPay`)** fire on ANY feature **trigger** — base/ante organic triggers
+  AND the bonus/superbonus buy trigger boards (count 4/5/6 → 3×/5×/100×), added on top, **not**
+  Eye-multiplied. Only the forced max-win corner skips it, and the single-spin buys
+  (superspins/ultimate) have no scatters so never pay it.
 - **6-scatter hard cap:** the *playable* board never keeps more than 6 scatters (pays top out
   at 6; spins are flat). A `scatterPay.count` is always 4, 5, or 6. **Padding rows may show a
   7th scatter** in the raw `board` array — it's display-only, doesn't count/pay/trigger; render
@@ -290,20 +300,23 @@ Suggested render: show `rawWin`, then build `(Gaze + ΣADD) × ΠMUL = totalMult
 
 | Mode | Cost | Entry / shape | Eye | Snowball | Scatter pay |
 |------|------|---------------|-----|----------|-------------|
-| **base** | 1× | normal spins; organic scatter trigger → feature | rare, mostly ADD | yes (banked, in feature) | yes (on trigger) |
-| **ante** | 1.25× | as base, more frequent Eyes/scatters | rare+ | yes | yes |
-| **bonus** | 100× | buy → feature directly (`freeSpinTrigger` up front) | feature Eyes | yes | **no** (you bought it) |
-| **superspins** | 20× | **one direct basegame spin**, Eye guaranteed; no feature, no counter, **no snowball** | guaranteed | **no** | no |
-| **superbonus** | 500× | buy → feature; Gaze builds **+2**/tumble; MUL Eyes common | feature Eyes, hot | yes | no |
-| **ultimate** | 300× | **one direct basegame spin** with **1–5 combining Eyes** | multiple, combine | **no** | no |
+| **base** | 1× | normal spins (~28% hit rate); organic scatter trigger → feature (~1/180) | ~1/7 spins at draw + mid-cascade drops; mostly ADD | yes (banked, in feature) | yes (on trigger) |
+| **ante** | 1.25× | as base but **2× the trigger rate** (~1/90) and livelier (~30% hit) | ~1/5 spins + drops | yes | yes |
+| **bonus** | 100× | buy → feature directly (`freeSpinTrigger` up front); every buy pays ≥3× (trigger cash) | feature Eyes ~1/5 spins + drops | yes | **yes** (on the trigger board) |
+| **superspins** | 20× | **one direct basegame spin**, Eye guaranteed; no feature, no counter, **no snowball** | guaranteed + drops | **no** | no (no scatters on its reel) |
+| **superbonus** | 500× | buy → feature; Gaze charges at **×2 essence** (+4/+6/+10 per cluster); every buy pays ≥3× | feature Eyes ~1/6 + hot drops; MUL rare-but-prized (20%) | yes | **yes** (on the trigger board) |
+| **ultimate** | 300× | **one direct basegame spin** with **2–5 combining Eyes** (never fewer than 2) + drops | multiple, combine | **no** | no (no scatters on its reel) |
 
 Renderer implications:
 - **Super Spins & Ultimate** emit **no** `freeSpinTrigger`/`updateFreeSpin`/`freeSpinEnd` — they
   are a single spin: `reveal → tumbles → eyeReveal(s) → eyeResolve → setWin → setTotalWin →
   finalWin`. No feature scene.
-- **Ultimate** is the only mode with multi-`eyeReveal` + an `eyes` array in `eyeResolve`.
-- **Super Bonus** Gaze increments by **2** per tumble — your meter animation should reflect the
-  faster charge.
+- **Ultimate** is the only mode with multi-`eyeReveal` + an `eyes` array in `eyeResolve`
+  (+ `ultimateResolve`), and it **always** has ≥2 Eyes — even a losing spin shows them.
+- **Super Bonus** charges the Gaze at **×2 essence** (+4/+6/+10 per cluster) — the meter should
+  visibly climb faster; it kisses the 30 cap more often than any other mode.
+- **bonus/superbonus** buys open with a scatter-rich trigger board: render the `scatterPay`
+  banner there exactly like an organic base trigger (only the forced max-win corner skips it).
 
 ---
 
@@ -317,17 +330,17 @@ Amounts are ×100 (cents-of-bet). Comments are not in the real JSON.
  { "type":"reveal", "board":[…6×7…], "paddingPositions":[216,205,195,16,65,40], "gameType":"basegame", "anticipation":[0,0,0,0,0,0] },
  { "type":"winInfo", "totalWin":120, "wins":[ {"symbol":"H1","count":9,"win":120,"positions":[…],"meta":{"winWithoutMult":120}} ] },
  { "type":"updateTumbleWin", "amount":120 },
- { "type":"gazeStep", "fromPositions":[…], "charge":1 },
+ { "type":"gazeStep", "fromPositions":[…], "charge":2 },    // 9-symbol cluster = +2 essence
  { "type":"tumbleBoard", "explodingSymbols":[…], "newSymbols":[[…]] },
  { "type":"winInfo", "totalWin":80, "wins":[ … ] },         // 2nd cascade
  { "type":"updateTumbleWin", "amount":200 },                // 120+80
- { "type":"gazeStep", "fromPositions":[…], "charge":2 },    // Gaze now 2
+ { "type":"gazeStep", "fromPositions":[…], "charge":4 },    // another t1 cluster → Gaze 4
  // 3rd drop: no win → loop ends
  { "type":"eyeReveal", "position":{"reel":3,"row":2}, "eyeType":"ADD", "startValue":10 },
- { "type":"eyeResolve", "charge":2, "eyeType":"ADD", "startValue":10, "totalMult":12 },  // 10+2
- { "type":"setWin", "amount":2400, "winLevel":"big" },      // rawWin 200 × 12
- { "type":"setTotalWin", "amount":2400 },
- { "type":"finalWin", "amount":2400, "capped":false }
+ { "type":"eyeResolve", "charge":4, "eyeType":"ADD", "startValue":10, "totalMult":14 },  // 10+4
+ { "type":"setWin", "amount":2800, "winLevel":"big" },      // rawWin 200 × 14
+ { "type":"setTotalWin", "amount":2800 },
+ { "type":"finalWin", "amount":2800, "capped":false }
 ]
 ```
 
@@ -347,46 +360,47 @@ Amounts are ×100 (cents-of-bet). Comments are not in the real JSON.
    // ---- feature ----
    { "type":"updateFreeSpin", "amount":1, "total":15 },
    { "type":"reveal", "gameType":"freegame", … },           // spin 1: an ADD Eye (common)
-   { "type":"winInfo", … }, { "type":"updateTumbleWin", … }, { "type":"gazeStep","charge":1,… },
+   { "type":"winInfo", … }, { "type":"updateTumbleWin", … }, { "type":"gazeStep","charge":2,… },
    { "type":"eyeReveal", "eyeType":"ADD","startValue":5, … },
-   { "type":"eyeResolve", "charge":1, "eyeType":"ADD","startValue":5, "totalMult":7 },  // (1+1+5)
-   { "type":"setPersistentMult", "mult":7 },                // M: 1 → (1 + gaze1 + 5) = 7
-   { "type":"setWin", "amount":2100, "winLevel":"big" },    // rawWin 300 × M(7)
-   { "type":"setTotalWin", "amount":2700 },
+   { "type":"eyeResolve", "charge":2, "eyeType":"ADD","startValue":5, "totalMult":8 },  // (1+2+5)
+   { "type":"setPersistentMult", "mult":8 },                // M: 1 → (1 + gaze2 + 5) = 8
+   { "type":"setWin", "amount":2400, "winLevel":"big" },    // rawWin 300 × M(8)
+   { "type":"setTotalWin", "amount":3000 },
    { "type":"updateFreeSpin", "amount":2, "total":15 },
    { "type":"reveal", "gameType":"freegame", … },           // spin 2: Eye-less winning spin
-   { "type":"winInfo", … }, { "type":"updateTumbleWin", … }, { "type":"gazeStep","charge":1,… },
-   // NO eyeReveal / NO setPersistentMult → M (7) is NOT applied
-   { "type":"setWin", "amount":150, "winLevel":"small" },   // raw win only; M stays banked at 7
-   { "type":"setTotalWin", "amount":2850 },
+   { "type":"winInfo", … }, { "type":"updateTumbleWin", … }, { "type":"gazeStep","charge":2,… },
+   // NO eyeReveal / NO setPersistentMult → M (8) is NOT applied
+   { "type":"setWin", "amount":150, "winLevel":"small" },   // raw win only; M stays banked at 8
+   { "type":"setTotalWin", "amount":3150 },
    { "type":"updateFreeSpin", "amount":3, "total":15 },
    { "type":"reveal", "gameType":"freegame", … },           // spin 3: a MUL Eye (rare, prized)
-   { "type":"winInfo", … }, { "type":"updateTumbleWin", … }, { "type":"gazeStep","charge":2,… },
+   { "type":"winInfo", … }, { "type":"updateTumbleWin", … }, { "type":"gazeStep","charge":5,… },
    { "type":"eyeReveal", "eyeType":"MUL","startValue":3, … },
-   { "type":"eyeResolve", "charge":2, "eyeType":"MUL","startValue":3, "totalMult":13 },  // M += 2×3
-   { "type":"setPersistentMult", "mult":13 },               // M: 7 + (gaze2 × 3) = 13  (additive)
-   { "type":"setWin", "amount":2600, "winLevel":"big" },    // rawWin 200 × M(13)
-   { "type":"setTotalWin", "amount":5450 },
+   { "type":"eyeResolve", "charge":5, "eyeType":"MUL","startValue":3, "totalMult":23 },  // M += 5×3
+   { "type":"setPersistentMult", "mult":23 },               // M: 8 + (gaze5 × 3) = 23  (additive)
+   { "type":"setWin", "amount":4600, "winLevel":"big" },    // rawWin 200 × M(23)
+   { "type":"setTotalWin", "amount":7750 },
    // … more spins …
-   { "type":"freeSpinEnd", "amount":4850, "winLevel":"endFeature" },
- { "type":"finalWin", "amount":5450, "capped":false }       // base 600 + feature 4850
+   { "type":"freeSpinEnd", "amount":7150, "winLevel":"endFeature" },
+ { "type":"finalWin", "amount":7750, "capped":false }       // base 600 + feature 7150
 ]
 ```
-> Spin 2: **Eye-less ⇒ no `setPersistentMult`, pays its raw 150**, even though `M` is 7 — only
-> Eye spins cash the multiplier. Spin 3: the **MUL Eye multiplies the Gaze** (`2×3 = 6`) and
-> **adds** that to `M` (`7 + 6 = 13`) — additive banking, not compounding.
+> Spin 2: **Eye-less ⇒ no `setPersistentMult`, pays its raw 150**, even though `M` is 8 — only
+> Eye spins cash the multiplier. Spin 3: the **MUL Eye multiplies the Gaze** (`5×3 = 15`) and
+> **adds** that to `M` (`8 + 15 = 23`) — additive banking, not compounding. (Gaze values here use
+> the ESSENCE economy: +2/+3/+5 per winning cluster, spin 3 built 5 across two tumbles.)
 
 ### 9.3 Ultimate — multiple combining Eyes (single spin)
 ```jsonc
 [
  { "type":"reveal", "gameType":"basegame", … },             // 3 Eye cells on board, closed
- { "type":"winInfo", … }, { "type":"updateTumbleWin", … }, { "type":"gazeStep","charge":1,… },
- { "type":"tumbleBoard", … },
  { "type":"winInfo", … }, { "type":"updateTumbleWin", … }, { "type":"gazeStep","charge":2,… },
+ { "type":"tumbleBoard", … },
+ { "type":"winInfo", … }, { "type":"updateTumbleWin", … }, { "type":"gazeStep","charge":4,… },
  { "type":"eyeReveal", "position":{…}, "eyeType":"MUL", "startValue":50 },
  { "type":"eyeReveal", "position":{…}, "eyeType":"MUL", "startValue":25 },
  { "type":"eyeReveal", "position":{…}, "eyeType":"ADD", "startValue":10 },
- { "type":"eyeResolve", "charge":2, "totalMult":15000,      // (2+10) × 50 × 25 = 15000 → caps
+ { "type":"eyeResolve", "charge":4, "totalMult":15000,      // (4+10) × 50 × 25 = 17500 → caps at 15000
    "eyes":[ {"eyeType":"MUL","startValue":50},{"eyeType":"MUL","startValue":25},{"eyeType":"ADD","startValue":10} ] },
  { "type":"setWin", "amount":1500000, "winLevel":"max" },
  { "type":"setTotalWin", "amount":1500000 },
@@ -516,7 +530,7 @@ Abyssal-specific, you author the type + handler + emitterEvent(s) + component (p
    receives an update on Eye spins** (the handler only broadcasts when `setPersistentMult` is in
    the book) — so the badge climbs and pays off only on Eye spins, exactly the math. Reset on
    `freeSpinTrigger`.
-4. **`ScatterPay`** — the instant 4/5/6 = 3×/5×/100× cash pop on a base/ante trigger.
+4. **`ScatterPay`** — the instant 4/5/6 = 3×/5×/100× cash pop on any trigger (base/ante + buys).
 
 Everything else (board, reels, symbols, tumble, free-spin counter/intro/outro, win amounts,
 max-win) is **inherited from the scatter template** — you mostly re-skin it.
@@ -561,7 +575,8 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 Create `MODE_<MODE>` story sets for **base, ante, bonus, superspins, superbonus, ultimate**
 (the math's six bet modes). `superspins`/`ultimate` books have **no** free-spin events; `ultimate`
 books carry the multi-`eyeReveal` + `eyes[]` `eyeResolve` — make sure the `Eye` component's story
-covers the 1–5 Eye case.
+covers the multi-Eye case (2–5 at reveal on Ultimate, plus mid-cascade drops on any mode — a
+single spin can accumulate several Eyes anywhere).
 
 ---
 
@@ -569,8 +584,13 @@ covers the 1–5 Eye case.
 
 - [ ] **Amounts ÷100** to get the multiplier; multiply by bet for cash. `mult`/`charge`/
       `startValue`/`count`/`totalFs` are raw integers.
-- [ ] **The Eye is on the `reveal` board already** — there is no separate "eye drop" event;
-      open it only at `eyeReveal`.
+- [ ] **Eyes arrive via `reveal` OR inside `tumbleBoard.newSymbols`** (mid-cascade drop). The
+      `eyeDrop` event is a **non-placing cue** — never spawn a sprite from it; open every Eye
+      only at `eyeReveal`.
+- [ ] **Gaze meter scale is 0–30** (essence: +2/+3/+5 per cluster, ×2 in Super Bonus); play a
+      "GAZE MAXED" beat at 30.
+- [ ] **`scatterPay` fires on buy trigger boards too** (bonus/superbonus) — same banner as an
+      organic base/ante trigger; every buy pays at least the 3× trigger cash.
 - [ ] **Apply the snowball `M` only when `setPersistentMult` is present** on that spin. Eye-less
       feature spins pay raw — never multiply them by the banked `M`.
 - [ ] `eyeResolve.totalMult` is **the multiplier applied to this spin's raw win** everywhere (=

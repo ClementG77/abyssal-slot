@@ -126,7 +126,9 @@
 	// copy of the border blooms from cool violet toward hot amber, breathing faster and
 	// shallower the hotter it gets. Cools back down on reveal/eyeResolve (gazeCharge → 0).
 	const FRAME_HEAT = {
-		fullCharge: 6, // charge at which the frame reaches full heat (meter caps at 10)
+		// Essence economy: one good tumble is +2..+10, cap 30 — full heat sits at the lap-3
+		// doorstep so the ramp still tells a story across a whole cascade chain.
+		fullCharge: 18,
 		baseAlpha: 0.3, // glow floor at full heat
 		breatheAmp: 0.22, // breathing depth when cool (flattens as heat rises)
 		slowSpeed: 1.7, // rad/s of the cool, calm breathe

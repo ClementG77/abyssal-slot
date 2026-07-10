@@ -136,6 +136,10 @@ export const stateGame = $state({
 	scatterAnticipating: false,
 	// The Eye's Gaze charge for the current spin (driven by `gazeStep`); reset each reveal.
 	gazeCharge: 0,
+	// The clusters of the tumble that is about to charge the Gaze — stashed by `winInfo`
+	// (count + overlay cell per cluster) and consumed by the NEXT `gazeStep`, which turns them
+	// into per-cluster essence orbs (+2/+3/+5 by size). Cleared on consume and each reveal.
+	pendingGazeClusters: [] as { count: number; reel: number; row: number }[],
 	// Tracks whether the current spin already resolved an Eye. If charge exists and this
 	// stays false by settlement, the meter drains as the intended no-Eye near miss.
 	eyeResolvedThisSpin: false,
@@ -194,16 +198,19 @@ const scatterLandIndex = () => getScatterLandSoundIndex(stateGame.scatterCounter
 const { enhanceBoard } = createEnhanceBoard();
 const enhancedBoard = enhanceBoard({ board: stateGame.board });
 
+// One treatment for the spacebar hold AND press-to-skip: reels flip to the fast spin
+// options, the scatter tease (zoom + slow-roll) is cancelled, pending holds release, and
+// every fall already in flight FINISHES at the fast drop speed (finishFall re-times, it does
+// not snap — see createReelForCascading). Order matters: spinType must be 'fast' BEFORE
+// finishFall so the re-timed falls read the fast options.
 const speedUpCurrentSpin = () => {
-	enhancedBoard.board.forEach((reel) => (reel.reelState.spinType = 'fast'));
+	enhancedBoard.board.forEach((reel) => {
+		reel.reelState.spinType = 'fast';
+		// drop the scatter anticipation on this reel — clearing every flag makes
+		// Anticipations' `hasAnticipation` false, which releases the board zoom-hold too
+		reel.reelState.anticipating = false;
+	});
 	enhancedBoard.stop();
-};
-
-// Press-to-skip's spin treatment: turbo speeds AND every in-flight fall snaps straight to
-// its slot (finishFall) — all columns settle together instead of finishing out of step.
-// (Turbo enable keeps the softer speedUpCurrentSpin: it accelerates, it doesn't snap.)
-const skipCurrentSpin = () => {
-	speedUpCurrentSpin();
 	enhancedBoard.board.forEach((reel) => reel.finishFall());
 };
 
@@ -227,7 +234,6 @@ export const stateGameDerived = {
 	scatterLandIndex,
 	enhancedBoard,
 	speedUpCurrentSpin,
-	skipCurrentSpin,
 	enableTurbo,
 	getWinLevelDataByWinLevelAlias,
 };

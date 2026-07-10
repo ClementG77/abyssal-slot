@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 
 	import { Container, Text } from 'pixi-svelte';
+	import { stateModal } from 'state-shared';
 
 	import { getContext } from '../game/context';
 	import config from '../game/config';
@@ -42,14 +43,17 @@
 	});
 </script>
 
-<Container>
-	<Text x={pad} y={pad} anchor={{ x: 0, y: 0 }} alpha={0.95} text={timeText} style={timeStyle} />
-	<Text
-		x={canvas.width - pad}
-		y={pad}
-		anchor={{ x: 1, y: 0 }}
-		alpha={1}
-		text={nameText}
-		style={nameStyle}
-	/>
-</Container>
+<!-- hidden while any popup/modal is open (buy bonus, game rules, bet menu, …) -->
+{#if !stateModal.modal}
+	<Container>
+		<Text x={pad} y={pad} anchor={{ x: 0, y: 0 }} alpha={0.95} text={timeText} style={timeStyle} />
+		<Text
+			x={canvas.width - pad}
+			y={pad}
+			anchor={{ x: 1, y: 0 }}
+			alpha={1}
+			text={nameText}
+			style={nameStyle}
+		/>
+	</Container>
+{/if}

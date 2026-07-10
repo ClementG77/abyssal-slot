@@ -77,6 +77,24 @@
 	const costOf = (m: BetModeData) => stateBet.betAmount * m.costMultiplier;
 	const affordable = (m: BetModeData) =>
 		stateBet.betAmount > 0 && stateBet.balanceAmount >= costOf(m);
+
+	// Per-mode RGS bet cap. The client sends the BASE amount + mode to /wallet/play; the RGS
+	// applies the cost multiplier and rejects the round with ERR_VAL when the base amount exceeds
+	// that mode's `maxBet` (high-cost modes like SUPERBONUS get a lower cap to bound exposure).
+	// Guarding here blocks the buy before the round-trip instead of showing the error dialog.
+	// `stateConfig.gameModes[].maxBet` is in display units; unknown modes → no cap (Infinity).
+	const maxBetFor = (m: BetModeData) => {
+		const entry = stateConfig.gameModes.find(
+			(gm) => gm.mode.toUpperCase() === m.mode.toUpperCase(),
+		);
+		return entry && entry.maxBet > 0 ? entry.maxBet : Infinity;
+	};
+	const withinMax = (m: BetModeData) => stateBet.betAmount <= maxBetFor(m);
+	// a mode is playable only if the bet is both affordable AND within its RGS cap
+	const allowed = (m: BetModeData) => affordable(m) && withinMax(m);
+	// shown on a mode whose per-mode cap the current bet exceeds (plain string — one label,
+	// not worth a key across every locale file)
+	const BET_TOO_HIGH = 'BET TOO HIGH';
 	const isActive = (m: BetModeData) =>
 		stateBet.activeBetModeKey.toUpperCase() === m.mode.toUpperCase();
 
@@ -85,6 +103,9 @@
 	// every choice (buy OR activate) is confirmed in a little popup first
 	let pending = $state<BetModeData | null>(null);
 	const openConfirm = (m: BetModeData) => {
+		// never open the confirm for a mode the RGS would reject (belt-and-braces — the buttons
+		// are already disabled when !allowed)
+		if (!allowed(m)) return;
 		sound();
 		pending = m;
 	};
@@ -224,18 +245,18 @@
 							{:else if activate}
 								<button
 									class="bm-action activate"
-									disabled={!affordable(m)}
+									disabled={!allowed(m)}
 									onclick={() => openConfirm(m)}
 								>
-									{i18nDerived.activate()}
+									{!withinMax(m) ? BET_TOO_HIGH : i18nDerived.activate()}
 								</button>
 							{:else}
 								<button
 									class="bm-action buy"
-									disabled={!affordable(m)}
+									disabled={!allowed(m)}
 									onclick={() => openConfirm(m)}
 								>
-									{affordable(m) ? i18nDerived.buy() : i18nDerived.lowFunds()}
+									{#if !withinMax(m)}{BET_TOO_HIGH}{:else if affordable(m)}{i18nDerived.buy()}{:else}{i18nDerived.lowFunds()}{/if}
 								</button>
 							{/if}
 						</div>

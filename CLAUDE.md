@@ -82,9 +82,16 @@ A new bookEvent type must be registered in **every** spot, or it fails silently.
 - **Snowball = banked multiplier (Gates style):** apply `M` to a spin **only when
   `setPersistentMult` is present** on that spin. Eye-less feature spins pay raw. `M` resets at
   `freeSpinTrigger` (starts ×1); Gaze (`charge`) resets each `reveal`. Never derive `M` from `eyeResolve`.
-- **The Eye is already on the board at `reveal`** (cell has `eye:true`); it only _opens_
-  (`eyeReveal`/`eyeResolve`) at the end of a winning tumble sequence. Normalize single vs multi Eye
-  so `Eye` has one code path. **Ultimate is the only multi-Eye mode.**
+- **Gaze = Essence (cap 30):** each winning **cluster** charges +2/+3/+5 by size (8–9/10–11/12+),
+  ×2 in Super Bonus. The meter keeps a 10-wide track and LAPS it: teal 0–10 → purple 11–20 →
+  ember 21–30 (`GAZE_LAPS` in GazeMeter); the plaque shows the true total.
+- **Eyes arrive at `reveal` OR drop mid-cascade** inside `tumbleBoard.newSymbols` (`eyeDrop` is a
+  non-placing cue — never spawn a sprite from it); every Eye only _opens_
+  (`eyeReveal`/`eyeResolve`) at the end of a winning tumble sequence. ANY mode can accumulate
+  several Eyes; **Ultimate always has 2–5 at reveal** and is the only mode with `ultimateResolve`.
+  One `Eye` code path for 1..N.
+- **`scatterPay` fires on ANY trigger** (base/ante organic + bonus/superbonus buy boards); only
+  the forced max-win corner skips it — superspins/ultimate have no scatters at all.
 - **Super Spins & Ultimate emit no free-spin events** (single spin, no counter).
 - Only the events in the event guide exist — never invent event names. `createBonusSnapshot` is the
   one **client-only** event (mid-round resume; see `convertTorResumableBet` in `utils.ts`).

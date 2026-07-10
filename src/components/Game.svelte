@@ -4,7 +4,7 @@
 	import { EnablePixiExtension } from 'components-pixi';
 	import { EnableHotkey } from 'components-shared';
 	import { MainContainer } from 'components-layout';
-	import { BlurFilter } from 'pixi.js';
+	import { BlurFilter, Rectangle as PixiRectangle } from 'pixi.js';
 	import { Tween } from 'svelte/motion';
 	import { App, Container } from 'pixi-svelte';
 	import { stateModal, stateUrlDerived } from 'state-shared';
@@ -41,6 +41,7 @@
 	import ReplayControls from './ReplayControls.svelte';
 	import GameInfo from './GameInfo.svelte';
 	import BuyBonusModal from './BuyBonusModal.svelte';
+	import ErrorModal from './ErrorModal.svelte';
 
 	const context = getContext();
 	const introBlur = new Tween(0, { duration: 300 });
@@ -61,6 +62,15 @@
 		introBlurFilter.enabled = introBlur.current > 0.05;
 	});
 
+	// Clamp the blur's working area to the visible canvas. Without this, the filter texture is
+	// sized to the container's BOUNDS — in portrait the cover-scaled background extends far past
+	// the tall screen, and on high-DPR mobile that texture exceeds the GPU max size, so the
+	// whole blurred scene renders BLACK behind the free-spins intro. Desktop bounds ≈ canvas.
+	const introFilterArea = $derived.by(() => {
+		const sizes = context.stateLayoutDerived.canvasSizes();
+		return new PixiRectangle(0, 0, sizes.width, sizes.height);
+	});
+
 	context.eventEmitter.subscribeOnMount({
 		buyBonusConfirm: () => {
 			stateModal.modal = { name: 'buyBonusConfirm' };
@@ -75,7 +85,7 @@
 	<EnableGameActor />
 	<EnablePixiExtension />
 
-	<Container filters={introBlurFilter ? [introBlurFilter] : []}>
+	<Container filters={introBlurFilter ? [introBlurFilter] : []} filterArea={introFilterArea}>
 		<Background />
 
 		{#if !context.stateLayout.showLoadingScreen}
@@ -148,5 +158,8 @@
 	{/snippet}
 	{#snippet buyBonus()}
 		<BuyBonusModal />
+	{/snippet}
+	{#snippet error()}
+		<ErrorModal />
 	{/snippet}
 </Modals>

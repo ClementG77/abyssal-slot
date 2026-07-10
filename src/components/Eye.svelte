@@ -19,7 +19,7 @@
 	import { Container, Graphics, Text } from 'pixi-svelte';
 	import { FadeContainer } from 'components-pixi';
 	import { stateBetDerived } from 'state-shared';
-	import { waitForTimeout } from 'utils-shared/wait';
+	import { skippableWait } from '../game/skip.svelte';
 
 	import BoardContainer from './BoardContainer.svelte';
 	import { getContext } from '../game/context';
@@ -144,19 +144,33 @@
 
 			popCenter();
 			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_landing' });
-			await waitForTimeout(450 / ts());
+			await skippableWait(450 / ts());
 			gazeLabel = false;
 
 			for (const eye of eyes) {
 				await foldEye(eye);
-				await waitForTimeout(120 / ts());
+				await skippableWait(120 / ts());
+			}
+
+			// The banked snowball ×M is the LAST arrival (feature only): it flies from the HUD
+			// medallion (FreeSpinCounter owns the flight) and ADDS to the combine — per §6.3 the
+			// snowball is additive: eyeValue + old M = totalMult (the new banked M). That holds
+			// even at M=1 (first Eye spin: totalMult = eyeValue + 1), so the flight is
+			// UNCONDITIONAL in the feature. The addition lands with a chip-style punch the moment
+			// the token is absorbed, so the order reads gaze first, eyes next, total mult last.
+			if (context.stateGame.gameType === 'freegame') {
+				await context.eventEmitter.broadcastAsync({ type: 'snowballToCombine' });
+				running = e.totalMult;
+				popCenter();
+				context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_combine_a' });
+				await skippableWait(220 / ts());
 			}
 
 			// land exactly on the math's total, with a hero punch
 			running = e.totalMult;
 			popCenter(true);
 			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_explosion_a' });
-			await waitForTimeout(750 / ts());
+			await skippableWait(750 / ts());
 
 			// fade out — the multiplier is carried to the tumble-win banner from here (setWin)
 			gsap.killTweensOf(dimFx);

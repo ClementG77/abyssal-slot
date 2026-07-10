@@ -12,7 +12,7 @@
 	import { getContext } from '../game/context';
 	import { getSymbolInfo } from '../game/utils';
 	import {
-		GAZE_METER_MAX_CHARGE,
+		GAZE_EYE_INTENSITY_FULL,
 		getSymbolFill,
 		REEL_CELL_HEIGHT,
 		REEL_CELL_WIDTH,
@@ -370,7 +370,9 @@
 	// feels the threat building before it ever opens. Only the eye branches read this.
 	let gazeIntensity = $state(0);
 	context.eventEmitter.subscribeOnMount({
-		gazeMeterFill: (e) => (gazeIntensity = Math.min(1, e.charge / GAZE_METER_MAX_CHARGE)),
+		// normalized to GAZE_EYE_INTENSITY_FULL (15), not the 30 cap — a /30 ramp would leave
+		// the eye visibly cold on almost every spin under the essence economy
+		gazeMeterFill: (e) => (gazeIntensity = Math.min(1, e.charge / GAZE_EYE_INTENSITY_FULL)),
 		gazeMeterReset: () => (gazeIntensity = 0),
 		gazeMeterDrain: () => (gazeIntensity = 0),
 	});

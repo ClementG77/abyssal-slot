@@ -20,7 +20,6 @@
 	import { OnMount } from 'components-shared';
 	import { SECOND } from 'constants-shared/time';
 	import { BOOK_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
-	import { stateBetDerived } from 'state-shared';
 
 	import WinBubbles from './WinBubbles.svelte';
 	import WinBanner from './WinBanner.svelte';
@@ -82,7 +81,12 @@
 	let winLevelData = $state<WinLevelData>();
 	let oncomplete = $state(() => {});
 
-	const ts = () => stateBetDerived.timeScale(); // turbo speed-up
+	// The win takeover always plays at FULL speed — turbo (incl. a held spacebar) is deliberately
+	// ignored here so a big win is never skipped or rushed; the player sees the whole escalation
+	// even while holding space to fast-forward spins. A screen tap can still skip steps, and the
+	// takeover auto-dismisses after its own linger, so a held spacebar simply resumes spinning
+	// once the win is removed.
+	const ts = () => 1;
 	const multiplier = $derived(amount / BOOK_AMOUNT_MULTIPLIER);
 	const finalTier = $derived(tierFor(multiplier)); // gates the banner celebration (≥20×)
 
@@ -306,6 +310,15 @@
 			</Container>
 		</MainContainer>
 
-		<PressToContinue onpress={() => (countUpCompleted ? oncomplete() : skipToNextStep())} />
+		<!-- Screen tap skips a step (or dismisses at the end); the prompt text and the spacebar
+		     dismissal only come alive once the count-up has FINISHED, so a held spacebar (turbo)
+		     can't skip through the celebration and the prompt isn't shown mid-animation. -->
+		<PressToContinue
+			showPrompt={countUpCompleted}
+			onpress={() => (countUpCompleted ? oncomplete() : skipToNextStep())}
+			onspace={() => {
+				if (countUpCompleted) oncomplete();
+			}}
+		/>
 	{/if}
 </FadeContainer>

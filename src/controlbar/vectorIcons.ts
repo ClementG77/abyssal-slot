@@ -10,6 +10,10 @@ export type ControlGlyphOptions = {
 };
 
 const WHITE = 0xffffff;
+// the stop square shown on the spin button while a round plays (doubles as SKIP)
+// — matches the buy-bonus "deactivate" active red so the two read as the same accent
+const STOP_RED = 0xff3f36;
+const STOP_BORDER = 0x1a0604; // thin near-black edge
 
 const alphaOf = (options: ControlGlyphOptions) => (options.disabled ? 0.42 : 1);
 
@@ -169,13 +173,13 @@ export const drawControlGlyph = (
 
 	if (options.stop) {
 		g.roundRect(-s * 0.12, -s * 0.12, s * 0.24, s * 0.24, s * 0.035).fill({
-			color: WHITE,
+			color: STOP_RED,
 			alpha: alpha * 0.94,
 		});
 		g.roundRect(-s * 0.12, -s * 0.12, s * 0.24, s * 0.24, s * 0.035).stroke({
-			width: s * 0.025,
-			color: WHITE,
-			alpha: alpha * 0.72,
+			width: s * 0.02,
+			color: STOP_BORDER,
+			alpha: alpha * 0.9,
 		});
 	}
 };

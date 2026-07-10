@@ -1,11 +1,18 @@
 <script lang="ts" module>
 	import type { Position } from '../game/types';
 
+	// One winning cluster's essence contribution: `value` is what the chip shows (+2/+3/+5,
+	// doubled in Super Bonus), `tier` sizes the hero orb (1 = 8-9 symbols, 2 = 10-11, 3 = 12+),
+	// reel/row is the cluster's overlay cell the orb flies from.
+	export type GazeCluster = { value: number; tier: 1 | 2 | 3; reel: number; row: number };
+
 	export type EmitterEventGazeMeter =
 		| { type: 'gazeMeterShow' }
 		| { type: 'gazeMeterHide' }
 		| { type: 'gazeMeterReset' }
-		| { type: 'gazeMeterFill'; fromPositions: Position[]; charge: number }
+		// `clusters` drives the per-cluster hero orbs + "+N" chips; when absent (old fixtures,
+		// resume), the meter falls back to one small orb per winning cell.
+		| { type: 'gazeMeterFill'; fromPositions: Position[]; charge: number; clusters?: GazeCluster[] }
 		| { type: 'gazeMeterToEye' }
 		| { type: 'gazeMeterDrain' };
 </script>
@@ -27,12 +34,14 @@
 	import {
 		abyssalBitmapStyle,
 		BOARD_SIZES,
+		GAZE_LAP_SIZE,
 		GAZE_METER_IMAGE_SIZE,
 		GAZE_METER_LAYOUT,
 		GAZE_METER_MAX_CHARGE,
 		SYMBOL_SIZE,
 	} from '../game/constants';
 	import { getPositionX, getPositionY } from '../game/utils';
+	import { raceSkip, SKIP_TIME_SCALE } from '../game/skip.svelte';
 
 	const context = getContext();
 
@@ -40,25 +49,67 @@
 		bar: 'winMeter',
 	} as const;
 	type TrackSegment = { x: number; y: number; w: number; h: number; r: number };
+	// Shared meter palette — backing plates and the orb energy purple. The FILL colours live
+	// per lap in GAZE_LAPS below.
 	const GAZE_COLORS = {
-		fillDeep: 0x075aa8,
-		fillMid: 0x0aa4ff,
-		fillCore: 0x28d7ff,
-		fillTop: 0xc7ffff,
-		fillGlow: 0x35cfff,
-		edge: 0xe9ffff,
 		energy: 0xc77dff,
 		rim: 0xffffff,
 		backing: 0x0d4b53,
 		backingStroke: 0x0d4b53,
 	} as const;
+	// ---- The three Gaze laps (essence economy: charge 0-10 / 11-20 / 21-30) ----------------
+	// Same 10-wide track, re-coloured per lap: tide teal → abyssal purple (the Eye's family) →
+	// ember red (the MUL-red family — pure ruby stays reserved for the 15,000× cap takeover).
+	// The finished lap stays visible as a dimmed backing under the new colour, and crossing a
+	// boundary FLOODS the track with the new colour (playLapFlood).
+	type GazeLapPalette = {
+		fillDeep: number;
+		fillMid: number;
+		fillCore: number;
+		fillTop: number;
+		fillGlow: number;
+		edge: number;
+	};
+	const GAZE_LAPS: GazeLapPalette[] = [
+		// lap 1 — tide teal (the original fill ramp, bright against the dark backing)
+		{ fillDeep: 0x0c7d80, fillMid: 0x18c4b6, fillCore: 0x49f5df, fillTop: 0xe8fffb, fillGlow: 0x66ffe8, edge: 0xe9ffff },
+		// lap 2 — abyssal purple
+		{ fillDeep: 0x5d3aa8, fillMid: 0x9a6bff, fillCore: 0xc77dff, fillTop: 0xf2e8ff, fillGlow: 0xd9a6ff, edge: 0xf6ecff },
+		// lap 3 — ember red
+		{ fillDeep: 0xb03214, fillMid: 0xff5a2a, fillCore: 0xffb46a, fillTop: 0xffe9c9, fillGlow: 0xffc37a, edge: 0xfff1d6 },
+	];
+	const LAP_BACKING_ALPHA = 0.4; // the finished lap's dimmed fill under the current colour
+	const LAP_FLOOD_ALPHA = 0.7; // peak of the colour flood when a lap boundary is crossed
+	// hero-orb tiers: radius (×SYMBOL_SIZE) and arc weight (higher = slower, heavier flight)
+	const ORB_TIER_RADIUS = [0.09, 0.125, 0.17] as const;
+	const ORB_TIER_WEIGHT = [1, 1.04, 1.12] as const;
+	const ORB_GOLD_CORE = 0xfff3c9; // the +5 orb's payload core
+	const CHIP_LIFE = 0.9; // seconds a "+N" essence chip lives beside the plaque
 
 	let show = $state(false);
 	let charge = $state(0);
-	// Energy orbs in flight: each winning symbol releases one glowing orb that arcs into the
-	// meter; the fill rises once the convoy lands.
-	type Orb = { sx: number; sy: number; wobble: number };
+	// Which lap the track is showing (0-based; charge 14 → lap 1 at 40%). The plaque always
+	// shows the TRUE total charge — the lap only re-colours the liquid.
+	let lap = $state(0);
+	const lapFx = $state({ flood: 0 }); // full-track colour flash on a lap-boundary crossing
+	// "+N" essence chips popping off the plaque as each cluster's orb lands (driven by the
+	// liquid clock — no per-chip tweens)
+	type Chip = { id: number; text: string; tier: number; bornT: number };
+	let chips = $state<Chip[]>([]);
+	let nextChipId = 0;
+	// Energy orbs in flight: ONE HERO ORB PER WINNING CLUSTER (sized by its essence tier),
+	// arcing from the cluster's overlay cell into the meter; the fill rises once the convoy
+	// lands. Fallback (no cluster data): one small orb per winning cell.
+	type Orb = { sx: number; sy: number; wobble: number; tier: 1 | 2 | 3; value: number };
 	let orbs = $state<Orb[]>([]);
+	// chips scheduled against each orb's arrival; killed + flushed on skip/reset
+	let chipCalls: gsap.core.Tween[] = [];
+	let chipQueue: Orb[] = [];
+	const killChipCalls = () => {
+		chipCalls.forEach((call) => call.kill());
+		chipCalls = [];
+		chipQueue = [];
+	};
 	// The Gaze seed in flight: the charge value leaves the plaque and travels to the board
 	// centre, where the Eye combine equation picks it up (eyeBurst seeds with the same charge).
 	let flying = $state(false);
@@ -76,29 +127,35 @@
 	// Ambient liquid clock — drives the fill's surface wave, its glowing crest and the rising
 	// bubbles, so the charge reads as living water rather than a static bar.
 	const liquid = $state({ t: 0 });
-	// The fill gradients are cached: FillGradient builds a texture, and the liquid redraws every
-	// frame — allocating them inside the draw would churn textures/GC.
-	const progressGradient = new FillGradient({
-		textureSpace: 'local',
-		start: { x: 0, y: 1 },
-		end: { x: 0, y: 0 },
-		colorStops: [
-			{ offset: 0, color: GAZE_COLORS.fillDeep },
-			{ offset: 0.32, color: GAZE_COLORS.fillMid },
-			{ offset: 0.72, color: GAZE_COLORS.fillCore },
-			{ offset: 1, color: GAZE_COLORS.fillTop },
-		],
-	});
-	const fadeGradient = new FillGradient({
-		textureSpace: 'local',
-		start: { x: 0, y: 0 },
-		end: { x: 1, y: 0 },
-		colorStops: [
-			{ offset: 0, color: GAZE_COLORS.fillTop },
-			{ offset: 0.42, color: GAZE_COLORS.fillCore },
-			{ offset: 1, color: GAZE_COLORS.fillDeep },
-		],
-	});
+	// The fill gradients are cached PER LAP: FillGradient builds a texture, and the liquid
+	// redraws every frame — allocating them inside the draw would churn textures/GC.
+	const progressGradients = GAZE_LAPS.map(
+		(lapColors) =>
+			new FillGradient({
+				textureSpace: 'local',
+				start: { x: 0, y: 1 },
+				end: { x: 0, y: 0 },
+				colorStops: [
+					{ offset: 0, color: lapColors.fillDeep },
+					{ offset: 0.32, color: lapColors.fillMid },
+					{ offset: 0.72, color: lapColors.fillCore },
+					{ offset: 1, color: lapColors.fillTop },
+				],
+			}),
+	);
+	const fadeGradients = GAZE_LAPS.map(
+		(lapColors) =>
+			new FillGradient({
+				textureSpace: 'local',
+				start: { x: 0, y: 0 },
+				end: { x: 1, y: 0 },
+				colorStops: [
+					{ offset: 0, color: lapColors.fillTop },
+					{ offset: 0.42, color: lapColors.fillCore },
+					{ offset: 1, color: lapColors.fillDeep },
+				],
+			}),
+	);
 
 	onMount(() => {
 		const clock = gsap.to(liquid, { t: 3600, duration: 3600, ease: 'none', repeat: -1 });
@@ -211,8 +268,9 @@
 		});
 	};
 
-	const playChargeFx = (overcharged = false) => {
-		gsap.killTweensOf(fx);
+	const playChargeFx = (maxedHit = false) => {
+		// scoped kill — fx.overcharge belongs to the sustained MAXED shimmer below
+		gsap.killTweensOf(fx, 'burst,textScale');
 		const timeline = gsap.timeline();
 		track(timeline);
 		timeline
@@ -226,36 +284,82 @@
 			.to(fx, {
 				burst: 0,
 				textScale: 1,
-				duration: overcharged ? 0.5 : 0.32,
+				duration: maxedHit ? 0.5 : 0.32,
 				ease: 'power2.out',
 			});
+	};
 
-		if (overcharged) {
-			track(
-				gsap.fromTo(
-					fx,
-					{ overcharge: 0 },
-					{
-						overcharge: 1,
-						duration: 0.36,
-						repeat: 1,
-						yoyo: true,
-						ease: 'sine.inOut',
-					},
-				),
-			);
+	// GAZE MAXED (charge 30): the full ember bar shimmers for as long as the charge holds —
+	// the sustained beat the essence cap earns (the arrival that lands it also gets a bigger
+	// burst via playChargeFx(maxedHit)).
+	const maxed = $derived(charge >= GAZE_METER_MAX_CHARGE);
+	let maxedTween: gsap.core.Tween | undefined;
+	$effect(() => {
+		if (!maxed) {
+			maxedTween?.kill();
+			maxedTween = undefined;
+			fx.overcharge = 0;
+			return;
 		}
+		maxedTween = gsap.fromTo(
+			fx,
+			{ overcharge: 0.35 },
+			{ overcharge: 1, duration: 0.5, ease: 'sine.inOut', repeat: -1, yoyo: true },
+		);
+		return () => maxedTween?.kill();
+	});
+
+	// a cluster's orb has landed: pop its "+N" essence chip off the plaque + a small tick
+	const spawnChip = (orb: Orb) => {
+		if (orb.value > 0) {
+			chips = [
+				...chips.filter((chip) => liquid.t - chip.bornT < CHIP_LIFE),
+				{ id: nextChipId++, text: `+${orb.value}`, tier: orb.tier, bornT: liquid.t },
+			];
+		}
+		gsap.killTweensOf(fx, 'textScale');
+		track(gsap.fromTo(fx, { textScale: 1.14 }, { textScale: 1, duration: 0.22, ease: 'power2.out' }));
+	};
+
+	// crossing a lap boundary: the track floods with the NEW lap's colour + a splash
+	const playLapFlood = () => {
+		gsap.killTweensOf(lapFx);
+		track(gsap.fromTo(lapFx, { flood: 1 }, { flood: 0, duration: 0.45, ease: 'power2.out' }));
+		gsap.killTweensOf(fx, 'burst');
+		track(
+			gsap
+				.timeline()
+				.set(fx, { burst: 1 })
+				.to(fx, { burst: 0, duration: 0.4, ease: 'power2.out' }),
+		);
+		// PLACEHOLDER lap-up stinger — swap for a bespoke "gaze deepens" hit later.
+		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_up' });
 	};
 
 	onDestroy(() => {
 		animations.forEach((animation) => animation.kill());
 		animations.clear();
+		killChipCalls();
 		gsap.killTweensOf(fx);
+		gsap.killTweensOf(lapFx);
 	});
 
-	const setCharge = async (value: number) => {
+	// Raise the meter to `value`, crossing lap boundaries as needed: each crossing brims the
+	// current colour, floods the track with the next lap's colour, then keeps filling. A big
+	// essence step (Super Bonus multi-cluster) can cross more than one boundary — the loop
+	// plays every crossing through.
+	const setChargeStaged = async (value: number) => {
 		charge = value;
-		await fill.set(Math.min(value / GAZE_METER_MAX_CHARGE, 1));
+		const clamped = Math.min(value, GAZE_METER_MAX_CHARGE);
+		const targetLap =
+			clamped <= 0 ? 0 : Math.min(GAZE_LAPS.length - 1, Math.ceil(clamped / GAZE_LAP_SIZE) - 1);
+		while (lap < targetLap) {
+			await fill.set(1);
+			lap += 1;
+			playLapFlood();
+			fill.set(0, { duration: 0 });
+		}
+		await fill.set(Math.min(Math.max((clamped - lap * GAZE_LAP_SIZE) / GAZE_LAP_SIZE, 0), 1));
 	};
 
 	context.eventEmitter.subscribeOnMount({
@@ -264,13 +368,15 @@
 		gazeMeterReset: () => {
 			charge = 0;
 			orbs = [];
+			chips = [];
+			killChipCalls();
 			orbFlight.set(0, { duration: 0 });
 			flying = false;
 			toCenter.set(0, { duration: 0 });
-			gsap.killTweensOf(fx);
+			gsap.killTweensOf(fx, 'burst,textScale');
 			resetFx();
 			// ease the fill away instead of snapping empty (no-op when already drained)
-			fill.set(0, { duration: 360 });
+			void fill.set(0, { duration: 360 }).then(() => (lap = 0));
 		},
 		gazeMeterFill: async (emitterEvent) => {
 			show = true;
@@ -279,20 +385,56 @@
 				name: 'sfx_reel_stop_1',
 				forcePlay: !stateBetDerived.isContinuousBet(),
 			});
-			// Each winning symbol releases an orb; the convoy arcs into the meter with a slight
-			// stagger. Only the FLIGHT blocks the book — the fill rise + plaque pop settle on
-			// their own while the board already explodes/refills, keeping cascades fast.
+			// One hero orb per winning CLUSTER (sized by essence tier, flying from the cluster's
+			// overlay cell), heavier tiers arcing slightly slower. Only the FLIGHT blocks the
+			// book — the fill rise (with its lap crossings) + plaque pops settle on their own
+			// while the board already explodes/refills, keeping cascades fast.
 			const ts = stateBetDerived.timeScale();
-			orbs = emitterEvent.fromPositions.slice(0, 10).map((position) => ({
-				sx: getPositionX(position.reel),
-				sy: getPositionY(position.row),
+			const clusterData =
+				emitterEvent.clusters && emitterEvent.clusters.length > 0
+					? emitterEvent.clusters
+					: // fallback (old fixtures / resume snapshots): one small orb per winning cell
+						emitterEvent.fromPositions.slice(0, 10).map((position) => ({
+							value: 0,
+							tier: 1 as const,
+							reel: position.reel,
+							row: position.row,
+						}));
+			orbs = clusterData.map((cluster) => ({
+				sx: getPositionX(cluster.reel),
+				sy: getPositionY(cluster.row),
 				wobble: (Math.random() - 0.5) * SYMBOL_SIZE * 0.9,
+				tier: cluster.tier,
+				value: cluster.value,
 			}));
 			orbFlight.set(0, { duration: 0 });
-			await orbFlight.set(1, { duration: (300 + orbs.length * 40) / ts });
+			const flightBaseMs = 340 + orbs.length * 90;
+			// schedule each orb's "+N" chip + plaque tick at its arrival moment
+			killChipCalls();
+			chipQueue = [...orbs];
+			const stagger = orbs.length > 1 ? (1 - ORB_TRAVEL_FRACTION) / (orbs.length - 1) : 0;
+			orbs.forEach((orb, index) => {
+				const arrival = Math.min(
+					1,
+					index * stagger + ORB_TRAVEL_FRACTION * ORB_TIER_WEIGHT[orb.tier - 1],
+				);
+				chipCalls.push(
+					gsap.delayedCall((arrival * flightBaseMs) / ts / 1000, () => {
+						chipQueue = chipQueue.filter((queued) => queued !== orb);
+						spawnChip(orb);
+					}),
+				);
+			});
+			// a skip mid-flight finishes it fast (turbo pace), matching how turbo would have run it
+			if ((await raceSkip(orbFlight.set(1, { duration: flightBaseMs / ts }))) === 'skipped')
+				await orbFlight.set(1, { duration: flightBaseMs / SKIP_TIME_SCALE });
+			// flush chips the skip outran, so every landed orb still reports its essence
+			const outran = chipQueue.slice();
+			killChipCalls();
+			outran.forEach(spawnChip);
 			orbs = [];
-			void setCharge(emitterEvent.charge).then(() =>
-				playChargeFx(emitterEvent.charge > GAZE_METER_MAX_CHARGE),
+			void setChargeStaged(emitterEvent.charge).then(() =>
+				playChargeFx(emitterEvent.charge >= GAZE_METER_MAX_CHARGE),
 			);
 		},
 		gazeMeterToEye: async () => {
@@ -302,33 +444,51 @@
 			// a clean hand-off). The meter drains as the seed departs.
 			flightValue = charge;
 			charge = 0;
+			chips = [];
 			flying = true;
+			// turbo/skip-aware — this flight was the one fixed-duration beat left in the combine
+			const flightTs = stateBetDerived.timeScale();
 			toCenter.set(0, { duration: 0 });
-			void fill.set(0, { duration: 420 });
-			await toCenter.set(1, { duration: 520, easing: cubicOut });
+			void fill.set(0, { duration: 420 / flightTs }).then(() => (lap = 0));
+			// a skip mid-flight finishes the seed's travel fast (turbo pace)
+			if ((await raceSkip(toCenter.set(1, { duration: 520 / flightTs, easing: cubicOut }))) === 'skipped')
+				await toCenter.set(1, { duration: 520 / SKIP_TIME_SCALE, easing: cubicOut });
 			flying = false;
 		},
 		gazeMeterDrain: async () => {
+			// the no-Eye fizzle: a deep charge visibly unwinds back through its laps
+			// (ember → purple → teal) before the last of the liquid drains away
+			while (lap > 0) {
+				await fill.set(0, { duration: 260 });
+				lap -= 1;
+				fill.set(1, { duration: 0 });
+			}
 			await fill.set(0, { duration: 420 });
+			chips = [];
 			await waitForResolve((resolve) => setTimeout(resolve, 120));
 			charge = 0;
 			orbs = [];
 		},
 	});
 
-	// Energy orbs: one per winning symbol, arcing from its cell into the meter's eye with a
-	// slight per-orb stagger. Each orb is a layered additive glow (white-hot core, cyan body,
-	// purple halo) with a short fading tail along its path.
+	// Energy orbs: one HERO ORB PER CLUSTER, arcing from the cluster's overlay cell into the
+	// meter's eye with a slight per-orb stagger. Radius/brightness encode the essence tier —
+	// the orb is the CAUSE (cluster size); the liquid's lap colour is the STATE. Tier 3 (+5)
+	// runs gold-hot with a longer wake and a slightly slower, heavier arc.
 	const ORB_TRAVEL_FRACTION = 0.6; // each orb spends this share of the timeline in flight
 	const drawOrbs = (g: import('pixi.js').Graphics) => {
 		const t = orbFlight.current;
 		if (t <= 0 || orbs.length === 0) return;
 		const count = orbs.length;
 		const stagger = count > 1 ? (1 - ORB_TRAVEL_FRACTION) / (count - 1) : 0;
-		const baseR = SYMBOL_SIZE * 0.09;
+		const tide = GAZE_LAPS[0]; // orbs keep the essence-cyan identity on every lap
 
 		orbs.forEach((orb, index) => {
-			const p = Math.min(Math.max((t - index * stagger) / ORB_TRAVEL_FRACTION, 0), 1);
+			const weight = ORB_TIER_WEIGHT[orb.tier - 1];
+			const p = Math.min(
+				Math.max((t - index * stagger) / (ORB_TRAVEL_FRACTION * weight), 0),
+				1,
+			);
 			if (p <= 0 || p >= 1) return;
 			// quadratic arc from the cell to the meter's eye, bowed upward with a per-orb wobble
 			const cx = (orb.sx + meterEnergyX) / 2;
@@ -338,21 +498,37 @@
 			const y = u * u * orb.sy + 2 * u * p * cy + p * p * meterEnergyY;
 			// pop in fast, shrink slightly as it dives into the meter
 			const appear = Math.min(p / 0.12, 1);
-			const r = baseR * appear * (1 - p * 0.35);
+			const r = SYMBOL_SIZE * ORB_TIER_RADIUS[orb.tier - 1] * appear * (1 - p * 0.35);
 
-			// short fading tail back along the curve
-			const pt = Math.max(p - 0.12, 0);
+			// fading tail back along the curve — the heavy +5 orb drags a longer wake
+			const tailLag = orb.tier === 3 ? 0.2 : 0.12;
+			const pt = Math.max(p - tailLag, 0);
 			const ut = 1 - pt;
 			const tailX = ut * ut * orb.sx + 2 * ut * pt * cx + pt * pt * meterEnergyX;
 			const tailY = ut * ut * orb.sy + 2 * ut * pt * cy + pt * pt * meterEnergyY;
 			g.moveTo(tailX, tailY)
 				.lineTo(x, y)
-				.stroke({ width: r * 0.9, color: GAZE_COLORS.energy, alpha: 0.35 * appear });
+				.stroke({
+					width: r * 0.9,
+					color: GAZE_COLORS.energy,
+					alpha: (orb.tier === 3 ? 0.5 : 0.35) * appear,
+				});
 
-			// layered glow: halo → body → core
-			g.circle(x, y, r * 2.4).fill({ color: GAZE_COLORS.energy, alpha: 0.16 * appear });
-			g.circle(x, y, r * 1.4).fill({ color: GAZE_COLORS.fillCore, alpha: 0.5 * appear });
-			g.circle(x, y, r * 0.7).fill({ color: GAZE_COLORS.fillTop, alpha: 0.95 * appear });
+			// layered glow: halo → body → core (halo deepens with tier)
+			g.circle(x, y, r * 2.4).fill({
+				color: GAZE_COLORS.energy,
+				alpha: (0.12 + orb.tier * 0.05) * appear,
+			});
+			if (orb.tier === 3) {
+				g.circle(x, y, r * 1.4).fill({ color: 0xffd76a, alpha: 0.55 * appear });
+				g.circle(x, y, r * 0.7).fill({ color: ORB_GOLD_CORE, alpha: 0.98 * appear });
+			} else {
+				g.circle(x, y, r * 1.4).fill({ color: tide.fillCore, alpha: 0.5 * appear });
+				g.circle(x, y, r * 0.7).fill({
+					color: orb.tier === 2 ? 0xffffff : tide.fillTop,
+					alpha: 0.95 * appear,
+				});
+			}
 		});
 	};
 
@@ -413,6 +589,30 @@
 	};
 
 	const drawTrackFill = (g: import('pixi.js').Graphics, segment: TrackSegment, amount: number) => {
+		const lapColors = GAZE_LAPS[lap];
+
+		// the finished lap stays visible as a dimmed backing under the current colour, so a
+		// deep charge reads at a glance even while the new lap is barely filled
+		if (lap > 0) {
+			const prev = GAZE_LAPS[lap - 1];
+			g.rect(segment.x, segment.y, segment.w, segment.h).fill({
+				color: prev.fillMid,
+				alpha: LAP_BACKING_ALPHA,
+			});
+			g.rect(segment.x, segment.y + segment.h * 0.45, segment.w, segment.h * 0.55).fill({
+				color: prev.fillDeep,
+				alpha: LAP_BACKING_ALPHA * 0.7,
+			});
+		}
+
+		// lap-boundary flood: the whole track flashes the NEW lap's colour for a beat
+		if (lapFx.flood > 0) {
+			g.rect(segment.x, segment.y, segment.w, segment.h).fill({
+				color: lapColors.fillCore,
+				alpha: LAP_FLOOD_ALPHA * lapFx.flood,
+			});
+		}
+
 		if (amount <= 0) return;
 		const fillH = segment.h * Math.min(amount, 1);
 		const fillY = segment.y + segment.h - fillH;
@@ -447,30 +647,30 @@
 			segment.w + edgeInset * 2,
 			fillH + edgeInset * 2,
 		).fill({
-			color: GAZE_COLORS.fillGlow,
+			color: lapColors.fillGlow,
 			alpha: 0.16 + fx.overcharge * 0.16,
 		});
 
 		// the liquid body, topped by the wave
-		g.poly(body).fill(progressGradient);
-		g.poly(body).fill({ fill: fadeGradient, alpha: 0.16 });
+		g.poly(body).fill(progressGradients[lap]);
+		g.poly(body).fill({ fill: fadeGradients[lap], alpha: 0.16 });
 
 		// glowing crest riding the surface (brighter on the splash)
 		g.moveTo(surface[0].x, surface[0].y);
 		for (let s = 1; s < surface.length; s++) g.lineTo(surface[s].x, surface[s].y);
 		g.stroke({
 			width: Math.max(1.5, 2.4 * nativeScale),
-			color: GAZE_COLORS.fillTop,
+			color: lapColors.fillTop,
 			alpha: 0.55 + fx.burst * 0.4,
 		});
 
 		// vertical sheens (kept from the static look)
 		g.rect(segment.x + segment.w * 0.36, fillY + inset, segment.w * 0.34, innerH).fill({
-			color: GAZE_COLORS.fillTop,
+			color: lapColors.fillTop,
 			alpha: 0.12,
 		});
 		g.rect(segment.x + inset, fillY + inset, shineW, innerH).fill({
-			color: GAZE_COLORS.edge,
+			color: lapColors.edge,
 			alpha: 0.28,
 		});
 
@@ -488,7 +688,7 @@
 				const nearSurface = Math.min(1, (by - fillY) / (segment.w * 0.4));
 				if (nearSurface <= 0) continue;
 				const r = bubbleR * (0.45 + ((i * 0.7) % 1) * 0.55);
-				g.circle(bx, by, r).fill({ color: GAZE_COLORS.fillTop, alpha: 0.22 * nearSurface });
+				g.circle(bx, by, r).fill({ color: lapColors.fillTop, alpha: 0.22 * nearSurface });
 			}
 		}
 	};
@@ -537,7 +737,7 @@
 				outerCenter: { x: fillLead.x, y: fillLead.y },
 				outerRadius: fillLead.h * 1.35,
 				colorStops: [
-					{ offset: 0, color: GAZE_COLORS.edge },
+					{ offset: 0, color: GAZE_LAPS[lap].edge },
 					{ offset: 1, color: 0x000000 },
 				],
 			});
@@ -575,14 +775,46 @@
 					rotation={multiplierTextRotation}
 					scale={fx.textScale}
 				>
-					<!-- branded AbyssalBitmap face — gold fill/outline baked into the glyphs -->
+					<!-- branded AbyssalBitmap face — gold fill/outline baked into the glyphs.
+					     At GAZE MAXED the glyphs bloom with the sustained shimmer. -->
 					<BitmapText
 						anchor={0.5}
 						text={String(charge)}
 						style={abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })}
 					/>
+					{#if maxed && fx.overcharge > 0}
+						<Container alpha={fx.overcharge * 0.7} blendMode="add">
+							<BitmapText
+								anchor={0.5}
+								text={String(charge)}
+								style={abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })}
+							/>
+						</Container>
+					{/if}
 				</Container>
 			{/if}
+
+			<!-- "+N" essence chips popping off the plaque as each cluster's orb lands (their
+			     nesting cancels the meter's portrait rotation, so the rise is always screen-up) -->
+			{#each chips as chip (chip.id)}
+				{@const chipAge = Math.max(0, liquid.t - chip.bornT)}
+				{#if chipAge < CHIP_LIFE}
+					{@const chipP = chipAge / CHIP_LIFE}
+					<Container x={plaqueTextX} y={plaqueTextY} rotation={multiplierTextRotation}>
+						<Container
+							y={-plaqueR * 1.45 - chipP * SYMBOL_SIZE * 0.42}
+							scale={chipP < 0.18 ? 0.5 + (chipP / 0.18) * 0.65 : 1.15 - (chipP - 0.18) * 0.18}
+							alpha={chipP > 0.68 ? Math.max(0, (1 - chipP) / 0.32) : 1}
+						>
+							<BitmapText
+								anchor={0.5}
+								text={chip.text}
+								style={abyssalBitmapStyle({ fontSize: plaqueR * (0.58 + chip.tier * 0.14) })}
+							/>
+						</Container>
+					</Container>
+				{/if}
+			{/each}
 		</Container>
 
 		<!-- the Gaze seed flying to the board centre, where the combine equation picks it up -->

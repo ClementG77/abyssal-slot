@@ -4,9 +4,18 @@
 		| { type: 'tumbleWinAmountHide' }
 		| { type: 'tumbleWinAmountReset' }
 		| { type: 'tumbleWinAmountUpdate'; amount: number; animate: boolean }
-		// The Eye's multiplier flies from its board cell into the banner and the raw win counts up
-		// to the multiplied final (`totalWin`). The banner derives the ×N from totalWin / its own raw.
-		| { type: 'tumbleWinAmountMultiply'; totalWin: number; fromReel: number; fromRow: number };
+		// The Eye's multiplier flies from its board cell into the banner and (by default) the raw
+		// win counts up to the multiplied final (`totalWin`). The banner derives the ×N from
+		// totalWin / its own raw. `countToFinal: false` stops after the "raw × mult" equation so
+		// the FINAL is never shown on the banner — used by celebration wins, where the win-steps
+		// takeover owns the final reveal.
+		| {
+				type: 'tumbleWinAmountMultiply';
+				totalWin: number;
+				fromReel: number;
+				fromRow: number;
+				countToFinal?: boolean;
+		  };
 </script>
 
 <script lang="ts">
@@ -14,7 +23,7 @@
 	import { Tween } from 'svelte/motion';
 	import { backOut } from 'svelte/easing';
 
-	import { BitmapText, Container, Graphics, Sprite, Text } from 'pixi-svelte';
+	import { BitmapText, Container, Graphics, Sprite } from 'pixi-svelte';
 	import { ResponsiveBitmapText, FadeContainer } from 'components-pixi';
 	import { stateBetDerived } from 'state-shared';
 	import { waitForResolve } from 'utils-shared/wait';
@@ -22,7 +31,7 @@
 
 	import BoardContainer from './BoardContainer.svelte';
 	import { getContext } from '../game/context';
-	import { SYMBOL_SIZE, abyssalBitmapStyle, eyeValueTextStyle } from '../game/constants';
+	import { SYMBOL_SIZE, abyssalBitmapStyle } from '../game/constants';
 	import { getPositionX, getPositionY } from '../game/utils';
 	import { raceSkip, skippableWait } from '../game/skip.svelte';
 
@@ -31,22 +40,21 @@
 
 	// ---- banner geometry -------------------------------------------------------------------
 	// tumble_win.png is 1448×1086 (aspect 1.333); render at that aspect, not square.
-	const BANNER_W = SYMBOL_SIZE * 2.85;
+	const BANNER_W = SYMBOL_SIZE * 2.6;
 	const BANNER_H = BANNER_W * (1086 / 1448);
 	// text sits in the frame's blue interior (measured ~89% wide, vertically centred)
 	const INNER_W = BANNER_W * 0.78;
 	const INNER_H = BANNER_H * 0.42;
 	const INNER_RADIUS = INNER_H * 0.22;
 
-	// Sits just above the reels, centred. Nudged left in the feature so it clears the snowball.
+	// Sits just above the reels, centred — all layouts, all game types (the feature HUD lives
+	// above the gaze meter in portrait now, so nothing competes for this spot anymore).
 	const desktopPosition = $derived({
 		x: context.stateGameDerived.boardLayout().width * 0.5,
 		y: -SYMBOL_SIZE * 0.55,
 	});
 	const portraitPosition = $derived({
-		x:
-			context.stateGameDerived.boardLayout().width *
-			(context.stateGame.gameType === 'basegame' ? 0.5 : 0.37),
+		x: context.stateGameDerived.boardLayout().width * 0.5,
 		y: -SYMBOL_SIZE * 0.62,
 	});
 	const position = $derived(
@@ -69,8 +77,9 @@
 	let multiplyExpr = $state<{ rawText: string; mult: number } | null>(null);
 
 	// Count the displayed number toward `amount`. `animate` adds a scale pop (used for the eye
-	// multiply and big single-cluster jumps); otherwise it snaps. A press-to-skip snaps the
-	// running count straight to its target.
+	// multiply and big single-cluster jumps); otherwise it snaps. A press-to-skip FINISHES the
+	// running count fast (turbo pace) instead of jumping to the target.
+	const COUNT_SKIP_MS = 180; // the fast finish of an interrupted count-up
 	let token = 0;
 	$effect(() => {
 		const target = amount;
@@ -80,7 +89,8 @@
 			if (anim) {
 				numScale.set(1.3);
 				const raced = await raceSkip(displayAmount.set(target, { duration: 620 / ts() }));
-				if (raced === 'skipped') displayAmount.set(target, { duration: 0 });
+				if (raced === 'skipped')
+					await displayAmount.set(target, { duration: COUNT_SKIP_MS });
 				await numScale.set(1);
 			} else {
 				await displayAmount.set(target, { duration: 0 });
@@ -102,8 +112,6 @@
 		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_landing' });
 	};
 
-	// kept module-wide so a press-to-skip can fast-forward the flight to its end
-	let flightTl: gsap.core.Timeline | undefined;
 	const flyMultiplier = ({
 		mult,
 		fromReel,
@@ -123,7 +131,6 @@
 					resolve();
 				},
 			});
-			flightTl = tl;
 			tl.timeScale(ts());
 			tl.set(flyFx, { x: getPositionX(fromReel), y: getPositionY(fromRow), scale: 0.5, alpha: 0 })
 				.to(flyFx, { alpha: 1, scale: 1.2, duration: 0.22, ease: 'back.out(2.2)' })
@@ -135,12 +142,18 @@
 
 	context.eventEmitter.subscribeOnMount({
 		tumbleWinAmountShow: () => (show = amount > 0),
-		tumbleWinAmountHide: () => (show = false),
+		tumbleWinAmountHide: () => {
+			show = false;
+			// clear any equation left up by a celebration multiply (countToFinal:false) so it
+			// never leaks onto the next win
+			multiplyExpr = null;
+		},
 		tumbleWinAmountReset: () => {
 			show = false;
 			amount = 0;
 			animate = false;
 			oncomplete = () => {};
+			multiplyExpr = null;
 			displayAmount.set(0, { duration: 0 });
 		},
 		tumbleWinAmountUpdate: async (emitterEvent) => {
@@ -166,15 +179,22 @@
 					fromReel: emitterEvent.fromReel,
 					fromRow: emitterEvent.fromRow,
 				});
-				// a press-to-skip jumps the flight to its landing (progress(1) fires onComplete)
-				if ((await raceSkip(flight)) === 'skipped') flightTl?.progress(1);
+				// a press-to-skip accelerates the flight to turbo (skip.svelte retimes all
+				// in-flight gsap animations), so just await the real landing
+				await flight;
 				// the token lands → the display reads "raw × mult" with a punch, holds, then resolves
 				multiplyExpr = { rawText, mult };
 				numScale.set(1.32, { duration: 0 });
 				numScale.set(1, { duration: 320 / ts(), easing: backOut });
 				await skippableWait(750 / ts());
+				// Celebration wins: stop on the equation — the win-steps takeover reveals the
+				// final, so the banner must NOT count to it. Leave the equation up; the banner
+				// fades out (tumbleWinAmountHide clears it) as the takeover opens.
+				if (emitterEvent.countToFinal === false) return;
 				multiplyExpr = null;
 			}
+			// celebration wins never reveal the final on the banner (guards the mult<2 path too)
+			if (emitterEvent.countToFinal === false) return;
 			// count the banner up from the raw win to the multiplied final
 			await waitForResolve((resolve) => {
 				amount = emitterEvent.totalWin;
@@ -186,18 +206,11 @@
 		},
 	});
 
-	// ---- styles ----------------------------------------------------------------------------
-	// The label wears the Cinzel minted face (same as Gaze/Eye values) in ice-cyan: the gold
-	// bitmap face vanished against the banner's gold frame, and the cool fill separates the
-	// label from the gold amount beneath it. Amount/equation stay branded AbyssalBitmap gold.
-	// Tuned against the banner interior oklch(0.46 0.08 246.35) ≈ #2f5c82 — 6.5:1 contrast.
-	const LABEL_FILL = 0xdffbff; // ice-cyan (try 0xffffff for pure white, 0x9fe8ff for colder)
-	const LABEL_SIZE = SYMBOL_SIZE * 0.17;
-	const LABEL_SPACING = 4;
-	const labelStyle = {
-		...eyeValueTextStyle({ fontSize: LABEL_SIZE, fill: LABEL_FILL }),
-		letterSpacing: LABEL_SPACING,
-	};
+	// ---- styles (the branded AbyssalBitmap face — gold fill/outline baked into the glyphs).
+	// Sized down vs the old Cinzel styles: the bitmap glyphs run wider and carry their own
+	// outline, so they fill the plate at a smaller nominal size. (Lab-tested alternatives —
+	// Cinzel/heavy-sans recolors — lost to the branded gold; we stay on the bitmap face.)
+	const labelStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.14, letterSpacing: 2 });
 	const amountStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.31 });
 	const exprStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.27 });
 	const multStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.6 });
@@ -245,10 +258,10 @@
 					</Container>
 				{/if}
 
-				<Text
+				<BitmapText
 					anchor={0.5}
 					y={-BANNER_H * 0.09}
-					text={context.i18nDerived.tumbleWin().toUpperCase()}
+					text={context.i18nDerived.tumbleWin()}
 					style={labelStyle}
 				/>
 				<Container scale={numScale.current} y={BANNER_H * 0.09}>
