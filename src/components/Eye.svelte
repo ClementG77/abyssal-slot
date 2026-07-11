@@ -16,14 +16,19 @@
 	import gsap from 'gsap';
 	import { GlowFilter } from 'pixi-filters/glow';
 
-	import { Container, Graphics, Text } from 'pixi-svelte';
+	import { BitmapText, Container, Graphics, Text } from 'pixi-svelte';
 	import { FadeContainer } from 'components-pixi';
 	import { stateBetDerived } from 'state-shared';
 	import { skippableWait } from '../game/skip.svelte';
 
 	import BoardContainer from './BoardContainer.svelte';
 	import { getContext } from '../game/context';
-	import { BOARD_SIZES, SYMBOL_SIZE, eyeValueTextStyle } from '../game/constants';
+	import {
+		abyssalBitmapStyle,
+		BOARD_SIZES,
+		SYMBOL_SIZE,
+		eyeValueTextStyle,
+	} from '../game/constants';
 	import { getPositionX, getPositionY } from '../game/utils';
 
 	const context = getContext();
@@ -186,19 +191,12 @@
 		},
 	});
 
-	const totalStyle = $derived(
-		eyeValueTextStyle({ fontSize: SYMBOL_SIZE * 0.92, fill: TOTAL_COLOR }),
-	);
-	const flashStyle = $derived(eyeValueTextStyle({ fontSize: SYMBOL_SIZE * 0.92, fill: 0xffffff }));
-	const gazeStyle = {
-		fontFamily: 'Cinzel, Georgia, serif',
-		fontWeight: '700',
-		fontSize: SYMBOL_SIZE * 0.26,
-		fill: GAZE_COLOR,
-		letterSpacing: 3,
-		align: 'center',
-		stroke: { color: 0x05080f, width: 4 },
-	} as const;
+	// The RUNNING TOTAL is the game's number — branded gold bitmap face (same as the tumble
+	// banner / takeover / HUD), with the GlowFilter carrying the hero warmth. The flying CHIPS
+	// stay in the eye-coloured Cinzel face: each chip carries the value straight off its eye's
+	// face (ADD cyan / MUL red), so keeping that style reads as continuity, not a mismatch.
+	const totalStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.78 });
+	const gazeStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.22, letterSpacing: 3 });
 	const chipStyle = $derived(
 		eyeValueTextStyle({ fontSize: SYMBOL_SIZE * 0.6, fill: chip.mul ? MUL_COLOR : ADD_COLOR }),
 	);
@@ -220,10 +218,11 @@
 			</Container>
 		{/if}
 
-		<!-- the running equation value, resolved at the board centre -->
+		<!-- the running equation value, resolved at the board centre — the branded gold face,
+		     matching the seed that just flew in from the meter's plaque -->
 		<Container x={center.x} y={center.y}>
 			{#if gazeLabel}
-				<Text
+				<BitmapText
 					anchor={0.5}
 					y={-SYMBOL_SIZE * 0.62}
 					text={context.i18nDerived.gaze()}
@@ -231,10 +230,11 @@
 				/>
 			{/if}
 			<Container scale={centerFx.scale} filters={numberGlow ? [numberGlow] : []}>
-				<Text anchor={0.5} text={`${running}`} style={totalStyle} />
+				<BitmapText anchor={0.5} text={`${running}`} style={totalStyle} />
 				{#if centerFx.flash > 0}
-					<Container alpha={centerFx.flash}>
-						<Text anchor={0.5} text={`${running}`} style={flashStyle} />
+					<!-- the punch flash: an additive copy blooms the gold glyphs to white -->
+					<Container alpha={centerFx.flash} blendMode="add">
+						<BitmapText anchor={0.5} text={`${running}`} style={totalStyle} />
 					</Container>
 				{/if}
 			</Container>

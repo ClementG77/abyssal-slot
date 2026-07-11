@@ -104,15 +104,8 @@ export default {
 		amount: 20,
 	},
 
-	// the 15,000× cap — arrives after setTotalWin; drives the MAX WIN trophy takeover
-	wincap: {
-		index: 7,
-		type: 'wincap',
-		amount: 1500000,
-	},
-
 	finalWin: {
-		index: 8,
+		index: 7,
 		type: 'finalWin',
 		amount: 20,
 		capped: false,

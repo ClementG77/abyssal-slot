@@ -26,7 +26,7 @@
 
 	import { BitmapText, Container, Graphics, Sprite } from 'pixi-svelte';
 	import { stateBetDerived } from 'state-shared';
-	import { FadeContainer } from 'components-pixi';
+	import { FadeContainer, ResponsiveBitmapText } from 'components-pixi';
 	import { waitForResolve } from 'utils-shared/wait';
 
 	import BoardContainer from './BoardContainer.svelte';
@@ -71,19 +71,26 @@
 		edge: number;
 	};
 	const GAZE_LAPS: GazeLapPalette[] = [
-		// lap 1 — tide teal (the original fill ramp, bright against the dark backing)
+		// lap 1 — classic tide teal (the original fill ramp, bright against the dark backing)
 		{ fillDeep: 0x0c7d80, fillMid: 0x18c4b6, fillCore: 0x49f5df, fillTop: 0xe8fffb, fillGlow: 0x66ffe8, edge: 0xe9ffff },
-		// lap 2 — abyssal purple
-		{ fillDeep: 0x5d3aa8, fillMid: 0x9a6bff, fillCore: 0xc77dff, fillTop: 0xf2e8ff, fillGlow: 0xd9a6ff, edge: 0xf6ecff },
-		// lap 3 — ember red
-		{ fillDeep: 0xb03214, fillMid: 0xff5a2a, fillCore: 0xffb46a, fillTop: 0xffe9c9, fillGlow: 0xffc37a, edge: 0xfff1d6 },
+		// lap 2 — deep abyssal purple (saturated, clearly violet)
+		{ fillDeep: 0x4a1f9e, fillMid: 0x8a3fff, fillCore: 0xb56bff, fillTop: 0xefe4ff, fillGlow: 0xc98bff, edge: 0xf3e8ff },
+		// lap 3 — molten red (pushed off the old orange ember toward true red)
+		{ fillDeep: 0x8f1410, fillMid: 0xff2f2a, fillCore: 0xff6a52, fillTop: 0xffdcd2, fillGlow: 0xff7a5a, edge: 0xffe6de },
 	];
-	const LAP_BACKING_ALPHA = 0.4; // the finished lap's dimmed fill under the current colour
+	const LAP_BACKING_ALPHA = 0.72; // the completed lap's settled full-height background fill
 	const LAP_FLOOD_ALPHA = 0.7; // peak of the colour flood when a lap boundary is crossed
-	// hero-orb tiers: radius (×SYMBOL_SIZE) and arc weight (higher = slower, heavier flight)
-	const ORB_TIER_RADIUS = [0.09, 0.125, 0.17] as const;
-	const ORB_TIER_WEIGHT = [1, 1.04, 1.12] as const;
-	const ORB_GOLD_CORE = 0xfff3c9; // the +5 orb's payload core
+	// Hero-orb SIZE encodes the cluster's essence tier (+2/+3/+5); its COLOUR encodes the gaze
+	// RANGE it charges toward — blue (0-10) → purple (10-20) → red (20-30) — so the orb reads as
+	// "the essence that pushes the meter into this band", matching the fill it's about to make.
+	const ORB_TIER_RADIUS = [0.085, 0.14, 0.2] as const; // by cluster tier
+	const ORB_TIER_WEIGHT = [1, 1.05, 1.12] as const; // heavier tiers arc slower
+	// per-lap orb palette: dim halo → saturated body → near-white core (drawn additively)
+	const ORB_LAP_COLORS = [
+		{ halo: 0x1a6fd8, body: 0x37b0ff, core: 0xe6f5ff }, // 0-10 blue
+		{ halo: 0x6a2fce, body: 0xb168ff, core: 0xf3e8ff }, // 10-20 purple
+		{ halo: 0xb81f14, body: 0xff4230, core: 0xffd9cc }, // 20-30 red
+	] as const;
 	const CHIP_LIFE = 0.9; // seconds a "+N" essence chip lives beside the plaque
 
 	let show = $state(false);
@@ -97,10 +104,18 @@
 	type Chip = { id: number; text: string; tier: number; bornT: number };
 	let chips = $state<Chip[]>([]);
 	let nextChipId = 0;
-	// Energy orbs in flight: ONE HERO ORB PER WINNING CLUSTER (sized by its essence tier),
-	// arcing from the cluster's overlay cell into the meter; the fill rises once the convoy
-	// lands. Fallback (no cluster data): one small orb per winning cell.
-	type Orb = { sx: number; sy: number; wobble: number; tier: 1 | 2 | 3; value: number };
+	// Energy orbs in flight: ONE HERO ORB PER WINNING CLUSTER (sized by its essence tier,
+	// coloured by the gaze range it charges toward), arcing from the cluster's overlay cell into
+	// the meter; the fill rises once the convoy lands. Fallback (no cluster data): one small orb
+	// per winning cell.
+	type Orb = {
+		sx: number;
+		sy: number;
+		wobble: number;
+		tier: 1 | 2 | 3;
+		value: number;
+		lap: 0 | 1 | 2;
+	};
 	let orbs = $state<Orb[]>([]);
 	// chips scheduled against each orb's arrival; killed + flushed on skip/reset
 	let chipCalls: gsap.core.Tween[] = [];
@@ -400,12 +415,20 @@
 							reel: position.reel,
 							row: position.row,
 						}));
+			// the orbs take the colour of the lap this step CHARGES INTO (the resulting charge's
+			// band), so they foreshadow the fill they're about to create
+			const targetLap = (
+				emitterEvent.charge <= 0
+					? 0
+					: Math.min(GAZE_LAPS.length - 1, Math.ceil(emitterEvent.charge / GAZE_LAP_SIZE) - 1)
+			) as 0 | 1 | 2;
 			orbs = clusterData.map((cluster) => ({
 				sx: getPositionX(cluster.reel),
 				sy: getPositionY(cluster.row),
 				wobble: (Math.random() - 0.5) * SYMBOL_SIZE * 0.9,
 				tier: cluster.tier,
 				value: cluster.value,
+				lap: targetLap,
 			}));
 			orbFlight.set(0, { duration: 0 });
 			const flightBaseMs = 340 + orbs.length * 90;
@@ -472,18 +495,20 @@
 	});
 
 	// Energy orbs: one HERO ORB PER CLUSTER, arcing from the cluster's overlay cell into the
-	// meter's eye with a slight per-orb stagger. Radius/brightness encode the essence tier —
-	// the orb is the CAUSE (cluster size); the liquid's lap colour is the STATE. Tier 3 (+5)
-	// runs gold-hot with a longer wake and a slightly slower, heavier arc.
+	// meter's eye with a slight per-orb stagger. SIZE = essence tier (cluster size); COLOUR =
+	// the gaze range it charges toward (blue → purple → red). Each orb is a glossy layered
+	// sphere (dim halo → saturated body → white-hot core → offset specular) trailing a tapered
+	// comet tail sampled back along its curve — heavier tiers drag a longer wake.
 	const ORB_TRAVEL_FRACTION = 0.6; // each orb spends this share of the timeline in flight
+	const ORB_TAIL_SAMPLES = 5;
 	const drawOrbs = (g: import('pixi.js').Graphics) => {
 		const t = orbFlight.current;
 		if (t <= 0 || orbs.length === 0) return;
 		const count = orbs.length;
 		const stagger = count > 1 ? (1 - ORB_TRAVEL_FRACTION) / (count - 1) : 0;
-		const tide = GAZE_LAPS[0]; // orbs keep the essence-cyan identity on every lap
 
 		orbs.forEach((orb, index) => {
+			const col = ORB_LAP_COLORS[orb.lap];
 			const weight = ORB_TIER_WEIGHT[orb.tier - 1];
 			const p = Math.min(
 				Math.max((t - index * stagger) / (ORB_TRAVEL_FRACTION * weight), 0),
@@ -493,40 +518,61 @@
 			// quadratic arc from the cell to the meter's eye, bowed upward with a per-orb wobble
 			const cx = (orb.sx + meterEnergyX) / 2;
 			const cy = Math.min(orb.sy, meterEnergyY) - SYMBOL_SIZE * 0.45 + orb.wobble;
-			const u = 1 - p;
-			const x = u * u * orb.sx + 2 * u * p * cx + p * p * meterEnergyX;
-			const y = u * u * orb.sy + 2 * u * p * cy + p * p * meterEnergyY;
+			const bez = (tt: number) => {
+				const uu = 1 - tt;
+				return {
+					x: uu * uu * orb.sx + 2 * uu * tt * cx + tt * tt * meterEnergyX,
+					y: uu * uu * orb.sy + 2 * uu * tt * cy + tt * tt * meterEnergyY,
+				};
+			};
 			// pop in fast, shrink slightly as it dives into the meter
 			const appear = Math.min(p / 0.12, 1);
 			const r = SYMBOL_SIZE * ORB_TIER_RADIUS[orb.tier - 1] * appear * (1 - p * 0.35);
 
-			// fading tail back along the curve — the heavy +5 orb drags a longer wake
-			const tailLag = orb.tier === 3 ? 0.2 : 0.12;
-			const pt = Math.max(p - tailLag, 0);
-			const ut = 1 - pt;
-			const tailX = ut * ut * orb.sx + 2 * ut * pt * cx + pt * pt * meterEnergyX;
-			const tailY = ut * ut * orb.sy + 2 * ut * pt * cy + pt * pt * meterEnergyY;
-			g.moveTo(tailX, tailY)
-				.lineTo(x, y)
-				.stroke({
-					width: r * 0.9,
-					color: GAZE_COLORS.energy,
-					alpha: (orb.tier === 3 ? 0.5 : 0.35) * appear,
-				});
+			// tapered comet tail: fading circles sampled back along the curve
+			const tailSpan = orb.tier === 3 ? 0.26 : orb.tier === 2 ? 0.2 : 0.15;
+			for (let s = 1; s <= ORB_TAIL_SAMPLES; s++) {
+				const frac = s / ORB_TAIL_SAMPLES;
+				const pt = p - tailSpan * frac;
+				if (pt <= 0) continue;
+				const tail = bez(pt);
+				const tr = r * (1 - frac * 0.72);
+				if (tr <= 0.5) continue;
+				g.circle(tail.x, tail.y, tr).fill({ color: col.body, alpha: (1 - frac) * 0.4 * appear });
+			}
 
-			// layered glow: halo → body → core (halo deepens with tier)
-			g.circle(x, y, r * 2.4).fill({
-				color: GAZE_COLORS.energy,
-				alpha: (0.12 + orb.tier * 0.05) * appear,
+			// glossy head: soft halo → body bloom → body → white-hot core → offset specular
+			const head = bez(p);
+			g.circle(head.x, head.y, r * 2.6).fill({ color: col.halo, alpha: 0.14 * appear });
+			g.circle(head.x, head.y, r * 1.65).fill({ color: col.body, alpha: 0.4 * appear });
+			g.circle(head.x, head.y, r * 1.02).fill({ color: col.body, alpha: 0.9 * appear });
+			g.circle(head.x, head.y, r * 0.58).fill({ color: col.core, alpha: 0.98 * appear });
+			g.circle(head.x - r * 0.26, head.y - r * 0.3, r * 0.22).fill({
+				color: 0xffffff,
+				alpha: 0.85 * appear,
 			});
+
+			// tier "rank" made unmistakable: orbiting satellite sparks — none for +2, TWO for +3,
+			// FOUR for +5 — so the payload's weight reads even before the "+N" label is legible.
+			const satCount = orb.tier === 3 ? 4 : orb.tier === 2 ? 2 : 0;
+			if (satCount > 0) {
+				const orbitR = r * 1.95;
+				const spin = p * 9 + index;
+				for (let s = 0; s < satCount; s++) {
+					const ang = (s / satCount) * Math.PI * 2 + spin;
+					const sxo = head.x + Math.cos(ang) * orbitR;
+					const syo = head.y + Math.sin(ang) * orbitR;
+					g.circle(sxo, syo, r * 0.5).fill({ color: col.body, alpha: 0.38 * appear });
+					g.circle(sxo, syo, r * 0.26).fill({ color: col.core, alpha: 0.92 * appear });
+				}
+			}
+			// +5 heavyweight: a pulsing containment ring around the payload
 			if (orb.tier === 3) {
-				g.circle(x, y, r * 1.4).fill({ color: 0xffd76a, alpha: 0.55 * appear });
-				g.circle(x, y, r * 0.7).fill({ color: ORB_GOLD_CORE, alpha: 0.98 * appear });
-			} else {
-				g.circle(x, y, r * 1.4).fill({ color: tide.fillCore, alpha: 0.5 * appear });
-				g.circle(x, y, r * 0.7).fill({
-					color: orb.tier === 2 ? 0xffffff : tide.fillTop,
-					alpha: 0.95 * appear,
+				const ring = 0.5 + 0.5 * Math.sin(p * 14);
+				g.circle(head.x, head.y, r * (2.0 + ring * 0.35)).stroke({
+					width: Math.max(1, r * 0.14),
+					color: col.body,
+					alpha: 0.45 * appear,
 				});
 			}
 		});
@@ -591,16 +637,24 @@
 	const drawTrackFill = (g: import('pixi.js').Graphics, segment: TrackSegment, amount: number) => {
 		const lapColors = GAZE_LAPS[lap];
 
-		// the finished lap stays visible as a dimmed backing under the current colour, so a
-		// deep charge reads at a glance even while the new lap is barely filled
+		// STACKED fill: the completed lap stays as a FULL, settled background of its own colour,
+		// and the current lap fills OVER it — so climbing past 10 reads as "the bar was blue-full,
+		// now purple is filling over it"; past 20, "red filling over the full purple". The active
+		// liquid (below) rises from the bottom on top of this settled backing.
 		if (lap > 0) {
 			const prev = GAZE_LAPS[lap - 1];
+			// full-height solid body (no wave — it's a settled, already-earned level)
 			g.rect(segment.x, segment.y, segment.w, segment.h).fill({
-				color: prev.fillMid,
+				color: prev.fillDeep,
 				alpha: LAP_BACKING_ALPHA,
 			});
-			g.rect(segment.x, segment.y + segment.h * 0.45, segment.w, segment.h * 0.55).fill({
-				color: prev.fillDeep,
+			g.rect(segment.x, segment.y, segment.w, segment.h).fill({
+				color: prev.fillMid,
+				alpha: LAP_BACKING_ALPHA * 0.65,
+			});
+			// a settled surface line at the very top so the full level reads as "capped"
+			g.rect(segment.x, segment.y, segment.w, Math.max(1, segment.h * 0.05)).fill({
+				color: prev.fillTop,
 				alpha: LAP_BACKING_ALPHA * 0.7,
 			});
 		}
@@ -756,6 +810,7 @@
 			<Graphics draw={drawOrbs} />
 		</Container>
 
+
 		<Container x={position.x} y={position.y} rotation={meterRotation}>
 			<Graphics draw={drawTrackBackplates} />
 			<Graphics draw={drawMultiplierBackplate} />
@@ -776,16 +831,20 @@
 					scale={fx.textScale}
 				>
 					<!-- branded AbyssalBitmap face — gold fill/outline baked into the glyphs.
+					     ResponsiveBitmapText shrinks to `maxWidth` so a 2-digit charge (up to 30)
+					     stays inside the round plaque instead of overflowing it.
 					     At GAZE MAXED the glyphs bloom with the sustained shimmer. -->
-					<BitmapText
+					<ResponsiveBitmapText
 						anchor={0.5}
+						maxWidth={plaqueR * 1.55}
 						text={String(charge)}
 						style={abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })}
 					/>
 					{#if maxed && fx.overcharge > 0}
 						<Container alpha={fx.overcharge * 0.7} blendMode="add">
-							<BitmapText
+							<ResponsiveBitmapText
 								anchor={0.5}
+								maxWidth={plaqueR * 1.55}
 								text={String(charge)}
 								style={abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })}
 							/>

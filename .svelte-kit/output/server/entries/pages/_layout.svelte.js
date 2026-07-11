@@ -1,11 +1,12 @@
 import { f as is_array, g as get_prototype_of, o as object_prototype, n as noop, h as current_component, j as getContext$1, s as setContext$1, p as push, e as pop, k as attr, t as to_class, l as stringify, m as spread_attributes, q as ensure_array_like, u as escape_html, v as clsx, w as copy_payload, x as assign_payload, y as spread_props, z as bind_props } from "../../chunks/index.js";
 import { p as page } from "../../chunks/index2.js";
 import * as PIXI$1 from "pixi.js";
-import { Texture as Texture$1, LoaderParserPriority, ExtensionType, extensions, checkExtension, path, TextureSource, copySearchParams, DOMAdapter, Resolver, Geometry, Buffer, BufferUsage, Shader, compileHighShaderGlProgram, colorBitGl, generateTextureBatchBitGl, roundPixelsBitGl, compileHighShaderGpuProgram, colorBit, generateTextureBatchBit, roundPixelsBit, getBatchSamplersUniformGroup, Batcher, Color as Color$1, collectAllRenderables, Point, Ticker, Sprite as Sprite$1, CanvasTextMetrics, TextStyle, FillGradient } from "pixi.js";
+import { Texture as Texture$1, LoaderParserPriority, ExtensionType, extensions, checkExtension, path, TextureSource, copySearchParams, DOMAdapter, Resolver, Geometry, Buffer, BufferUsage, Shader, compileHighShaderGlProgram, colorBitGl, generateTextureBatchBitGl, roundPixelsBitGl, compileHighShaderGpuProgram, colorBit, generateTextureBatchBit, roundPixelsBit, getBatchSamplersUniformGroup, Batcher, Color as Color$1, collectAllRenderables, Point, Ticker, Sprite as Sprite$1, CanvasTextMetrics, TextStyle, FillGradient, Rectangle as Rectangle$2 } from "pixi.js";
 import { t as source, u as render_effect, s as set, n as get, v as effect_tracking, w as untrack, x as tick, y as on } from "../../chunks/events.js";
 import { i18n } from "@lingui/core";
 import _ from "lodash";
 import gsap from "gsap";
+import { GlowFilter } from "pixi-filters";
 const empty = [];
 function snapshot(value, skip_warning = false) {
   return clone(value, /* @__PURE__ */ new Map(), "", empty);
@@ -448,7 +449,9 @@ const stateConfig = {
     500,
     800,
     1e3
-  ]
+  ],
+  // authenticate `config.gameModes`: [{ mode, costMultiplier, maxBet }] (display units)
+  gameModes: []
 };
 const stateBet$1 = {
   currency: "USD",
@@ -2303,8 +2306,15 @@ function ModalSettings($$payload, $$props) {
 function Modals($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
-  ModalError($$payload);
-  $$payload.out += `<!----> `;
+  if (props.error) {
+    $$payload.out += "<!--[-->";
+    props.error($$payload);
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+    ModalError($$payload);
+  }
+  $$payload.out += `<!--]--> `;
   ModalBetMenu($$payload);
   $$payload.out += `<!----> `;
   if (props.buyBonus) {
@@ -5746,7 +5756,7 @@ function requireWebfontloader() {
         if (a.j && a.h[b]) if (c) a.h[b](c.c, J(c));
         else a.h[b]();
       }
-      function ja() {
+      function ja2() {
         this.c = {};
       }
       function ka(a, b, c) {
@@ -5894,7 +5904,7 @@ function requireWebfontloader() {
       }
       function oa(a) {
         this.j = a;
-        this.a = new ja();
+        this.a = new ja2();
         this.h = 0;
         this.f = this.g = true;
       }
@@ -7994,32 +8004,6 @@ function ResponsiveBitmapText($$payload, $$props) {
   });
   $$payload.out += `<!---->`;
 }
-function ResponsiveText($$payload, $$props) {
-  const { maxWidth, $$slots, $$events, ...textProps } = $$props;
-  let baseSizes = { width: 0 };
-  const responsiveScale = maxWidth / (baseSizes.width || 1);
-  Container($$payload, {
-    visible: false,
-    children: ($$payload2) => {
-      Text($$payload2, spread_props([
-        textProps,
-        { onresize: (sizes) => baseSizes = sizes }
-      ]));
-    },
-    $$slots: { default: true }
-  });
-  $$payload.out += `<!----> `;
-  Container($$payload, {
-    children: ($$payload2) => {
-      Text($$payload2, spread_props([
-        textProps,
-        { scale: Math.min(responsiveScale, 1) }
-      ]));
-    },
-    $$slots: { default: true }
-  });
-  $$payload.out += `<!---->`;
-}
 function Button($$payload, $$props) {
   push();
   const {
@@ -8192,7 +8176,7 @@ function OnPressFullScreen($$payload, $$props) {
   const { $$slots, $$events, ...props } = $$props;
   CanvasSizeRectangle($$payload, {
     onpointerup: props.onpress,
-    cursor: "pointer",
+    cursor: props.cursor ?? "pointer",
     eventMode: "static",
     backgroundColor: 16777215,
     backgroundAlpha: 1e-3
@@ -8278,14 +8262,14 @@ const STATE_IDENTIFIER$1 = "#";
 const WILDCARD = "*";
 const XSTATE_INIT = "xstate.init";
 const XSTATE_STOP = "xstate.stop";
-function createAfterEvent(delayRef, id) {
+function createAfterEvent(delayRef, id2) {
   return {
-    type: `xstate.after.${delayRef}.${id}`
+    type: `xstate.after.${delayRef}.${id2}`
   };
 }
-function createDoneStateEvent(id, output) {
+function createDoneStateEvent(id2, output) {
   return {
-    type: `xstate.done.state.${id}`,
+    type: `xstate.done.state.${id2}`,
     output
   };
 }
@@ -8296,11 +8280,11 @@ function createDoneActorEvent(invokeId, output) {
     actorId: invokeId
   };
 }
-function createErrorActorEvent(id, error) {
+function createErrorActorEvent(id2, error) {
   return {
-    type: `xstate.error.actor.${id}`,
+    type: `xstate.error.actor.${id2}`,
     error,
-    actorId: id
+    actorId: id2
   };
 }
 function createInitEvent(input) {
@@ -8461,8 +8445,8 @@ function resolveReferencedActor(machine, src) {
   const invokeConfig = node.config.invoke;
   return (Array.isArray(invokeConfig) ? invokeConfig[indexStr] : invokeConfig).src;
 }
-function createScheduledEventId(actorRef, id) {
-  return `${actorRef.sessionId}.${id}`;
+function createScheduledEventId(actorRef, id2) {
+  return `${actorRef.sessionId}.${id2}`;
 }
 let idCounter = 0;
 function createSystem(rootActor, options) {
@@ -8476,16 +8460,16 @@ function createSystem(rootActor, options) {
     logger
   } = options;
   const scheduler = {
-    schedule: (source2, target, event2, delay, id = Math.random().toString(36).slice(2)) => {
+    schedule: (source2, target, event2, delay, id2 = Math.random().toString(36).slice(2)) => {
       const scheduledEvent = {
         source: source2,
         target,
         event: event2,
         delay,
-        id,
+        id: id2,
         startedAt: Date.now()
       };
-      const scheduledEventId = createScheduledEventId(source2, id);
+      const scheduledEventId = createScheduledEventId(source2, id2);
       system._snapshot._scheduledEvents[scheduledEventId] = scheduledEvent;
       const timeout = clock.setTimeout(() => {
         delete timerMap[scheduledEventId];
@@ -8494,8 +8478,8 @@ function createSystem(rootActor, options) {
       }, delay);
       timerMap[scheduledEventId] = timeout;
     },
-    cancel: (source2, id) => {
-      const scheduledEventId = createScheduledEventId(source2, id);
+    cancel: (source2, id2) => {
+      const scheduledEventId = createScheduledEventId(source2, id2);
       const timeout = timerMap[scheduledEventId];
       delete timerMap[scheduledEventId];
       delete system._snapshot._scheduledEvents[scheduledEventId];
@@ -8586,9 +8570,9 @@ function createSystem(rootActor, options) {
           target,
           event: event2,
           delay,
-          id
+          id: id2
         } = scheduledEvents[scheduledId];
-        scheduler.schedule(source2, target, event2, delay, id);
+        scheduler.schedule(source2, target, event2, delay, id2);
       }
     },
     _clock: clock,
@@ -8609,8 +8593,8 @@ const defaultOptions = {
     setTimeout: (fn, ms) => {
       return setTimeout(fn, ms);
     },
-    clearTimeout: (id) => {
-      return clearTimeout(id);
+    clearTimeout: (id2) => {
+      return clearTimeout(id2);
     }
   },
   logger: console.log.bind(console),
@@ -8654,7 +8638,7 @@ class Actor {
       logger,
       parent,
       syncSnapshot,
-      id,
+      id: id2,
       systemId,
       inspect
     } = resolvedOptions;
@@ -8666,7 +8650,7 @@ class Actor {
       this.system.inspect(toObserver(inspect));
     }
     this.sessionId = this.system._bookId();
-    this.id = id ?? this.sessionId;
+    this.id = id2 ?? this.sessionId;
     this.logger = options?.logger ?? this.system._logger;
     this.clock = options?.clock ?? this.system._clock;
     this._parent = parent;
@@ -9171,14 +9155,14 @@ function cancel(sendId) {
   return cancel2;
 }
 function resolveSpawn(actorScope, snapshot2, actionArgs, _actionParams, {
-  id,
+  id: id2,
   systemId,
   src,
   input,
   syncSnapshot
 }) {
   const logic = typeof src === "string" ? resolveReferencedActor(snapshot2.machine, src) : src;
-  const resolvedId = typeof id === "function" ? id(actionArgs) : id;
+  const resolvedId = typeof id2 === "function" ? id2(actionArgs) : id2;
   let actorRef;
   let resolvedInput = void 0;
   if (logic) {
@@ -9202,7 +9186,7 @@ function resolveSpawn(actorScope, snapshot2, actionArgs, _actionParams, {
       [resolvedId]: actorRef
     }
   }), {
-    id,
+    id: id2,
     systemId,
     actorRef,
     src,
@@ -9223,7 +9207,7 @@ function executeSpawn(actorScope, {
   });
 }
 function spawnChild(...[src, {
-  id,
+  id: id2,
   systemId,
   input,
   syncSnapshot = false
@@ -9231,7 +9215,7 @@ function spawnChild(...[src, {
   function spawnChild2(_args, _params) {
   }
   spawnChild2.type = "xstate.spawnChild";
-  spawnChild2.id = id;
+  spawnChild2.id = id2;
   spawnChild2.systemId = systemId;
   spawnChild2.src = src;
   spawnChild2.input = input;
@@ -10291,9 +10275,9 @@ function getPersistedSnapshot(snapshot2, options) {
     ...jsonValues
   } = snapshot2;
   const childrenJson = {};
-  for (const id in children) {
-    const child = children[id];
-    childrenJson[id] = {
+  for (const id2 in children) {
+    const child = children[id2];
+    childrenJson[id2] = {
       snapshot: child.getPersistedSnapshot(options),
       src: child.src,
       systemId: child._systemId,
@@ -10335,7 +10319,7 @@ function persistContext(contextPart) {
 }
 function resolveRaise(_2, snapshot2, args, actionParams, {
   event: eventOrExpr,
-  id,
+  id: id2,
   delay
 }, {
   internalQueue
@@ -10360,7 +10344,7 @@ function resolveRaise(_2, snapshot2, args, actionParams, {
   }
   return [snapshot2, {
     event: resolvedEvent,
-    id,
+    id: id2,
     delay: resolvedDelay
   }, void 0];
 }
@@ -10368,12 +10352,12 @@ function executeRaise(actorScope, params) {
   const {
     event: event2,
     delay,
-    id
+    id: id2
   } = params;
   if (typeof delay === "number") {
     actorScope.defer(() => {
       const self2 = actorScope.self;
-      actorScope.system.scheduler.schedule(self2, self2, event2, delay, id);
+      actorScope.system.scheduler.schedule(self2, self2, event2, delay, id2);
     });
     return;
   }
@@ -11593,7 +11577,11 @@ const FREE_SPINS_BANNER_ASPECT = FREE_SPINS_BANNER_SIZE.width / FREE_SPINS_BANNE
 const REEL_FRAME_BASE_IMAGE_SIZE = { width: 1448, height: 1086 };
 const REEL_FRAME_FREE_SPINS_IMAGE_SIZE = { width: 1448, height: 1086 };
 const GAZE_METER_IMAGE_SIZE = { width: 1254, height: 1254 };
-const GAZE_METER_MAX_CHARGE = 10;
+const GAZE_METER_MAX_CHARGE = 30;
+const GAZE_LAP_SIZE = 10;
+const ESSENCE_TIER_VALUES = [2, 3, 5];
+const getEssenceTier = (count) => count >= 12 ? 3 : count >= 10 ? 2 : 1;
+const GAZE_EYE_INTENSITY_FULL = 15;
 const GAZE_METER_LAYOUT = {
   visibleBounds: {
     left: 449 / 1254,
@@ -12006,7 +11994,9 @@ function createReelForCascading(reelOptions) {
   const reelLength = reelOptions.initialSymbols.length;
   const reelLengthInBoard = reelLength - 2;
   const interruptible = createInterruptible();
+  const FINISH_FALL_MS = 90;
   let fallInterrupted = false;
+  let finishRequested = false;
   let fallInterruptResolvers = [];
   const fallInterruptSignal = () => new Promise((resolve) => fallInterruptResolvers.push(resolve));
   const raceFall = (promise) => {
@@ -12017,10 +12007,11 @@ function createReelForCascading(reelOptions) {
     ]);
   };
   const beginFallPhase = () => {
-    fallInterrupted = false;
+    fallInterrupted = finishRequested;
     fallInterruptResolvers = [];
   };
   const finishFall = () => {
+    finishRequested = true;
     fallInterrupted = true;
     fallInterruptResolvers.splice(0).forEach((resolve) => resolve());
   };
@@ -12044,6 +12035,7 @@ function createReelForCascading(reelOptions) {
     await waitForTimeout(reelState.spinOptions().reelFallOutDelay * reelOptions.reelIndex);
   };
   const preSpin = async ({ isTurboBeforeAll }) => {
+    finishRequested = false;
     reelState.spinType = isTurboBeforeAll ? "fast" : "normal";
     if (!isTurboBeforeAll) await delaySpinByReelIndex();
     await fallOut();
@@ -12063,7 +12055,9 @@ function createReelForCascading(reelOptions) {
       await waitForTimeout(delay);
       reelSymbol.symbolState = "spin";
       const raced = await raceFall(reelSymbol.symbolY.set(newSymbolY, { duration }));
-      if (raced === "skipped") void reelSymbol.symbolY.set(newSymbolY, { duration: 0 });
+      if (raced === "skipped") {
+        await reelSymbol.symbolY.set(newSymbolY, { duration: FINISH_FALL_MS });
+      }
     });
     reelState.motion = "hanging";
   };
@@ -12078,10 +12072,14 @@ function createReelForCascading(reelOptions) {
   const fallIn = async () => {
     const fallInDelayMultiplier = paddingSize / reelLength - 1;
     const waitToStartFallingIn = async () => await waitForTimeout(reelState.spinOptions().reelFallInDelay * fallInDelayMultiplier);
-    if (noStop) {
-      await waitToStartFallingIn();
-    } else if (stateBet$1.isTurbo) ;
-    else {
+    const isFastDrop = finishRequested || reelState.spinOptions().symbolFallInInterval === 0;
+    if (isFastDrop) ;
+    else if (noStop) {
+      await Promise.race([
+        waitToStartFallingIn(),
+        fallInterruptSignal()
+      ]);
+    } else {
       await interruptible.add(waitToStartFallingIn);
     }
     reelState.motion = "fallingIn";
@@ -12113,8 +12111,21 @@ function createReelForCascading(reelOptions) {
           easing: spinOptions.symbolFallInEasing
         }));
         if (raced === "skipped") {
-          void reelSymbol.symbolY.set(newSymbolY, { duration: 0 });
+          const fast = reelState.spinOptions();
+          await reelSymbol.symbolY.set(newSymbolY, {
+            duration: FINISH_FALL_MS,
+            easing: spinOptions.symbolFallInEasing
+          });
           land();
+          const fastRebound = reelOptions.symbolHeight * (fast.symbolFallInReboundMulti ?? 0);
+          if (fastRebound > 0) {
+            const fastReboundDuration = fastRebound / fast.symbolFallInBounceSpeed;
+            await reelSymbol.symbolY.set(newSymbolY - fastRebound, {
+              duration: fastReboundDuration,
+              easing: quadOut
+            });
+            await reelSymbol.symbolY.set(newSymbolY, { duration: fastReboundDuration, easing: quadIn });
+          }
           return;
         }
         land();
@@ -12126,7 +12137,7 @@ function createReelForCascading(reelOptions) {
         const landDuration = (distance - bounceDistance) / spinOptions.symbolFallInSpeed;
         const raced = await raceFall(reelSymbol.symbolY.set(newSymbolY - bounceDistance, { duration: landDuration, delay }));
         if (raced === "skipped") {
-          void reelSymbol.symbolY.set(newSymbolY, { duration: 0 });
+          await reelSymbol.symbolY.set(newSymbolY, { duration: FINISH_FALL_MS });
           land();
           return;
         }
@@ -12152,6 +12163,7 @@ function createReelForCascading(reelOptions) {
   };
   const prepareToSpin = (prepareToSpinOptions) => {
     reelState.spinType = prepareToSpinOptions.spinType;
+    finishRequested = false;
     noStop = prepareToSpinOptions.noStop;
     targetSymbols = prepareToSpinOptions.symbols;
     onSpinFinishing = prepareToSpinOptions.onSpinFinishing;
@@ -12226,13 +12238,13 @@ function createEnhanceBoardSpin({
     }
     stateSlots.isPreSpinning = false;
     const globalSpinType = stateBet$1.isTurbo ? "fast" : "normal";
-    const globalHasAnticipation = revealEvent.anticipation.some(Boolean);
+    const globalHasAnticipation = !stateBet$1.isTurbo && revealEvent.anticipation.some(Boolean);
     const firstAnticipatedReelIndex = revealEvent.anticipation.findIndex(Boolean);
     const getSpinType = ({
       noStop,
       isAnticipated
     }) => {
-      if (isAnticipated) return "anticipated";
+      if (isAnticipated && !stateBet$1.isTurbo) return "anticipated";
       if (noStop) return "normal";
       return globalSpinType;
     };
@@ -12256,7 +12268,8 @@ function createEnhanceBoardSpin({
           reel.onReelStopping();
           const nextReelIndex = reelIndex + 1;
           const isNextReelAnticipated = (revealEvent.anticipation?.[nextReelIndex] || 0) > 0;
-          if (isNextReelAnticipated) board2[nextReelIndex].reelState.anticipating = true;
+          if (isNextReelAnticipated && board2[nextReelIndex].reelState.spinType !== "fast")
+            board2[nextReelIndex].reelState.anticipating = true;
         }
       });
       return paddingSize;
@@ -12499,7 +12512,6 @@ const winLevelMap = {
 };
 const SKIP_TIME_SCALE = 2;
 const skip = { armed: false };
-let playingDepth = 0;
 const resolvers = [];
 const raceListeners = [];
 const PATCHED = Symbol.for("abyssal.skipTimeScalePatched");
@@ -12510,12 +12522,21 @@ if (!base[PATCHED]) {
   stateBetDerived.timeScale = wrapped;
 }
 const skipActive = () => skip.armed;
-const requestSkip = () => {
-  if (playingDepth <= 0) return false;
+const disarmSkip = () => {
+  skip.armed = false;
+};
+const accelerateGsap = () => {
+  gsap.globalTimeline.getChildren(false, true, true).forEach((animation) => {
+    if (!animation.isActive()) return;
+    if (animation.repeat() === -1) return;
+    animation.timeScale(Math.max(animation.timeScale(), SKIP_TIME_SCALE));
+  });
+};
+const armSkip = () => {
   skip.armed = true;
-  resolvers.splice(0).forEach((resolve) => resolve());
+  accelerateGsap();
+  resolvers.splice(0).forEach((accelerate) => accelerate());
   raceListeners.splice(0).forEach((fire) => fire());
-  return true;
 };
 const raceSkip = (promise) => {
   if (skip.armed) return Promise.resolve("skipped");
@@ -12534,28 +12555,27 @@ const raceSkip = (promise) => {
   });
 };
 const skippableWait = (ms) => new Promise((resolve) => {
-  const done = () => {
-    clearTimeout(timeout);
+  const startedAt = performance.now();
+  let timeout;
+  const finish = () => {
+    const index = resolvers.indexOf(accelerate);
+    if (index >= 0) resolvers.splice(index, 1);
     resolve();
   };
-  const timeout = setTimeout(
-    () => {
-      const index = resolvers.indexOf(done);
-      if (index >= 0) resolvers.splice(index, 1);
-      resolve();
-    },
-    ms
-  );
-  resolvers.push(done);
+  const accelerate = () => {
+    clearTimeout(timeout);
+    const remaining = Math.max(0, ms - (performance.now() - startedAt));
+    timeout = setTimeout(finish, remaining / SKIP_TIME_SCALE);
+  };
+  timeout = setTimeout(finish, ms);
+  resolvers.push(accelerate);
 });
 const withSkipBoundaries = (handlerMap) => Object.fromEntries(Object.entries(handlerMap).map(([type, handler]) => [
   type,
   async (...args) => {
-    playingDepth += 1;
     try {
       await handler(...args);
     } finally {
-      playingDepth -= 1;
       skip.armed = false;
     }
   }
@@ -12630,6 +12650,10 @@ const stateGame = {
   scatterAnticipating: false,
   // The Eye's Gaze charge for the current spin (driven by `gazeStep`); reset each reveal.
   gazeCharge: 0,
+  // The clusters of the tumble that is about to charge the Gaze — stashed by `winInfo`
+  // (count + overlay cell per cluster) and consumed by the NEXT `gazeStep`, which turns them
+  // into per-cluster essence orbs (+2/+3/+5 by size). Cleared on consume and each reveal.
+  pendingGazeClusters: [],
   // Tracks whether the current spin already resolved an Eye. If charge exists and this
   // stays false by settlement, the meter drains as the intended no-Eye near miss.
   eyeResolvedThisSpin: false,
@@ -12678,11 +12702,11 @@ const scatterLandIndex = () => getScatterLandSoundIndex(stateGame.scatterCounter
 const { enhanceBoard } = createEnhanceBoard();
 const enhancedBoard = enhanceBoard({ board: stateGame.board });
 const speedUpCurrentSpin = () => {
-  enhancedBoard.board.forEach((reel) => reel.reelState.spinType = "fast");
+  enhancedBoard.board.forEach((reel) => {
+    reel.reelState.spinType = "fast";
+    reel.reelState.anticipating = false;
+  });
   enhancedBoard.stop();
-};
-const skipCurrentSpin = () => {
-  speedUpCurrentSpin();
   enhancedBoard.board.forEach((reel) => reel.finishFall());
 };
 const enableTurbo = () => {
@@ -12699,7 +12723,6 @@ const stateGameDerived = {
   scatterLandIndex,
   enhancedBoard,
   speedUpCurrentSpin,
-  skipCurrentSpin,
   enableTurbo,
   getWinLevelDataByWinLevelAlias
 };
@@ -13330,9 +13353,9 @@ function requireHowler() {
          */
         play: function(sprite, internal) {
           var self2 = this;
-          var id = null;
+          var id2 = null;
           if (typeof sprite === "number") {
-            id = sprite;
+            id2 = sprite;
             sprite = null;
           } else if (typeof sprite === "string" && self2._state === "loaded" && !self2._sprite[sprite]) {
             return null;
@@ -13343,21 +13366,21 @@ function requireHowler() {
               for (var i = 0; i < self2._sounds.length; i++) {
                 if (self2._sounds[i]._paused && !self2._sounds[i]._ended) {
                   num++;
-                  id = self2._sounds[i]._id;
+                  id2 = self2._sounds[i]._id;
                 }
               }
               if (num === 1) {
                 sprite = null;
               } else {
-                id = null;
+                id2 = null;
               }
             }
           }
-          var sound2 = id ? self2._soundById(id) : self2._inactiveSound();
+          var sound2 = id2 ? self2._soundById(id2) : self2._inactiveSound();
           if (!sound2) {
             return null;
           }
-          if (id && !sprite) {
+          if (id2 && !sprite) {
             sprite = sound2._sprite || "__default";
           }
           if (self2._state !== "loaded") {
@@ -13372,7 +13395,7 @@ function requireHowler() {
             });
             return soundId;
           }
-          if (id && !sound2._paused) {
+          if (id2 && !sound2._paused) {
             if (!internal) {
               self2._loadQueue("play");
             }
@@ -13504,18 +13527,18 @@ function requireHowler() {
          * @param  {Number} id The sound ID (empty to pause all in group).
          * @return {Howl}
          */
-        pause: function(id) {
+        pause: function(id2) {
           var self2 = this;
           if (self2._state !== "loaded" || self2._playLock) {
             self2._queue.push({
               event: "pause",
               action: function() {
-                self2.pause(id);
+                self2.pause(id2);
               }
             });
             return self2;
           }
-          var ids = self2._getSoundIds(id);
+          var ids = self2._getSoundIds(id2);
           for (var i = 0; i < ids.length; i++) {
             self2._clearTimer(ids[i]);
             var sound2 = self2._soundById(ids[i]);
@@ -13552,18 +13575,18 @@ function requireHowler() {
          * @param  {Boolean} internal Internal Use: true prevents event firing.
          * @return {Howl}
          */
-        stop: function(id, internal) {
+        stop: function(id2, internal) {
           var self2 = this;
           if (self2._state !== "loaded" || self2._playLock) {
             self2._queue.push({
               event: "stop",
               action: function() {
-                self2.stop(id);
+                self2.stop(id2);
               }
             });
             return self2;
           }
-          var ids = self2._getSoundIds(id);
+          var ids = self2._getSoundIds(id2);
           for (var i = 0; i < ids.length; i++) {
             self2._clearTimer(ids[i]);
             var sound2 = self2._soundById(ids[i]);
@@ -13604,25 +13627,25 @@ function requireHowler() {
          * @param  {Number} id    The sound ID to update (omit to mute/unmute all).
          * @return {Howl}
          */
-        mute: function(muted, id) {
+        mute: function(muted, id2) {
           var self2 = this;
           if (self2._state !== "loaded" || self2._playLock) {
             self2._queue.push({
               event: "mute",
               action: function() {
-                self2.mute(muted, id);
+                self2.mute(muted, id2);
               }
             });
             return self2;
           }
-          if (typeof id === "undefined") {
+          if (typeof id2 === "undefined") {
             if (typeof muted === "boolean") {
               self2._muted = muted;
             } else {
               return self2._muted;
             }
           }
-          var ids = self2._getSoundIds(id);
+          var ids = self2._getSoundIds(id2);
           for (var i = 0; i < ids.length; i++) {
             var sound2 = self2._soundById(ids[i]);
             if (sound2) {
@@ -13651,20 +13674,20 @@ function requireHowler() {
         volume: function() {
           var self2 = this;
           var args = arguments;
-          var vol, id;
+          var vol, id2;
           if (args.length === 0) {
             return self2._volume;
           } else if (args.length === 1 || args.length === 2 && typeof args[1] === "undefined") {
             var ids = self2._getSoundIds();
             var index = ids.indexOf(args[0]);
             if (index >= 0) {
-              id = parseInt(args[0], 10);
+              id2 = parseInt(args[0], 10);
             } else {
               vol = parseFloat(args[0]);
             }
           } else if (args.length >= 2) {
             vol = parseFloat(args[0]);
-            id = parseInt(args[1], 10);
+            id2 = parseInt(args[1], 10);
           }
           var sound2;
           if (typeof vol !== "undefined" && vol >= 0 && vol <= 1) {
@@ -13677,16 +13700,16 @@ function requireHowler() {
               });
               return self2;
             }
-            if (typeof id === "undefined") {
+            if (typeof id2 === "undefined") {
               self2._volume = vol;
             }
-            id = self2._getSoundIds(id);
-            for (var i = 0; i < id.length; i++) {
-              sound2 = self2._soundById(id[i]);
+            id2 = self2._getSoundIds(id2);
+            for (var i = 0; i < id2.length; i++) {
+              sound2 = self2._soundById(id2[i]);
               if (sound2) {
                 sound2._volume = vol;
                 if (!args[2]) {
-                  self2._stopFade(id[i]);
+                  self2._stopFade(id2[i]);
                 }
                 if (self2._webAudio && sound2._node && !sound2._muted) {
                   sound2._node.gain.setValueAtTime(vol, Howler2.ctx.currentTime);
@@ -13697,7 +13720,7 @@ function requireHowler() {
               }
             }
           } else {
-            sound2 = id ? self2._soundById(id) : self2._sounds[0];
+            sound2 = id2 ? self2._soundById(id2) : self2._sounds[0];
             return sound2 ? sound2._volume : 0;
           }
           return self2;
@@ -13710,13 +13733,13 @@ function requireHowler() {
          * @param  {Number} id   The sound id (omit to fade all sounds).
          * @return {Howl}
          */
-        fade: function(from, to, len, id) {
+        fade: function(from, to, len, id2) {
           var self2 = this;
           if (self2._state !== "loaded" || self2._playLock) {
             self2._queue.push({
               event: "fade",
               action: function() {
-                self2.fade(from, to, len, id);
+                self2.fade(from, to, len, id2);
               }
             });
             return self2;
@@ -13724,12 +13747,12 @@ function requireHowler() {
           from = Math.min(Math.max(0, parseFloat(from)), 1);
           to = Math.min(Math.max(0, parseFloat(to)), 1);
           len = parseFloat(len);
-          self2.volume(from, id);
-          var ids = self2._getSoundIds(id);
+          self2.volume(from, id2);
+          var ids = self2._getSoundIds(id2);
           for (var i = 0; i < ids.length; i++) {
             var sound2 = self2._soundById(ids[i]);
             if (sound2) {
-              if (!id) {
+              if (!id2) {
                 self2._stopFade(ids[i]);
               }
               if (self2._webAudio && !sound2._muted) {
@@ -13739,7 +13762,7 @@ function requireHowler() {
                 sound2._node.gain.setValueAtTime(from, currentTime);
                 sound2._node.gain.linearRampToValueAtTime(to, end);
               }
-              self2._startFadeInterval(sound2, from, to, len, ids[i], typeof id === "undefined");
+              self2._startFadeInterval(sound2, from, to, len, ids[i], typeof id2 === "undefined");
             }
           }
           return self2;
@@ -13753,7 +13776,7 @@ function requireHowler() {
          * @param  {Number} id   The sound id to fade.
          * @param  {Boolean} isGroup   If true, set the volume on the group.
          */
-        _startFadeInterval: function(sound2, from, to, len, id, isGroup) {
+        _startFadeInterval: function(sound2, from, to, len, id2, isGroup) {
           var self2 = this;
           var vol = from;
           var diff = to - from;
@@ -13794,18 +13817,18 @@ function requireHowler() {
          * @param  {Number} id The sound id.
          * @return {Howl}
          */
-        _stopFade: function(id) {
+        _stopFade: function(id2) {
           var self2 = this;
-          var sound2 = self2._soundById(id);
+          var sound2 = self2._soundById(id2);
           if (sound2 && sound2._interval) {
             if (self2._webAudio) {
               sound2._node.gain.cancelScheduledValues(Howler2.ctx.currentTime);
             }
             clearInterval(sound2._interval);
             sound2._interval = null;
-            self2.volume(sound2._fadeTo, id);
+            self2.volume(sound2._fadeTo, id2);
             sound2._fadeTo = null;
-            self2._emit("fade", id);
+            self2._emit("fade", id2);
           }
           return self2;
         },
@@ -13820,7 +13843,7 @@ function requireHowler() {
         loop: function() {
           var self2 = this;
           var args = arguments;
-          var loop2, id, sound2;
+          var loop2, id2, sound2;
           if (args.length === 0) {
             return self2._loop;
           } else if (args.length === 1) {
@@ -13833,9 +13856,9 @@ function requireHowler() {
             }
           } else if (args.length === 2) {
             loop2 = args[0];
-            id = parseInt(args[1], 10);
+            id2 = parseInt(args[1], 10);
           }
-          var ids = self2._getSoundIds(id);
+          var ids = self2._getSoundIds(id2);
           for (var i = 0; i < ids.length; i++) {
             sound2 = self2._soundById(ids[i]);
             if (sound2) {
@@ -13866,20 +13889,20 @@ function requireHowler() {
         rate: function() {
           var self2 = this;
           var args = arguments;
-          var rate, id;
+          var rate, id2;
           if (args.length === 0) {
-            id = self2._sounds[0]._id;
+            id2 = self2._sounds[0]._id;
           } else if (args.length === 1) {
             var ids = self2._getSoundIds();
             var index = ids.indexOf(args[0]);
             if (index >= 0) {
-              id = parseInt(args[0], 10);
+              id2 = parseInt(args[0], 10);
             } else {
               rate = parseFloat(args[0]);
             }
           } else if (args.length === 2) {
             rate = parseFloat(args[0]);
-            id = parseInt(args[1], 10);
+            id2 = parseInt(args[1], 10);
           }
           var sound2;
           if (typeof rate === "number") {
@@ -13892,15 +13915,15 @@ function requireHowler() {
               });
               return self2;
             }
-            if (typeof id === "undefined") {
+            if (typeof id2 === "undefined") {
               self2._rate = rate;
             }
-            id = self2._getSoundIds(id);
-            for (var i = 0; i < id.length; i++) {
-              sound2 = self2._soundById(id[i]);
+            id2 = self2._getSoundIds(id2);
+            for (var i = 0; i < id2.length; i++) {
+              sound2 = self2._soundById(id2[i]);
               if (sound2) {
-                if (self2.playing(id[i])) {
-                  sound2._rateSeek = self2.seek(id[i]);
+                if (self2.playing(id2[i])) {
+                  sound2._rateSeek = self2.seek(id2[i]);
                   sound2._playStart = self2._webAudio ? Howler2.ctx.currentTime : sound2._playStart;
                 }
                 sound2._rate = rate;
@@ -13909,18 +13932,18 @@ function requireHowler() {
                 } else if (sound2._node) {
                   sound2._node.playbackRate = rate;
                 }
-                var seek = self2.seek(id[i]);
+                var seek = self2.seek(id2[i]);
                 var duration = (self2._sprite[sound2._sprite][0] + self2._sprite[sound2._sprite][1]) / 1e3 - seek;
                 var timeout = duration * 1e3 / Math.abs(sound2._rate);
-                if (self2._endTimers[id[i]] || !sound2._paused) {
-                  self2._clearTimer(id[i]);
-                  self2._endTimers[id[i]] = setTimeout(self2._ended.bind(self2, sound2), timeout);
+                if (self2._endTimers[id2[i]] || !sound2._paused) {
+                  self2._clearTimer(id2[i]);
+                  self2._endTimers[id2[i]] = setTimeout(self2._ended.bind(self2, sound2), timeout);
                 }
                 self2._emit("rate", sound2._id);
               }
             }
           } else {
-            sound2 = self2._soundById(id);
+            sound2 = self2._soundById(id2);
             return sound2 ? sound2._rate : self2._rate;
           }
           return self2;
@@ -13936,25 +13959,25 @@ function requireHowler() {
         seek: function() {
           var self2 = this;
           var args = arguments;
-          var seek, id;
+          var seek, id2;
           if (args.length === 0) {
             if (self2._sounds.length) {
-              id = self2._sounds[0]._id;
+              id2 = self2._sounds[0]._id;
             }
           } else if (args.length === 1) {
             var ids = self2._getSoundIds();
             var index = ids.indexOf(args[0]);
             if (index >= 0) {
-              id = parseInt(args[0], 10);
+              id2 = parseInt(args[0], 10);
             } else if (self2._sounds.length) {
-              id = self2._sounds[0]._id;
+              id2 = self2._sounds[0]._id;
               seek = parseFloat(args[0]);
             }
           } else if (args.length === 2) {
             seek = parseFloat(args[0]);
-            id = parseInt(args[1], 10);
+            id2 = parseInt(args[1], 10);
           }
-          if (typeof id === "undefined") {
+          if (typeof id2 === "undefined") {
             return 0;
           }
           if (typeof seek === "number" && (self2._state !== "loaded" || self2._playLock)) {
@@ -13966,24 +13989,24 @@ function requireHowler() {
             });
             return self2;
           }
-          var sound2 = self2._soundById(id);
+          var sound2 = self2._soundById(id2);
           if (sound2) {
             if (typeof seek === "number" && seek >= 0) {
-              var playing = self2.playing(id);
+              var playing = self2.playing(id2);
               if (playing) {
-                self2.pause(id, true);
+                self2.pause(id2, true);
               }
               sound2._seek = seek;
               sound2._ended = false;
-              self2._clearTimer(id);
+              self2._clearTimer(id2);
               if (!self2._webAudio && sound2._node && !isNaN(sound2._node.duration)) {
                 sound2._node.currentTime = seek;
               }
               var seekAndEmit = function() {
                 if (playing) {
-                  self2.play(id, true);
+                  self2.play(id2, true);
                 }
-                self2._emit("seek", id);
+                self2._emit("seek", id2);
               };
               if (playing && !self2._webAudio) {
                 var emitSeek = function() {
@@ -13999,7 +14022,7 @@ function requireHowler() {
               }
             } else {
               if (self2._webAudio) {
-                var realTime = self2.playing(id) ? Howler2.ctx.currentTime - sound2._playStart : 0;
+                var realTime = self2.playing(id2) ? Howler2.ctx.currentTime - sound2._playStart : 0;
                 var rateSeek = sound2._rateSeek ? sound2._rateSeek - sound2._seek : 0;
                 return sound2._seek + (rateSeek + realTime * Math.abs(sound2._rate));
               } else {
@@ -14014,10 +14037,10 @@ function requireHowler() {
          * @param  {Number}  id The sound id to check. If none is passed, the whole sound group is checked.
          * @return {Boolean} True if playing and false if not.
          */
-        playing: function(id) {
+        playing: function(id2) {
           var self2 = this;
-          if (typeof id === "number") {
-            var sound2 = self2._soundById(id);
+          if (typeof id2 === "number") {
+            var sound2 = self2._soundById(id2);
             return sound2 ? !sound2._paused : false;
           }
           for (var i = 0; i < self2._sounds.length; i++) {
@@ -14032,10 +14055,10 @@ function requireHowler() {
          * @param  {Number} id The sound id to check. If none is passed, return full source duration.
          * @return {Number} Audio duration in seconds.
          */
-        duration: function(id) {
+        duration: function(id2) {
           var self2 = this;
           var duration = self2._duration;
-          var sound2 = self2._soundById(id);
+          var sound2 = self2._soundById(id2);
           if (sound2) {
             duration = self2._sprite[sound2._sprite][1] / 1e3;
           }
@@ -14097,11 +14120,11 @@ function requireHowler() {
          * @param  {Number}   once  (INTERNAL) Marks event to fire only once.
          * @return {Howl}
          */
-        on: function(event2, fn, id, once) {
+        on: function(event2, fn, id2, once) {
           var self2 = this;
           var events = self2["_on" + event2];
           if (typeof fn === "function") {
-            events.push(once ? { id, fn, once } : { id, fn });
+            events.push(once ? { id: id2, fn, once } : { id: id2, fn });
           }
           return self2;
         },
@@ -14112,17 +14135,17 @@ function requireHowler() {
          * @param  {Number}   id    (optional) Only remove events for this sound.
          * @return {Howl}
          */
-        off: function(event2, fn, id) {
+        off: function(event2, fn, id2) {
           var self2 = this;
           var events = self2["_on" + event2];
           var i = 0;
           if (typeof fn === "number") {
-            id = fn;
+            id2 = fn;
             fn = null;
           }
-          if (fn || id) {
+          if (fn || id2) {
             for (i = 0; i < events.length; i++) {
-              var isId = id === events[i].id;
+              var isId = id2 === events[i].id;
               if (fn === events[i].fn && isId || !fn && isId) {
                 events.splice(i, 1);
                 break;
@@ -14147,9 +14170,9 @@ function requireHowler() {
          * @param  {Number}   id    (optional) Only listen to events for this sound.
          * @return {Howl}
          */
-        once: function(event2, fn, id) {
+        once: function(event2, fn, id2) {
           var self2 = this;
-          self2.on(event2, fn, id, 1);
+          self2.on(event2, fn, id2, 1);
           return self2;
         },
         /**
@@ -14159,13 +14182,13 @@ function requireHowler() {
          * @param  {Number} msg   Message to go with event.
          * @return {Howl}
          */
-        _emit: function(event2, id, msg) {
+        _emit: function(event2, id2, msg) {
           var self2 = this;
           var events = self2["_on" + event2];
           for (var i = events.length - 1; i >= 0; i--) {
-            if (!events[i].id || events[i].id === id || event2 === "load") {
+            if (!events[i].id || events[i].id === id2 || event2 === "load") {
               setTimeout(function(fn) {
-                fn.call(this, id, msg);
+                fn.call(this, id2, msg);
               }.bind(self2, events[i].fn), 0);
               if (events[i].once) {
                 self2.off(event2, events[i].fn, events[i].id);
@@ -14239,18 +14262,18 @@ function requireHowler() {
          * @param  {Number} id The sound ID.
          * @return {Howl}
          */
-        _clearTimer: function(id) {
+        _clearTimer: function(id2) {
           var self2 = this;
-          if (self2._endTimers[id]) {
-            if (typeof self2._endTimers[id] !== "function") {
-              clearTimeout(self2._endTimers[id]);
+          if (self2._endTimers[id2]) {
+            if (typeof self2._endTimers[id2] !== "function") {
+              clearTimeout(self2._endTimers[id2]);
             } else {
-              var sound2 = self2._soundById(id);
+              var sound2 = self2._soundById(id2);
               if (sound2 && sound2._node) {
-                sound2._node.removeEventListener("ended", self2._endTimers[id], false);
+                sound2._node.removeEventListener("ended", self2._endTimers[id2], false);
               }
             }
-            delete self2._endTimers[id];
+            delete self2._endTimers[id2];
           }
           return self2;
         },
@@ -14259,10 +14282,10 @@ function requireHowler() {
          * @param  {Number} id Sound ID
          * @return {Object}    Sound object or null.
          */
-        _soundById: function(id) {
+        _soundById: function(id2) {
           var self2 = this;
           for (var i = 0; i < self2._sounds.length; i++) {
-            if (id === self2._sounds[i]._id) {
+            if (id2 === self2._sounds[i]._id) {
               return self2._sounds[i];
             }
           }
@@ -14316,16 +14339,16 @@ function requireHowler() {
          * @param  {Number} id Only return one ID if one is passed.
          * @return {Array}    Array of IDs.
          */
-        _getSoundIds: function(id) {
+        _getSoundIds: function(id2) {
           var self2 = this;
-          if (typeof id === "undefined") {
+          if (typeof id2 === "undefined") {
             var ids = [];
             for (var i = 0; i < self2._sounds.length; i++) {
               ids.push(self2._sounds[i]._id);
             }
             return ids;
           } else {
-            return [id];
+            return [id2];
           }
         },
         /**
@@ -14726,7 +14749,7 @@ function requireHowler() {
           return _super.call(this, o);
         };
       }(Howl.prototype.init);
-      Howl.prototype.stereo = function(pan, id) {
+      Howl.prototype.stereo = function(pan, id2) {
         var self2 = this;
         if (!self2._webAudio) {
           return self2;
@@ -14735,13 +14758,13 @@ function requireHowler() {
           self2._queue.push({
             event: "stereo",
             action: function() {
-              self2.stereo(pan, id);
+              self2.stereo(pan, id2);
             }
           });
           return self2;
         }
         var pannerType = typeof Howler.ctx.createStereoPanner === "undefined" ? "spatial" : "stereo";
-        if (typeof id === "undefined") {
+        if (typeof id2 === "undefined") {
           if (typeof pan === "number") {
             self2._stereo = pan;
             self2._pos = [pan, 0, 0];
@@ -14749,7 +14772,7 @@ function requireHowler() {
             return self2._stereo;
           }
         }
-        var ids = self2._getSoundIds(id);
+        var ids = self2._getSoundIds(id2);
         for (var i = 0; i < ids.length; i++) {
           var sound2 = self2._soundById(ids[i]);
           if (sound2) {
@@ -14781,7 +14804,7 @@ function requireHowler() {
         }
         return self2;
       };
-      Howl.prototype.pos = function(x, y, z, id) {
+      Howl.prototype.pos = function(x, y, z, id2) {
         var self2 = this;
         if (!self2._webAudio) {
           return self2;
@@ -14790,21 +14813,21 @@ function requireHowler() {
           self2._queue.push({
             event: "pos",
             action: function() {
-              self2.pos(x, y, z, id);
+              self2.pos(x, y, z, id2);
             }
           });
           return self2;
         }
         y = typeof y !== "number" ? 0 : y;
         z = typeof z !== "number" ? -0.5 : z;
-        if (typeof id === "undefined") {
+        if (typeof id2 === "undefined") {
           if (typeof x === "number") {
             self2._pos = [x, y, z];
           } else {
             return self2._pos;
           }
         }
-        var ids = self2._getSoundIds(id);
+        var ids = self2._getSoundIds(id2);
         for (var i = 0; i < ids.length; i++) {
           var sound2 = self2._soundById(ids[i]);
           if (sound2) {
@@ -14830,7 +14853,7 @@ function requireHowler() {
         }
         return self2;
       };
-      Howl.prototype.orientation = function(x, y, z, id) {
+      Howl.prototype.orientation = function(x, y, z, id2) {
         var self2 = this;
         if (!self2._webAudio) {
           return self2;
@@ -14839,21 +14862,21 @@ function requireHowler() {
           self2._queue.push({
             event: "orientation",
             action: function() {
-              self2.orientation(x, y, z, id);
+              self2.orientation(x, y, z, id2);
             }
           });
           return self2;
         }
         y = typeof y !== "number" ? self2._orientation[1] : y;
         z = typeof z !== "number" ? self2._orientation[2] : z;
-        if (typeof id === "undefined") {
+        if (typeof id2 === "undefined") {
           if (typeof x === "number") {
             self2._orientation = [x, y, z];
           } else {
             return self2._orientation;
           }
         }
-        var ids = self2._getSoundIds(id);
+        var ids = self2._getSoundIds(id2);
         for (var i = 0; i < ids.length; i++) {
           var sound2 = self2._soundById(ids[i]);
           if (sound2) {
@@ -14885,7 +14908,7 @@ function requireHowler() {
       Howl.prototype.pannerAttr = function() {
         var self2 = this;
         var args = arguments;
-        var o, id, sound2;
+        var o, id2, sound2;
         if (!self2._webAudio) {
           return self2;
         }
@@ -14894,7 +14917,7 @@ function requireHowler() {
         } else if (args.length === 1) {
           if (typeof args[0] === "object") {
             o = args[0];
-            if (typeof id === "undefined") {
+            if (typeof id2 === "undefined") {
               if (!o.pannerAttr) {
                 o.pannerAttr = {
                   coneInnerAngle: o.coneInnerAngle,
@@ -14924,9 +14947,9 @@ function requireHowler() {
           }
         } else if (args.length === 2) {
           o = args[0];
-          id = parseInt(args[1], 10);
+          id2 = parseInt(args[1], 10);
         }
-        var ids = self2._getSoundIds(id);
+        var ids = self2._getSoundIds(id2);
         for (var i = 0; i < ids.length; i++) {
           sound2 = self2._soundById(ids[i]);
           if (sound2) {
@@ -15391,6 +15414,7 @@ const bookEventHandlerMap = {
     stateGame.cascading = false;
     eventEmitter.broadcast({ type: "soundScatterCounterClear" });
     stateGame.gazeCharge = 0;
+    stateGame.pendingGazeClusters = [];
     stateGame.eyeResolvedThisSpin = false;
     stateGame.eyeResolveCell = null;
     stateGame.eyeMultPending = false;
@@ -15404,6 +15428,11 @@ const bookEventHandlerMap = {
     eventEmitter.broadcast({ type: "reelFrameScatterAnticipationEnd" });
   },
   winInfo: async (bookEvent) => {
+    stateGame.pendingGazeClusters = bookEvent.wins.map((win) => ({
+      count: win.count,
+      reel: win.meta.overlay.reel,
+      row: win.meta.overlay.row
+    }));
     const promiseAnimate = async () => {
       eventEmitter.broadcast({ type: "soundOnce", name: "sfx_winlevel_small" });
       await animateSymbols({ positions: _.flatten(bookEvent.wins.map((win) => win.positions)) });
@@ -15413,6 +15442,7 @@ const bookEventHandlerMap = {
         type: "showClusterWinAmounts",
         wins: bookEvent.wins.map((win) => ({
           win: win.win,
+          count: win.count,
           reel: win.meta.overlay.reel,
           row: win.meta.overlay.row
         }))
@@ -15431,17 +15461,32 @@ const bookEventHandlerMap = {
     }
   },
   gazeStep: async (bookEvent) => {
+    const tierValues = stateGame.pendingGazeClusters.map(
+      (cluster) => ESSENCE_TIER_VALUES[getEssenceTier(cluster.count) - 1]
+    );
+    const tierSum = tierValues.reduce((a, b) => a + b, 0);
+    const delta = bookEvent.charge - stateGame.gazeCharge;
+    const essenceMult = tierSum > 0 && delta === tierSum * 2 ? 2 : tierSum > 0 && delta === tierSum ? 1 : stateBet$1.activeBetModeKey.toUpperCase() === "SUPERBONUS" ? 2 : 1;
+    const clusters = stateGame.pendingGazeClusters.map((cluster, index) => ({
+      value: tierValues[index] * essenceMult,
+      tier: getEssenceTier(cluster.count),
+      reel: cluster.reel,
+      row: cluster.row
+    }));
+    stateGame.pendingGazeClusters = [];
     stateGame.gazeCharge = bookEvent.charge;
     await eventEmitter.broadcastAsync({
       type: "gazeMeterFill",
       fromPositions: bookEvent.fromPositions,
-      charge: bookEvent.charge
+      charge: bookEvent.charge,
+      clusters
     });
   },
-  // Instant scatter pay (4 = 3×, 5 = 5×, 6 = 100× the bet). No dedicated celebration: the
-  // amount is already rolled into the round's running totals (setTotalWin / finalWin), the
-  // trigger moment is owned by scatterCelebrate → free-spins intro, and 20×+ totals still get
-  // the Win presentation via setWin. Registered so the event isn't reported as unhandled.
+  // Instant scatter pay (4 = 3×, 5 = 5×, 6 = 100× the bet). Fires on ANY trigger spin —
+  // base/ante organic triggers AND bonus/superbonus buy trigger boards (2026-07 math rework;
+  // every buy pays at least the 3× trigger cash). Only the forced max-win corner skips it;
+  // superspins/ultimate have no scatters so never emit it. The event arrives between the
+  // trigger spin's setTotalWin and freeSpinTrigger, i.e. BEFORE the bonus starts.
   scatterPay: async (bookEvent) => {
     stateBet$1.winBookEventAmount += bookEvent.amount;
     if (bookEvent.amount >= WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER) {
@@ -15457,6 +15502,8 @@ const bookEventHandlerMap = {
       });
       winLevelSoundsStop();
       eventEmitter.broadcast({ type: "winHide" });
+    } else {
+      await skippableWait(900 / stateBetDerived.timeScale());
     }
   },
   tumbleBoard: async (bookEvent) => {
@@ -15487,15 +15534,16 @@ const bookEventHandlerMap = {
     }
     if (stateGame.eyeMultPending && stateGame.eyeResolveCell) {
       stateGame.eyeMultPending = false;
-      if (!celebrate) {
-        await eventEmitter.broadcastAsync({
-          type: "tumbleWinAmountMultiply",
-          totalWin: bookEvent.amount,
-          // the combine resolves the total at the board centre, so the ×N flies from there
-          fromReel: 2.5,
-          fromRow: 3
-        });
-      }
+      await eventEmitter.broadcastAsync({
+        type: "tumbleWinAmountMultiply",
+        totalWin: bookEvent.amount,
+        // the combine resolves the total at the board centre, so the ×N flies from there
+        fromReel: 2.5,
+        fromRow: 3,
+        // celebration wins stop on the "raw × mult" equation — the win-steps takeover
+        // reveals the final, so it isn't shown on the banner first
+        countToFinal: !celebrate
+      });
       stateGame.revealedEyes.forEach(({ reel, row }) => {
         const cell = stateGame.board[reel]?.reelState.symbols[row];
         if (cell?.rawSymbol.name === "EYE") {
@@ -15512,7 +15560,7 @@ const bookEventHandlerMap = {
       amount: bookEvent.amount,
       winLevelData
     });
-    winLevelSoundsStop();
+    if (winLevelData?.alias !== "max") winLevelSoundsStop();
     eventEmitter.broadcast({ type: "winHide" });
   },
   setTotalWin: async (bookEvent) => {
@@ -15562,10 +15610,7 @@ const bookEventHandlerMap = {
   eyeResolve: async (bookEvent) => {
     stateGame.eyeResolvedThisSpin = true;
     stateGame.eyeMultPending = true;
-    await Promise.all([
-      eventEmitter.broadcastAsync({ type: "gazeMeterToEye" }),
-      ...stateGame.gameType === "freegame" && stateGame.persistentMult > 1 ? [eventEmitter.broadcastAsync({ type: "snowballToCombine" })] : []
-    ]);
+    await eventEmitter.broadcastAsync({ type: "gazeMeterToEye" });
     await eventEmitter.broadcastAsync({
       type: "eyeBurst",
       charge: bookEvent.charge,
@@ -15588,8 +15633,16 @@ const bookEventHandlerMap = {
     await eventEmitter.broadcastAsync({ type: "snowballUpdate", mult: bookEvent.mult });
   },
   // --- Win-cap (15,000×) ------------------------------------------------------------
+  // Fires on the ROUND cumulative hitting the cap — possibly right after a win ladder that
+  // never reached MAX WIN (a small spin win can tip the total over). The trophy takeover is
+  // therefore the authoritative MAX WIN reveal: the red-dragon plaque slams in at the end of
+  // the win celebrations and holds until a press (see WinCapCelebration.svelte).
   wincap: async (bookEvent) => {
+    const winLevelData = winLevelMap[10];
+    eventEmitter.broadcast({ type: "tumbleWinAmountHide" });
+    winLevelSoundsPlay({ winLevelData });
     await eventEmitter.broadcastAsync({ type: "winCapTrigger", amount: bookEvent.amount });
+    winLevelSoundsStop();
   },
   // --- Free Spins lifecycle ---------------------------------------------------------
   freeSpinTrigger: async (bookEvent) => {
@@ -15732,6 +15785,7 @@ const restoreStickyBetMode = () => {
 };
 const primaryMachines = createPrimaryMachines({
   onNewGameStart: async () => {
+    disarmSkip();
     rememberStickyBetMode();
     if (stateBet$1.isTurbo && stateXstateDerived.isAutoBetting() || stateBet$1.isSpaceHold) return;
     stateBet$1.winBookEventAmount = 0;
@@ -16687,7 +16741,9 @@ function Symbol$1($$payload, $$props) {
   });
   let gazeIntensity = 0;
   context2.eventEmitter.subscribeOnMount({
-    gazeMeterFill: (e) => gazeIntensity = Math.min(1, e.charge / GAZE_METER_MAX_CHARGE),
+    // normalized to GAZE_EYE_INTENSITY_FULL (15), not the 30 cap — a /30 ramp would leave
+    // the eye visibly cold on almost every spin under the essence economy
+    gazeMeterFill: (e) => gazeIntensity = Math.min(1, e.charge / GAZE_EYE_INTENSITY_FULL),
     gazeMeterReset: () => gazeIntensity = 0,
     gazeMeterDrain: () => gazeIntensity = 0
   });
@@ -17071,27 +17127,67 @@ function Anticipations($$payload, $$props) {
 function ClusterWinAmount($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
+  const TIER_FONT_SIZE = [0.4, 0.48, 0.6];
+  const BACKING_ALPHA = 0.34;
+  const tier = getEssenceTier(props.win.count);
+  const fontSize = SYMBOL_SIZE * TIER_FONT_SIZE[tier - 1];
+  const text = bookEventAmountToCurrencyString(props.win.win);
   const y = new Tween(0);
   const scale = new Tween(0.4, { duration: 150, easing: backOut });
+  const rotation = new Tween(-0.035, { duration: 220, easing: backOut });
+  const flash = new Tween(0, { duration: 0 });
   let show = true;
+  const drawBacking = (g) => {
+    const rx = fontSize * (1.5 + text.length * 0.18);
+    const ry = fontSize * 0.85;
+    for (let i = 3; i >= 1; i--) {
+      const t2 = i / 3;
+      g.ellipse(0, 0, rx * t2, ry * t2).fill({
+        color: 201244,
+        alpha: BACKING_ALPHA / 3 * (2 - t2)
+      });
+    }
+  };
   FadeContainer($$payload, {
     show,
     duration: 130,
     oncomplete: () => {
     },
     children: ($$payload2) => {
-      Text($$payload2, {
+      Container($$payload2, {
         x: getPositionX(props.win.reel),
         y: getPositionY(props.win.row) + y.current,
         scale: scale.current,
-        text: bookEventAmountToCurrencyString(props.win.win),
-        anchor: 0.5,
-        style: {
-          fontFamily: "sans-serif",
-          fontWeight: "800",
-          fontSize: SYMBOL_SIZE * 0.5,
-          fill: 16765562
-        }
+        rotation: rotation.current,
+        children: ($$payload3) => {
+          Graphics($$payload3, { draw: drawBacking });
+          $$payload3.out += `<!----> `;
+          BitmapText($$payload3, {
+            anchor: 0.5,
+            text,
+            style: abyssalBitmapStyle({ fontSize })
+          });
+          $$payload3.out += `<!----> `;
+          if (flash.current > 0) {
+            $$payload3.out += "<!--[-->";
+            Container($$payload3, {
+              alpha: flash.current,
+              blendMode: "add",
+              children: ($$payload4) => {
+                BitmapText($$payload4, {
+                  anchor: 0.5,
+                  text,
+                  style: abyssalBitmapStyle({ fontSize })
+                });
+              },
+              $$slots: { default: true }
+            });
+          } else {
+            $$payload3.out += "<!--[!-->";
+          }
+          $$payload3.out += `<!--]-->`;
+        },
+        $$slots: { default: true }
       });
     },
     $$slots: { default: true }
@@ -17249,6 +17345,7 @@ function TumbleBoard($$payload, $$props) {
     tumbleBoardSlideDown: async () => {
       context2.stateGame.cascading = true;
       const COLUMN_STAGGER = 80;
+      const FINISH_FALL_MS = 90;
       const getSpinOptions = () => skipActive() || stateBet$1.isTurbo ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
       const getPromises = () => context2.stateGameDerived.tumbleBoardCombined().map(async (tumbleReel, reelIndex) => {
         if (reelIndex > 0 && !skipActive()) await skippableWait(reelIndex * COLUMN_STAGGER / stateBetDerived.timeScale());
@@ -17290,7 +17387,10 @@ function TumbleBoard($$payload, $$props) {
               easing: spinOptions.symbolFallInEasing
             }));
             if (raced === "skipped") {
-              void tumbleSymbol.symbolY.set(targetY, { duration: 0 });
+              await tumbleSymbol.symbolY.set(targetY, {
+                duration: FINISH_FALL_MS,
+                easing: spinOptions.symbolFallInEasing
+              });
               land();
               await landComplete;
               return;
@@ -17492,8 +17592,8 @@ function TumbleWinAmount($$payload, $$props) {
   push();
   const context2 = getContext();
   const ts = () => stateBetDerived.timeScale();
-  const BANNER_W = SYMBOL_SIZE * 2.85;
-  const BANNER_H = BANNER_W * (1122 / 1402);
+  const BANNER_W = SYMBOL_SIZE * 2.6;
+  const BANNER_H = BANNER_W * (1086 / 1448);
   const INNER_W = BANNER_W * 0.78;
   const INNER_H = BANNER_H * 0.42;
   const INNER_RADIUS = INNER_H * 0.22;
@@ -17502,7 +17602,7 @@ function TumbleWinAmount($$payload, $$props) {
     y: -SYMBOL_SIZE * 0.55
   };
   const portraitPosition = {
-    x: context2.stateGameDerived.boardLayout().width * (context2.stateGame.gameType === "basegame" ? 0.5 : 0.37),
+    x: context2.stateGameDerived.boardLayout().width * 0.5,
     y: -SYMBOL_SIZE * 0.62
   };
   const position = context2.stateLayoutDerived.isStacked() ? portraitPosition : desktopPosition;
@@ -17537,7 +17637,6 @@ function TumbleWinAmount($$payload, $$props) {
       name: "sfx_multiplier_landing"
     });
   };
-  let flightTl;
   const flyMultiplier = ({ mult, fromReel, fromRow }) => new Promise((resolve) => {
     flyFx.mult = mult;
     flyFx.active = true;
@@ -17548,7 +17647,6 @@ function TumbleWinAmount($$payload, $$props) {
         resolve();
       }
     });
-    flightTl = tl;
     tl.timeScale(ts());
     tl.set(flyFx, {
       x: getPositionX(fromReel),
@@ -17586,10 +17684,14 @@ function TumbleWinAmount($$payload, $$props) {
   });
   context2.eventEmitter.subscribeOnMount({
     tumbleWinAmountShow: () => show = amount2 > 0,
-    tumbleWinAmountHide: () => show = false,
+    tumbleWinAmountHide: () => {
+      show = false;
+      multiplyExpr = null;
+    },
     tumbleWinAmountReset: () => {
       show = false;
       amount2 = 0;
+      multiplyExpr = null;
       displayAmount.set(0, { duration: 0 });
     },
     tumbleWinAmountUpdate: async (emitterEvent) => {
@@ -17615,13 +17717,15 @@ function TumbleWinAmount($$payload, $$props) {
           fromReel: emitterEvent.fromReel,
           fromRow: emitterEvent.fromRow
         });
-        if (await raceSkip(flight) === "skipped") flightTl?.progress(1);
+        await flight;
         multiplyExpr = { rawText, mult };
         numScale.set(1.32, { duration: 0 });
         numScale.set(1, { duration: 320 / ts(), easing: backOut });
         await skippableWait(750 / ts());
+        if (emitterEvent.countToFinal === false) return;
         multiplyExpr = null;
       }
+      if (emitterEvent.countToFinal === false) return;
       await waitForResolve((resolve) => {
         amount2 = emitterEvent.totalWin;
       });
@@ -17717,14 +17821,14 @@ function TumbleWinAmount($$payload, $$props) {
                     $$payload5.out += `<!--]--> `;
                     BitmapText($$payload5, {
                       anchor: 0.5,
-                      y: -BANNER_H * 0.12,
+                      y: -BANNER_H * 0.09,
                       text: context2.i18nDerived.tumbleWin(),
                       style: labelStyle
                     });
                     $$payload5.out += `<!----> `;
                     Container($$payload5, {
                       scale: numScale.current,
-                      y: BANNER_H * 0.06,
+                      y: BANNER_H * 0.09,
                       children: ($$payload6) => {
                         if (multiplyExpr) {
                           $$payload6.out += "<!--[-->";
@@ -17769,19 +17873,73 @@ function GazeMeter($$payload, $$props) {
   const context2 = getContext();
   const LAYER_KEYS = { bar: "winMeter" };
   const GAZE_COLORS = {
-    fillDeep: 481960,
-    fillMid: 697599,
-    fillCore: 2676735,
-    fillTop: 13107199,
-    fillGlow: 3526655,
-    edge: 15335423,
     energy: 13073919,
     backing: 871251,
     backingStroke: 871251
   };
+  const GAZE_LAPS = [
+    // lap 1 — tide teal (the original fill ramp, bright against the dark backing)
+    {
+      fillDeep: 818560,
+      fillMid: 1623222,
+      fillCore: 4847071,
+      fillTop: 15269883,
+      fillGlow: 6750184,
+      edge: 15335423
+    },
+    // lap 2 — abyssal purple
+    {
+      fillDeep: 6109864,
+      fillMid: 10120191,
+      fillCore: 13073919,
+      fillTop: 15919359,
+      fillGlow: 14264063,
+      edge: 16182527
+    },
+    // lap 3 — ember red
+    {
+      fillDeep: 11547156,
+      fillMid: 16734762,
+      fillCore: 16757866,
+      fillTop: 16771529,
+      fillGlow: 16761722,
+      edge: 16773590
+    }
+  ];
+  const LAP_BACKING_ALPHA = 0.4;
+  const LAP_FLOOD_ALPHA = 0.7;
+  const ORB_TIER_RADIUS = [0.14, 0.18, 0.24];
+  const ORB_TIER_WEIGHT = [1, 1.08, 1.22];
+  const ORB_GOLD_CORE = 16774089;
+  const CHIP_LIFE = 0.9;
+  const SIPHON_MS_BASE = 460;
+  const SIPHON_MS_PER_ORB = 110;
+  const SIPHON_STAGGER = 0.14;
+  const GATHER_FRACTION = 0.28;
+  const GATHER_MOTES = [4, 5, 7];
+  const GATHER_RADIUS = 0.9;
+  const GATHER_LIFT = 0.55;
+  const STREAM_WIDTH = [0.045, 0.06, 0.085];
+  const STREAM_SAMPLES = 14;
+  const STREAM_FLOW_SPEED = 2.6;
+  const SIPHON_APEX_LIFT = 1.15;
+  const SIPHON_DRAIN_MS = 220;
+  const SIPHON_RIM = 201244;
   let show = false;
   let charge = 0;
+  let lap = 0;
+  const lapFx = { flood: 0 };
+  const siphonFx = { drain: 0 };
+  let chips = [];
+  let nextChipId = 0;
   let orbs = [];
+  let chipCalls = [];
+  let chipQueue = [];
+  const killChipCalls = () => {
+    chipCalls.forEach((call) => call.kill());
+    chipCalls = [];
+    chipQueue = [];
+  };
   let flying = false;
   let flightValue = 0;
   let fx = { burst: 0, textScale: 1, overcharge: 0 };
@@ -17790,27 +17948,27 @@ function GazeMeter($$payload, $$props) {
   const orbFlight = new Tween(0, { duration: 1 });
   const toCenter = new Tween(0, { duration: 1 });
   const liquid = { t: 0 };
-  const progressGradient = new FillGradient({
+  const progressGradients = GAZE_LAPS.map((lapColors) => new FillGradient({
     textureSpace: "local",
     start: { x: 0, y: 1 },
     end: { x: 0, y: 0 },
     colorStops: [
-      { offset: 0, color: GAZE_COLORS.fillDeep },
-      { offset: 0.32, color: GAZE_COLORS.fillMid },
-      { offset: 0.72, color: GAZE_COLORS.fillCore },
-      { offset: 1, color: GAZE_COLORS.fillTop }
+      { offset: 0, color: lapColors.fillDeep },
+      { offset: 0.32, color: lapColors.fillMid },
+      { offset: 0.72, color: lapColors.fillCore },
+      { offset: 1, color: lapColors.fillTop }
     ]
-  });
-  const fadeGradient = new FillGradient({
+  }));
+  const fadeGradients = GAZE_LAPS.map((lapColors) => new FillGradient({
     textureSpace: "local",
     start: { x: 0, y: 0 },
     end: { x: 1, y: 0 },
     colorStops: [
-      { offset: 0, color: GAZE_COLORS.fillTop },
-      { offset: 0.42, color: GAZE_COLORS.fillCore },
-      { offset: 1, color: GAZE_COLORS.fillDeep }
+      { offset: 0, color: lapColors.fillTop },
+      { offset: 0.42, color: lapColors.fillCore },
+      { offset: 1, color: lapColors.fillDeep }
     ]
-  });
+  }));
   const isMobile = context2.stateLayoutDerived.layoutType() === "portrait";
   const gazeH = isMobile ? BOARD_SIZES.width * 0.82 : BOARD_SIZES.height * 0.84;
   const gazeW = gazeH * (GAZE_METER_IMAGE_SIZE.width / GAZE_METER_IMAGE_SIZE.height);
@@ -17883,8 +18041,8 @@ function GazeMeter($$payload, $$props) {
   const resetFx = () => {
     Object.assign(fx, { burst: 0, textScale: 1, overcharge: 0 });
   };
-  const playChargeFx = (overcharged = false) => {
-    gsap.killTweensOf(fx);
+  const playChargeFx = (maxedHit = false) => {
+    gsap.killTweensOf(fx, "burst,textScale");
     const timeline = gsap.timeline();
     track(timeline);
     timeline.set(fx, { burst: 0, textScale: 0.9 }).to(fx, {
@@ -17895,27 +18053,56 @@ function GazeMeter($$payload, $$props) {
     }).to(fx, {
       burst: 0,
       textScale: 1,
-      duration: overcharged ? 0.5 : 0.32,
+      duration: maxedHit ? 0.5 : 0.32,
       ease: "power2.out"
     });
-    if (overcharged) {
-      track(gsap.fromTo(fx, { overcharge: 0 }, {
-        overcharge: 1,
-        duration: 0.36,
-        repeat: 1,
-        yoyo: true,
-        ease: "sine.inOut"
-      }));
+  };
+  const maxed = charge >= GAZE_METER_MAX_CHARGE;
+  const spawnChip = (orb) => {
+    if (orb.value > 0) {
+      chips = [
+        ...chips.filter((chip) => liquid.t - chip.bornT < CHIP_LIFE),
+        {
+          id: nextChipId++,
+          text: `+${orb.value}`,
+          tier: orb.tier,
+          bornT: liquid.t
+        }
+      ];
     }
+    gsap.killTweensOf(fx, "textScale");
+    track(gsap.fromTo(fx, { textScale: 1.14 }, {
+      textScale: 1,
+      duration: 0.22,
+      ease: "power2.out"
+    }));
+  };
+  const playLapFlood = () => {
+    gsap.killTweensOf(lapFx);
+    track(gsap.fromTo(lapFx, { flood: 1 }, { flood: 0, duration: 0.45, ease: "power2.out" }));
+    gsap.killTweensOf(fx, "burst");
+    track(gsap.timeline().set(fx, { burst: 1 }).to(fx, { burst: 0, duration: 0.4, ease: "power2.out" }));
+    context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_multiplier_up" });
   };
   onDestroy(() => {
     animations.forEach((animation) => animation.kill());
     animations.clear();
+    killChipCalls();
     gsap.killTweensOf(fx);
+    gsap.killTweensOf(lapFx);
+    gsap.killTweensOf(siphonFx);
   });
-  const setCharge = async (value) => {
+  const setChargeStaged = async (value) => {
     charge = value;
-    await fill.set(Math.min(value / GAZE_METER_MAX_CHARGE, 1));
+    const clamped = Math.min(value, GAZE_METER_MAX_CHARGE);
+    const targetLap = clamped <= 0 ? 0 : Math.min(GAZE_LAPS.length - 1, Math.ceil(clamped / GAZE_LAP_SIZE) - 1);
+    while (lap < targetLap) {
+      await fill.set(1);
+      lap += 1;
+      playLapFlood();
+      fill.set(0, { duration: 0 });
+    }
+    await fill.set(Math.min(Math.max((clamped - lap * GAZE_LAP_SIZE) / GAZE_LAP_SIZE, 0), 1));
   };
   context2.eventEmitter.subscribeOnMount({
     gazeMeterShow: () => show = true,
@@ -17923,12 +18110,16 @@ function GazeMeter($$payload, $$props) {
     gazeMeterReset: () => {
       charge = 0;
       orbs = [];
+      chips = [];
+      killChipCalls();
+      gsap.killTweensOf(siphonFx);
+      siphonFx.drain = 0;
       orbFlight.set(0, { duration: 0 });
       flying = false;
       toCenter.set(0, { duration: 0 });
-      gsap.killTweensOf(fx);
+      gsap.killTweensOf(fx, "burst,textScale");
       resetFx();
-      fill.set(0, { duration: 360 });
+      void fill.set(0, { duration: 360 }).then(() => lap = 0);
     },
     gazeMeterFill: async (emitterEvent) => {
       show = true;
@@ -17938,71 +18129,223 @@ function GazeMeter($$payload, $$props) {
         forcePlay: !stateBetDerived.isContinuousBet()
       });
       const ts = stateBetDerived.timeScale();
-      orbs = emitterEvent.fromPositions.slice(0, 10).map((position2) => ({
-        sx: getPositionX(position2.reel),
-        sy: getPositionY(position2.row),
-        wobble: (Math.random() - 0.5) * SYMBOL_SIZE * 0.9
-      }));
+      const clusterData = emitterEvent.clusters && emitterEvent.clusters.length > 0 ? emitterEvent.clusters : (
+        // fallback (old fixtures / resume snapshots): one small orb per winning cell
+        emitterEvent.fromPositions.slice(0, 10).map((position2) => ({
+          value: 0,
+          tier: 1,
+          reel: position2.reel,
+          row: position2.row
+        }))
+      );
+      orbs = clusterData.map((cluster) => {
+        const sx = getPositionX(cluster.reel);
+        const sy = getPositionY(cluster.row);
+        return {
+          sx,
+          sy,
+          ox: sx,
+          oy: sy - SYMBOL_SIZE * GATHER_LIFT,
+          wobble: (Math.random() - 0.5) * SYMBOL_SIZE * 0.9,
+          tier: cluster.tier,
+          value: cluster.value
+        };
+      });
       orbFlight.set(0, { duration: 0 });
-      await orbFlight.set(1, { duration: (300 + orbs.length * 40) / ts });
-      orbs = [];
-      void setCharge(emitterEvent.charge).then(() => playChargeFx(emitterEvent.charge > GAZE_METER_MAX_CHARGE));
+      gsap.killTweensOf(siphonFx);
+      siphonFx.drain = 0;
+      const flightBaseMs = SIPHON_MS_BASE + orbs.length * SIPHON_MS_PER_ORB;
+      killChipCalls();
+      chipQueue = [...orbs];
+      const { stagger, windowFrac } = siphonTiming(orbs.length);
+      orbs.forEach((orb, index) => {
+        const arrival = Math.min(1, index * stagger + windowFrac);
+        chipCalls.push(gsap.delayedCall(arrival * flightBaseMs / ts / 1e3, () => {
+          chipQueue = chipQueue.filter((queued) => queued !== orb);
+          spawnChip(orb);
+        }));
+      });
+      if (await raceSkip(orbFlight.set(1, { duration: flightBaseMs / ts })) === "skipped") await orbFlight.set(1, { duration: flightBaseMs / SKIP_TIME_SCALE });
+      const outran = chipQueue.slice();
+      killChipCalls();
+      outran.forEach(spawnChip);
+      track(gsap.fromTo(siphonFx, { drain: 1e-3 }, {
+        drain: 1,
+        duration: SIPHON_DRAIN_MS / 1e3,
+        ease: "power2.in",
+        onComplete: () => {
+          orbs = [];
+          siphonFx.drain = 0;
+        }
+      }));
+      void setChargeStaged(emitterEvent.charge).then(() => playChargeFx(emitterEvent.charge >= GAZE_METER_MAX_CHARGE));
     },
     gazeMeterToEye: async () => {
       if (charge <= 0) return;
       flightValue = charge;
       charge = 0;
+      chips = [];
       flying = true;
+      const flightTs = stateBetDerived.timeScale();
       toCenter.set(0, { duration: 0 });
-      void fill.set(0, { duration: 420 });
-      await toCenter.set(1, { duration: 520, easing: cubicOut });
+      void fill.set(0, { duration: 420 / flightTs }).then(() => lap = 0);
+      if (await raceSkip(toCenter.set(1, { duration: 520 / flightTs, easing: cubicOut })) === "skipped") await toCenter.set(1, {
+        duration: 520 / SKIP_TIME_SCALE,
+        easing: cubicOut
+      });
       flying = false;
     },
     gazeMeterDrain: async () => {
+      while (lap > 0) {
+        await fill.set(0, { duration: 260 });
+        lap -= 1;
+        fill.set(1, { duration: 0 });
+      }
       await fill.set(0, { duration: 420 });
+      chips = [];
       await waitForResolve((resolve) => setTimeout(resolve, 120));
       charge = 0;
       orbs = [];
     }
   });
-  const ORB_TRAVEL_FRACTION = 0.6;
-  const drawOrbs = (g) => {
-    const t2 = orbFlight.current;
-    if (t2 <= 0 || orbs.length === 0) return;
-    const count = orbs.length;
-    const stagger = count > 1 ? (1 - ORB_TRAVEL_FRACTION) / (count - 1) : 0;
-    const baseR = SYMBOL_SIZE * 0.09;
+  const siphonTiming = (count) => {
+    const stagger = count > 1 ? Math.min(SIPHON_STAGGER, 0.5 / (count - 1)) : 0;
+    return {
+      stagger,
+      windowFrac: 1 - stagger * (count - 1)
+    };
+  };
+  const siphonPoint = (orb, s) => {
+    const cx = (orb.ox + meterEnergyX) / 2;
+    const cy = Math.min(orb.oy, meterEnergyY) - SYMBOL_SIZE * SIPHON_APEX_LIFT + orb.wobble * 0.4;
+    const u = 1 - s;
+    return {
+      x: u * u * orb.ox + 2 * u * s * cx + s * s * meterEnergyX,
+      y: u * u * orb.oy + 2 * u * s * cy + s * s * meterEnergyY
+    };
+  };
+  const siphonPhase = (orb, index, count) => {
+    const { stagger, windowFrac } = siphonTiming(count);
+    const local = Math.min(Math.max((orbFlight.current - index * stagger) / windowFrac, 0), 1);
+    const gather = Math.min(local / GATHER_FRACTION, 1);
+    const travelLinear = Math.max(0, (local - GATHER_FRACTION) / (1 - GATHER_FRACTION));
+    const travel = Math.pow(travelLinear, ORB_TIER_WEIGHT[orb.tier - 1]);
+    return { local, gather, travel };
+  };
+  const drawSiphonBase = (g) => {
+    if (orbs.length === 0 || orbFlight.current <= 0) return;
+    const drain = siphonFx.drain;
     orbs.forEach((orb, index) => {
-      const p = Math.min(Math.max((t2 - index * stagger) / ORB_TRAVEL_FRACTION, 0), 1);
-      if (p <= 0 || p >= 1) return;
-      const cx = (orb.sx + meterEnergyX) / 2;
-      const cy = Math.min(orb.sy, meterEnergyY) - SYMBOL_SIZE * 0.45 + orb.wobble;
-      const u = 1 - p;
-      const x = u * u * orb.sx + 2 * u * p * cx + p * p * meterEnergyX;
-      const y = u * u * orb.sy + 2 * u * p * cy + p * p * meterEnergyY;
-      const appear = Math.min(p / 0.12, 1);
-      const r = baseR * appear * (1 - p * 0.35);
-      const pt = Math.max(p - 0.12, 0);
-      const ut = 1 - pt;
-      const tailX = ut * ut * orb.sx + 2 * ut * pt * cx + pt * pt * meterEnergyX;
-      const tailY = ut * ut * orb.sy + 2 * ut * pt * cy + pt * pt * meterEnergyY;
-      g.moveTo(tailX, tailY).lineTo(x, y).stroke({
-        width: r * 0.9,
-        color: GAZE_COLORS.energy,
-        alpha: 0.35 * appear
-      });
-      g.circle(x, y, r * 2.4).fill({
-        color: GAZE_COLORS.energy,
-        alpha: 0.16 * appear
-      });
-      g.circle(x, y, r * 1.4).fill({
-        color: GAZE_COLORS.fillCore,
-        alpha: 0.5 * appear
-      });
-      g.circle(x, y, r * 0.7).fill({
-        color: GAZE_COLORS.fillTop,
-        alpha: 0.95 * appear
-      });
+      const { local, gather, travel } = siphonPhase(orb, index, orbs.length);
+      if (local <= 0) return;
+      const headR = SYMBOL_SIZE * ORB_TIER_RADIUS[orb.tier - 1];
+      const streamW = SYMBOL_SIZE * STREAM_WIDTH[orb.tier - 1];
+      if (local < 1 && travel <= 0) {
+        g.circle(orb.ox, orb.oy, headR * (0.6 + gather * 0.9)).fill({ color: SIPHON_RIM, alpha: 0.4 * gather });
+        return;
+      }
+      const holdFade = local >= 1 ? drain > 0 ? 1 - drain : 0.55 : 1;
+      const from = local >= 1 ? drain : 0;
+      const to = local >= 1 ? 1 : travel;
+      if (to > from) {
+        const first = siphonPoint(orb, from);
+        g.moveTo(first.x, first.y);
+        for (let k = 1; k <= STREAM_SAMPLES; k++) {
+          const pt2 = siphonPoint(orb, from + (to - from) * k / STREAM_SAMPLES);
+          g.lineTo(pt2.x, pt2.y);
+        }
+        g.stroke({
+          width: streamW * 2.4,
+          color: SIPHON_RIM,
+          alpha: 0.35 * holdFade
+        });
+      }
+      if (local < 1) {
+        const head = siphonPoint(orb, travel);
+        g.circle(head.x, head.y, headR * 1.3).fill({ color: SIPHON_RIM, alpha: 0.5 });
+      }
+    });
+  };
+  const drawSiphonGlow = (g) => {
+    if (orbs.length === 0 || orbFlight.current <= 0) return;
+    const tide = GAZE_LAPS[0];
+    const drain = siphonFx.drain;
+    const flow = liquid.t * STREAM_FLOW_SPEED;
+    orbs.forEach((orb, index) => {
+      const { local, gather, travel } = siphonPhase(orb, index, orbs.length);
+      if (local <= 0) return;
+      const headR = SYMBOL_SIZE * ORB_TIER_RADIUS[orb.tier - 1];
+      const streamW = SYMBOL_SIZE * STREAM_WIDTH[orb.tier - 1];
+      const gold = orb.tier === 3;
+      const coreColor = gold ? ORB_GOLD_CORE : orb.tier === 2 ? 16777215 : tide.fillTop;
+      const bodyColor = gold ? 16766826 : tide.fillCore;
+      if (local < 1 && travel <= 0) {
+        const moteCount = GATHER_MOTES[orb.tier - 1];
+        const startR = SYMBOL_SIZE * GATHER_RADIUS;
+        for (let m = 0; m < moteCount; m++) {
+          const angle = m / moteCount * Math.PI * 2 + orb.wobble;
+          const mx0 = orb.sx + Math.cos(angle) * startR;
+          const my0 = orb.sy + Math.sin(angle) * startR * 0.8;
+          const mx = mx0 + (orb.ox - mx0) * gather;
+          const my = my0 + (orb.oy - my0) * gather;
+          g.circle(mx, my, headR * 0.3).fill({ color: bodyColor, alpha: 0.8 * gather });
+        }
+        g.circle(orb.ox, orb.oy, startR * (1 - gather * 0.85)).stroke({
+          width: Math.max(1.5, headR * 0.12),
+          color: GAZE_COLORS.energy,
+          alpha: 0.45 * gather
+        });
+        g.circle(orb.ox, orb.oy, headR * gather * 1.6).fill({
+          color: GAZE_COLORS.energy,
+          alpha: 0.2 * gather
+        });
+        g.circle(orb.ox, orb.oy, headR * gather * 0.8).fill({ color: coreColor, alpha: 0.9 * gather });
+        return;
+      }
+      const from = local >= 1 ? drain : 0;
+      const to = local >= 1 ? 1 : travel;
+      const fade = local >= 1 ? drain > 0 ? 1 - drain : 0.55 : 1;
+      if (to > from) {
+        const first = siphonPoint(orb, from);
+        g.moveTo(first.x, first.y);
+        for (let k = 1; k <= STREAM_SAMPLES; k++) {
+          const pt2 = siphonPoint(orb, from + (to - from) * k / STREAM_SAMPLES);
+          g.lineTo(pt2.x, pt2.y);
+        }
+        g.stroke({
+          width: streamW * 2,
+          color: GAZE_COLORS.energy,
+          alpha: 0.16 * fade
+        });
+        for (let k = 0; k < STREAM_SAMPLES; k++) {
+          const s0 = from + (to - from) * k / STREAM_SAMPLES;
+          const s1 = from + (to - from) * (k + 1) / STREAM_SAMPLES;
+          const a = siphonPoint(orb, s0);
+          const b = siphonPoint(orb, s1);
+          const taper = 0.35 + 0.65 * ((k + 1) / STREAM_SAMPLES);
+          g.moveTo(a.x, a.y).lineTo(b.x, b.y).stroke({
+            width: streamW * taper,
+            color: bodyColor,
+            alpha: 0.5 * fade
+          });
+        }
+        for (let k = 0; k < 5; k++) {
+          const frac = (k / 5 + flow) % 1;
+          const s = from + (to - from) * frac;
+          const pt2 = siphonPoint(orb, s);
+          g.circle(pt2.x, pt2.y, streamW * 0.65).fill({ color: coreColor, alpha: 0.7 * fade });
+        }
+      }
+      if (local < 1) {
+        const head = siphonPoint(orb, travel);
+        const r = headR * (1 - travel * 0.25);
+        g.circle(head.x, head.y, r * 2.4).fill({
+          color: GAZE_COLORS.energy,
+          alpha: 0.12 + orb.tier * 0.05
+        });
+        g.circle(head.x, head.y, r * 1.4).fill({ color: bodyColor, alpha: 0.55 });
+        g.circle(head.x, head.y, r * 0.7).fill({ color: coreColor, alpha: 0.98 });
+      }
     });
   };
   const CENTER_X = BOARD_SIZES.width / 2;
@@ -18036,6 +18379,21 @@ function GazeMeter($$payload, $$props) {
     });
   };
   const drawTrackFill = (g, segment, amount2) => {
+    const lapColors = GAZE_LAPS[lap];
+    if (lap > 0) {
+      const prev = GAZE_LAPS[lap - 1];
+      g.rect(segment.x, segment.y, segment.w, segment.h).fill({ color: prev.fillMid, alpha: LAP_BACKING_ALPHA });
+      g.rect(segment.x, segment.y + segment.h * 0.45, segment.w, segment.h * 0.55).fill({
+        color: prev.fillDeep,
+        alpha: LAP_BACKING_ALPHA * 0.7
+      });
+    }
+    if (lapFx.flood > 0) {
+      g.rect(segment.x, segment.y, segment.w, segment.h).fill({
+        color: lapColors.fillCore,
+        alpha: LAP_FLOOD_ALPHA * lapFx.flood
+      });
+    }
     if (amount2 <= 0) return;
     const fillH = segment.h * Math.min(amount2, 1);
     const fillY = segment.y + segment.h - fillH;
@@ -18063,20 +18421,20 @@ function GazeMeter($$payload, $$props) {
       { x: segment.x, y: segment.y + segment.h }
     ];
     g.rect(segment.x - edgeInset, fillY - edgeInset, segment.w + edgeInset * 2, fillH + edgeInset * 2).fill({
-      color: GAZE_COLORS.fillGlow,
+      color: lapColors.fillGlow,
       alpha: 0.16 + fx.overcharge * 0.16
     });
-    g.poly(body).fill(progressGradient);
-    g.poly(body).fill({ fill: fadeGradient, alpha: 0.16 });
+    g.poly(body).fill(progressGradients[lap]);
+    g.poly(body).fill({ fill: fadeGradients[lap], alpha: 0.16 });
     g.moveTo(surface[0].x, surface[0].y);
     for (let s = 1; s < surface.length; s++) g.lineTo(surface[s].x, surface[s].y);
     g.stroke({
       width: Math.max(1.5, 2.4 * nativeScale),
-      color: GAZE_COLORS.fillTop,
+      color: lapColors.fillTop,
       alpha: 0.55 + fx.burst * 0.4
     });
-    g.rect(segment.x + segment.w * 0.36, fillY + inset, segment.w * 0.34, innerH).fill({ color: GAZE_COLORS.fillTop, alpha: 0.12 });
-    g.rect(segment.x + inset, fillY + inset, shineW, innerH).fill({ color: GAZE_COLORS.edge, alpha: 0.28 });
+    g.rect(segment.x + segment.w * 0.36, fillY + inset, segment.w * 0.34, innerH).fill({ color: lapColors.fillTop, alpha: 0.12 });
+    g.rect(segment.x + inset, fillY + inset, shineW, innerH).fill({ color: lapColors.edge, alpha: 0.28 });
     if (fillH > segment.w * 0.5) {
       const bubbleR = Math.max(1.4, 2.6 * nativeScale);
       for (let i = 0; i < 6; i++) {
@@ -18088,7 +18446,7 @@ function GazeMeter($$payload, $$props) {
         if (nearSurface <= 0) continue;
         const r = bubbleR * (0.45 + i * 0.7 % 1 * 0.55);
         g.circle(bx, by, r).fill({
-          color: GAZE_COLORS.fillTop,
+          color: lapColors.fillTop,
           alpha: 0.22 * nearSurface
         });
       }
@@ -18099,6 +18457,22 @@ function GazeMeter($$payload, $$props) {
     const orbAlpha = 0.18 + pulse * 0.58;
     const gemAlpha = pulse * 0.5;
     const edgeAlpha = fillLead ? 0.28 + pulse * 0.5 : 0;
+    if (orbs.length > 0 && orbFlight.current > 0.12) {
+      const inbound = Math.min(1, orbFlight.current * 1.25);
+      const flicker = 0.8 + Math.sin(liquid.t * 7) * 0.2;
+      const intakeR = gemR * 2.6;
+      for (let i = 3; i >= 1; i--) {
+        const t2 = i / 3;
+        g.circle(eyeX, eyeY, intakeR * t2).fill({
+          color: GAZE_COLORS.energy,
+          alpha: 0.16 * inbound * flicker * (1.2 - t2)
+        });
+      }
+      g.circle(eyeX, eyeY, gemR * 0.8).fill({
+        color: 16777215,
+        alpha: 0.35 * inbound * flicker
+      });
+    }
     if (gemAlpha > 0) {
       const gemGlow = new FillGradient({
         type: "radial",
@@ -18135,7 +18509,7 @@ function GazeMeter($$payload, $$props) {
         outerCenter: { x: fillLead.x, y: fillLead.y },
         outerRadius: fillLead.h * 1.35,
         colorStops: [
-          { offset: 0, color: GAZE_COLORS.edge },
+          { offset: 0, color: GAZE_LAPS[lap].edge },
           { offset: 1, color: 0 }
         ]
       });
@@ -18147,10 +18521,12 @@ function GazeMeter($$payload, $$props) {
     children: ($$payload2) => {
       BoardContainer($$payload2, {
         children: ($$payload3) => {
+          Graphics($$payload3, { draw: drawSiphonBase });
+          $$payload3.out += `<!----> `;
           Container($$payload3, {
             blendMode: "add",
             children: ($$payload4) => {
-              Graphics($$payload4, { draw: drawOrbs });
+              Graphics($$payload4, { draw: drawSiphonGlow });
             },
             $$slots: { default: true }
           });
@@ -18161,6 +18537,7 @@ function GazeMeter($$payload, $$props) {
             rotation: meterRotation,
             children: ($$payload4) => {
               const each_array = ensure_array_like(trackSegments);
+              const each_array_1 = ensure_array_like(chips);
               Graphics($$payload4, { draw: drawTrackBackplates });
               $$payload4.out += `<!----> `;
               Graphics($$payload4, { draw: drawMultiplierBackplate });
@@ -18195,11 +18572,63 @@ function GazeMeter($$payload, $$props) {
                       text: String(charge),
                       style: abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })
                     });
+                    $$payload5.out += `<!----> `;
+                    if (maxed && fx.overcharge > 0) {
+                      $$payload5.out += "<!--[-->";
+                      Container($$payload5, {
+                        alpha: fx.overcharge * 0.7,
+                        blendMode: "add",
+                        children: ($$payload6) => {
+                          BitmapText($$payload6, {
+                            anchor: 0.5,
+                            text: String(charge),
+                            style: abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })
+                          });
+                        },
+                        $$slots: { default: true }
+                      });
+                    } else {
+                      $$payload5.out += "<!--[!-->";
+                    }
+                    $$payload5.out += `<!--]-->`;
                   },
                   $$slots: { default: true }
                 });
               } else {
                 $$payload4.out += "<!--[!-->";
+              }
+              $$payload4.out += `<!--]--> <!--[-->`;
+              for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+                let chip = each_array_1[$$index_1];
+                const chipAge = Math.max(0, liquid.t - chip.bornT);
+                if (chipAge < CHIP_LIFE) {
+                  $$payload4.out += "<!--[-->";
+                  const chipP = chipAge / CHIP_LIFE;
+                  Container($$payload4, {
+                    x: plaqueTextX,
+                    y: plaqueTextY,
+                    rotation: multiplierTextRotation,
+                    children: ($$payload5) => {
+                      Container($$payload5, {
+                        y: -plaqueR * 1.45 - chipP * SYMBOL_SIZE * 0.42,
+                        scale: chipP < 0.18 ? 0.5 + chipP / 0.18 * 0.65 : 1.15 - (chipP - 0.18) * 0.18,
+                        alpha: chipP > 0.68 ? Math.max(0, (1 - chipP) / 0.32) : 1,
+                        children: ($$payload6) => {
+                          BitmapText($$payload6, {
+                            anchor: 0.5,
+                            text: chip.text,
+                            style: abyssalBitmapStyle({ fontSize: plaqueR * (0.58 + chip.tier * 0.14) })
+                          });
+                        },
+                        $$slots: { default: true }
+                      });
+                    },
+                    $$slots: { default: true }
+                  });
+                } else {
+                  $$payload4.out += "<!--[!-->";
+                }
+                $$payload4.out += `<!--]-->`;
               }
               $$payload4.out += `<!--]-->`;
             },
@@ -18350,11 +18779,21 @@ function Eye($$payload, $$props) {
         type: "soundOnce",
         name: "sfx_multiplier_landing"
       });
-      await waitForTimeout(450 / ts());
+      await skippableWait(450 / ts());
       gazeLabel = false;
       for (const eye of eyes) {
         await foldEye(eye);
-        await waitForTimeout(120 / ts());
+        await skippableWait(120 / ts());
+      }
+      if (context2.stateGame.gameType === "freegame") {
+        await context2.eventEmitter.broadcastAsync({ type: "snowballToCombine" });
+        running = e.totalMult;
+        popCenter();
+        context2.eventEmitter.broadcast({
+          type: "soundOnce",
+          name: "sfx_multiplier_combine_a"
+        });
+        await skippableWait(220 / ts());
       }
       running = e.totalMult;
       popCenter(true);
@@ -18362,7 +18801,7 @@ function Eye($$payload, $$props) {
         type: "soundOnce",
         name: "sfx_multiplier_explosion_a"
       });
-      await waitForTimeout(750 / ts());
+      await skippableWait(750 / ts());
       gsap.killTweensOf(dimFx);
       await new Promise((resolve) => {
         gsap.to(dimFx, {
@@ -18625,70 +19064,6 @@ function ScatterFx($$payload, $$props) {
   $$payload.out += `<!--]-->`;
   pop();
 }
-function WinCapCelebration($$payload, $$props) {
-  push();
-  const context2 = getContext();
-  let show = false;
-  let amount2 = 0;
-  context2.eventEmitter.subscribeOnMount({
-    winCapTrigger: async (e) => {
-      amount2 = e.amount;
-      show = true;
-      context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_youwon_panel" });
-      await waitForTimeout(3500);
-      show = false;
-    }
-  });
-  const sizes = context2.stateLayoutDerived.canvasSizes();
-  FadeContainer($$payload, {
-    show,
-    zIndex: 50,
-    children: ($$payload2) => {
-      Rectangle$1($$payload2, spread_props([
-        sizes,
-        {
-          backgroundColor: 329743,
-          backgroundAlpha: 0.86
-        }
-      ]));
-      $$payload2.out += `<!----> `;
-      Container($$payload2, {
-        x: sizes.width / 2,
-        y: sizes.height / 2,
-        children: ($$payload3) => {
-          Text($$payload3, {
-            anchor: 0.5,
-            y: -70,
-            text: context2.i18nDerived.winTier("maxWin"),
-            style: {
-              fontFamily: "sans-serif",
-              fontWeight: "800",
-              fontSize: 110,
-              fill: 16757052
-            }
-          });
-          $$payload3.out += `<!----> `;
-          Text($$payload3, {
-            anchor: 0.5,
-            y: 50,
-            text: bookEventAmountToCurrencyString(amount2),
-            style: {
-              fontFamily: "sans-serif",
-              fontWeight: "800",
-              fontSize: 76,
-              fill: 2285823
-            }
-          });
-          $$payload3.out += `<!---->`;
-        },
-        $$slots: { default: true }
-      });
-      $$payload2.out += `<!---->`;
-    },
-    $$slots: { default: true }
-  });
-  pop();
-}
 function WinBubbles($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
@@ -18861,33 +19236,267 @@ function PressToContinue($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
   const context2 = getContext();
-  MainContainer($$payload, {
-    alignVertical: "bottom",
-    children: ($$payload2) => {
-      Text($$payload2, {
-        anchor: { x: 0.5, y: 1 },
-        x: context2.stateLayoutDerived.mainLayout().width * 0.5,
-        y: context2.stateLayoutDerived.mainLayout().height - 60,
-        text: context2.i18nDerived.tapToContinue(),
-        style: {
-          fontFamily: "sans-serif",
-          fontWeight: "800",
-          fontSize: 38,
-          fill: 15398655,
-          letterSpacing: 3
-        }
-      });
-    },
-    $$slots: { default: true }
-  });
-  $$payload.out += `<!----> `;
+  const showPrompt = props.showPrompt ?? true;
+  if (showPrompt) {
+    $$payload.out += "<!--[-->";
+    MainContainer($$payload, {
+      alignVertical: "bottom",
+      children: ($$payload2) => {
+        Text($$payload2, {
+          anchor: { x: 0.5, y: 1 },
+          x: context2.stateLayoutDerived.mainLayout().width * 0.5,
+          y: context2.stateLayoutDerived.mainLayout().height - 60,
+          text: context2.i18nDerived.tapToContinue(),
+          style: {
+            fontFamily: "sans-serif",
+            fontWeight: "800",
+            fontSize: 38,
+            fill: 15398655,
+            letterSpacing: 3
+          }
+        });
+      },
+      $$slots: { default: true }
+    });
+  } else {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]--> `;
   OnHotkey($$payload, {
     hotkey: "Space",
-    onpress: () => props.onpress()
+    onpress: () => (props.onspace ?? props.onpress)()
   });
   $$payload.out += `<!----> `;
   OnPressFullScreen($$payload, { onpress: () => props.onpress() });
   $$payload.out += `<!---->`;
+  pop();
+}
+function WinCapCelebration($$payload, $$props) {
+  push();
+  const context2 = getContext();
+  const COUNT_SECONDS = 1.6;
+  const CRAWL_EXPONENT = 2.2;
+  const BACKDROP_ALPHA = 0.78;
+  const SCENE_TINT_ALPHA = 0.1;
+  const RUBY = 16729144;
+  const FRAME_SCALE = 0.72;
+  const AMOUNT_Y = 0.08;
+  const AMOUNT_SIZE = 0.24;
+  const AMOUNT_MAX_WIDTH = 0.66;
+  const BANNER_SHIFT = 0.12;
+  const SLAM_SCALE = 1.6;
+  const ts = () => 1;
+  let show = false;
+  let amount2 = 0;
+  let oncomplete = () => {
+  };
+  const boardWidth = context2.stateGameDerived.boardLayout().width;
+  const frameW = boardWidth * 1.05 * FRAME_SCALE;
+  const frameH = frameW * (383 / 522);
+  const amountStyle = abyssalBitmapStyle({ fontSize: frameH * AMOUNT_SIZE });
+  const countUp = new Tween(0);
+  const interruptible = createInterruptible();
+  let countUpCompleted = false;
+  const countEase = (t2) => 1 - Math.pow(1 - t2, CRAWL_EXPONENT);
+  const numFx = { scale: 1, flash: 0, throb: 1 };
+  const groupFx = { scale: SLAM_SCALE, alpha: 0 };
+  const shake = { x: 0, y: 0 };
+  let burstKey = 0;
+  const triggerShake = (power) => {
+    gsap.killTweensOf(shake);
+    const tl = gsap.timeline({
+      onComplete: () => {
+        shake.x = 0;
+        shake.y = 0;
+      }
+    });
+    const kicks = 5;
+    for (let i = 0; i < kicks; i++) {
+      const decay = 1 - i / kicks;
+      tl.to(shake, {
+        x: (Math.random() - 0.5) * power * decay,
+        y: (Math.random() - 0.5) * power * decay,
+        duration: 0.045,
+        ease: "power1.inOut"
+      });
+    }
+    tl.to(shake, {
+      x: 0,
+      y: 0,
+      duration: 0.12,
+      ease: "power2.out"
+    });
+  };
+  const playEntrance = () => {
+    gsap.killTweensOf(groupFx);
+    gsap.timeline().set(groupFx, { scale: SLAM_SCALE, alpha: 0 }).to(groupFx, { alpha: 1, duration: 0.16, ease: "power2.out" }).to(
+      groupFx,
+      {
+        scale: 1,
+        duration: 0.62,
+        ease: "elastic.out(1, 0.5)"
+      },
+      0.02
+    );
+    burstKey++;
+    triggerShake(SYMBOL_SIZE * 0.3);
+    context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_youwon_panel" });
+  };
+  const startThrob = () => {
+    gsap.killTweensOf(numFx);
+    numFx.throb = 1;
+    gsap.to(numFx, {
+      throb: 1.045,
+      duration: 0.38,
+      yoyo: true,
+      repeat: -1,
+      ease: "sine.inOut"
+    });
+  };
+  const playLock = () => {
+    gsap.killTweensOf(numFx);
+    gsap.timeline().set(numFx, { scale: 1, flash: 0, throb: 1 }).to(numFx, {
+      scale: 1.45,
+      duration: 0.12,
+      ease: "back.out(3)"
+    }).to(numFx, {
+      scale: 1,
+      duration: 0.7,
+      ease: "elastic.out(1, 0.45)"
+    }).set(numFx, { flash: 0.95 }, 0).to(numFx, { flash: 0, duration: 0.45, ease: "power2.out" }, 0);
+    burstKey++;
+    triggerShake(SYMBOL_SIZE * 0.26);
+    context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_winlevel_end" });
+  };
+  context2.eventEmitter.subscribeOnMount({
+    winCapTrigger: async (emitterEvent) => {
+      countUp.set(0, { duration: 0 });
+      groupFx.alpha = 0;
+      groupFx.scale = SLAM_SCALE;
+      amount2 = emitterEvent.amount;
+      show = true;
+      await waitForResolve((resolve) => oncomplete = resolve);
+      show = false;
+      await waitForTimeout(400);
+    }
+  });
+  const present = async () => {
+    countUpCompleted = false;
+    numFx.scale = 1;
+    numFx.flash = 0;
+    numFx.throb = 1;
+    shake.x = 0;
+    shake.y = 0;
+    await countUp.set(0, { duration: 0 });
+    playEntrance();
+    startThrob();
+    await interruptible.add(() => countUp.set(amount2, {
+      duration: COUNT_SECONDS * SECOND / ts(),
+      easing: countEase
+    }));
+    await countUp.set(amount2, { duration: 0 });
+    interruptible.clear();
+    playLock();
+    countUpCompleted = true;
+  };
+  FadeContainer($$payload, {
+    show,
+    zIndex: 50,
+    children: ($$payload2) => {
+      if (amount2 > 0) {
+        $$payload2.out += "<!--[-->";
+        OnMount($$payload2, { onmount: present });
+        $$payload2.out += `<!----> `;
+        CanvasSizeRectangle($$payload2, {
+          backgroundColor: 0,
+          backgroundAlpha: BACKDROP_ALPHA * groupFx.alpha
+        });
+        $$payload2.out += `<!----> `;
+        CanvasSizeRectangle($$payload2, {
+          backgroundColor: RUBY,
+          backgroundAlpha: SCENE_TINT_ALPHA * groupFx.alpha
+        });
+        $$payload2.out += `<!----> `;
+        WinBubbles($$payload2, { burstKey, levelAlias: "max" });
+        $$payload2.out += `<!----> `;
+        MainContainer($$payload2, {
+          children: ($$payload3) => {
+            Container($$payload3, {
+              x: context2.stateGameDerived.boardLayout().x + shake.x,
+              y: context2.stateGameDerived.boardLayout().y + shake.y,
+              scale: groupFx.scale,
+              alpha: groupFx.alpha,
+              children: ($$payload4) => {
+                Container($$payload4, {
+                  y: frameH * BANNER_SHIFT,
+                  children: ($$payload5) => {
+                    WinBanner($$payload5, {
+                      tierKey: "maxWin",
+                      color: RUBY,
+                      width: frameW,
+                      height: frameH
+                    });
+                    $$payload5.out += `<!----> `;
+                    Container($$payload5, {
+                      scale: numFx.scale * numFx.throb,
+                      children: ($$payload6) => {
+                        ResponsiveBitmapText($$payload6, {
+                          anchor: 0.5,
+                          y: frameH * AMOUNT_Y,
+                          maxWidth: frameW * AMOUNT_MAX_WIDTH,
+                          text: bookEventAmountToCurrencyString(countUp.current),
+                          style: amountStyle
+                        });
+                        $$payload6.out += `<!----> `;
+                        if (numFx.flash > 0) {
+                          $$payload6.out += "<!--[-->";
+                          Container($$payload6, {
+                            alpha: numFx.flash,
+                            blendMode: "add",
+                            children: ($$payload7) => {
+                              ResponsiveBitmapText($$payload7, {
+                                anchor: 0.5,
+                                y: frameH * AMOUNT_Y,
+                                maxWidth: frameW * AMOUNT_MAX_WIDTH,
+                                text: bookEventAmountToCurrencyString(countUp.current),
+                                style: amountStyle
+                              });
+                            },
+                            $$slots: { default: true }
+                          });
+                        } else {
+                          $$payload6.out += "<!--[!-->";
+                        }
+                        $$payload6.out += `<!--]-->`;
+                      },
+                      $$slots: { default: true }
+                    });
+                    $$payload5.out += `<!---->`;
+                  },
+                  $$slots: { default: true }
+                });
+              },
+              $$slots: { default: true }
+            });
+          },
+          $$slots: { default: true }
+        });
+        $$payload2.out += `<!----> `;
+        PressToContinue($$payload2, {
+          showPrompt: countUpCompleted,
+          onpress: () => countUpCompleted ? oncomplete() : interruptible.interrupt(),
+          onspace: () => {
+            if (countUpCompleted) oncomplete();
+          }
+        });
+        $$payload2.out += `<!---->`;
+      } else {
+        $$payload2.out += "<!--[!-->";
+      }
+      $$payload2.out += `<!--]-->`;
+    },
+    $$slots: { default: true }
+  });
   pop();
 }
 function Win($$payload, $$props) {
@@ -18929,7 +19538,7 @@ function Win($$payload, $$props) {
   let winLevelData = void 0;
   let oncomplete = () => {
   };
-  const ts = () => stateBetDerived.timeScale();
+  const ts = () => 1;
   const multiplier = amount2 / BOOK_AMOUNT_MULTIPLIER;
   const finalTier = tierFor(multiplier);
   const boardWidth = context2.stateGameDerived.boardLayout().width;
@@ -19144,7 +19753,11 @@ function Win($$payload, $$props) {
         });
         $$payload2.out += `<!----> `;
         PressToContinue($$payload2, {
-          onpress: () => countUpCompleted ? oncomplete() : skipToNextStep()
+          showPrompt: countUpCompleted,
+          onpress: () => countUpCompleted ? oncomplete() : skipToNextStep(),
+          onspace: () => {
+            if (countUpCompleted) oncomplete();
+          }
         });
         $$payload2.out += `<!---->`;
       } else {
@@ -19473,24 +20086,44 @@ function FreeSpinCounter($$payload, $$props) {
   push();
   const context2 = getContext();
   const freeSpinsSize = SYMBOL_SIZE * 2.05;
+  const freeSpinsH = freeSpinsSize * (1086 / 1448);
   const totalMultSize = SYMBOL_SIZE * 1.42;
   const panelGap = SYMBOL_SIZE * 0.18;
   const boardLayout2 = context2.stateGameDerived.boardLayout();
   const isStacked = context2.stateLayoutDerived.isStacked();
-  const position = isStacked ? {
-    x: boardLayout2.x + boardLayout2.width * 0.5 * MOBILE_REEL_DISPLAY_SCALE - totalMultSize * 0.75,
-    y: boardLayout2.y - boardLayout2.height * 0.5 * MOBILE_REEL_DISPLAY_SCALE - SYMBOL_SIZE * 0.62
-  } : {
-    x: boardLayout2.x + boardLayout2.width * 0.5 + SYMBOL_SIZE * 1.08,
-    y: boardLayout2.y - boardLayout2.height * 0.5 + totalMultSize * 0.5
+  const PORTRAIT_GROUP_SCALE = 1.35;
+  const PORTRAIT_WIN_GAP = SYMBOL_SIZE * 0.3;
+  const portrait = (() => {
+    const cs = context2.stateLayoutDerived.canvasSizes();
+    const ml = context2.stateLayoutDerived.mainLayout();
+    const s = Math.min(0.48, Math.max(0.42, Math.min(cs.width / 460, cs.height / 780)));
+    const winCanvas = {
+      x: cs.width * 0.5,
+      y: cs.height - 16 - 322 * s
+    };
+    const anchor = typeof ml.anchor === "number" ? { x: ml.anchor, y: ml.anchor } : ml.anchor;
+    const win = {
+      x: (winCanvas.x - ml.x) / ml.scale + anchor.x * ml.width,
+      y: (winCanvas.y - ml.y) / ml.scale + anchor.y * ml.height
+    };
+    const winHalfW = 150 * s / ml.scale;
+    const multDx = winHalfW + PORTRAIT_WIN_GAP + totalMultSize * 0.5 * PORTRAIT_GROUP_SCALE;
+    const spinsDx = winHalfW + PORTRAIT_WIN_GAP + freeSpinsSize * 0.5 * PORTRAIT_GROUP_SCALE;
+    return {
+      x: win.x + multDx,
+      y: win.y,
+      // group units (the group is scaled), medallion origin → spins panel centre
+      spinsOffsetX: -(multDx + spinsDx) / PORTRAIT_GROUP_SCALE
+    };
+  })();
+  const position = isStacked ? { x: portrait.x, y: portrait.y } : {
+    x: boardLayout2.x + boardLayout2.width * 0.5 + SYMBOL_SIZE * 1.35,
+    y: boardLayout2.y - boardLayout2.height * 0.5 + totalMultSize * 0.5 + SYMBOL_SIZE * 0.3
   };
-  const groupScale = isStacked ? 0.55 : 1;
-  const spinsPanelOffset = isStacked ? {
-    x: -(totalMultSize * 0.5 + freeSpinsSize * 0.5 + panelGap),
-    y: 0
-  } : {
+  const groupScale = isStacked ? PORTRAIT_GROUP_SCALE : 1;
+  const spinsPanelOffset = isStacked ? { x: portrait.spinsOffsetX, y: 0 } : {
     x: 0,
-    y: totalMultSize * 0.5 + freeSpinsSize * 0.5 + panelGap
+    y: totalMultSize * 0.5 + freeSpinsH * 0.5 + panelGap
   };
   let show = false;
   let current = 0;
@@ -19498,7 +20131,94 @@ function FreeSpinCounter($$payload, $$props) {
   let lastPersistentMult = context2.stateGame.persistentMult;
   const totalMultPop = new Tween(1, { duration: 160 });
   const entrance = new Tween(1, { duration: 420, easing: backOut });
+  const MULT_GLOW_COLOR = 16757575;
+  const MULT_GLOW_STRENGTH = 2.8;
+  const multGlow = new GlowFilter({
+    color: MULT_GLOW_COLOR,
+    distance: 18,
+    outerStrength: 0,
+    quality: 0.3
+  });
+  multGlow.enabled = false;
+  const blinkGlow = () => {
+    gsap.killTweensOf(multGlow);
+    multGlow.enabled = true;
+    gsap.timeline({ onComplete: () => multGlow.enabled = false }).to(multGlow, {
+      outerStrength: MULT_GLOW_STRENGTH,
+      duration: 0.12,
+      ease: "power2.out"
+    }).to(multGlow, {
+      outerStrength: 0.7,
+      duration: 0.14,
+      ease: "power2.in"
+    }).to(multGlow, {
+      outerStrength: MULT_GLOW_STRENGTH * 0.85,
+      duration: 0.12,
+      ease: "power2.out"
+    }).to(multGlow, {
+      outerStrength: 0,
+      duration: 0.3,
+      ease: "power2.out"
+    });
+  };
+  const flyFx = {
+    x: 0,
+    y: 0,
+    scale: 1,
+    alpha: 0,
+    active: false
+  };
+  const flyToCombine = () => new Promise((resolve) => {
+    const target = context2.stateGameDerived.boardLayout();
+    flyFx.active = true;
+    gsap.killTweensOf(flyFx);
+    const tl = gsap.timeline({
+      onComplete: () => {
+        flyFx.active = false;
+        resolve();
+      }
+    });
+    tl.timeScale(stateBetDerived.timeScale());
+    tl.set(flyFx, {
+      x: position.x,
+      y: position.y,
+      scale: 0.6,
+      alpha: 0
+    }).to(flyFx, {
+      alpha: 1,
+      scale: 1.25,
+      duration: 0.2,
+      ease: "back.out(2)"
+    }).to(
+      flyFx,
+      {
+        x: target.x,
+        y: target.y,
+        duration: 0.5,
+        ease: "power2.inOut"
+      },
+      "<0.05"
+    ).to(
+      flyFx,
+      {
+        scale: 1.6,
+        duration: 0.12,
+        ease: "power2.in"
+      },
+      "-=0.12"
+    ).to(flyFx, {
+      scale: 0.25,
+      alpha: 0,
+      duration: 0.16,
+      ease: "power2.in"
+    });
+    void totalMultPop.set(0.85).then(() => totalMultPop.set(1));
+  });
   context2.eventEmitter.subscribeOnMount({
+    snowballToCombine: async () => {
+      if (!show) return;
+      await flyToCombine();
+    },
     freeSpinCounterShow: async () => {
       if (!show) {
         show = true;
@@ -19520,27 +20240,22 @@ function FreeSpinCounter($$payload, $$props) {
       lastPersistentMult = emitterEvent.mult;
       if (!climbed) return;
       context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_multiplier_up" });
+      blinkGlow();
       await totalMultPop.set(1.16);
       await totalMultPop.set(1);
     }
   });
-  const totalMultLabelStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.145 });
-  const freeSpinsLabelStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.14 });
-  const freeSpinsValueStyle = {
-    fontFamily: "Cinzel, Georgia, serif",
-    fontWeight: "900",
-    fontSize: SYMBOL_SIZE * 0.28,
-    fill: 16770976,
-    align: "center",
-    stroke: { color: 2757632, width: 5 },
-    dropShadow: {
-      color: 0,
-      blur: 7,
-      distance: 2,
-      alpha: 0.75
-    }
-  };
-  const totalMultValueStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.34 });
+  const totalMultLabelStyle = abyssalBitmapStyle({
+    fontSize: SYMBOL_SIZE * 0.16,
+    letterSpacing: 2
+  });
+  const totalMultValueStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.3 });
+  const freeSpinsLabelStyle = abyssalBitmapStyle({
+    fontSize: SYMBOL_SIZE * 0.16,
+    letterSpacing: 2
+  });
+  const freeSpinsValueStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.28 });
+  const flyTokenStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.4 });
   MainContainer($$payload, {
     children: ($$payload2) => {
       FadeContainer($$payload2, spread_props([
@@ -19567,6 +20282,7 @@ function FreeSpinCounter($$payload, $$props) {
                     });
                     $$payload5.out += `<!----> `;
                     Container($$payload5, {
+                      filters: [multGlow],
                       children: ($$payload6) => {
                         Sprite($$payload6, {
                           anchor: 0.5,
@@ -19578,6 +20294,7 @@ function FreeSpinCounter($$payload, $$props) {
                         ResponsiveBitmapText($$payload6, {
                           text: `x${context2.stateGame.persistentMult}`,
                           anchor: 0.5,
+                          y: -totalMultSize * 0.06,
                           maxWidth: totalMultSize * 0.46,
                           style: totalMultValueStyle
                         });
@@ -19598,20 +20315,20 @@ function FreeSpinCounter($$payload, $$props) {
                       anchor: 0.5,
                       key: "freeSpinsCount",
                       width: freeSpinsSize,
-                      height: freeSpinsSize
+                      height: freeSpinsH
                     });
                     $$payload5.out += `<!----> `;
                     BitmapText($$payload5, {
                       text: context2.i18nDerived.freeSpins(),
                       anchor: 0.5,
-                      y: -freeSpinsSize * 0.13,
+                      y: -freeSpinsH * 0.11,
                       style: freeSpinsLabelStyle
                     });
                     $$payload5.out += `<!----> `;
-                    ResponsiveText($$payload5, {
-                      text: `${current} / ${total}`,
+                    ResponsiveBitmapText($$payload5, {
+                      text: `${current} OF ${total}`,
                       anchor: 0.5,
-                      y: freeSpinsSize * 0.14,
+                      y: freeSpinsH * 0.1,
                       maxWidth: freeSpinsSize * 0.56,
                       style: freeSpinsValueStyle
                     });
@@ -19627,6 +20344,27 @@ function FreeSpinCounter($$payload, $$props) {
           $$slots: { default: true }
         }
       ]));
+      $$payload2.out += `<!----> `;
+      if (flyFx.active) {
+        $$payload2.out += "<!--[-->";
+        Container($$payload2, {
+          x: flyFx.x,
+          y: flyFx.y,
+          scale: flyFx.scale,
+          alpha: flyFx.alpha,
+          children: ($$payload3) => {
+            BitmapText($$payload3, {
+              anchor: 0.5,
+              text: `x${context2.stateGame.persistentMult}`,
+              style: flyTokenStyle
+            });
+          },
+          $$slots: { default: true }
+        });
+      } else {
+        $$payload2.out += "<!--[!-->";
+      }
+      $$payload2.out += `<!--]-->`;
     },
     $$slots: { default: true }
   });
@@ -19951,11 +20689,12 @@ function SkipPress($$payload, $$props) {
     freeSpinOutroHide: release
   });
   OnPressFullScreen($$payload, {
+    cursor: "default",
     onpress: () => {
       if (owners > 0) return;
-      if (requestSkip()) {
-        context2.stateGameDerived.skipCurrentSpin();
-      }
+      if (context2.stateXstateDerived.isIdle()) return;
+      armSkip();
+      context2.stateGameDerived.speedUpCurrentSpin();
     }
   });
   pop();
@@ -19975,6 +20714,8 @@ const ABYSSAL_CONTROL_BAR_LAYOUT = {
   }
 };
 const WHITE = 16777215;
+const STOP_RED = 16727862;
+const STOP_BORDER = 1705476;
 const alphaOf = (options) => options.disabled ? 0.42 : 1;
 const strokeLine = (g, width, color, alpha, cap = "round") => {
   g.stroke({ width, color, alpha, cap, join: "round" });
@@ -20085,13 +20826,13 @@ const drawControlGlyph = (g, key, size, options = {}) => {
   );
   if (options.stop) {
     g.roundRect(-s * 0.12, -s * 0.12, s * 0.24, s * 0.24, s * 0.035).fill({
-      color: WHITE,
+      color: STOP_RED,
       alpha: alpha * 0.94
     });
     g.roundRect(-s * 0.12, -s * 0.12, s * 0.24, s * 0.24, s * 0.035).stroke({
-      width: s * 0.025,
-      color: WHITE,
-      alpha: alpha * 0.72
+      width: s * 0.02,
+      color: STOP_BORDER,
+      alpha: alpha * 0.9
     });
   }
 };
@@ -20326,12 +21067,19 @@ function ControlBar($$payload, $$props) {
   const autoActive = stateBetDerived.hasAutoBetCounter();
   const autoIndicatorActive = autoActive || autoSpinArmed;
   const buyBonusIndicatorActive = stateBetDerived.activeBetMode()?.type === "activate";
-  const autoDisabled = !autoActive && !autoSpinArmed && (!isIdle || !stateBetDerived.isBetCostAvailable());
+  const activeModeMaxBet = (() => {
+    const key = stateBet$1.activeBetModeKey.toUpperCase();
+    const entry = stateConfig.gameModes.find((gm) => gm.mode.toUpperCase() === key);
+    return entry && entry.maxBet > 0 ? entry.maxBet : Infinity;
+  })();
+  const betOverModeMax = stateBet$1.betAmount > activeModeMaxBet;
+  const canPlaceBet = stateBetDerived.isBetCostAvailable() && !betOverModeMax;
+  const autoDisabled = !autoActive && !autoSpinArmed && !isIdle;
   const turboDisabled = stateBet$1.isSpaceHold;
   const decDisabled = !isIdle || stateBet$1.betAmount <= smallest;
   const incDisabled = !isIdle || stateBet$1.betAmount >= biggest;
-  const spinDisabled = !isIdle || !stateBetDerived.isBetCostAvailable();
-  const spinButtonDimmed = isIdle && !stateBetDerived.isBetCostAvailable();
+  const spinDisabled = !isIdle || !canPlaceBet;
+  const spinButtonDimmed = isIdle && !canPlaceBet;
   const winText = bookEventAmountToCurrencyString(stateBet$1.winBookEventAmount);
   const betLabelText = stateBetDerived.activeBetMode()?.text?.betAmountLabel || context2.i18nDerived.bet();
   const spinning = !isIdle;
@@ -20341,7 +21089,15 @@ function ControlBar($$payload, $$props) {
   };
   const shouldResetBuyModeBeforeManualSpin = () => stateBetDerived.activeBetMode()?.type === "buy" && stateBet$1.activeBetModeKey.toUpperCase() !== "SUPERSPINS";
   const beginAutoSpin = () => {
-    if (!stateBetDerived.isBetCostAvailable()) return;
+    if (!canPlaceBet) {
+      stateModal.modal = {
+        name: "autoSpinMessage",
+        message: "insufficientFunds"
+      };
+      autoSpinArmed = false;
+      showAutoPopup = false;
+      return;
+    }
     stateBet$1.autoSpinsCounter = AUTO_SPINS_TEXT_OPTION_MAP[stateUi.autoSpinsText];
     stateBet$1.autoSpinsLossLimitAmount = Infinity;
     stateBet$1.autoSpinsSingleWinLimitAmount = Infinity;
@@ -20356,8 +21112,8 @@ function ControlBar($$payload, $$props) {
   const spin = () => {
     context2.eventEmitter.broadcast({ type: "soundPressBet" });
     if (!isIdle) {
-      requestSkip();
-      context2.stateGameDerived.skipCurrentSpin();
+      armSkip();
+      context2.stateGameDerived.speedUpCurrentSpin();
       return;
     }
     if (spinDisabled) return;
@@ -21136,29 +21892,35 @@ function GameHeader($$payload, $$props) {
   };
   const timeStyle = { ...baseTextStyle, fill: 14220287 };
   const nameStyle = { ...baseTextStyle, fill: 16768913 };
-  Container($$payload, {
-    children: ($$payload2) => {
-      Text($$payload2, {
-        x: pad,
-        y: pad,
-        anchor: { x: 0, y: 0 },
-        alpha: 0.95,
-        text: timeText,
-        style: timeStyle
-      });
-      $$payload2.out += `<!----> `;
-      Text($$payload2, {
-        x: canvas.width - pad,
-        y: pad,
-        anchor: { x: 1, y: 0 },
-        alpha: 1,
-        text: nameText,
-        style: nameStyle
-      });
-      $$payload2.out += `<!---->`;
-    },
-    $$slots: { default: true }
-  });
+  if (!stateModal.modal) {
+    $$payload.out += "<!--[-->";
+    Container($$payload, {
+      children: ($$payload2) => {
+        Text($$payload2, {
+          x: pad,
+          y: pad,
+          anchor: { x: 0, y: 0 },
+          alpha: 0.95,
+          text: timeText,
+          style: timeStyle
+        });
+        $$payload2.out += `<!----> `;
+        Text($$payload2, {
+          x: canvas.width - pad,
+          y: pad,
+          anchor: { x: 1, y: 0 },
+          alpha: 1,
+          text: nameText,
+          style: nameStyle
+        });
+        $$payload2.out += `<!---->`;
+      },
+      $$slots: { default: true }
+    });
+  } else {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]-->`;
   pop();
 }
 function ReplayControls($$payload, $$props) {
@@ -21640,6 +22402,13 @@ function BuyBonusModal($$payload, $$props) {
   const incDisabled = stateBet$1.betAmount >= biggest;
   const costOf = (m) => stateBet$1.betAmount * m.costMultiplier;
   const affordable = (m) => stateBet$1.betAmount > 0 && stateBet$1.balanceAmount >= costOf(m);
+  const maxBetFor = (m) => {
+    const entry = stateConfig.gameModes.find((gm) => gm.mode.toUpperCase() === m.mode.toUpperCase());
+    return entry && entry.maxBet > 0 ? entry.maxBet : Infinity;
+  };
+  const withinMax = (m) => stateBet$1.betAmount <= maxBetFor(m);
+  const allowed = (m) => affordable(m) && withinMax(m);
+  const BET_TOO_HIGH = "BET TOO HIGH";
   const isActive = (m) => stateBet$1.activeBetModeKey.toUpperCase() === m.mode.toUpperCase();
   const close = () => stateModal.modal = null;
   const money = (n) => numberToCurrencyString(n);
@@ -21672,10 +22441,25 @@ function BuyBonusModal($$payload, $$props) {
             $$payload2.out += "<!--[!-->";
             if (activate) {
               $$payload2.out += "<!--[-->";
-              $$payload2.out += `<button class="bm-action activate svelte-refr9d"${attr("disabled", !affordable(m), true)}>${escape_html(i18nDerived.activate())}</button>`;
+              $$payload2.out += `<button class="bm-action activate svelte-refr9d"${attr("disabled", !allowed(m), true)}>${escape_html(!withinMax(m) ? BET_TOO_HIGH : i18nDerived.activate())}</button>`;
             } else {
               $$payload2.out += "<!--[!-->";
-              $$payload2.out += `<button class="bm-action buy svelte-refr9d"${attr("disabled", !affordable(m), true)}>${escape_html(affordable(m) ? i18nDerived.buy() : i18nDerived.lowFunds())}</button>`;
+              $$payload2.out += `<button class="bm-action buy svelte-refr9d"${attr("disabled", !allowed(m), true)}>`;
+              if (!withinMax(m)) {
+                $$payload2.out += "<!--[-->";
+                $$payload2.out += `${escape_html(BET_TOO_HIGH)}`;
+              } else {
+                $$payload2.out += "<!--[!-->";
+                if (affordable(m)) {
+                  $$payload2.out += "<!--[-->";
+                  $$payload2.out += `${escape_html(i18nDerived.buy())}`;
+                } else {
+                  $$payload2.out += "<!--[!-->";
+                  $$payload2.out += `${escape_html(i18nDerived.lowFunds())}`;
+                }
+                $$payload2.out += `<!--]-->`;
+              }
+              $$payload2.out += `<!--]--></button>`;
             }
             $$payload2.out += `<!--]-->`;
           }
@@ -21696,10 +22480,91 @@ function BuyBonusModal($$payload, $$props) {
   $$payload.out += `<!--]-->`;
   pop();
 }
+function ErrorModal($$payload, $$props) {
+  push();
+  const close = () => stateModal.modal = null;
+  const raw = stateModal.modal?.name === "error" ? stateModal.modal.error : void 0;
+  const codeText = (() => {
+    const e = raw;
+    const candidates = [
+      typeof e === "string" ? e : void 0,
+      e?.error,
+      e?.statusCode,
+      e?.error?.statusCode,
+      e?.message
+    ];
+    const joined = candidates.filter(Boolean).map(String).join(" ");
+    const match = joined.match(/ERR_[A-Z]+/);
+    return match?.[0];
+  })();
+  const FRIENDLY = {
+    ERR_VAL: {
+      title: "Bet too high for this mode",
+      body: "This purchase exceeds the maximum bet allowed for this feature. Lower your bet and try again."
+    },
+    ERR_IPB: {
+      title: "Not enough balance",
+      body: "Your balance is too low for this bet. Lower your bet or top up to continue."
+    },
+    ERR_GLE: {
+      title: "Limit reached",
+      body: "A betting or loss limit on your account has been reached. Try again later."
+    },
+    ERR_IS: {
+      title: "Session expired",
+      body: "Your session has timed out. Please reload the game to continue."
+    },
+    ERR_ATE: {
+      title: "Session expired",
+      body: "Your session has timed out. Please reload the game to continue."
+    }
+  };
+  const friendly = codeText && FRIENDLY[codeText] || {
+    title: "Something went wrong",
+    body: "We couldn’t complete that action. Please try again."
+  };
+  (() => {
+    try {
+      return typeof raw === "string" ? raw : JSON.stringify(raw, null, 2);
+    } catch {
+      return String(raw);
+    }
+  })();
+  if (stateModal.modal?.name === "error") {
+    $$payload.out += "<!--[-->";
+    Popup($$payload, {
+      zIndex: zIndex.modal,
+      onclose: close,
+      children: ($$payload2) => {
+        $$payload2.out += `<div class="err svelte-13mmcjb"><div class="err-crest svelte-13mmcjb" aria-hidden="true">!</div> <h2 class="err-title svelte-13mmcjb">${escape_html(friendly.title)}</h2> <p class="err-body svelte-13mmcjb">${escape_html(friendly.body)}</p> `;
+        if (codeText) {
+          $$payload2.out += "<!--[-->";
+          $$payload2.out += `<div class="err-code svelte-13mmcjb">${escape_html(codeText)}</div>`;
+        } else {
+          $$payload2.out += "<!--[!-->";
+        }
+        $$payload2.out += `<!--]--> <button class="err-primary svelte-13mmcjb">Close</button> <button class="err-details-toggle svelte-13mmcjb">${escape_html("Show details")}</button> `;
+        {
+          $$payload2.out += "<!--[!-->";
+        }
+        $$payload2.out += `<!--]--></div>`;
+      },
+      $$slots: { default: true }
+    });
+  } else {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]-->`;
+  pop();
+}
 function Game($$payload, $$props) {
   push();
   const context2 = getContext();
   new Tween(0, { duration: 300 });
+  const introFilterArea = (() => {
+    const sizes = context2.stateLayoutDerived.canvasSizes();
+    return new Rectangle$2(0, 0, sizes.width, sizes.height);
+  })();
   context2.eventEmitter.subscribeOnMount({
     buyBonusConfirm: () => {
       stateModal.modal = { name: "buyBonusConfirm" };
@@ -21719,6 +22584,7 @@ function Game($$payload, $$props) {
       $$payload2.out += `<!----> `;
       Container($$payload2, {
         filters: [],
+        filterArea: introFilterArea,
         children: ($$payload3) => {
           Background($$payload3);
           $$payload3.out += `<!----> `;
@@ -21828,15 +22694,19 @@ function Game($$payload, $$props) {
       GameInfo($$payload2);
     }, buyBonus = function($$payload2) {
       BuyBonusModal($$payload2);
+    }, error = function($$payload2) {
+      ErrorModal($$payload2);
     };
     Modals($$payload, {
       version: version2,
       gameRules,
       buyBonus,
+      error,
       $$slots: {
         version: true,
         gameRules: true,
-        buyBonus: true
+        buyBonus: true,
+        error: true
       }
     });
   }
@@ -21937,7 +22807,7 @@ const en = {
   LOADER_SUBTITLE: "HOW IT WORKS",
   LOADER_LOGO: "ABYSSAL",
   LOADER_CARD_1_TITLE: "CHARGE THE GAZE",
-  LOADER_CARD_1_BODY: "Winning clusters charge your Gaze.\nMore tumbles build more power.",
+  LOADER_CARD_1_BODY: "Winning clusters charge your Gaze.\nBigger clusters give more Essence.",
   LOADER_CARD_2_TITLE: "EYE MULTIPLIERS",
   LOADER_CARD_2_BODY: "When an Eye lands, it boosts your win.\nADD and MULTIPLY Eyes can appear.",
   LOADER_CARD_3_TITLE: "MAX WIN",
@@ -21988,43 +22858,43 @@ const en = {
   TAP_TO_CONTINUE: "TAP TO CONTINUE",
   ON: "ON",
   OFF: "OFF",
-  ANTE_SWITCH_NOTE: "More Eyes & Scatters - 1.25x bet",
+  ANTE_SWITCH_NOTE: "2x triggers & more Eyes - 1.25x bet",
   AUTO: "AUTO",
   ALL: "ALL",
   START: "START",
   BET_MODE_BASE_TITLE: "BASE",
-  BET_MODE_BASE_DIALOG: "The standard Abyssal spin. The Eye is rare and mostly ADD.",
+  BET_MODE_BASE_DIALOG: "The standard Abyssal spin. Eyes land about 1 spin in 7 - and can drop in mid-tumble.",
   BET_MODE_BASE_BUTTON: "",
   BET_MODE_BASE_TICKER_IDLE: "PLACE YOUR BET",
   BET_MODE_BASE_TICKER_SPIN: "GOOD LUCK",
   BET_MODE_ANTE_TITLE: "ANTE",
   BET_MODE_ANTE_DESCRIPTION: "Raise the tide - more frequent Eyes and Scatters.",
-  BET_MODE_ANTE_DIALOG: "Increases the Eye and Scatter frequency for 1.25x the bet. ANTE BET stays active until disabled.",
+  BET_MODE_ANTE_DIALOG: "Doubles the bonus trigger rate and raises the Eye frequency for 1.25x the bet. ANTE BET stays active until disabled.",
   BET_MODE_ANTE_BUTTON: "ACTIVATE",
   BET_MODE_ANTE_BET_AMOUNT_LABEL: "ANTE BET",
   BET_MODE_ANTE_TICKER_IDLE: "ANTE BET IS ACTIVE",
   BET_MODE_ANTE_TICKER_SPIN: "GOOD LUCK",
   BET_MODE_SUPERSPINS_TITLE: "EYE SPINS",
   BET_MODE_SUPERSPINS_DESCRIPTION: "One guaranteed-Eye spin - a single build-and-release.",
-  BET_MODE_SUPERSPINS_DIALOG: "A single spin for 20x the bet with the Eye guaranteed to land. No snowball - one punchy build and release.",
+  BET_MODE_SUPERSPINS_DIALOG: "A single spin for 20x the bet with the Eye guaranteed to land - and more can drop in mid-tumble. No snowball - one punchy build and release.",
   BET_MODE_SUPERSPINS_BUTTON: "ACTIVATE",
   BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS IS ACTIVE",
   BET_MODE_SUPERSPINS_TICKER_SPIN: "GOOD LUCK",
   BET_MODE_BONUS_TITLE: "BONUS",
   BET_MODE_BONUS_DESCRIPTION: "Buy straight into the Free Spins snowball feature.",
-  BET_MODE_BONUS_DIALOG: "Triggers Free Spins for 100x the bet. The persistent multiplier (M) snowballs across the feature as the Eye lands.",
+  BET_MODE_BONUS_DIALOG: "Triggers Free Spins for 100x the bet - the trigger scatters pay their instant cash too. The persistent multiplier (M) snowballs across the feature as Eyes land.",
   BET_MODE_BONUS_BUTTON: "BUY",
   BET_MODE_BONUS_TICKER_IDLE: "PLACE YOUR BET",
   BET_MODE_BONUS_TICKER_SPIN: "FREE SPINS PURCHASED",
   BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
-  BET_MODE_ULTIMATE_DESCRIPTION: "The multi-Eye finale - several Eyes resolve at once.",
-  BET_MODE_ULTIMATE_DIALOG: "The only mode where multiple Eyes open together for 300x the bet, combining their ADD and MUL values in one resolution.",
+  BET_MODE_ULTIMATE_DESCRIPTION: "The multi-Eye finale - 2 to 5 Eyes resolve together.",
+  BET_MODE_ULTIMATE_DIALOG: "Always at least 2 Eyes on the board (2-5, and more can drop in) for 300x the bet, combining their ADD and MUL values in one resolution.",
   BET_MODE_ULTIMATE_BUTTON: "ACTIVATE",
   BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE IS ACTIVE",
   BET_MODE_ULTIMATE_TICKER_SPIN: "GOOD LUCK",
   BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
-  BET_MODE_SUPERBONUS_DESCRIPTION: "The tail mode - charge +2 and MUL common.",
-  BET_MODE_SUPERBONUS_DIALOG: "Buys the Free Spins feature for 500x the bet with +2 Gaze charge per connection and MUL Eyes common. The mode that most often approaches the 15,000x cap.",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "The tail mode - double Essence and prized MUL Eyes.",
+  BET_MODE_SUPERBONUS_DIALOG: "Buys the Free Spins feature for 500x the bet. The Gaze charges at double Essence (+4/+6/+10 per cluster) and the trigger scatters pay their instant cash. The mode that most often approaches the 15,000x cap.",
   BET_MODE_SUPERBONUS_BUTTON: "BUY",
   BET_MODE_SUPERBONUS_TICKER_IDLE: "PLACE YOUR BET",
   BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS PURCHASED",
@@ -22082,14 +22952,14 @@ const en = {
   GAME_INFO_PAY_L5_12_PLUS: "5.00x",
   GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Special symbols",
   GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
-  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> triggers Free Spins and pays instantly: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong>.",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> triggers Free Spins and pays instantly: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; also on bought features.",
   GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
   GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Common. Multiplier = <strong>start&nbsp;+&nbsp;Gaze</strong>.",
   GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Rare &amp; explosive. Multiplier = <strong>start&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "The Eye &amp; the Gaze",
-  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Every winning tumble charges the <strong>Gaze</strong> by 1. If an <strong>Eye</strong> is on the board at the end of a winning spin, it turns the Gaze into one big multiplier applied to everything you won that spin.",
-  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Example: a 2x win with a Gaze of 3 and an ADD Eye starting at 10 &rarr; x13 &rarr; pays 26x. A MULTIPLY Eye &rarr; x30 &rarr; pays 60x.",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Every winning cluster charges the <strong>Gaze</strong> with Essence: <strong>+2</strong> for 8&ndash;9 symbols, <strong>+3</strong> for 10&ndash;11, <strong>+5</strong> for 12+, up to a cap of <strong>30</strong>. If an <strong>Eye</strong> is on the board at the end of a winning spin &ndash; from the fill or dropped in mid-tumble &ndash; it turns the Gaze into one big multiplier applied to everything you won that spin.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Example: a 2x win from two ordinary clusters builds a Gaze of 4. An ADD Eye starting at 10 &rarr; x14 &rarr; pays 28x. A MULTIPLY Eye &rarr; x40 &rarr; pays 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Land <strong>4+ Leviathan (Scatter)</strong> - they can drop mid-tumble - to trigger.",
   GAME_INFO_FREE_SPINS_BULLET_2_HTML: "You get a flat <strong>15 free spins</strong>.",
@@ -22098,43 +22968,2157 @@ const en = {
   GAME_INFO_WAYS_TO_PLAY_TITLE: "Ways to play",
   GAME_INFO_MODE_BASE_NAME: "Base",
   GAME_INFO_MODE_BASE_COST: "1x bet",
-  GAME_INFO_MODE_BASE_TEXT: "The standard game. The Eye is rare, mostly the friendly ADD type.",
+  GAME_INFO_MODE_BASE_TEXT: "The standard game. Eyes land about 1 spin in 7 - and can drop in mid-tumble - mostly the friendly ADD type.",
   GAME_INFO_MODE_ANTE_NAME: "Ante",
   GAME_INFO_MODE_ANTE_COST: "1.25x bet",
-  GAME_INFO_MODE_ANTE_TEXT: "Pay 25% more for more frequent Eyes and Scatters.",
+  GAME_INFO_MODE_ANTE_TEXT: "Pay 25% more for twice the bonus triggers and more frequent Eyes.",
   GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Buy Free Spins",
   GAME_INFO_MODE_BUY_FREE_SPINS_COST: "100x bet",
-  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Buy straight into the Free Spins feature.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Buy straight into the Free Spins feature - the trigger scatters pay their instant cash too.",
   GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
   GAME_INFO_MODE_SUPER_SPINS_COST: "20x bet",
   GAME_INFO_MODE_SUPER_SPINS_TEXT: "One single spin with the Eye guaranteed - no bonus round.",
   GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
   GAME_INFO_MODE_SUPER_BONUS_COST: "500x bet",
-  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins with the Gaze charging twice as fast and MULTIPLY Eyes common.",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins with the Gaze charging double Essence and MULTIPLY Eyes hitting hard.",
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "300x bet",
-  GAME_INFO_MODE_ULTIMATE_TEXT: "One spin with several Eyes at once that combine - huge or nothing.",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "One spin with always at least 2 Eyes (2-5) that combine - huge or nothing.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "General Disclaimer",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. The expected return is calculated over many plays. The game display is not representative of any physical device and is for illustrative purposes only. Winnings are settled according to the amount received from the Remote Game Server and not from events within the web browser. TM and &copy; 2026 Stake Engine."
 };
+const ar = {
+  ...en,
+  HOME: "الرئيسية",
+  LOADER_SUBTITLE: "طريقة اللعب",
+  LOADER_CARD_1_TITLE: "اشحن Gaze",
+  LOADER_CARD_1_BODY: "المجموعات الرابحة تشحن Gaze لديك.\nالمجموعات الأكبر تمنح Essence أكثر.",
+  LOADER_CARD_2_TITLE: "مضاعفات Eye",
+  LOADER_CARD_2_BODY: "عندما يظهر Eye، يعزز ربحك.\nيمكن أن تظهر Eyes من نوع ADD و MULTIPLY.",
+  LOADER_CARD_3_TITLE: "أقصى ربح",
+  LOADER_CARD_3_BODY: "تتحد Eyes المشحونة مع Gaze\nلصنع دفعات ضخمة.\nابن القوة ثم أطلقها.",
+  LOADER_CTA: "انقر للمتابعة",
+  LOADER_LOADING: "جار التحميل",
+  LOADER_CARDS_LABEL: "بطاقات الشرح",
+  LOADER_PREVIOUS_CARD: "البطاقة السابقة",
+  LOADER_NEXT_CARD: "البطاقة التالية",
+  FREE_SPINS_TAP_TO_PLAY: "اضغط في أي مكان للعب",
+  FREE_SPINS_TAP_TO_SKIP: "اضغط في أي مكان للتخطي",
+  ACTIVE: "نشط",
+  ACTIVATE: "تفعيل",
+  DEACTIVATE: "إيقاف",
+  BUY: "شراء",
+  BONUS: "بونص",
+  LOW_FUNDS: "رصيد غير كاف",
+  PER_SPIN: "لكل دورة",
+  TOTAL: "الإجمالي",
+  CANCEL: "إلغاء",
+  CONFIRM_BUY: "تأكيد الشراء",
+  DECREASE_BET: "خفض الرهان",
+  INCREASE_BET: "زيادة الرهان",
+  BALANCE: "الرصيد",
+  WIN: "الربح",
+  BET: "الرهان",
+  "FREE SPINS": "دورات مجانية",
+  STOP: "إيقاف",
+  "AUTO SPINS": "دورات تلقائية",
+  INFO: "معلومات",
+  MUSIC: "الموسيقى",
+  PLAY: "العب",
+  PLAY_AGAIN: "العب مجددا",
+  LOADING_REPLAY: "جار تحميل الإعادة...",
+  REPLAY_UNAVAILABLE: "الإعادة غير متاحة",
+  REPLAY: "إعادة",
+  SPEED: "السرعة",
+  WIN_TIER_BIG: "ربح كبير",
+  WIN_TIER_SUPER: "ربح خارق",
+  WIN_TIER_HUGE: "ربح هائل",
+  WIN_TIER_MEGA: "ربح ميغا",
+  WIN_TIER_EPIC: "ربح أسطوري",
+  WIN_TIER_MAX: "أقصى ربح",
+  TUMBLE_WIN: "ربح Tumble",
+  TOTAL_MULT: "المضاعف الإجمالي",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "اضغط للمتابعة",
+  ON: "تشغيل",
+  OFF: "إيقاف",
+  ANTE_SWITCH_NOTE: "ضعف التفعيل والمزيد من Eyes - رهان 1.25x",
+  AUTO: "تلقائي",
+  ALL: "الكل",
+  START: "ابدأ",
+  BET_MODE_BASE_TITLE: "أساسي",
+  BET_MODE_BASE_DIALOG: "دورة Abyssal العادية. يظهر Eye في نحو دورة من كل 7 - وقد يسقط في منتصف Tumble.",
+  BET_MODE_BASE_TICKER_IDLE: "ضع رهانك",
+  BET_MODE_BASE_TICKER_SPIN: "حظا موفقا",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "ارفع المد - Eyes و Scatters تظهر بوتيرة أعلى.",
+  BET_MODE_ANTE_DIALOG: "يضاعف معدل تفعيل البونص ويزيد وتيرة ظهور Eye مقابل 1.25x من الرهان. يبقى ANTE BET نشطا حتى يتم إيقافه.",
+  BET_MODE_ANTE_BUTTON: "تفعيل",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "رهان ANTE",
+  BET_MODE_ANTE_TICKER_IDLE: "رهان ANTE نشط",
+  BET_MODE_ANTE_TICKER_SPIN: "حظا موفقا",
+  BET_MODE_SUPERSPINS_TITLE: "دورات EYE",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "دورة واحدة مضمونة مع Eye - بناء وإطلاق لمرة واحدة.",
+  BET_MODE_SUPERSPINS_DIALOG: "دورة واحدة مقابل 20x من الرهان مع ضمان ظهور Eye - وقد يسقط المزيد في منتصف Tumble. لا كرة ثلجية - شحن واحد قوي وإطلاق واحد.",
+  BET_MODE_SUPERSPINS_BUTTON: "تفعيل",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS نشطة",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "حظا موفقا",
+  BET_MODE_BONUS_TITLE: "بونص",
+  BET_MODE_BONUS_DESCRIPTION: "اشتر الدخول مباشرة إلى ميزة Free Spins المتصاعدة.",
+  BET_MODE_BONUS_DIALOG: "يفعل Free Spins مقابل 100x من الرهان - كما تدفع رموز Scatter المفعلة جائزتها الفورية. يتراكم المضاعف المستمر (M) خلال الميزة كلما ظهر Eye.",
+  BET_MODE_BONUS_BUTTON: "شراء",
+  BET_MODE_BONUS_TICKER_IDLE: "ضع رهانك",
+  BET_MODE_BONUS_TICKER_SPIN: "تم شراء Free Spins",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "خاتمة متعددة Eyes - من 2 إلى 5 Eyes تحل معا.",
+  BET_MODE_ULTIMATE_DIALOG: "دائما ما لا يقل عن 2 Eyes على اللوحة (2-5، وقد يسقط المزيد) مقابل 300x من الرهان، لتجمع قيم ADD و MUL في حل واحد.",
+  BET_MODE_ULTIMATE_BUTTON: "تفعيل",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE نشط",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "حظا موفقا",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "وضع الذيل - Essence مضاعفة و MUL Eyes ثمينة.",
+  BET_MODE_SUPERBONUS_DIALOG: "يشتري ميزة Free Spins مقابل 500x من الرهان. يشحن Gaze بمقدار Essence مضاعف (+4/+6/+10 لكل مجموعة) وتدفع رموز Scatter المفعلة جائزتها الفورية. الوضع الأقرب غالبا إلى حد 15,000x.",
+  BET_MODE_SUPERBONUS_BUTTON: "شراء",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "ضع رهانك",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "تم شراء SUPER BONUS",
+  GAME_INFO_TAGLINE: "سلوت Tumble في أعماق البحر",
+  GAME_INFO_LEAD_HTML: "تسقط الرموز على لوحة <strong>6&times;5</strong>. تربح عندما تهبط <strong>8 رموز أو أكثر من نفس النوع</strong> <strong>في أي مكان</strong> &ndash; لا توجد خطوط دفع. تنفجر الرموز الرابحة وتهبط رموز جديدة، ما قد يصنع سلسلة أرباح من دورة واحدة. لا يوجد <strong>Wild</strong>؛ <strong>Eye</strong> هو المضاعف الوحيد.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "كيف تسير الدورة",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "تمتلئ اللوحة بـ 30 رمزا.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "أي رمز يظهر 8 مرات أو أكثر على اللوحة يربح وينفجر.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "تسقط الرموز الموجودة أعلاه وتهبط رموز جديدة &ndash; وهذا هو <strong>Tumble</strong>.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "يتم فحص الأرباح مرة أخرى حتى لا يحقق الهبوط أي ربح.",
+  GAME_INFO_PAYTABLE_TITLE: "جدول المدفوعات",
+  GAME_INFO_PAYTABLE_NOTE: "المدفوعات هي مضاعف لرهانك بحسب عدد الرموز الهابطة - قبل أي مضاعف Eye.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "رموز عالية",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "رموز منخفضة",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "الرمز",
+  GAME_INFO_SYMBOL_H1: "خوذة غوص",
+  GAME_INFO_SYMBOL_H2: "نوتيلوس",
+  GAME_INFO_SYMBOL_H3: "سمكة الصياد",
+  GAME_INFO_SYMBOL_H4: "قنديل البحر",
+  GAME_INFO_SYMBOL_L1: "جوهرة ياقوتية",
+  GAME_INFO_SYMBOL_L2: "جوهرة تركواز",
+  GAME_INFO_SYMBOL_L3: "جوهرة سماوية",
+  GAME_INFO_SYMBOL_L4: "جوهرة بنفسجية",
+  GAME_INFO_SYMBOL_L5: "جوهرة مائية",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "رموز خاصة",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> يفعل Free Spins ويدفع فورا: <strong>4 = 3x</strong>، <strong>5 = 5x</strong>، <strong>6 = 100x</strong> &ndash; وكذلك في الميزات المشتراة.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "شائع. المضاعف = <strong>البداية&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "نادر &amp; انفجاري. المضاعف = <strong>البداية&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "Eye و Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "كل مجموعة رابحة تشحن <strong>Gaze</strong> بمقدار Essence: <strong>+2</strong> لمجموعة 8&ndash;9 رموز، <strong>+3</strong> لمجموعة 10&ndash;11، <strong>+5</strong> لمجموعة 12+، بحد أقصى <strong>30</strong>. إذا كان <strong>Eye</strong> على اللوحة في نهاية دورة رابحة &ndash; سواء كان موجودا منذ البداية أو سقط في منتصف Tumble &ndash; يحول Gaze إلى مضاعف كبير يطبق على كل ما ربحته في تلك الدورة.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "مثال: ربح 2x من مجموعتين عاديتين يبني Gaze بقيمة 4. ADD Eye يبدأ من 10 &rarr; x14 &rarr; يدفع 28x. أما MULTIPLY Eye &rarr; x40 &rarr; يدفع 80x.",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "اهبط <strong>4+ Leviathan (Scatter)</strong> - يمكن أن تظهر أثناء Tumble - للتفعيل.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "تحصل على <strong>15 Free Spins</strong> ثابتة.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "يبدأ <strong>مضاعف محفوظ</strong> عند x1 ولا ينقص أبدا، ويدفع عند دورات Eye.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "أعد التفعيل مع 3+ Scatters للحصول على <strong>+5 دورات</strong> (حتى 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "طرق اللعب",
+  GAME_INFO_MODE_BASE_NAME: "أساسي",
+  GAME_INFO_MODE_BASE_COST: "رهان 1x",
+  GAME_INFO_MODE_BASE_TEXT: "اللعبة القياسية. يظهر Eye في نحو دورة من كل 7 - وقد يسقط في منتصف Tumble - وغالبا من نوع ADD الودود.",
+  GAME_INFO_MODE_ANTE_COST: "رهان 1.25x",
+  GAME_INFO_MODE_ANTE_TEXT: "ادفع 25% أكثر لمضاعفة تفعيل البونص والحصول على Eyes بوتيرة أعلى.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "شراء Free Spins",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "رهان 100x",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "اشتر ميزة Free Spins مباشرة - كما تدفع رموز Scatter المفعلة جائزتها الفورية.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "رهان 20x",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "دورة واحدة مع ضمان ظهور Eye - بلا جولة بونص.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "رهان 500x",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins حيث يشحن Gaze بمقدار Essence مضاعف وتضرب MULTIPLY Eyes بقوة.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "رهان 300x",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "دورة واحدة فيها دائما ما لا يقل عن 2 Eyes (2-5) تتحد معا - إما ضخم أو لا شيء.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "إخلاء مسؤولية عام",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "أي خلل يلغي كل الأرباح والجولات. يلزم اتصال إنترنت مستقر. في حال انقطاع الاتصال، أعد تحميل اللعبة لإكمال أي جولات غير مكتملة. يتم احتساب العائد المتوقع على عدد كبير من الجولات. عرض اللعبة لا يمثل أي جهاز مادي وهو لأغراض التوضيح فقط. تتم تسوية الأرباح بحسب المبلغ المستلم من Remote Game Server وليس بحسب الأحداث داخل متصفح الويب. TM و &copy; 2026 Stake Engine."
+};
+const de = {
+  ...en,
+  HOME: "STARTSEITE",
+  LOADER_SUBTITLE: "SO FUNKTIONIERT ES",
+  LOADER_CARD_1_TITLE: "GAZE AUFLADEN",
+  LOADER_CARD_1_BODY: "Gewinnende Cluster laden deinen Gaze auf.\nGroessere Cluster geben mehr Essence.",
+  LOADER_CARD_2_TITLE: "EYE-MULTIPLIKATOREN",
+  LOADER_CARD_2_BODY: "Wenn ein Eye landet, erhoeht es deinen Gewinn.\nADD- und MULTIPLY-Eyes koennen erscheinen.",
+  LOADER_CARD_3_TITLE: "MAX WIN",
+  LOADER_CARD_3_BODY: "Aufgeladene Eyes verbinden sich mit Gaze\nfuer massive Auszahlungen.\nBaue Kraft auf und entfessle sie.",
+  LOADER_CTA: "KLICKEN ZUM FORTFAHREN",
+  LOADER_LOADING: "WIRD GELADEN",
+  LOADER_CARDS_LABEL: "Tutorial-Karten",
+  LOADER_PREVIOUS_CARD: "Vorherige Karte",
+  LOADER_NEXT_CARD: "Naechste Karte",
+  FREE_SPINS_TAP_TO_PLAY: "ZUM SPIELEN IRGENDWO TIPPEN",
+  FREE_SPINS_TAP_TO_SKIP: "ZUM UEBERSPRINGEN IRGENDWO TIPPEN",
+  ACTIVE: "AKTIV",
+  ACTIVATE: "AKTIVIEREN",
+  DEACTIVATE: "DEAKTIVIEREN",
+  BUY: "KAUFEN",
+  BONUS: "BONUS",
+  LOW_FUNDS: "NICHT GENUG GUTHABEN",
+  PER_SPIN: "PRO SPIN",
+  TOTAL: "GESAMT",
+  CANCEL: "ABBRECHEN",
+  CONFIRM_BUY: "KAUF BESTAETIGEN",
+  DECREASE_BET: "Einsatz verringern",
+  INCREASE_BET: "Einsatz erhoehen",
+  BALANCE: "GUTHABEN",
+  WIN: "GEWINN",
+  BET: "EINSATZ",
+  "FREE SPINS": "FREISPIELE",
+  STOP: "STOPP",
+  "AUTO SPINS": "AUTO-SPINS",
+  INFO: "INFO",
+  MUSIC: "MUSIK",
+  PLAY: "SPIELEN",
+  PLAY_AGAIN: "ERNEUT SPIELEN",
+  LOADING_REPLAY: "REPLAY WIRD GELADEN...",
+  REPLAY_UNAVAILABLE: "REPLAY NICHT VERFUEGBAR",
+  REPLAY: "REPLAY",
+  SPEED: "GESCHWINDIGKEIT",
+  WIN_TIER_BIG: "BIG WIN",
+  WIN_TIER_SUPER: "SUPER WIN",
+  WIN_TIER_HUGE: "HUGE WIN",
+  WIN_TIER_MEGA: "MEGA WIN",
+  WIN_TIER_EPIC: "EPIC WIN",
+  WIN_TIER_MAX: "MAX WIN",
+  TUMBLE_WIN: "TUMBLE-GEWINN",
+  TOTAL_MULT: "GESAMTMULTI",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "ZUM FORTFAHREN TIPPEN",
+  ON: "AN",
+  OFF: "AUS",
+  ANTE_SWITCH_NOTE: "2x Trigger & mehr Eyes - 1.25x Einsatz",
+  AUTO: "AUTO",
+  ALL: "ALLE",
+  START: "START",
+  BET_MODE_BASE_TITLE: "BASIS",
+  BET_MODE_BASE_DIALOG: "Der normale Abyssal-Spin. Eyes landen etwa in 1 von 7 Spins - und koennen mitten im Tumble hereinfallen.",
+  BET_MODE_BASE_TICKER_IDLE: "EINSATZ PLATZIEREN",
+  BET_MODE_BASE_TICKER_SPIN: "VIEL GLUECK",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "Heb die Flut - haeufigere Eyes und Scatters.",
+  BET_MODE_ANTE_DIALOG: "Verdoppelt die Bonus-Trigger-Rate und erhoeht die Eye-Frequenz fuer 1.25x Einsatz. ANTE BET bleibt aktiv, bis es deaktiviert wird.",
+  BET_MODE_ANTE_BUTTON: "AKTIVIEREN",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "ANTE-EINSATZ",
+  BET_MODE_ANTE_TICKER_IDLE: "ANTE-EINSATZ IST AKTIV",
+  BET_MODE_ANTE_TICKER_SPIN: "VIEL GLUECK",
+  BET_MODE_SUPERSPINS_TITLE: "EYE-SPINS",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Ein garantierter Eye-Spin - ein einzelner Aufbau und Release.",
+  BET_MODE_SUPERSPINS_DIALOG: "Ein einzelner Spin fuer 20x Einsatz mit garantiertem Eye - weitere koennen mitten im Tumble hereinfallen. Kein Schneeball - ein knackiger Aufbau und Abschluss.",
+  BET_MODE_SUPERSPINS_BUTTON: "AKTIVIEREN",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER-SPINS SIND AKTIV",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "VIEL GLUECK",
+  BET_MODE_BONUS_TITLE: "BONUS",
+  BET_MODE_BONUS_DESCRIPTION: "Kaufe dich direkt in das Free-Spins-Snowball-Feature ein.",
+  BET_MODE_BONUS_DIALOG: "Loest Free Spins fuer 100x Einsatz aus - die Trigger-Scatter zahlen ihr Sofortgeld zusaetzlich. Der persistente Multiplikator (M) waechst ueber das Feature, wenn Eyes landen.",
+  BET_MODE_BONUS_BUTTON: "KAUFEN",
+  BET_MODE_BONUS_TICKER_IDLE: "EINSATZ PLATZIEREN",
+  BET_MODE_BONUS_TICKER_SPIN: "FREE SPINS GEKAUFT",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "Das Multi-Eye-Finale - 2 bis 5 Eyes loesen sich gemeinsam auf.",
+  BET_MODE_ULTIMATE_DIALOG: "Immer mindestens 2 Eyes auf dem Feld (2-5, weitere koennen hereinfallen) fuer 300x Einsatz - ihre ADD- und MUL-Werte kombinieren sich in einer Aufloesung.",
+  BET_MODE_ULTIMATE_BUTTON: "AKTIVIEREN",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE IST AKTIV",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "VIEL GLUECK",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "Der Tail-Modus - doppelte Essence und wertvolle MUL Eyes.",
+  BET_MODE_SUPERBONUS_DIALOG: "Kauft das Free-Spins-Feature fuer 500x Einsatz. Der Gaze laedt mit doppelter Essence (+4/+6/+10 pro Cluster) und die Trigger-Scatter zahlen ihr Sofortgeld. Der Modus, der dem 15.000x-Cap am oeftesten nahekommt.",
+  BET_MODE_SUPERBONUS_BUTTON: "KAUFEN",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "EINSATZ PLATZIEREN",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS GEKAUFT",
+  GAME_INFO_TAGLINE: "TIEFSEE-TUMBLE-SLOT",
+  GAME_INFO_LEAD_HTML: "Symbole fallen auf ein <strong>6&times;5 Spielfeld</strong>. Du gewinnst, wenn <strong>8 oder mehr gleiche Symbole</strong> <strong>irgendwo</strong> landen - keine Gewinnlinien. Gewinnsymbole platzen und neue Symbole tumbeln nach, wodurch ein Spin weitere Gewinne ausloesen kann. Es gibt <strong>kein Wild</strong>; das <strong>Eye</strong> ist der einzige Multiplikator.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "So laeuft ein Spin ab",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "Das Spielfeld fuellt sich mit 30 Symbolen.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "Jedes Symbol mit 8+ Vorkommen auf dem Spielfeld gewinnt und platzt.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "Symbole darueber fallen nach und neue kommen hinzu - ein <strong>Tumble</strong>.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Gewinne werden erneut geprueft, bis ein Drop keinen Gewinn mehr bringt.",
+  GAME_INFO_PAYTABLE_TITLE: "Auszahlungstabelle",
+  GAME_INFO_PAYTABLE_NOTE: "Auszahlungen sind ein Vielfaches deines Einsatzes, basierend auf der Anzahl gelandeter Symbole - vor jedem Eye-Multiplikator.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "Hochwertige Symbole",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "Niedrigwertige Symbole",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "Symbol",
+  GAME_INFO_SYMBOL_H1: "Taucherhelm",
+  GAME_INFO_SYMBOL_H2: "Nautilus",
+  GAME_INFO_SYMBOL_H3: "Anglerfisch",
+  GAME_INFO_SYMBOL_H4: "Qualle",
+  GAME_INFO_SYMBOL_L1: "Saphir-Edelstein",
+  GAME_INFO_SYMBOL_L2: "Tuerkiser Edelstein",
+  GAME_INFO_SYMBOL_L3: "Cyan-Edelstein",
+  GAME_INFO_SYMBOL_L4: "Violetter Edelstein",
+  GAME_INFO_SYMBOL_L5: "Aqua-Edelstein",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Sondersymbole",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> loest Free Spins aus und zahlt sofort: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; auch bei gekauften Features.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Haeufig. Multiplikator = <strong>Start&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Selten &amp; explosiv. Multiplikator = <strong>Start&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "Das Eye &amp; der Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Jeder gewinnende Cluster laedt den <strong>Gaze</strong> mit Essence auf: <strong>+2</strong> bei 8&ndash;9 Symbolen, <strong>+3</strong> bei 10&ndash;11, <strong>+5</strong> bei 12+, bis maximal <strong>30</strong>. Wenn am Ende eines gewinnenden Spins ein <strong>Eye</strong> auf dem Feld ist &ndash; von Anfang an oder mitten im Tumble hereingefallen &ndash; verwandelt es den Gaze in einen grossen Multiplikator fuer alles, was du in diesem Spin gewonnen hast.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Beispiel: Ein 2x-Gewinn aus zwei gewoehnlichen Clustern baut einen Gaze von 4. Ein ADD Eye ab 10 &rarr; x14 &rarr; zahlt 28x. Ein MULTIPLY Eye &rarr; x40 &rarr; zahlt 80x.",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Lande <strong>4+ Leviathan (Scatter)</strong> - sie koennen auch mitten im Tumble fallen - zum Ausloesen.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "Du erhaeltst feste <strong>15 Free Spins</strong>.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "Ein <strong>gespeicherter Multiplikator</strong> startet bei x1 und waechst nur, mit Auszahlung bei Eye-Spins.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "Retrigger mit 3+ Scatters fuer <strong>+5 Spins</strong> (bis zu 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "Spielweisen",
+  GAME_INFO_MODE_BASE_NAME: "Basis",
+  GAME_INFO_MODE_BASE_COST: "1x Einsatz",
+  GAME_INFO_MODE_BASE_TEXT: "Das Standardspiel. Eyes landen etwa in 1 von 7 Spins - und koennen mitten im Tumble hereinfallen - meist der freundliche ADD-Typ.",
+  GAME_INFO_MODE_ANTE_COST: "1.25x Einsatz",
+  GAME_INFO_MODE_ANTE_TEXT: "Zahle 25% mehr fuer doppelt so haeufige Bonus-Trigger und mehr Eyes.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Free Spins kaufen",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "100x Einsatz",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Kaufe dich direkt ins Free-Spins-Feature ein - die Trigger-Scatter zahlen ihr Sofortgeld zusaetzlich.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "20x Einsatz",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Ein einzelner Spin mit garantiertem Eye - keine Bonusrunde.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "500x Einsatz",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins mit doppelter Essence-Ladung und hart zuschlagenden MULTIPLY Eyes.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "300x Einsatz",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "Ein Spin mit immer mindestens 2 Eyes (2-5), die sich kombinieren - riesig oder nichts.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Allgemeiner Haftungsausschluss",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "Fehlfunktionen machen alle Gewinne und Spiele ungueltig. Eine stabile Internetverbindung ist erforderlich. Bei Verbindungsabbruch lade das Spiel neu, um unvollstaendige Runden abzuschliessen. Die erwartete Rueckgabe wird ueber viele Spiele berechnet. Die Spielanzeige stellt kein physisches Geraet dar und dient nur der Veranschaulichung. Gewinne werden nach dem vom Remote Game Server erhaltenen Betrag abgerechnet, nicht nach Ereignissen im Webbrowser. TM und &copy; 2026 Stake Engine."
+};
+const es = {
+  ...en,
+  HOME: "INICIO",
+  LOADER_SUBTITLE: "COMO FUNCIONA",
+  LOADER_CARD_1_TITLE: "CARGA LA GAZE",
+  LOADER_CARD_1_BODY: "Los clusters ganadores cargan tu Gaze.\nClusters mas grandes dan mas Essence.",
+  LOADER_CARD_2_TITLE: "MULTIPLICADORES EYE",
+  LOADER_CARD_2_BODY: "Cuando cae un Eye, aumenta tu ganancia.\nPueden aparecer Eyes ADD y MULTIPLY.",
+  LOADER_CARD_3_TITLE: "GANANCIA MAXIMA",
+  LOADER_CARD_3_BODY: "Los Eyes cargados se combinan con Gaze\npara pagos enormes.\nAcumula poder y desatalo.",
+  LOADER_CTA: "HAZ CLIC PARA CONTINUAR",
+  LOADER_LOADING: "CARGANDO",
+  LOADER_CARDS_LABEL: "Tarjetas de tutorial",
+  LOADER_PREVIOUS_CARD: "Tarjeta anterior",
+  LOADER_NEXT_CARD: "Tarjeta siguiente",
+  FREE_SPINS_TAP_TO_PLAY: "TOCA EN CUALQUIER LUGAR PARA JUGAR",
+  FREE_SPINS_TAP_TO_SKIP: "TOCA EN CUALQUIER LUGAR PARA OMITIR",
+  ACTIVE: "ACTIVO",
+  ACTIVATE: "ACTIVAR",
+  DEACTIVATE: "DESACTIVAR",
+  BUY: "COMPRAR",
+  BONUS: "BONO",
+  LOW_FUNDS: "FONDOS INSUFICIENTES",
+  PER_SPIN: "POR GIRO",
+  TOTAL: "TOTAL",
+  CANCEL: "CANCELAR",
+  CONFIRM_BUY: "CONFIRMAR COMPRA",
+  DECREASE_BET: "reducir apuesta",
+  INCREASE_BET: "aumentar apuesta",
+  BALANCE: "SALDO",
+  WIN: "GANANCIA",
+  BET: "APUESTA",
+  "FREE SPINS": "GIROS GRATIS",
+  STOP: "DETENER",
+  "AUTO SPINS": "GIROS AUTO",
+  INFO: "INFO",
+  MUSIC: "MUSICA",
+  PLAY: "JUGAR",
+  PLAY_AGAIN: "JUGAR DE NUEVO",
+  LOADING_REPLAY: "CARGANDO REPETICION...",
+  REPLAY_UNAVAILABLE: "REPETICION NO DISPONIBLE",
+  REPLAY: "REPETICION",
+  SPEED: "VELOCIDAD",
+  WIN_TIER_BIG: "BIG WIN",
+  WIN_TIER_SUPER: "SUPER WIN",
+  WIN_TIER_HUGE: "HUGE WIN",
+  WIN_TIER_MEGA: "MEGA WIN",
+  WIN_TIER_EPIC: "EPIC WIN",
+  WIN_TIER_MAX: "MAX WIN",
+  TUMBLE_WIN: "GANANCIA TUMBLE",
+  TOTAL_MULT: "MULT TOTAL",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "TOCA PARA CONTINUAR",
+  ON: "ON",
+  OFF: "OFF",
+  ANTE_SWITCH_NOTE: "2x triggers y mas Eyes - apuesta 1.25x",
+  AUTO: "AUTO",
+  ALL: "TODO",
+  START: "INICIAR",
+  BET_MODE_BASE_TITLE: "BASE",
+  BET_MODE_BASE_DIALOG: "El giro estandar de Abyssal. Los Eyes llegan mas o menos 1 de cada 7 giros - y pueden caer en pleno tumble.",
+  BET_MODE_BASE_TICKER_IDLE: "HAZ TU APUESTA",
+  BET_MODE_BASE_TICKER_SPIN: "BUENA SUERTE",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "Sube la marea: Eyes y Scatters mas frecuentes.",
+  BET_MODE_ANTE_DIALOG: "Duplica la frecuencia del bonus y aumenta la de los Eyes por 1.25x la apuesta. ANTE BET sigue activo hasta desactivarlo.",
+  BET_MODE_ANTE_BUTTON: "ACTIVAR",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "APUESTA ANTE",
+  BET_MODE_ANTE_TICKER_IDLE: "APUESTA ANTE ACTIVA",
+  BET_MODE_ANTE_TICKER_SPIN: "BUENA SUERTE",
+  BET_MODE_SUPERSPINS_TITLE: "GIROS EYE",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Un giro con Eye garantizado: una sola carga y liberacion.",
+  BET_MODE_SUPERSPINS_DIALOG: "Un solo giro por 20x la apuesta con el Eye garantizado - y pueden caer mas en pleno tumble. Sin bola de nieve - una sola carga y descarga.",
+  BET_MODE_SUPERSPINS_BUTTON: "ACTIVAR",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS ACTIVO",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "BUENA SUERTE",
+  BET_MODE_BONUS_TITLE: "BONO",
+  BET_MODE_BONUS_DESCRIPTION: "Compra acceso directo a la funcion de Giros Gratis snowball.",
+  BET_MODE_BONUS_DIALOG: "Activa las Free Spins por 100x la apuesta - los scatters del trigger tambien pagan su premio instantaneo. El multiplicador persistente (M) crece durante la funcion cuando llegan los Eyes.",
+  BET_MODE_BONUS_BUTTON: "COMPRAR",
+  BET_MODE_BONUS_TICKER_IDLE: "HAZ TU APUESTA",
+  BET_MODE_BONUS_TICKER_SPIN: "GIROS GRATIS COMPRADOS",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "El final multi-Eye - de 2 a 5 Eyes se resuelven juntos.",
+  BET_MODE_ULTIMATE_DIALOG: "Siempre al menos 2 Eyes en el tablero (2-5, y pueden caer mas) por 300x la apuesta, combinando sus valores ADD y MUL en una sola resolucion.",
+  BET_MODE_ULTIMATE_BUTTON: "ACTIVAR",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE ACTIVO",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "BUENA SUERTE",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONO",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "El modo tail - doble Essence y valiosos MUL Eyes.",
+  BET_MODE_SUPERBONUS_DIALOG: "Compra las Free Spins por 500x la apuesta. La Gaze carga doble Essence (+4/+6/+10 por cluster) y los scatters del trigger pagan su premio instantaneo. El modo que mas se acerca al tope de 15,000x.",
+  BET_MODE_SUPERBONUS_BUTTON: "COMPRAR",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "HAZ TU APUESTA",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONO COMPRADO",
+  GAME_INFO_TAGLINE: "TRAGAMONEDAS TUMBLE DE MAR PROFUNDO",
+  GAME_INFO_LEAD_HTML: "Los simbolos caen en un <strong>tablero de 6&times;5</strong>. Ganas cuando <strong>8 o mas simbolos iguales</strong> caen <strong>en cualquier lugar</strong>; no hay lineas de pago. Los ganadores explotan y nuevos simbolos caen, pudiendo encadenar mas ganancias en un solo giro. No hay <strong>wild</strong>; el <strong>Eye</strong> es el unico multiplicador.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "Como se juega un giro",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "El tablero se llena con 30 simbolos.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "Cualquier simbolo con 8+ en el tablero gana y explota.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "Los simbolos de arriba caen y entran nuevos: un <strong>tumble</strong>.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Las ganancias se revisan de nuevo hasta que una caida no paga nada.",
+  GAME_INFO_PAYTABLE_TITLE: "Tabla de pagos",
+  GAME_INFO_PAYTABLE_NOTE: "Los pagos son multiplos de tu apuesta segun cuantos caen, antes de cualquier multiplicador Eye.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "Simbolos altos",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "Simbolos bajos",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "Simbolo",
+  GAME_INFO_SYMBOL_H1: "Casco de buzo",
+  GAME_INFO_SYMBOL_H2: "Nautilo",
+  GAME_INFO_SYMBOL_H3: "Pez abisal",
+  GAME_INFO_SYMBOL_H4: "Medusa",
+  GAME_INFO_SYMBOL_L1: "Gema zafiro",
+  GAME_INFO_SYMBOL_L2: "Gema verde azulado",
+  GAME_INFO_SYMBOL_L3: "Gema cian",
+  GAME_INFO_SYMBOL_L4: "Gema violeta",
+  GAME_INFO_SYMBOL_L5: "Gema aqua",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Simbolos especiales",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviatan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> activa las Free Spins y paga al instante: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; tambien en las funciones compradas.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "Eye ADD",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Comun. Multiplicador = <strong>inicio&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "Eye MULTIPLY",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Raro y explosivo. Multiplicador = <strong>inicio&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "El Eye &amp; la Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Cada cluster ganador carga la <strong>Gaze</strong> con Essence: <strong>+2</strong> con 8&ndash;9 simbolos, <strong>+3</strong> con 10&ndash;11, <strong>+5</strong> con 12+, hasta un maximo de <strong>30</strong>. Si hay un <strong>Eye</strong> en el tablero al final de un giro ganador &ndash; desde el inicio o caido en pleno tumble &ndash; convierte la Gaze en un gran multiplicador aplicado a todo lo ganado en ese giro.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Ejemplo: una victoria de 2x con dos clusters normales construye una Gaze de 4. Un ADD Eye desde 10 &rarr; x14 &rarr; paga 28x. Un MULTIPLY Eye &rarr; x40 &rarr; paga 80x.",
+  GAME_INFO_FREE_SPINS_TITLE: "Giros Gratis",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Cae <strong>4+ Leviatan (Scatter)</strong>; tambien pueden caer durante un tumble para activar.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "Recibes <strong>15 giros gratis</strong> fijos.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "Un <strong>multiplicador acumulado</strong> empieza en x1 y solo crece, pagando en giros con Eye.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "Reactivacion con 3+ Scatters por <strong>+5 giros</strong> (hasta 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "Formas de jugar",
+  GAME_INFO_MODE_BASE_NAME: "Base",
+  GAME_INFO_MODE_BASE_COST: "apuesta 1x",
+  GAME_INFO_MODE_BASE_TEXT: "El juego estandar. Los Eyes llegan mas o menos 1 de cada 7 giros - y pueden caer en pleno tumble - casi siempre del tipo amistoso ADD.",
+  GAME_INFO_MODE_ANTE_COST: "apuesta 1.25x",
+  GAME_INFO_MODE_ANTE_TEXT: "Paga un 25% mas por el doble de triggers del bonus y Eyes mas frecuentes.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Comprar Giros Gratis",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "apuesta 100x",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Compra directamente la funcion de Free Spins - los scatters del trigger tambien pagan su premio instantaneo.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "apuesta 20x",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Un solo giro con Eye garantizado, sin ronda de bono.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bono",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "apuesta 500x",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins con la Gaze cargando doble Essence y MULTIPLY Eyes pegando fuerte.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "apuesta 300x",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "Un giro con siempre al menos 2 Eyes (2-5) que se combinan - enorme o nada.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Aviso general",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "Un mal funcionamiento anula todas las ganancias y jugadas. Se requiere una conexion estable a internet. En caso de desconexion, recarga el juego para terminar rondas incompletas. El retorno esperado se calcula sobre muchas jugadas. La visualizacion del juego no representa ningun dispositivo fisico y es solo ilustrativa. Las ganancias se liquidan segun la cantidad recibida del Remote Game Server y no por eventos dentro del navegador. TM y &copy; 2026 Stake Engine."
+};
+const fi = {
+  ...en,
+  HOME: "KOTI",
+  LOADER_SUBTITLE: "NÄIN SE TOIMII",
+  LOADER_CARD_1_TITLE: "LATAA GAZE",
+  LOADER_CARD_1_BODY: "Voittavat klusterit lataavat Gazea.\nIsommat klusterit antavat enemmän Essenceä.",
+  LOADER_CARD_2_TITLE: "EYE-KERTOIMET",
+  LOADER_CARD_2_BODY: "Kun Eye ilmestyy, se vahvistaa voittoasi.\nADD- ja MULTIPLY-Eyes voivat ilmestyä.",
+  LOADER_CARD_3_TITLE: "MAKSIMIVOITTO",
+  LOADER_CARD_3_BODY: "Ladatut Eyes yhdistyvät Gazeen\nja luovat suuria voittoja.\nKasvata voimaa ja vapauta se.",
+  LOADER_CTA: "JATKA NAPSAUTTAMALLA",
+  LOADER_LOADING: "LADATAAN",
+  LOADER_CARDS_LABEL: "Opastuskortit",
+  LOADER_PREVIOUS_CARD: "Edellinen kortti",
+  LOADER_NEXT_CARD: "Seuraava kortti",
+  FREE_SPINS_TAP_TO_PLAY: "NAPAUTA MISTÄ TAHANSA PELATAKSESI",
+  FREE_SPINS_TAP_TO_SKIP: "NAPAUTA MISTÄ TAHANSA OHITTAAKSESI",
+  ACTIVE: "AKTIIVINEN",
+  ACTIVATE: "AKTIVOI",
+  DEACTIVATE: "POISTA KÄYTÖSTÄ",
+  BUY: "OSTA",
+  BONUS: "BONUS",
+  LOW_FUNDS: "EI RIITTÄVÄSTI VAROJA",
+  PER_SPIN: "PER PYÖRÄYTYS",
+  TOTAL: "YHTEENSÄ",
+  CANCEL: "PERUUTA",
+  CONFIRM_BUY: "VAHVISTA OSTO",
+  DECREASE_BET: "pienennä panosta",
+  INCREASE_BET: "suurenna panosta",
+  BALANCE: "SALDO",
+  WIN: "VOITTO",
+  BET: "PANOS",
+  "FREE SPINS": "ILMAISKIERROKSET",
+  STOP: "PYSÄYTÄ",
+  "AUTO SPINS": "AUTOMAATTIKIERROKSET",
+  INFO: "TIEDOT",
+  MUSIC: "MUSIIKKI",
+  PLAY: "PELAA",
+  PLAY_AGAIN: "PELAA UUDELLEEN",
+  LOADING_REPLAY: "LADATAAN UUSINTAA...",
+  REPLAY_UNAVAILABLE: "UUSINTA EI OLE SAATAVILLA",
+  REPLAY: "UUSINTA",
+  SPEED: "NOPEUS",
+  WIN_TIER_BIG: "SUURI VOITTO",
+  WIN_TIER_SUPER: "SUPERVOITTO",
+  WIN_TIER_HUGE: "VALTAVA VOITTO",
+  WIN_TIER_MEGA: "MEGAVOITTO",
+  WIN_TIER_EPIC: "EEPPINEN VOITTO",
+  WIN_TIER_MAX: "MAKSIMIVOITTO",
+  TUMBLE_WIN: "TUMBLE-VOITTO",
+  TOTAL_MULT: "KOKONAISKERROIN",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "JATKA NAPAUTTAMALLA",
+  ON: "PÄÄLLÄ",
+  OFF: "POIS",
+  ANTE_SWITCH_NOTE: "2x bonuslaukaisut ja enemmän Eye-symboleita - 1.25x panos",
+  AUTO: "AUTO",
+  ALL: "KAIKKI",
+  START: "ALOITA",
+  BET_MODE_BASE_TITLE: "PERUS",
+  BET_MODE_BASE_DIALOG: "Tavallinen Abyssal-pyöräytys. Eye osuu noin 1 pyöräytykseen seitsemästä - ja voi pudota kesken tumblen.",
+  BET_MODE_BASE_TICKER_IDLE: "ASETA PANOS",
+  BET_MODE_BASE_TICKER_SPIN: "ONNEA",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "Nosta vuorovesi - Eyes ja Scatters ilmestyvät useammin.",
+  BET_MODE_ANTE_DIALOG: "Tuplaa bonuksen laukeamistiheyden ja nostaa Eye-tiheyttä 1.25x panoksella. ANTE BET pysyy aktiivisena, kunnes se poistetaan käytöstä.",
+  BET_MODE_ANTE_BUTTON: "AKTIVOI",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "ANTE-PANOS",
+  BET_MODE_ANTE_TICKER_IDLE: "ANTE-PANOS ON AKTIIVINEN",
+  BET_MODE_ANTE_TICKER_SPIN: "ONNEA",
+  BET_MODE_SUPERSPINS_TITLE: "EYE-KIERROKSET",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Yksi varma Eye-pyöräytys - yksi lataus ja purkaus.",
+  BET_MODE_SUPERSPINS_DIALOG: "Yksi pyöräytys 20x panoksella, Eye taattu - ja lisää voi pudota kesken tumblen. Ei lumipalloa - yksi napakka lataus ja laukaisu.",
+  BET_MODE_SUPERSPINS_BUTTON: "AKTIVOI",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS ON AKTIIVINEN",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "ONNEA",
+  BET_MODE_BONUS_TITLE: "BONUS",
+  BET_MODE_BONUS_DESCRIPTION: "Osta suoraan Free Spins -lumipallotoimintoon.",
+  BET_MODE_BONUS_DIALOG: "Käynnistää Free Spinsit 100x panoksella - laukaisevat scatterit maksavat myös välittömän palkintonsa. Pysyvä kerroin (M) kasvaa ominaisuuden ajan, kun Eyet osuvat.",
+  BET_MODE_BONUS_BUTTON: "OSTA",
+  BET_MODE_BONUS_TICKER_IDLE: "ASETA PANOS",
+  BET_MODE_BONUS_TICKER_SPIN: "FREE SPINS OSTETTU",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "Multi-Eye-finaali - 2-5 Eyeta ratkeaa yhdessä.",
+  BET_MODE_ULTIMATE_DIALOG: "Aina vähintään 2 Eyeta laudalla (2-5, ja lisää voi pudota) 300x panoksella - niiden ADD- ja MUL-arvot yhdistyvät yhdessä ratkaisussa.",
+  BET_MODE_ULTIMATE_BUTTON: "AKTIVOI",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE ON AKTIIVINEN",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "ONNEA",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "Häntämoodi - tupla-Essence ja arvokkaat MUL Eyet.",
+  BET_MODE_SUPERBONUS_DIALOG: "Ostaa Free Spins -ominaisuuden 500x panoksella. Gaze latautuu tupla-Essencellä (+4/+6/+10 per klusteri) ja laukaisevat scatterit maksavat välittömän palkintonsa. Moodi, joka useimmin lähestyy 15 000x kattoa.",
+  BET_MODE_SUPERBONUS_BUTTON: "OSTA",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "ASETA PANOS",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS OSTETTU",
+  GAME_INFO_TAGLINE: "SYVÄNMEREN TUMBLE-SLOTTI",
+  GAME_INFO_LEAD_HTML: "Symbolit putoavat <strong>6&times;5-laudalle</strong>. Voitat, kun <strong>8 tai useampi sama symboli</strong> laskeutuu <strong>mihin tahansa</strong> &ndash; ei voittolinjoja. Voittajat puhkeavat ja uudet symbolit putoavat sisään, mikä voi ketjuttaa lisää voittoja yhdestä pyöräytyksestä. Pelissä ei ole <strong>wildia</strong>; <strong>Eye</strong> on ainoa kerroin.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "Miten pyöräytys etenee",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "Lauta täyttyy 30 symbolilla.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "Mikä tahansa symboli, jota on laudalla 8+, voittaa ja puhkeaa.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "Yläpuolella olevat symbolit putoavat ja uusia tulee tilalle &ndash; tämä on <strong>tumble</strong>.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Voitot tarkistetaan uudelleen, kunnes pudotus ei maksa mitään.",
+  GAME_INFO_PAYTABLE_TITLE: "Voittotaulukko",
+  GAME_INFO_PAYTABLE_NOTE: "Maksut ovat panoksesi kertoimia sen mukaan, montako symbolia laskeutuu - ennen Eye-kerrointa.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "Korkeat symbolit",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "Matalat symbolit",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "Symboli",
+  GAME_INFO_SYMBOL_H1: "Sukelluskypärä",
+  GAME_INFO_SYMBOL_H2: "Nautilus",
+  GAME_INFO_SYMBOL_H3: "Merikrotti",
+  GAME_INFO_SYMBOL_H4: "Meduusa",
+  GAME_INFO_SYMBOL_L1: "Safiirijalokivi",
+  GAME_INFO_SYMBOL_L2: "Turkoosi jalokivi",
+  GAME_INFO_SYMBOL_L3: "Syaani jalokivi",
+  GAME_INFO_SYMBOL_L4: "Violetti jalokivi",
+  GAME_INFO_SYMBOL_L5: "Aqua-jalokivi",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Erikoissymbolit",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> käynnistää Free Spinsit ja maksaa heti: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; myös ostetuissa ominaisuuksissa.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Yleinen. Kerroin = <strong>alku&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Harvinainen &amp; räjähtävä. Kerroin = <strong>alku&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Jokainen voittava klusteri lataa <strong>Gazea</strong> Essencellä: <strong>+2</strong> 8&ndash;9 symbolista, <strong>+3</strong> 10&ndash;11 symbolista, <strong>+5</strong> 12+ symbolista, enintään <strong>30</strong>. Jos <strong>Eye</strong> on laudalla voittavan pyöräytyksen lopussa &ndash; alusta asti tai kesken tumblen pudonneena &ndash; se muuttaa Gazen yhdeksi suureksi kertoimeksi, joka koskee kaikkea kyseisen pyöräytyksen voittoa.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Esimerkki: 2x voitto kahdesta tavallisesta klusterista rakentaa Gazen 4. ADD Eye alkaen 10 &rarr; x14 &rarr; maksaa 28x. MULTIPLY Eye &rarr; x40 &rarr; maksaa 80x.",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Saa <strong>4+ Leviathan (Scatter)</strong> - ne voivat pudota myös kesken tumblen - käynnistääksesi toiminnon.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "Saat kiinteät <strong>15 ilmaiskierrosta</strong>.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>Tallennettu kerroin</strong> alkaa arvosta x1 ja vain kasvaa, maksaen Eye-kierroksilla.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "Uudelleenkäynnistys 3+ Scatterilla antaa <strong>+5 kierrosta</strong> (enintään 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "Pelitavat",
+  GAME_INFO_MODE_BASE_NAME: "Perus",
+  GAME_INFO_MODE_BASE_COST: "1x panos",
+  GAME_INFO_MODE_BASE_TEXT: "Tavallinen peli. Eye osuu noin 1 pyöräytykseen seitsemästä - ja voi pudota kesken tumblen - useimmiten ystävällinen ADD-tyyppi.",
+  GAME_INFO_MODE_ANTE_COST: "1.25x panos",
+  GAME_INFO_MODE_ANTE_TEXT: "Maksa 25% enemmän tuplasti tiheämmistä bonuslaukaisuista ja useammista Eye-symboleista.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Osta Free Spins",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "100x panos",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Osta suoraan Free Spins -ominaisuus - laukaisevat scatterit maksavat myös välittömän palkintonsa.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "20x panos",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Yksi pyöräytys, jossa Eye on taattu - ei bonuskierrosta.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "500x panos",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spinsit, joissa Gaze latautuu tupla-Essencellä ja MULTIPLY Eyet iskevät kovaa.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "300x panos",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "Yksi pyöräytys, jossa aina vähintään 2 Eyeta (2-5) yhdistyvät - jättipotti tai ei mitään.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Yleinen vastuuvapauslauseke",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "Toimintahäiriö mitätöi kaikki voitot ja pelit. Vakaa internetyhteys vaaditaan. Jos yhteys katkeaa, lataa peli uudelleen päättääksesi keskeneräiset kierrokset. Odotettu palautus lasketaan suuresta määrästä pelejä. Pelinäkymä ei edusta fyysistä laitetta ja on vain havainnollistava. Voitot maksetaan Remote Game Serveriltä saadun määrän mukaan, ei verkkoselaimen tapahtumien perusteella. TM ja &copy; 2026 Stake Engine."
+};
+const fr = {
+  ...en,
+  HOME: "ACCUEIL",
+  LOADER_SUBTITLE: "COMMENT CA MARCHE",
+  LOADER_CARD_1_TITLE: "CHARGEZ LE GAZE",
+  LOADER_CARD_1_BODY: "Les clusters gagnants chargent votre Gaze.\nLes plus gros clusters donnent plus d Essence.",
+  LOADER_CARD_2_TITLE: "MULTIPLICATEURS EYE",
+  LOADER_CARD_2_BODY: "Quand un Eye tombe, il augmente votre gain.\nDes Eyes ADD et MULTIPLY peuvent apparaitre.",
+  LOADER_CARD_3_TITLE: "GAIN MAX",
+  LOADER_CARD_3_BODY: "Les Eyes charges se combinent avec le Gaze\npour des gains massifs.\nAccumulez la puissance, puis liberez-la.",
+  LOADER_CTA: "CLIQUEZ POUR CONTINUER",
+  LOADER_LOADING: "CHARGEMENT",
+  LOADER_CARDS_LABEL: "Cartes de tutoriel",
+  LOADER_PREVIOUS_CARD: "Carte precedente",
+  LOADER_NEXT_CARD: "Carte suivante",
+  FREE_SPINS_TAP_TO_PLAY: "TOUCHEZ N IMPORTE OU POUR JOUER",
+  FREE_SPINS_TAP_TO_SKIP: "TOUCHEZ N IMPORTE OU POUR PASSER",
+  ACTIVE: "ACTIF",
+  ACTIVATE: "ACTIVER",
+  DEACTIVATE: "DESACTIVER",
+  BUY: "ACHETER",
+  BONUS: "BONUS",
+  LOW_FUNDS: "FONDS INSUFFISANTS",
+  PER_SPIN: "PAR TOUR",
+  TOTAL: "TOTAL",
+  CANCEL: "ANNULER",
+  CONFIRM_BUY: "CONFIRMER L ACHAT",
+  DECREASE_BET: "diminuer la mise",
+  INCREASE_BET: "augmenter la mise",
+  BALANCE: "SOLDE",
+  WIN: "GAIN",
+  BET: "MISE",
+  "FREE SPINS": "TOURS GRATUITS",
+  STOP: "ARRET",
+  "AUTO SPINS": "TOURS AUTO",
+  INFO: "INFO",
+  MUSIC: "MUSIQUE",
+  PLAY: "JOUER",
+  PLAY_AGAIN: "REJOUER",
+  LOADING_REPLAY: "CHARGEMENT DU REPLAY...",
+  REPLAY_UNAVAILABLE: "REPLAY INDISPONIBLE",
+  REPLAY: "REPLAY",
+  SPEED: "VITESSE",
+  WIN_TIER_BIG: "BIG WIN",
+  WIN_TIER_SUPER: "SUPER WIN",
+  WIN_TIER_HUGE: "HUGE WIN",
+  WIN_TIER_MEGA: "MEGA WIN",
+  WIN_TIER_EPIC: "EPIC WIN",
+  WIN_TIER_MAX: "MAX WIN",
+  TUMBLE_WIN: "GAIN TUMBLE",
+  TOTAL_MULT: "MULT TOTAL",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "TOUCHEZ POUR CONTINUER",
+  ON: "ON",
+  OFF: "OFF",
+  ANTE_SWITCH_NOTE: "Triggers x2 et plus de Eyes - mise 1.25x",
+  AUTO: "AUTO",
+  ALL: "TOUT",
+  START: "DEMARRER",
+  BET_MODE_BASE_TITLE: "BASE",
+  BET_MODE_BASE_DIALOG: "Le spin standard de Abyssal. Les Eyes arrivent environ 1 spin sur 7 - et peuvent tomber en plein tumble.",
+  BET_MODE_BASE_TICKER_IDLE: "PLACEZ VOTRE MISE",
+  BET_MODE_BASE_TICKER_SPIN: "BONNE CHANCE",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "Faites monter la maree - Eyes et Scatters plus frequents.",
+  BET_MODE_ANTE_DIALOG: "Double la frequence du bonus et augmente celle des Eyes pour 1.25x la mise. ANTE BET reste actif jusqu a sa desactivation.",
+  BET_MODE_ANTE_BUTTON: "ACTIVER",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "MISE ANTE",
+  BET_MODE_ANTE_TICKER_IDLE: "MISE ANTE ACTIVE",
+  BET_MODE_ANTE_TICKER_SPIN: "BONNE CHANCE",
+  BET_MODE_SUPERSPINS_TITLE: "TOURS EYE",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Un tour avec Eye garanti - une seule montee et liberation.",
+  BET_MODE_SUPERSPINS_DIALOG: "Un seul spin pour 20x la mise avec le Eye garanti - et d autres peuvent tomber en plein tumble. Pas de boule de neige - une seule montee et une seule liberation.",
+  BET_MODE_SUPERSPINS_BUTTON: "ACTIVER",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS ACTIF",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "BONNE CHANCE",
+  BET_MODE_BONUS_TITLE: "BONUS",
+  BET_MODE_BONUS_DESCRIPTION: "Achetez directement la fonctionnalite de Tours Gratuits snowball.",
+  BET_MODE_BONUS_DIALOG: "Declenche les Free Spins pour 100x la mise - les scatters du declenchement paient aussi leur gain instantane. Le multiplicateur persistant (M) grossit pendant la fonctionnalite quand les Eyes arrivent.",
+  BET_MODE_BONUS_BUTTON: "ACHETER",
+  BET_MODE_BONUS_TICKER_IDLE: "PLACEZ VOTRE MISE",
+  BET_MODE_BONUS_TICKER_SPIN: "TOURS GRATUITS ACHETES",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "Le final multi-Eye - 2 a 5 Eyes se resolvent ensemble.",
+  BET_MODE_ULTIMATE_DIALOG: "Toujours au moins 2 Eyes sur le plateau (2-5, et d autres peuvent tomber) pour 300x la mise, combinant leurs valeurs ADD et MUL en une seule resolution.",
+  BET_MODE_ULTIMATE_BUTTON: "ACTIVER",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE ACTIF",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "BONNE CHANCE",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "Le mode tail - Essence doublee et precieux MUL Eyes.",
+  BET_MODE_SUPERBONUS_DIALOG: "Achete la fonctionnalite Free Spins pour 500x la mise. Le Gaze charge une Essence doublee (+4/+6/+10 par cluster) et les scatters du declenchement paient leur gain instantane. Le mode qui approche le plus souvent le plafond de 15 000x.",
+  BET_MODE_SUPERBONUS_BUTTON: "ACHETER",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "PLACEZ VOTRE MISE",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS ACHETE",
+  GAME_INFO_TAGLINE: "SLOT TUMBLE DES PROFONDEURS",
+  GAME_INFO_LEAD_HTML: "Les symboles tombent sur un <strong>plateau 6&times;5</strong>. Vous gagnez quand <strong>8 symboles identiques ou plus</strong> atterrissent <strong>n importe ou</strong> - pas de lignes de paiement. Les gagnants eclatent et de nouveaux symboles tumbles arrivent, pouvant enchainer plus de gains sur un seul tour. Il n y a <strong>pas de wild</strong>; le <strong>Eye</strong> est le seul multiplicateur.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "Deroulement d un tour",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "Le plateau se remplit avec 30 symboles.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "Tout symbole present 8+ fois sur le plateau gagne et eclate.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "Les symboles au-dessus tombent et de nouveaux arrivent - un <strong>tumble</strong>.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Les gains sont verifies a nouveau, jusqu a ce qu une chute ne paie rien.",
+  GAME_INFO_PAYTABLE_TITLE: "Table des gains",
+  GAME_INFO_PAYTABLE_NOTE: "Les paiements sont des multiples de votre mise, selon le nombre de symboles tombes - avant tout multiplicateur Eye.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "Symboles hauts",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "Symboles bas",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "Symbole",
+  GAME_INFO_SYMBOL_H1: "Casque de plongee",
+  GAME_INFO_SYMBOL_H2: "Nautile",
+  GAME_INFO_SYMBOL_H3: "Poisson-lanterne",
+  GAME_INFO_SYMBOL_H4: "Meduse",
+  GAME_INFO_SYMBOL_L1: "Gemme saphir",
+  GAME_INFO_SYMBOL_L2: "Gemme sarcelle",
+  GAME_INFO_SYMBOL_L3: "Gemme cyan",
+  GAME_INFO_SYMBOL_L4: "Gemme violette",
+  GAME_INFO_SYMBOL_L5: "Gemme aqua",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Symboles speciaux",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> declenche les Free Spins et paie immediatement : <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; aussi sur les fonctionnalites achetees.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "Eye ADD",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Commun. Multiplicateur = <strong>depart&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "Eye MULTIPLY",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Rare &amp; explosif. Multiplicateur = <strong>depart&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "Le Eye &amp; le Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Chaque cluster gagnant charge le <strong>Gaze</strong> en Essence : <strong>+2</strong> pour 8&ndash;9 symboles, <strong>+3</strong> pour 10&ndash;11, <strong>+5</strong> pour 12+, jusqu a un maximum de <strong>30</strong>. Si un <strong>Eye</strong> est sur le plateau a la fin d un tour gagnant &ndash; present des le depart ou tombe en plein tumble &ndash; il transforme le Gaze en un gros multiplicateur applique a tout ce que vous avez gagne pendant ce tour.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Exemple : un gain de 2x issu de deux clusters ordinaires construit un Gaze de 4. Un ADD Eye demarrant a 10 &rarr; x14 &rarr; paie 28x. Un MULTIPLY Eye &rarr; x40 &rarr; paie 80x.",
+  GAME_INFO_FREE_SPINS_TITLE: "Tours Gratuits",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Obtenez <strong>4+ Leviathan (Scatter)</strong> - ils peuvent tomber pendant un tumble - pour declencher.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "Vous recevez <strong>15 tours gratuits</strong> fixes.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "Un <strong>multiplicateur banque</strong> commence a x1 et ne fait que grandir, payant sur les tours avec Eye.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "Retrigger avec 3+ Scatters pour <strong>+5 tours</strong> (jusqu a 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "Facons de jouer",
+  GAME_INFO_MODE_BASE_NAME: "Base",
+  GAME_INFO_MODE_BASE_COST: "mise 1x",
+  GAME_INFO_MODE_BASE_TEXT: "Le jeu standard. Les Eyes arrivent environ 1 spin sur 7 - et peuvent tomber en plein tumble - le plus souvent du type ADD, le plus doux.",
+  GAME_INFO_MODE_ANTE_COST: "mise 1.25x",
+  GAME_INFO_MODE_ANTE_TEXT: "Payez 25% de plus pour deux fois plus de declenchements du bonus et des Eyes plus frequents.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Acheter Tours Gratuits",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "mise 100x",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Achetez directement la fonctionnalite Free Spins - les scatters du declenchement paient aussi leur gain instantane.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "mise 20x",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Un seul tour avec Eye garanti - pas de bonus.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "mise 500x",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Des Free Spins avec le Gaze chargeant une Essence doublee et des MULTIPLY Eyes qui frappent fort.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "mise 300x",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "Un spin avec toujours au moins 2 Eyes (2-5) qui se combinent - enorme ou rien.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Avertissement general",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "Un dysfonctionnement annule tous les gains et parties. Une connexion internet stable est requise. En cas de deconnexion, rechargez le jeu pour terminer les manches incompletes. Le retour attendu est calcule sur de nombreuses parties. L affichage du jeu ne represente aucun appareil physique et sert uniquement d illustration. Les gains sont regles selon le montant recu du Remote Game Server et non selon les evenements du navigateur web. TM et &copy; 2026 Stake Engine."
+};
+const hi = {
+  ...en,
+  HOME: "होम",
+  LOADER_SUBTITLE: "यह कैसे काम करता है",
+  LOADER_CARD_1_TITLE: "GAZE चार्ज करें",
+  LOADER_CARD_1_BODY: "जीतने वाले क्लस्टर आपके Gaze को चार्ज करते हैं.\nबड़े क्लस्टर ज्यादा Essence देते हैं.",
+  LOADER_CARD_2_TITLE: "EYE मल्टीप्लायर",
+  LOADER_CARD_2_BODY: "जब Eye आता है, यह आपकी जीत बढ़ाता है.\nADD और MULTIPLY Eyes आ सकते हैं.",
+  LOADER_CARD_3_TITLE: "अधिकतम जीत",
+  LOADER_CARD_3_BODY: "चार्ज हुए Eyes, Gaze के साथ मिलकर\nबड़े भुगतान बनाते हैं.\nशक्ति बनाएं, फिर उसे छोड़ें.",
+  LOADER_CTA: "जारी रखने के लिए क्लिक करें",
+  LOADER_LOADING: "लोड हो रहा है",
+  LOADER_CARDS_LABEL: "ट्यूटोरियल कार्ड",
+  LOADER_PREVIOUS_CARD: "पिछला कार्ड",
+  LOADER_NEXT_CARD: "अगला कार्ड",
+  FREE_SPINS_TAP_TO_PLAY: "खेलने के लिए कहीं भी टैप करें",
+  FREE_SPINS_TAP_TO_SKIP: "छोड़ने के लिए कहीं भी टैप करें",
+  ACTIVE: "सक्रिय",
+  ACTIVATE: "सक्रिय करें",
+  DEACTIVATE: "निष्क्रिय करें",
+  BUY: "खरीदें",
+  BONUS: "बोनस",
+  LOW_FUNDS: "कम धनराशि",
+  PER_SPIN: "प्रति स्पिन",
+  TOTAL: "कुल",
+  CANCEL: "रद्द करें",
+  CONFIRM_BUY: "खरीद की पुष्टि करें",
+  DECREASE_BET: "बेट घटाएं",
+  INCREASE_BET: "बेट बढ़ाएं",
+  BALANCE: "बैलेंस",
+  WIN: "जीत",
+  BET: "बेट",
+  "FREE SPINS": "फ्री स्पिन",
+  STOP: "रोकें",
+  "AUTO SPINS": "ऑटो स्पिन",
+  INFO: "जानकारी",
+  MUSIC: "संगीत",
+  PLAY: "खेलें",
+  PLAY_AGAIN: "फिर खेलें",
+  LOADING_REPLAY: "रीप्ले लोड हो रहा है...",
+  REPLAY_UNAVAILABLE: "रीप्ले उपलब्ध नहीं",
+  REPLAY: "रीप्ले",
+  SPEED: "गति",
+  WIN_TIER_BIG: "बड़ी जीत",
+  WIN_TIER_SUPER: "सुपर जीत",
+  WIN_TIER_HUGE: "विशाल जीत",
+  WIN_TIER_MEGA: "मेगा जीत",
+  WIN_TIER_EPIC: "एपिक जीत",
+  WIN_TIER_MAX: "अधिकतम जीत",
+  TUMBLE_WIN: "TUMBLE जीत",
+  TOTAL_MULT: "कुल मल्टी",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "जारी रखने के लिए टैप करें",
+  ON: "चालू",
+  OFF: "बंद",
+  ANTE_SWITCH_NOTE: "2x ट्रिगर और ज्यादा Eyes - 1.25x बेट",
+  AUTO: "ऑटो",
+  ALL: "सभी",
+  START: "शुरू करें",
+  BET_MODE_BASE_TITLE: "बेस",
+  BET_MODE_BASE_DIALOG: "Abyssal का स्टैंडर्ड स्पिन. Eye करीब 7 में से 1 स्पिन में आता है - और tumble के बीच में भी गिर सकता है.",
+  BET_MODE_BASE_TICKER_IDLE: "अपनी बेट लगाएं",
+  BET_MODE_BASE_TICKER_SPIN: "शुभकामनाएं",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "लहर बढ़ाएं - Eyes और Scatters ज्यादा बार आते हैं.",
+  BET_MODE_ANTE_DIALOG: "बोनस ट्रिगर की दर दोगुनी करता है और Eye की फ्रीक्वेंसी बढ़ाता है, 1.25x बेट पर. ANTE BET बंद करने तक चालू रहता है.",
+  BET_MODE_ANTE_BUTTON: "सक्रिय करें",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "ANTE बेट",
+  BET_MODE_ANTE_TICKER_IDLE: "ANTE बेट सक्रिय है",
+  BET_MODE_ANTE_TICKER_SPIN: "शुभकामनाएं",
+  BET_MODE_SUPERSPINS_TITLE: "EYE स्पिन",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "एक गारंटीड Eye स्पिन - एक ही बिल्ड और रिलीज.",
+  BET_MODE_SUPERSPINS_DIALOG: "20x बेट पर एक ही स्पिन, Eye की गारंटी - और tumble के बीच में और भी गिर सकते हैं. कोई स्नोबॉल नहीं - एक दमदार चार्ज और रिलीज.",
+  BET_MODE_SUPERSPINS_BUTTON: "सक्रिय करें",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS सक्रिय है",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "शुभकामनाएं",
+  BET_MODE_BONUS_TITLE: "बोनस",
+  BET_MODE_BONUS_DESCRIPTION: "सीधे Free Spins स्नोबॉल फीचर में प्रवेश खरीदें.",
+  BET_MODE_BONUS_DIALOG: "100x बेट पर Free Spins ट्रिगर करता है - ट्रिगर करने वाले scatter अपना इंस्टेंट इनाम भी देते हैं. Eye आने पर परसिस्टेंट मल्टीप्लायर (M) फीचर के दौरान बढ़ता जाता है.",
+  BET_MODE_BONUS_BUTTON: "खरीदें",
+  BET_MODE_BONUS_TICKER_IDLE: "अपनी बेट लगाएं",
+  BET_MODE_BONUS_TICKER_SPIN: "FREE SPINS खरीदे गए",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "मल्टी-Eye फिनाले - 2 से 5 Eyes एक साथ रिजॉल्व होते हैं.",
+  BET_MODE_ULTIMATE_DIALOG: "300x बेट पर बोर्ड पर हमेशा कम से कम 2 Eyes (2-5, और भी गिर सकते हैं), जिनके ADD और MUL वैल्यू एक ही रेजोल्यूशन में जुड़ते हैं.",
+  BET_MODE_ULTIMATE_BUTTON: "सक्रिय करें",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE सक्रिय है",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "शुभकामनाएं",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "टेल मोड - डबल Essence और कीमती MUL Eyes.",
+  BET_MODE_SUPERBONUS_DIALOG: "500x बेट पर Free Spins फीचर खरीदता है. Gaze डबल Essence से चार्ज होता है (+4/+6/+10 प्रति क्लस्टर) और ट्रिगर करने वाले scatter अपना इंस्टेंट इनाम देते हैं. वह मोड जो सबसे ज्यादा बार 15,000x कैप के करीब पहुंचता है.",
+  BET_MODE_SUPERBONUS_BUTTON: "खरीदें",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "अपनी बेट लगाएं",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS खरीदा गया",
+  GAME_INFO_TAGLINE: "डीप-सी TUMBLE स्लॉट",
+  GAME_INFO_LEAD_HTML: "सिंबल <strong>6&times;5 बोर्ड</strong> पर गिरते हैं. जब <strong>एक जैसे 8 या अधिक सिंबल</strong> <strong>कहीं भी</strong> उतरते हैं, आप जीतते हैं &ndash; कोई पेलाइन नहीं. विजेता फटते हैं और नए सिंबल tumble होकर आते हैं, जिससे एक ही स्पिन से और जीतें बन सकती हैं. कोई <strong>wild</strong> नहीं है; <strong>Eye</strong> ही एकमात्र मल्टीप्लायर है.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "स्पिन कैसे चलता है",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "बोर्ड 30 सिंबल से भरता है.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "बोर्ड पर 8+ मौजूद कोई भी सिंबल जीतता है और फटता है.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "ऊपर के सिंबल गिरते हैं और नए आते हैं &ndash; यह एक <strong>tumble</strong> है.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "जीतें फिर जांची जाती हैं, जब तक कोई ड्रॉप भुगतान नहीं देता.",
+  GAME_INFO_PAYTABLE_TITLE: "पे टेबल",
+  GAME_INFO_PAYTABLE_NOTE: "पेमेंट आपकी बेट का मल्टीपल है, कितने सिंबल उतरे उसके आधार पर - किसी भी Eye मल्टीप्लायर से पहले.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "हाई सिंबल",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "लो सिंबल",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "सिंबल",
+  GAME_INFO_SYMBOL_H1: "डाइविंग हेलमेट",
+  GAME_INFO_SYMBOL_H2: "नॉटिलस",
+  GAME_INFO_SYMBOL_H3: "एंगलरफिश",
+  GAME_INFO_SYMBOL_H4: "जेलीफिश",
+  GAME_INFO_SYMBOL_L1: "नीलम रत्न",
+  GAME_INFO_SYMBOL_L2: "टील रत्न",
+  GAME_INFO_SYMBOL_L3: "सियान रत्न",
+  GAME_INFO_SYMBOL_L4: "बैंगनी रत्न",
+  GAME_INFO_SYMBOL_L5: "एक्वा रत्न",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "विशेष सिंबल",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> Free Spins ट्रिगर करता है और तुरंत देता है: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; खरीदे गए फीचर पर भी.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "सामान्य. मल्टीप्लायर = <strong>शुरुआत&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "दुर्लभ &amp; विस्फोटक. मल्टीप्लायर = <strong>शुरुआत&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "Eye और Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "हर जीतने वाला क्लस्टर <strong>Gaze</strong> को Essence से चार्ज करता है: 8&ndash;9 सिंबल पर <strong>+2</strong>, 10&ndash;11 पर <strong>+3</strong>, 12+ पर <strong>+5</strong>, ज्यादा से ज्यादा <strong>30</strong>. अगर जीतने वाले स्पिन के अंत में बोर्ड पर <strong>Eye</strong> है &ndash; शुरू से या tumble के बीच गिरा हुआ &ndash; तो यह Gaze को एक बड़े मल्टीप्लायर में बदलता है जो उस स्पिन में जीती हर चीज पर लगता है.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "उदाहरण: दो आम क्लस्टर से 2x की जीत Gaze 4 बनाती है. 10 से शुरू ADD Eye &rarr; x14 &rarr; 28x देता है. MULTIPLY Eye &rarr; x40 &rarr; 80x देता है.",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "ट्रिगर करने के लिए <strong>4+ Leviathan (Scatter)</strong> लाएं - वे tumble के बीच भी गिर सकते हैं.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "आपको तय <strong>15 फ्री स्पिन</strong> मिलते हैं.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>बैंक्ड मल्टीप्लायर</strong> x1 से शुरू होता है और केवल बढ़ता है, Eye स्पिन पर भुगतान करता है.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "3+ Scatters से रीट्रिगर करें और <strong>+5 स्पिन</strong> पाएं (30 तक).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "खेलने के तरीके",
+  GAME_INFO_MODE_BASE_NAME: "बेस",
+  GAME_INFO_MODE_BASE_COST: "1x बेट",
+  GAME_INFO_MODE_BASE_TEXT: "स्टैंडर्ड गेम. Eye करीब 7 में से 1 स्पिन में आता है - और tumble के बीच गिर सकता है - ज्यादातर दोस्ताना ADD टाइप.",
+  GAME_INFO_MODE_ANTE_COST: "1.25x बेट",
+  GAME_INFO_MODE_ANTE_TEXT: "बोनस ट्रिगर दोगुने और Eyes ज्यादा बार पाने के लिए 25% ज्यादा दें.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Free Spins खरीदें",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "100x बेट",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "सीधे Free Spins फीचर खरीदें - ट्रिगर करने वाले scatter अपना इंस्टेंट इनाम भी देते हैं.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "20x बेट",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "एक स्पिन जिसमें Eye गारंटीड है - कोई बोनस राउंड नहीं.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "500x बेट",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins जिसमें Gaze डबल Essence से चार्ज होता है और MULTIPLY Eyes जोरदार वार करते हैं.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "300x बेट",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "एक स्पिन जिसमें हमेशा कम से कम 2 Eyes (2-5) मिलकर जुड़ते हैं - बहुत बड़ा या कुछ नहीं.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "सामान्य अस्वीकरण",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "खराबी सभी जीत और खेल को अमान्य कर देती है. स्थिर इंटरनेट कनेक्शन आवश्यक है. कनेक्शन टूटने पर, किसी भी अधूरे राउंड को पूरा करने के लिए गेम फिर से लोड करें. अपेक्षित रिटर्न कई खेलों पर गणना किया जाता है. गेम डिस्प्ले किसी भौतिक डिवाइस का प्रतिनिधित्व नहीं करता और केवल उदाहरण के लिए है. जीतों का निपटान Remote Game Server से प्राप्त राशि के अनुसार किया जाता है, वेब ब्राउजर की घटनाओं के अनुसार नहीं. TM और &copy; 2026 Stake Engine."
+};
+const id = {
+  ...en,
+  HOME: "BERANDA",
+  LOADER_SUBTITLE: "CARA KERJA",
+  LOADER_CARD_1_TITLE: "ISI GAZE",
+  LOADER_CARD_1_BODY: "Cluster menang mengisi Gaze kamu.\nCluster lebih besar memberi lebih banyak Essence.",
+  LOADER_CARD_2_TITLE: "PENGALI EYE",
+  LOADER_CARD_2_BODY: "Saat Eye muncul, kemenangan Anda meningkat.\nEye ADD dan MULTIPLY dapat muncul.",
+  LOADER_CARD_3_TITLE: "MENANG MAKS",
+  LOADER_CARD_3_BODY: "Eyes yang terisi bergabung dengan Gaze\nuntuk pembayaran besar.\nBangun kekuatan, lalu lepaskan.",
+  LOADER_CTA: "KLIK UNTUK LANJUT",
+  LOADER_LOADING: "MEMUAT",
+  LOADER_CARDS_LABEL: "Kartu tutorial",
+  LOADER_PREVIOUS_CARD: "Kartu sebelumnya",
+  LOADER_NEXT_CARD: "Kartu berikutnya",
+  FREE_SPINS_TAP_TO_PLAY: "KETUK DI MANA SAJA UNTUK BERMAIN",
+  FREE_SPINS_TAP_TO_SKIP: "KETUK DI MANA SAJA UNTUK LEWATI",
+  ACTIVE: "AKTIF",
+  ACTIVATE: "AKTIFKAN",
+  DEACTIVATE: "NONAKTIFKAN",
+  BUY: "BELI",
+  BONUS: "BONUS",
+  LOW_FUNDS: "DANA TIDAK CUKUP",
+  PER_SPIN: "PER SPIN",
+  TOTAL: "TOTAL",
+  CANCEL: "BATAL",
+  CONFIRM_BUY: "KONFIRMASI BELI",
+  DECREASE_BET: "turunkan taruhan",
+  INCREASE_BET: "naikkan taruhan",
+  BALANCE: "SALDO",
+  WIN: "MENANG",
+  BET: "TARUHAN",
+  "FREE SPINS": "SPIN GRATIS",
+  STOP: "BERHENTI",
+  "AUTO SPINS": "SPIN OTOMATIS",
+  INFO: "INFO",
+  MUSIC: "MUSIK",
+  PLAY: "MAIN",
+  PLAY_AGAIN: "MAIN LAGI",
+  LOADING_REPLAY: "MEMUAT REPLAY...",
+  REPLAY_UNAVAILABLE: "REPLAY TIDAK TERSEDIA",
+  REPLAY: "REPLAY",
+  SPEED: "KECEPATAN",
+  WIN_TIER_BIG: "MENANG BESAR",
+  WIN_TIER_SUPER: "SUPER MENANG",
+  WIN_TIER_HUGE: "MENANG RAKSASA",
+  WIN_TIER_MEGA: "MEGA MENANG",
+  WIN_TIER_EPIC: "MENANG EPIK",
+  WIN_TIER_MAX: "MENANG MAKS",
+  TUMBLE_WIN: "MENANG TUMBLE",
+  TOTAL_MULT: "TOTAL PENGALI",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "KETUK UNTUK LANJUT",
+  ON: "NYALA",
+  OFF: "MATI",
+  ANTE_SWITCH_NOTE: "2x pemicu & lebih banyak Eye - taruhan 1.25x",
+  AUTO: "AUTO",
+  ALL: "SEMUA",
+  START: "MULAI",
+  BET_MODE_BASE_TITLE: "DASAR",
+  BET_MODE_BASE_DIALOG: "Spin standar Abyssal. Eye muncul sekitar 1 dari 7 spin - dan bisa jatuh di tengah tumble.",
+  BET_MODE_BASE_TICKER_IDLE: "PASANG TARUHAN",
+  BET_MODE_BASE_TICKER_SPIN: "SEMOGA BERUNTUNG",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "Naikkan arus - Eyes dan Scatters lebih sering muncul.",
+  BET_MODE_ANTE_DIALOG: "Menggandakan frekuensi pemicu bonus dan menaikkan frekuensi Eye dengan 1.25x taruhan. ANTE BET tetap aktif sampai dimatikan.",
+  BET_MODE_ANTE_BUTTON: "AKTIFKAN",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "TARUHAN ANTE",
+  BET_MODE_ANTE_TICKER_IDLE: "TARUHAN ANTE AKTIF",
+  BET_MODE_ANTE_TICKER_SPIN: "SEMOGA BERUNTUNG",
+  BET_MODE_SUPERSPINS_TITLE: "SPIN EYE",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Satu spin dengan Eye terjamin - satu kali bangun dan lepaskan.",
+  BET_MODE_SUPERSPINS_DIALOG: "Satu spin dengan 20x taruhan, Eye dijamin - dan Eye lain bisa jatuh di tengah tumble. Tanpa bola salju - satu isi daya dan lepaskan.",
+  BET_MODE_SUPERSPINS_BUTTON: "AKTIFKAN",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS AKTIF",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "SEMOGA BERUNTUNG",
+  BET_MODE_BONUS_TITLE: "BONUS",
+  BET_MODE_BONUS_DESCRIPTION: "Beli langsung ke fitur snowball Free Spins.",
+  BET_MODE_BONUS_DIALOG: "Memicu Free Spins dengan 100x taruhan - scatter pemicu juga membayar hadiah instannya. Pengali persisten (M) tumbuh sepanjang fitur saat Eye muncul.",
+  BET_MODE_BONUS_BUTTON: "BELI",
+  BET_MODE_BONUS_TICKER_IDLE: "PASANG TARUHAN",
+  BET_MODE_BONUS_TICKER_SPIN: "FREE SPINS DIBELI",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "Final multi-Eye - 2 sampai 5 Eye diselesaikan bersama.",
+  BET_MODE_ULTIMATE_DIALOG: "Selalu minimal 2 Eye di papan (2-5, dan bisa jatuh lagi) dengan 300x taruhan, menggabungkan nilai ADD dan MUL dalam satu penyelesaian.",
+  BET_MODE_ULTIMATE_BUTTON: "AKTIFKAN",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE AKTIF",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "SEMOGA BERUNTUNG",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "Mode tail - Essence ganda dan MUL Eye berharga.",
+  BET_MODE_SUPERBONUS_DIALOG: "Membeli fitur Free Spins dengan 500x taruhan. Gaze terisi Essence ganda (+4/+6/+10 per cluster) dan scatter pemicu membayar hadiah instannya. Mode yang paling sering mendekati batas 15.000x.",
+  BET_MODE_SUPERBONUS_BUTTON: "BELI",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "PASANG TARUHAN",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS DIBELI",
+  GAME_INFO_TAGLINE: "SLOT TUMBLE LAUT DALAM",
+  GAME_INFO_LEAD_HTML: "Simbol jatuh ke <strong>papan 6&times;5</strong>. Anda menang saat <strong>8 atau lebih simbol yang sama</strong> mendarat <strong>di mana saja</strong> &ndash; tanpa garis pembayaran. Simbol menang pecah dan simbol baru jatuh, yang dapat berantai menjadi kemenangan lain dari satu spin. Tidak ada <strong>wild</strong>; <strong>Eye</strong> adalah satu-satunya pengali.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "Cara spin berlangsung",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "Papan terisi 30 simbol.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "Simbol apa pun dengan 8+ di papan menang dan pecah.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "Simbol di atas jatuh dan yang baru masuk &ndash; sebuah <strong>tumble</strong>.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Kemenangan diperiksa lagi sampai jatuhan tidak membayar apa pun.",
+  GAME_INFO_PAYTABLE_TITLE: "Tabel pembayaran",
+  GAME_INFO_PAYTABLE_NOTE: "Pembayaran adalah kelipatan taruhan Anda, berdasarkan jumlah yang mendarat - sebelum pengali Eye apa pun.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "Simbol tinggi",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "Simbol rendah",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "Simbol",
+  GAME_INFO_SYMBOL_H1: "Helm selam",
+  GAME_INFO_SYMBOL_H2: "Nautilus",
+  GAME_INFO_SYMBOL_H3: "Ikan sungut ganda",
+  GAME_INFO_SYMBOL_H4: "Ubur-ubur",
+  GAME_INFO_SYMBOL_L1: "Permata safir",
+  GAME_INFO_SYMBOL_L2: "Permata teal",
+  GAME_INFO_SYMBOL_L3: "Permata sian",
+  GAME_INFO_SYMBOL_L4: "Permata violet",
+  GAME_INFO_SYMBOL_L5: "Permata aqua",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Simbol khusus",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> memicu Free Spins dan langsung membayar: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; juga pada fitur yang dibeli.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Umum. Pengali = <strong>awal&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Langka &amp; eksplosif. Pengali = <strong>awal&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Setiap cluster menang mengisi <strong>Gaze</strong> dengan Essence: <strong>+2</strong> untuk 8&ndash;9 simbol, <strong>+3</strong> untuk 10&ndash;11, <strong>+5</strong> untuk 12+, maksimal <strong>30</strong>. Jika <strong>Eye</strong> ada di papan pada akhir spin menang &ndash; sejak awal atau jatuh di tengah tumble &ndash; Eye mengubah Gaze menjadi satu pengali besar yang diterapkan ke semua kemenangan pada spin tersebut.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Contoh: kemenangan 2x dari dua cluster biasa membangun Gaze 4. ADD Eye mulai dari 10 &rarr; x14 &rarr; membayar 28x. MULTIPLY Eye &rarr; x40 &rarr; membayar 80x.",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Dapatkan <strong>4+ Leviathan (Scatter)</strong> - dapat jatuh di tengah tumble - untuk memicu.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "Anda mendapat tetap <strong>15 spin gratis</strong>.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>Pengali tersimpan</strong> mulai dari x1 dan hanya bertambah, lalu membayar pada spin Eye.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "Picu ulang dengan 3+ Scatters untuk <strong>+5 spin</strong> (hingga 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "Cara bermain",
+  GAME_INFO_MODE_BASE_NAME: "Dasar",
+  GAME_INFO_MODE_BASE_COST: "taruhan 1x",
+  GAME_INFO_MODE_BASE_TEXT: "Permainan standar. Eye muncul sekitar 1 dari 7 spin - dan bisa jatuh di tengah tumble - kebanyakan tipe ADD yang ramah.",
+  GAME_INFO_MODE_ANTE_COST: "taruhan 1.25x",
+  GAME_INFO_MODE_ANTE_TEXT: "Bayar 25% lebih untuk pemicu bonus 2x lebih sering dan Eye lebih sering.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Beli Free Spins",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "taruhan 100x",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Beli langsung fitur Free Spins - scatter pemicu juga membayar hadiah instannya.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "taruhan 20x",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Satu spin dengan Eye dijamin - tanpa ronde bonus.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "taruhan 500x",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins dengan Gaze terisi Essence ganda dan MULTIPLY Eye menghantam keras.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "taruhan 300x",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "Satu spin dengan selalu minimal 2 Eye (2-5) yang bergabung - besar atau tidak sama sekali.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Penafian Umum",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "Kerusakan membatalkan semua kemenangan dan permainan. Koneksi internet yang stabil diperlukan. Jika terjadi pemutusan koneksi, muat ulang game untuk menyelesaikan ronde yang belum selesai. Pengembalian yang diharapkan dihitung dari banyak permainan. Tampilan game tidak mewakili perangkat fisik apa pun dan hanya untuk ilustrasi. Kemenangan diselesaikan berdasarkan jumlah yang diterima dari Remote Game Server dan bukan dari peristiwa di browser web. TM dan &copy; 2026 Stake Engine."
+};
+const ja = {
+  ...en,
+  HOME: "ホーム",
+  LOADER_SUBTITLE: "遊び方",
+  LOADER_CARD_1_TITLE: "GAZEをチャージ",
+  LOADER_CARD_1_BODY: "勝利クラスターがGazeをチャージ。\n大きいクラスターほど多くのEssenceを獲得。",
+  LOADER_CARD_2_TITLE: "EYEマルチプライヤー",
+  LOADER_CARD_2_BODY: "Eyeが出現すると勝利が強化されます。\nADDとMULTIPLYのEyesが出現します。",
+  LOADER_CARD_3_TITLE: "最大勝利",
+  LOADER_CARD_3_BODY: "チャージされたEyesがGazeと結合し\n巨大な配当を生みます。\n力をためて解き放ちましょう。",
+  LOADER_CTA: "クリックして続行",
+  LOADER_LOADING: "読み込み中",
+  LOADER_CARDS_LABEL: "チュートリアルカード",
+  LOADER_PREVIOUS_CARD: "前のカード",
+  LOADER_NEXT_CARD: "次のカード",
+  FREE_SPINS_TAP_TO_PLAY: "どこかをタップしてプレイ",
+  FREE_SPINS_TAP_TO_SKIP: "どこかをタップしてスキップ",
+  ACTIVE: "有効",
+  ACTIVATE: "有効化",
+  DEACTIVATE: "無効化",
+  BUY: "購入",
+  BONUS: "ボーナス",
+  LOW_FUNDS: "残高不足",
+  PER_SPIN: "1スピンあたり",
+  TOTAL: "合計",
+  CANCEL: "キャンセル",
+  CONFIRM_BUY: "購入を確定",
+  DECREASE_BET: "ベットを下げる",
+  INCREASE_BET: "ベットを上げる",
+  BALANCE: "残高",
+  WIN: "勝利",
+  BET: "ベット",
+  "FREE SPINS": "フリースピン",
+  STOP: "停止",
+  "AUTO SPINS": "オートスピン",
+  INFO: "情報",
+  MUSIC: "音楽",
+  PLAY: "プレイ",
+  PLAY_AGAIN: "もう一度プレイ",
+  LOADING_REPLAY: "リプレイを読み込み中...",
+  REPLAY_UNAVAILABLE: "リプレイは利用できません",
+  REPLAY: "リプレイ",
+  SPEED: "速度",
+  WIN_TIER_BIG: "ビッグウィン",
+  WIN_TIER_SUPER: "スーパーウィン",
+  WIN_TIER_HUGE: "ヒュージウィン",
+  WIN_TIER_MEGA: "メガウィン",
+  WIN_TIER_EPIC: "エピックウィン",
+  WIN_TIER_MAX: "最大勝利",
+  TUMBLE_WIN: "TUMBLE勝利",
+  TOTAL_MULT: "合計倍率",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "タップして続行",
+  ON: "オン",
+  OFF: "オフ",
+  ANTE_SWITCH_NOTE: "トリガー2倍＆Eye増加 - ベット1.25x",
+  AUTO: "オート",
+  ALL: "すべて",
+  START: "開始",
+  BET_MODE_BASE_TITLE: "ベース",
+  BET_MODE_BASE_DIALOG: "Abyssalの標準スピン。Eyeは約7スピンに1回登場し、tumbleの途中でも落ちてきます。",
+  BET_MODE_BASE_TICKER_IDLE: "ベットしてください",
+  BET_MODE_BASE_TICKER_SPIN: "幸運を",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "潮流を高め、EyesとScattersの出現頻度を上げます。",
+  BET_MODE_ANTE_DIALOG: "ベット1.25xでボーナスのトリガー率が2倍になり、Eyeの出現率も上がります。ANTE BETは無効にするまで有効です。",
+  BET_MODE_ANTE_BUTTON: "有効化",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "ANTEベット",
+  BET_MODE_ANTE_TICKER_IDLE: "ANTEベット有効中",
+  BET_MODE_ANTE_TICKER_SPIN: "幸運を",
+  BET_MODE_SUPERSPINS_TITLE: "EYEスピン",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Eyeが保証された1回のスピン。一度だけためて放ちます。",
+  BET_MODE_SUPERSPINS_DIALOG: "ベット20xの1回スピンでEye確定 - tumbleの途中でさらに落ちることも。スノーボールなし - 一撃のチャージ＆リリース。",
+  BET_MODE_SUPERSPINS_BUTTON: "有効化",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS有効中",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "幸運を",
+  BET_MODE_BONUS_TITLE: "ボーナス",
+  BET_MODE_BONUS_DESCRIPTION: "Free Spinsのスノーボール機能へ直接購入します。",
+  BET_MODE_BONUS_DIALOG: "ベット100xでFree Spinsをトリガー - トリガーしたscatterの即時賞金も支払われます。Eyeが登場するたび、持続マルチプライヤー（M）がフィーチャーを通して成長します。",
+  BET_MODE_BONUS_BUTTON: "購入",
+  BET_MODE_BONUS_TICKER_IDLE: "ベットしてください",
+  BET_MODE_BONUS_TICKER_SPIN: "FREE SPINS購入済み",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "マルチEyeフィナーレ - 2〜5個のEyeが同時に解決。",
+  BET_MODE_ULTIMATE_DIALOG: "ベット300xで、ボードに常に2個以上のEye（2〜5個、さらに落ちることも）。ADDとMULの値をひとつの解決で組み合わせます。",
+  BET_MODE_ULTIMATE_BUTTON: "有効化",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE有効中",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "幸運を",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "テールモード - Essence2倍＆貴重なMUL Eye。",
+  BET_MODE_SUPERBONUS_DIALOG: "ベット500xでFree Spinsフィーチャーを購入。GazeはEssence2倍でチャージされ（クラスターごとに+4/+6/+10）、トリガーしたscatterの即時賞金も支払われます。15,000xキャップに最も近づきやすいモード。",
+  BET_MODE_SUPERBONUS_BUTTON: "購入",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "ベットしてください",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS購入済み",
+  GAME_INFO_TAGLINE: "深海TUMBLEスロット",
+  GAME_INFO_LEAD_HTML: "シンボルは<strong>6&times;5のボード</strong>に落下します。<strong>同じシンボルが8個以上</strong><strong>どこかに</strong>着地すると勝利です &ndash; ペイラインはありません。勝利シンボルは消え、新しいシンボルがtumbleし、1回のスピンから連続勝利につながることがあります。<strong>wild</strong>はありません。<strong>Eye</strong>が唯一のマルチプライヤーです。",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "スピンの流れ",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "ボードが30個のシンボルで埋まります。",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "ボード上に8個以上あるシンボルは勝利となり消えます。",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "上のシンボルが落下し、新しいものが入ります &ndash; これが<strong>tumble</strong>です。",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "何も支払われない落下になるまで、勝利判定が繰り返されます。",
+  GAME_INFO_PAYTABLE_TITLE: "配当表",
+  GAME_INFO_PAYTABLE_NOTE: "配当は着地した数に応じたベット倍率です - Eyeマルチプライヤー適用前の値です。",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "高配当シンボル",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "低配当シンボル",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "シンボル",
+  GAME_INFO_SYMBOL_H1: "潜水ヘルメット",
+  GAME_INFO_SYMBOL_H2: "オウムガイ",
+  GAME_INFO_SYMBOL_H3: "アンコウ",
+  GAME_INFO_SYMBOL_H4: "クラゲ",
+  GAME_INFO_SYMBOL_L1: "サファイアの宝石",
+  GAME_INFO_SYMBOL_L2: "ティールの宝石",
+  GAME_INFO_SYMBOL_L3: "シアンの宝石",
+  GAME_INFO_SYMBOL_L4: "バイオレットの宝石",
+  GAME_INFO_SYMBOL_L5: "アクアの宝石",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "特殊シンボル",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4個以上</strong>でFree Spinsをトリガーし、即時支払い：<strong>4 = 3x</strong>、<strong>5 = 5x</strong>、<strong>6 = 100x</strong> &ndash; 購入したフィーチャーでも同様。",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "一般的。マルチプライヤー = <strong>開始値&nbsp;+&nbsp;Gaze</strong>。",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "希少 &amp; 強力。マルチプライヤー = <strong>開始値&nbsp;&times;&nbsp;Gaze</strong>。",
+  GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "勝利クラスターごとに<strong>Gaze</strong>がEssenceでチャージされます：シンボル8&ndash;9個で<strong>+2</strong>、10&ndash;11個で<strong>+3</strong>、12個以上で<strong>+5</strong>、上限は<strong>30</strong>。勝利スピンの終わりにボード上に<strong>Eye</strong>があると &ndash; 最初からでも、tumbleの途中で落ちてきたものでも &ndash; Gazeを大きなマルチプライヤーに変え、そのスピンで得たすべての勝利に適用します。",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "例：普通のクラスター2つで2x勝利、Gazeは4。10から始まるADD Eye &rarr; x14 &rarr; 28x。MULTIPLY Eye &rarr; x40 &rarr; 80x。",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "<strong>4+ Leviathan (Scatter)</strong>を出すと発動します。tumble中に落ちることもあります。",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "固定の<strong>15フリースピン</strong>を獲得します。",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>バンク済みマルチプライヤー</strong>はx1から始まり増加のみで、Eyeスピンで支払われます。",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "3+ Scattersで再発動し、<strong>+5スピン</strong>を獲得します（最大30）。",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "プレイ方法",
+  GAME_INFO_MODE_BASE_NAME: "ベース",
+  GAME_INFO_MODE_BASE_COST: "1xベット",
+  GAME_INFO_MODE_BASE_TEXT: "標準ゲーム。Eyeは約7スピンに1回 - tumbleの途中でも落ちてきます - 多くは優しいADDタイプ。",
+  GAME_INFO_MODE_ANTE_COST: "1.25xベット",
+  GAME_INFO_MODE_ANTE_TEXT: "25%多く支払うと、ボーナストリガーが2倍、Eyeの出現率もアップ。",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Free Spinsを購入",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "100xベット",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Free Spinsフィーチャーを直接購入 - トリガーしたscatterの即時賞金も支払われます。",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "20xベット",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Eyeが保証された1回のスピンです。ボーナスラウンドはありません。",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "500xベット",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "GazeがEssence2倍でチャージされ、MULTIPLY Eyeが強烈に決まるFree Spins。",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "300xベット",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "常に2個以上のEye（2〜5個）が組み合わさる1回スピン - 一攫千金かゼロか。",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "一般的な免責事項",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "不具合が発生した場合、すべての勝利とプレイは無効になります。安定したインターネット接続が必要です。接続が切れた場合は、未完了のラウンドを完了するためゲームを再読み込みしてください。期待リターンは多数のプレイに基づいて計算されます。ゲーム表示は物理デバイスを表すものではなく、説明目的のみです。勝利金はWebブラウザ内のイベントではなく、Remote Game Serverから受け取った金額に基づいて精算されます。TM and &copy; 2026 Stake Engine."
+};
+const ko = {
+  ...en,
+  HOME: "홈",
+  LOADER_SUBTITLE: "작동 방식",
+  LOADER_CARD_1_TITLE: "GAZE 충전",
+  LOADER_CARD_1_BODY: "승리 클러스터가 Gaze를 충전합니다.\n클러스터가 클수록 더 많은 Essence를 얻습니다.",
+  LOADER_CARD_2_TITLE: "EYE 배수",
+  LOADER_CARD_2_BODY: "Eye가 등장하면 승리가 강화됩니다.\nADD 및 MULTIPLY Eyes가 나타날 수 있습니다.",
+  LOADER_CARD_3_TITLE: "최대 승리",
+  LOADER_CARD_3_BODY: "충전된 Eyes가 Gaze와 결합해\n거대한 지급을 만듭니다.\n힘을 쌓고 해방하세요.",
+  LOADER_CTA: "클릭하여 계속",
+  LOADER_LOADING: "로딩 중",
+  LOADER_CARDS_LABEL: "튜토리얼 카드",
+  LOADER_PREVIOUS_CARD: "이전 카드",
+  LOADER_NEXT_CARD: "다음 카드",
+  FREE_SPINS_TAP_TO_PLAY: "아무 곳이나 탭하여 플레이",
+  FREE_SPINS_TAP_TO_SKIP: "아무 곳이나 탭하여 건너뛰기",
+  ACTIVE: "활성",
+  ACTIVATE: "활성화",
+  DEACTIVATE: "비활성화",
+  BUY: "구매",
+  BONUS: "보너스",
+  LOW_FUNDS: "잔액 부족",
+  PER_SPIN: "스핀당",
+  TOTAL: "합계",
+  CANCEL: "취소",
+  CONFIRM_BUY: "구매 확인",
+  DECREASE_BET: "베팅 낮추기",
+  INCREASE_BET: "베팅 높이기",
+  BALANCE: "잔액",
+  WIN: "승리",
+  BET: "베팅",
+  "FREE SPINS": "무료 스핀",
+  STOP: "정지",
+  "AUTO SPINS": "자동 스핀",
+  INFO: "정보",
+  MUSIC: "음악",
+  PLAY: "플레이",
+  PLAY_AGAIN: "다시 플레이",
+  LOADING_REPLAY: "리플레이 로딩 중...",
+  REPLAY_UNAVAILABLE: "리플레이 사용 불가",
+  REPLAY: "리플레이",
+  SPEED: "속도",
+  WIN_TIER_BIG: "큰 승리",
+  WIN_TIER_SUPER: "슈퍼 승리",
+  WIN_TIER_HUGE: "거대한 승리",
+  WIN_TIER_MEGA: "메가 승리",
+  WIN_TIER_EPIC: "에픽 승리",
+  WIN_TIER_MAX: "최대 승리",
+  TUMBLE_WIN: "TUMBLE 승리",
+  TOTAL_MULT: "총 배수",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "탭하여 계속",
+  ON: "켜짐",
+  OFF: "꺼짐",
+  ANTE_SWITCH_NOTE: "트리거 2배 & Eye 증가 - 1.25x 베팅",
+  AUTO: "자동",
+  ALL: "전체",
+  START: "시작",
+  BET_MODE_BASE_TITLE: "기본",
+  BET_MODE_BASE_DIALOG: "표준 Abyssal 스핀. Eye는 약 7스핀에 1번 등장하며, tumble 도중에도 떨어질 수 있습니다.",
+  BET_MODE_BASE_TICKER_IDLE: "베팅하세요",
+  BET_MODE_BASE_TICKER_SPIN: "행운을 빕니다",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "파도를 높여 Eyes와 Scatters 출현을 늘립니다.",
+  BET_MODE_ANTE_DIALOG: "1.25x 베팅으로 보너스 트리거 빈도가 2배가 되고 Eye 빈도도 올라갑니다. ANTE BET은 끄기 전까지 유지됩니다.",
+  BET_MODE_ANTE_BUTTON: "활성화",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "ANTE 베팅",
+  BET_MODE_ANTE_TICKER_IDLE: "ANTE 베팅 활성",
+  BET_MODE_ANTE_TICKER_SPIN: "행운을 빕니다",
+  BET_MODE_SUPERSPINS_TITLE: "EYE 스핀",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Eye가 보장되는 한 번의 스핀 - 한 번 쌓고 해방합니다.",
+  BET_MODE_SUPERSPINS_DIALOG: "20x 베팅으로 단 한 번의 스핀, Eye 확정 - tumble 도중 더 떨어질 수도 있습니다. 스노볼 없음 - 한 번의 강렬한 충전과 방출.",
+  BET_MODE_SUPERSPINS_BUTTON: "활성화",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS 활성",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "행운을 빕니다",
+  BET_MODE_BONUS_TITLE: "보너스",
+  BET_MODE_BONUS_DESCRIPTION: "Free Spins 스노우볼 기능으로 바로 구매합니다.",
+  BET_MODE_BONUS_DIALOG: "100x 베팅으로 Free Spins를 트리거합니다 - 트리거한 scatter의 즉시 보상도 지급됩니다. Eye가 등장할 때마다 지속 배수(M)가 피처 내내 성장합니다.",
+  BET_MODE_BONUS_BUTTON: "구매",
+  BET_MODE_BONUS_TICKER_IDLE: "베팅하세요",
+  BET_MODE_BONUS_TICKER_SPIN: "FREE SPINS 구매됨",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "멀티 Eye 피날레 - 2~5개의 Eye가 함께 해결됩니다.",
+  BET_MODE_ULTIMATE_DIALOG: "300x 베팅으로 보드에 항상 최소 2개의 Eye(2-5개, 더 떨어질 수도 있음)가 있으며, ADD와 MUL 값이 한 번의 해결로 결합됩니다.",
+  BET_MODE_ULTIMATE_BUTTON: "활성화",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE 활성",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "행운을 빕니다",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "테일 모드 - 2배 Essence와 귀중한 MUL Eye.",
+  BET_MODE_SUPERBONUS_DIALOG: "500x 베팅으로 Free Spins 피처를 구매합니다. Gaze가 2배 Essence로 충전되고(클러스터당 +4/+6/+10) 트리거한 scatter의 즉시 보상도 지급됩니다. 15,000x 상한에 가장 자주 근접하는 모드.",
+  BET_MODE_SUPERBONUS_BUTTON: "구매",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "베팅하세요",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS 구매됨",
+  GAME_INFO_TAGLINE: "심해 TUMBLE 슬롯",
+  GAME_INFO_LEAD_HTML: "심볼은 <strong>6&times;5 보드</strong>에 떨어집니다. <strong>같은 심볼 8개 이상</strong>이 <strong>어디에든</strong> 착지하면 승리합니다 &ndash; 페이라인은 없습니다. 승리 심볼은 터지고 새 심볼이 tumble되어 한 번의 스핀에서 추가 승리로 이어질 수 있습니다. <strong>wild</strong>는 없으며 <strong>Eye</strong>가 유일한 배수입니다.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "스핀 진행 방식",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "보드가 30개의 심볼로 채워집니다.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "보드에 8개 이상 있는 심볼은 승리하고 터집니다.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "위의 심볼이 떨어지고 새 심볼이 들어옵니다 &ndash; 이것이 <strong>tumble</strong>입니다.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "더 이상 지급이 없는 낙하가 나올 때까지 승리를 다시 확인합니다.",
+  GAME_INFO_PAYTABLE_TITLE: "지급표",
+  GAME_INFO_PAYTABLE_NOTE: "지급은 착지한 개수에 따른 베팅 배수이며, Eye 배수 적용 전 기준입니다.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "상위 심볼",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "하위 심볼",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "심볼",
+  GAME_INFO_SYMBOL_H1: "잠수 헬멧",
+  GAME_INFO_SYMBOL_H2: "앵무조개",
+  GAME_INFO_SYMBOL_H3: "아귀",
+  GAME_INFO_SYMBOL_H4: "해파리",
+  GAME_INFO_SYMBOL_L1: "사파이어 보석",
+  GAME_INFO_SYMBOL_L2: "틸 보석",
+  GAME_INFO_SYMBOL_L3: "시안 보석",
+  GAME_INFO_SYMBOL_L4: "바이올렛 보석",
+  GAME_INFO_SYMBOL_L5: "아쿠아 보석",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "특수 심볼",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4개 이상</strong>이면 Free Spins가 트리거되고 즉시 지급됩니다: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; 구매한 피처에서도 동일합니다.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "일반적입니다. 배수 = <strong>시작값&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "희귀하고 &amp; 폭발적입니다. 배수 = <strong>시작값&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "승리한 클러스터마다 <strong>Gaze</strong>가 Essence로 충전됩니다: 심볼 8&ndash;9개는 <strong>+2</strong>, 10&ndash;11개는 <strong>+3</strong>, 12개 이상은 <strong>+5</strong>, 최대 <strong>30</strong>. 승리 스핀이 끝날 때 보드에 <strong>Eye</strong>가 있으면 &ndash; 처음부터 있었든 tumble 도중 떨어졌든 &ndash; Gaze를 해당 스핀에서 얻은 모든 승리에 적용되는 큰 배수로 바꿉니다.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "예시: 평범한 클러스터 2개로 2x 승리, Gaze는 4. 10에서 시작하는 ADD Eye &rarr; x14 &rarr; 28x 지급. MULTIPLY Eye &rarr; x40 &rarr; 80x 지급.",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "<strong>4+ Leviathan (Scatter)</strong>를 착지시키면 발동합니다. tumble 중에도 떨어질 수 있습니다.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "고정 <strong>15 무료 스핀</strong>을 받습니다.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>저장된 배수</strong>는 x1에서 시작해 증가만 하며, Eye 스핀에서 지급됩니다.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "3+ Scatters로 재발동하여 <strong>+5 스핀</strong>을 얻습니다(최대 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "플레이 방법",
+  GAME_INFO_MODE_BASE_NAME: "기본",
+  GAME_INFO_MODE_BASE_COST: "1x 베팅",
+  GAME_INFO_MODE_BASE_TEXT: "표준 게임. Eye는 약 7스핀에 1번 - tumble 도중에도 떨어질 수 있으며 - 대부분 친절한 ADD 타입.",
+  GAME_INFO_MODE_ANTE_COST: "1.25x 베팅",
+  GAME_INFO_MODE_ANTE_TEXT: "25% 더 내면 보너스 트리거가 2배, Eye도 더 자주 등장합니다.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Free Spins 구매",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "100x 베팅",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Free Spins 피처를 바로 구매 - 트리거한 scatter의 즉시 보상도 지급됩니다.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "20x 베팅",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Eye가 보장되는 단일 스핀입니다. 보너스 라운드는 없습니다.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "500x 베팅",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Gaze가 2배 Essence로 충전되고 MULTIPLY Eye가 강타하는 Free Spins.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "300x 베팅",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "항상 최소 2개의 Eye(2-5개)가 결합하는 단 한 번의 스핀 - 대박 아니면 꽝.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "일반 면책 조항",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "오작동 시 모든 승리와 플레이는 무효입니다. 안정적인 인터넷 연결이 필요합니다. 연결이 끊기면 완료되지 않은 라운드를 끝내기 위해 게임을 다시 불러오세요. 예상 반환율은 많은 플레이를 기준으로 계산됩니다. 게임 화면은 실제 물리적 장치를 나타내지 않으며 설명 목적으로만 제공됩니다. 승리는 웹 브라우저 내 이벤트가 아니라 Remote Game Server에서 수신한 금액에 따라 정산됩니다. TM 및 &copy; 2026 Stake Engine."
+};
+const pl = {
+  ...en,
+  HOME: "STRONA GLOWNA",
+  LOADER_SUBTITLE: "JAK TO DZIALA",
+  LOADER_CARD_1_TITLE: "LADUJ GAZE",
+  LOADER_CARD_1_BODY: "Wygrywajace klastry laduja twoj Gaze.\nWieksze klastry daja wiecej Essence.",
+  LOADER_CARD_2_TITLE: "MNOZNIKI EYE",
+  LOADER_CARD_2_BODY: "Gdy Eye wyladuje, wzmacnia twoja wygrana.\nMoga pojawic sie Eye ADD i MULTIPLY.",
+  LOADER_CARD_3_TITLE: "MAX WIN",
+  LOADER_CARD_3_BODY: "Naladowane Eyes lacza sie z Gaze\ndla ogromnych wyplat.\nZbuduj moc, potem ja uwolnij.",
+  LOADER_CTA: "KLIKNIJ, ABY KONTYNUOWAC",
+  LOADER_LOADING: "LADOWANIE",
+  LOADER_CARDS_LABEL: "Karty samouczka",
+  LOADER_PREVIOUS_CARD: "Poprzednia karta",
+  LOADER_NEXT_CARD: "Nastepna karta",
+  FREE_SPINS_TAP_TO_PLAY: "DOTKNIJ GDZIEKOLWIEK, ABY GRAC",
+  FREE_SPINS_TAP_TO_SKIP: "DOTKNIJ GDZIEKOLWIEK, ABY POMINAC",
+  ACTIVE: "AKTYWNE",
+  ACTIVATE: "AKTYWUJ",
+  DEACTIVATE: "DEZAKTYWUJ",
+  BUY: "KUP",
+  BONUS: "BONUS",
+  LOW_FUNDS: "ZA MALO SRODKOW",
+  PER_SPIN: "NA SPIN",
+  TOTAL: "RAZEM",
+  CANCEL: "ANULUJ",
+  CONFIRM_BUY: "POTWIERDZ KUPNO",
+  DECREASE_BET: "zmniejsz stawke",
+  INCREASE_BET: "zwieksz stawke",
+  BALANCE: "SALDO",
+  WIN: "WYGRANA",
+  BET: "STAWKA",
+  "FREE SPINS": "DARMOWE SPINY",
+  STOP: "STOP",
+  "AUTO SPINS": "AUTO SPINY",
+  INFO: "INFO",
+  MUSIC: "MUZYKA",
+  PLAY: "GRAJ",
+  PLAY_AGAIN: "ZAGRAJ PONOWNIE",
+  LOADING_REPLAY: "LADOWANIE POWTORKI...",
+  REPLAY_UNAVAILABLE: "POWTORKA NIEDOSTEPNA",
+  REPLAY: "POWTORKA",
+  SPEED: "PREDKOSC",
+  WIN_TIER_BIG: "BIG WIN",
+  WIN_TIER_SUPER: "SUPER WIN",
+  WIN_TIER_HUGE: "HUGE WIN",
+  WIN_TIER_MEGA: "MEGA WIN",
+  WIN_TIER_EPIC: "EPIC WIN",
+  WIN_TIER_MAX: "MAX WIN",
+  TUMBLE_WIN: "WYGRANA TUMBLE",
+  TOTAL_MULT: "MNOZNIK LACZNY",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "DOTKNIJ, ABY KONTYNUOWAC",
+  ON: "WL",
+  OFF: "WYL",
+  ANTE_SWITCH_NOTE: "2x triggery i wiecej Eyes - zaklad 1.25x",
+  AUTO: "AUTO",
+  ALL: "WSZYSTKO",
+  START: "START",
+  BET_MODE_BASE_TITLE: "BAZA",
+  BET_MODE_BASE_DIALOG: "Standardowy spin Abyssal. Eyes trafiaja sie mniej wiecej 1 na 7 spinow - i moga wpasc w trakcie tumbla.",
+  BET_MODE_BASE_TICKER_IDLE: "POSTAW STAWKE",
+  BET_MODE_BASE_TICKER_SPIN: "POWODZENIA",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "Podnies fale - czestsze Eyes i Scattery.",
+  BET_MODE_ANTE_DIALOG: "Podwaja czestotliwosc bonusu i zwieksza czestotliwosc Eyes za 1.25x zakladu. ANTE BET pozostaje aktywny do wylaczenia.",
+  BET_MODE_ANTE_BUTTON: "AKTYWUJ",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "STAWKA ANTE",
+  BET_MODE_ANTE_TICKER_IDLE: "STAWKA ANTE AKTYWNA",
+  BET_MODE_ANTE_TICKER_SPIN: "POWODZENIA",
+  BET_MODE_SUPERSPINS_TITLE: "EYE SPINS",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Jeden spin z gwarantowanym Eye - jedno budowanie i uwolnienie.",
+  BET_MODE_SUPERSPINS_DIALOG: "Pojedynczy spin za 20x zakladu z gwarantowanym Eye - a kolejne moga wpasc w trakcie tumbla. Bez snieznej kuli - jedno mocne ladowanie i uwolnienie.",
+  BET_MODE_SUPERSPINS_BUTTON: "AKTYWUJ",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS AKTYWNE",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "POWODZENIA",
+  BET_MODE_BONUS_TITLE: "BONUS",
+  BET_MODE_BONUS_DESCRIPTION: "Kup bezposrednio funkcje Darmowych Spinow snowball.",
+  BET_MODE_BONUS_DIALOG: "Uruchamia Free Spins za 100x zakladu - scattery wyzwalajace placa tez swoja natychmiastowa nagrode. Trwaly mnoznik (M) rosnie przez cala funkcje, gdy trafiaja sie Eyes.",
+  BET_MODE_BONUS_BUTTON: "KUP",
+  BET_MODE_BONUS_TICKER_IDLE: "POSTAW STAWKE",
+  BET_MODE_BONUS_TICKER_SPIN: "DARMOWE SPINY KUPIONE",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "Final multi-Eye - od 2 do 5 Eyes rozwiazuje sie razem.",
+  BET_MODE_ULTIMATE_DIALOG: "Zawsze co najmniej 2 Eyes na planszy (2-5, kolejne moga wpasc) za 300x zakladu, laczac wartosci ADD i MUL w jednym rozwiazaniu.",
+  BET_MODE_ULTIMATE_BUTTON: "AKTYWUJ",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE AKTYWNE",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "POWODZENIA",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "Tryb tail - podwojna Essence i cenne MUL Eyes.",
+  BET_MODE_SUPERBONUS_DIALOG: "Kupuje funkcje Free Spins za 500x zakladu. Gaze laduje sie podwojna Essence (+4/+6/+10 za klaster), a scattery wyzwalajace placa swoja natychmiastowa nagrode. Tryb, ktory najczesciej zbliza sie do limitu 15 000x.",
+  BET_MODE_SUPERBONUS_BUTTON: "KUP",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "POSTAW STAWKE",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS KUPIONY",
+  GAME_INFO_TAGLINE: "GLEBINOWY SLOT TUMBLE",
+  GAME_INFO_LEAD_HTML: "Symbole spadaja na <strong>plansze 6&times;5</strong>. Wygrywasz, gdy <strong>8 lub wiecej takich samych symboli</strong> wyladuje <strong>gdziekolwiek</strong> - bez linii wyplat. Wygrywajace symbole pekaja, a nowe symbole tumbla, co moze tworzyc kolejne wygrane w jednym spinie. Nie ma <strong>wilda</strong>; <strong>Eye</strong> jest jedynym mnoznikiem.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "Jak przebiega spin",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "Plansza wypelnia sie 30 symbolami.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "Kazdy symbol z 8+ wystapieniami na planszy wygrywa i peka.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "Symbole powyzej spadaja, a nowe dolatuja - to <strong>tumble</strong>.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Wygrane sa sprawdzane ponownie, az spadek nie wyplaci nic.",
+  GAME_INFO_PAYTABLE_TITLE: "Tabela wyplat",
+  GAME_INFO_PAYTABLE_NOTE: "Wyplaty sa wielokrotnoscia stawki, zalezne od liczby symboli - przed mnoznikiem Eye.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "Wysokie symbole",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "Niskie symbole",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "Symbol",
+  GAME_INFO_SYMBOL_H1: "Helm nurka",
+  GAME_INFO_SYMBOL_H2: "Lodzik",
+  GAME_INFO_SYMBOL_H3: "Zabnica",
+  GAME_INFO_SYMBOL_H4: "Meduza",
+  GAME_INFO_SYMBOL_L1: "Klejnot szafir",
+  GAME_INFO_SYMBOL_L2: "Klejnot teal",
+  GAME_INFO_SYMBOL_L3: "Klejnot cyjan",
+  GAME_INFO_SYMBOL_L4: "Klejnot fioletowy",
+  GAME_INFO_SYMBOL_L5: "Klejnot aqua",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Symbole specjalne",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Lewiatan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> uruchamia Free Spins i placi natychmiast: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; takze w kupionych funkcjach.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "Eye ADD",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Czeste. Mnoznik = <strong>start&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "Eye MULTIPLY",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Rzadkie i wybuchowe. Mnoznik = <strong>start&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Kazdy wygrywajacy klaster laduje <strong>Gaze</strong> Essence: <strong>+2</strong> za 8&ndash;9 symboli, <strong>+3</strong> za 10&ndash;11, <strong>+5</strong> za 12+, maksymalnie do <strong>30</strong>. Jesli <strong>Eye</strong> jest na planszy na koncu wygrywajacego spinu &ndash; od poczatku lub po wpadnieciu w trakcie tumbla &ndash; zamienia Gaze w duzy mnoznik stosowany do wszystkiego, co wygrales w tym spinie.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Przyklad: wygrana 2x z dwoch zwyklych klastrow buduje Gaze 4. ADD Eye od 10 &rarr; x14 &rarr; placi 28x. MULTIPLY Eye &rarr; x40 &rarr; placi 80x.",
+  GAME_INFO_FREE_SPINS_TITLE: "Darmowe Spiny",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Wyladuj <strong>4+ Lewiatan (Scatter)</strong> - moga spasc w trakcie tumble - aby uruchomic.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "Otrzymujesz stale <strong>15 darmowych spinow</strong>.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>Zbankowany mnoznik</strong> zaczyna od x1 i tylko rosnie, wyplacajac na spinach z Eye.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "Retrigger z 3+ Scatterami za <strong>+5 spinow</strong> (do 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "Sposoby gry",
+  GAME_INFO_MODE_BASE_NAME: "Baza",
+  GAME_INFO_MODE_BASE_COST: "stawka 1x",
+  GAME_INFO_MODE_BASE_TEXT: "Standardowa gra. Eyes trafiaja sie mniej wiecej 1 na 7 spinow - i moga wpasc w trakcie tumbla - najczesciej przyjazny typ ADD.",
+  GAME_INFO_MODE_ANTE_COST: "stawka 1.25x",
+  GAME_INFO_MODE_ANTE_TEXT: "Zaplac 25% wiecej za 2x czestsze bonusy i czestsze Eyes.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Kup Darmowe Spiny",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "stawka 100x",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Kup bezposrednio funkcje Free Spins - scattery wyzwalajace placa tez swoja natychmiastowa nagrode.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "stawka 20x",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Jeden spin z gwarantowanym Eye - bez rundy bonusowej.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "stawka 500x",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins z Gaze ladujacym podwojna Essence i mocno uderzajacymi MULTIPLY Eyes.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "stawka 300x",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "Jeden spin z zawsze co najmniej 2 Eyes (2-5), ktore sie lacza - ogromna wygrana albo nic.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Ogólne zastrzezenie",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "Awaria uniewaznia wszystkie wygrane i gry. Wymagane jest stabilne polaczenie internetowe. W przypadku rozlaczenia odswiez gre, aby dokonczyc nieukonczone rundy. Oczekiwany zwrot jest obliczany na podstawie wielu gier. Wyswietlanie gry nie reprezentuje zadnego fizycznego urzadzenia i sluzy tylko ilustracji. Wygrane sa rozliczane zgodnie z kwota otrzymana z Remote Game Server, a nie zdarzeniami w przegladarce. TM i &copy; 2026 Stake Engine."
+};
+const pt = {
+  ...en,
+  HOME: "INICIO",
+  LOADER_SUBTITLE: "COMO FUNCIONA",
+  LOADER_CARD_1_TITLE: "CARREGUE O GAZE",
+  LOADER_CARD_1_BODY: "Clusters vencedores carregam seu Gaze.\nClusters maiores dao mais Essence.",
+  LOADER_CARD_2_TITLE: "MULTIPLICADORES EYE",
+  LOADER_CARD_2_BODY: "Quando um Eye cai, ele aumenta seu ganho.\nEyes ADD e MULTIPLY podem aparecer.",
+  LOADER_CARD_3_TITLE: "GANHO MAXIMO",
+  LOADER_CARD_3_BODY: "Eyes carregados combinam com Gaze\npara pagamentos enormes.\nAcumule poder e libere tudo.",
+  LOADER_CTA: "CLIQUE PARA CONTINUAR",
+  LOADER_LOADING: "CARREGANDO",
+  LOADER_CARDS_LABEL: "Cartas de tutorial",
+  LOADER_PREVIOUS_CARD: "Carta anterior",
+  LOADER_NEXT_CARD: "Proxima carta",
+  FREE_SPINS_TAP_TO_PLAY: "TOQUE EM QUALQUER LUGAR PARA JOGAR",
+  FREE_SPINS_TAP_TO_SKIP: "TOQUE EM QUALQUER LUGAR PARA PULAR",
+  ACTIVE: "ATIVO",
+  ACTIVATE: "ATIVAR",
+  DEACTIVATE: "DESATIVAR",
+  BUY: "COMPRAR",
+  BONUS: "BONUS",
+  LOW_FUNDS: "SALDO INSUFICIENTE",
+  PER_SPIN: "POR GIRO",
+  TOTAL: "TOTAL",
+  CANCEL: "CANCELAR",
+  CONFIRM_BUY: "CONFIRMAR COMPRA",
+  DECREASE_BET: "diminuir aposta",
+  INCREASE_BET: "aumentar aposta",
+  BALANCE: "SALDO",
+  WIN: "GANHO",
+  BET: "APOSTA",
+  "FREE SPINS": "GIROS GRATIS",
+  STOP: "PARAR",
+  "AUTO SPINS": "GIROS AUTO",
+  INFO: "INFO",
+  MUSIC: "MUSICA",
+  PLAY: "JOGAR",
+  PLAY_AGAIN: "JOGAR DE NOVO",
+  LOADING_REPLAY: "CARREGANDO REPLAY...",
+  REPLAY_UNAVAILABLE: "REPLAY INDISPONIVEL",
+  REPLAY: "REPLAY",
+  SPEED: "VELOCIDADE",
+  WIN_TIER_BIG: "BIG WIN",
+  WIN_TIER_SUPER: "SUPER WIN",
+  WIN_TIER_HUGE: "HUGE WIN",
+  WIN_TIER_MEGA: "MEGA WIN",
+  WIN_TIER_EPIC: "EPIC WIN",
+  WIN_TIER_MAX: "MAX WIN",
+  TUMBLE_WIN: "GANHO TUMBLE",
+  TOTAL_MULT: "MULT TOTAL",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "TOQUE PARA CONTINUAR",
+  ON: "ON",
+  OFF: "OFF",
+  ANTE_SWITCH_NOTE: "2x triggers e mais Eyes - aposta 1.25x",
+  AUTO: "AUTO",
+  ALL: "TODOS",
+  START: "INICIAR",
+  BET_MODE_BASE_TITLE: "BASE",
+  BET_MODE_BASE_DIALOG: "O giro padrao do Abyssal. Eyes chegam em cerca de 1 a cada 7 giros - e podem cair no meio do tumble.",
+  BET_MODE_BASE_TICKER_IDLE: "FAÇA SUA APOSTA",
+  BET_MODE_BASE_TICKER_SPIN: "BOA SORTE",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "Aumente a mare - Eyes e Scatters mais frequentes.",
+  BET_MODE_ANTE_DIALOG: "Dobra a frequencia do bonus e aumenta a dos Eyes por 1.25x a aposta. ANTE BET fica ativo ate ser desativado.",
+  BET_MODE_ANTE_BUTTON: "ATIVAR",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "APOSTA ANTE",
+  BET_MODE_ANTE_TICKER_IDLE: "APOSTA ANTE ATIVA",
+  BET_MODE_ANTE_TICKER_SPIN: "BOA SORTE",
+  BET_MODE_SUPERSPINS_TITLE: "GIROS EYE",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Um giro com Eye garantido - uma unica carga e liberacao.",
+  BET_MODE_SUPERSPINS_DIALOG: "Um unico giro por 20x a aposta com o Eye garantido - e mais podem cair no meio do tumble. Sem bola de neve - uma unica carga e liberacao.",
+  BET_MODE_SUPERSPINS_BUTTON: "ATIVAR",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS ATIVO",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "BOA SORTE",
+  BET_MODE_BONUS_TITLE: "BONUS",
+  BET_MODE_BONUS_DESCRIPTION: "Compre direto para o recurso de Giros Gratis snowball.",
+  BET_MODE_BONUS_DIALOG: "Aciona as Free Spins por 100x a aposta - os scatters do acionamento tambem pagam seu premio instantaneo. O multiplicador persistente (M) cresce ao longo do recurso conforme os Eyes chegam.",
+  BET_MODE_BONUS_BUTTON: "COMPRAR",
+  BET_MODE_BONUS_TICKER_IDLE: "FAÇA SUA APOSTA",
+  BET_MODE_BONUS_TICKER_SPIN: "GIROS GRATIS COMPRADOS",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "O final multi-Eye - de 2 a 5 Eyes se resolvem juntos.",
+  BET_MODE_ULTIMATE_DIALOG: "Sempre pelo menos 2 Eyes no tabuleiro (2-5, e mais podem cair) por 300x a aposta, combinando seus valores ADD e MUL em uma unica resolucao.",
+  BET_MODE_ULTIMATE_BUTTON: "ATIVAR",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE ATIVO",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "BOA SORTE",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "O modo tail - Essence em dobro e valiosos MUL Eyes.",
+  BET_MODE_SUPERBONUS_DIALOG: "Compra o recurso de Free Spins por 500x a aposta. O Gaze carrega Essence em dobro (+4/+6/+10 por cluster) e os scatters do acionamento pagam seu premio instantaneo. O modo que mais se aproxima do teto de 15.000x.",
+  BET_MODE_SUPERBONUS_BUTTON: "COMPRAR",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "FAÇA SUA APOSTA",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS COMPRADO",
+  GAME_INFO_TAGLINE: "SLOT TUMBLE DO MAR PROFUNDO",
+  GAME_INFO_LEAD_HTML: "Simbolos caem em um <strong>tabuleiro 6&times;5</strong>. Voce ganha quando <strong>8 ou mais simbolos iguais</strong> caem <strong>em qualquer lugar</strong> - sem linhas de pagamento. Vencedores explodem e novos simbolos tumbam, podendo encadear mais ganhos em um unico giro. Nao ha <strong>wild</strong>; o <strong>Eye</strong> e o unico multiplicador.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "Como um giro funciona",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "O tabuleiro e preenchido com 30 simbolos.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "Qualquer simbolo com 8+ no tabuleiro ganha e explode.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "Simbolos acima caem e novos entram - um <strong>tumble</strong>.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Ganhos sao verificados novamente ate que uma queda nao pague nada.",
+  GAME_INFO_PAYTABLE_TITLE: "Tabela de pagamentos",
+  GAME_INFO_PAYTABLE_NOTE: "Pagamentos sao multiplos da sua aposta, por quantidade que cai - antes de qualquer multiplicador Eye.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "Simbolos altos",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "Simbolos baixos",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "Simbolo",
+  GAME_INFO_SYMBOL_H1: "Capacete de mergulho",
+  GAME_INFO_SYMBOL_H2: "Nautilus",
+  GAME_INFO_SYMBOL_H3: "Peixe-pescador",
+  GAME_INFO_SYMBOL_H4: "Agua-viva",
+  GAME_INFO_SYMBOL_L1: "Gema safira",
+  GAME_INFO_SYMBOL_L2: "Gema verde-azulada",
+  GAME_INFO_SYMBOL_L3: "Gema ciano",
+  GAME_INFO_SYMBOL_L4: "Gema violeta",
+  GAME_INFO_SYMBOL_L5: "Gema aqua",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Simbolos especiais",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviata - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> aciona as Free Spins e paga na hora: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; tambem nos recursos comprados.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "Eye ADD",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Comum. Multiplicador = <strong>inicio&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "Eye MULTIPLY",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Raro e explosivo. Multiplicador = <strong>inicio&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "O Eye &amp; o Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Cada cluster vencedor carrega o <strong>Gaze</strong> com Essence: <strong>+2</strong> com 8&ndash;9 simbolos, <strong>+3</strong> com 10&ndash;11, <strong>+5</strong> com 12+, ate o maximo de <strong>30</strong>. Se um <strong>Eye</strong> estiver no tabuleiro ao fim de um giro vencedor &ndash; presente desde o inicio ou caido no meio do tumble &ndash; ele transforma o Gaze em um grande multiplicador aplicado a tudo que voce ganhou nesse giro.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Exemplo: uma vitoria de 2x com dois clusters comuns constroi um Gaze de 4. Um ADD Eye comecando em 10 &rarr; x14 &rarr; paga 28x. Um MULTIPLY Eye &rarr; x40 &rarr; paga 80x.",
+  GAME_INFO_FREE_SPINS_TITLE: "Giros Gratis",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Caiam <strong>4+ Leviata (Scatter)</strong> - eles podem cair durante o tumble - para ativar.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "Voce recebe <strong>15 giros gratis</strong> fixos.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "Um <strong>multiplicador acumulado</strong> comeca em x1 e so cresce, pagando em giros com Eye.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "Reative com 3+ Scatters para <strong>+5 giros</strong> (ate 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "Formas de jogar",
+  GAME_INFO_MODE_BASE_NAME: "Base",
+  GAME_INFO_MODE_BASE_COST: "aposta 1x",
+  GAME_INFO_MODE_BASE_TEXT: "O jogo padrao. Eyes chegam em cerca de 1 a cada 7 giros - e podem cair no meio do tumble - quase sempre do tipo amigavel ADD.",
+  GAME_INFO_MODE_ANTE_COST: "aposta 1.25x",
+  GAME_INFO_MODE_ANTE_TEXT: "Pague 25% a mais por 2x mais acionamentos do bonus e Eyes mais frequentes.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Comprar Giros Gratis",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "aposta 100x",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Compre direto o recurso de Free Spins - os scatters do acionamento tambem pagam seu premio instantaneo.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "aposta 20x",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Um unico giro com Eye garantido - sem rodada bonus.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "aposta 500x",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins com o Gaze carregando Essence em dobro e MULTIPLY Eyes batendo forte.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "aposta 300x",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "Um giro com sempre pelo menos 2 Eyes (2-5) que se combinam - enorme ou nada.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Aviso geral",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "Mau funcionamento anula todos os ganhos e jogadas. Uma conexao estavel com a internet e necessaria. Em caso de desconexao, recarregue o jogo para concluir rodadas incompletas. O retorno esperado e calculado em muitas jogadas. A exibicao do jogo nao representa nenhum dispositivo fisico e serve apenas para ilustracao. Ganhos sao liquidados conforme o valor recebido do Remote Game Server, e nao por eventos dentro do navegador. TM e &copy; 2026 Stake Engine."
+};
+const ru = {
+  ...en,
+  HOME: "ГЛАВНАЯ",
+  LOADER_SUBTITLE: "КАК ЭТО РАБОТАЕТ",
+  LOADER_CARD_1_TITLE: "ЗАРЯЖАЙТЕ GAZE",
+  LOADER_CARD_1_BODY: "Выигрышные кластеры заряжают ваш Gaze.\nКрупные кластеры дают больше Essence.",
+  LOADER_CARD_2_TITLE: "МНОЖИТЕЛИ EYE",
+  LOADER_CARD_2_BODY: "Когда появляется Eye, он усиливает выигрыш.\nМогут появиться Eyes ADD и MULTIPLY.",
+  LOADER_CARD_3_TITLE: "МАКС. ВЫИГРЫШ",
+  LOADER_CARD_3_BODY: "Заряженные Eyes соединяются с Gaze\nдля огромных выплат.\nНакопите силу и выпустите ее.",
+  LOADER_CTA: "НАЖМИТЕ, ЧТОБЫ ПРОДОЛЖИТЬ",
+  LOADER_LOADING: "ЗАГРУЗКА",
+  LOADER_CARDS_LABEL: "Обучающие карточки",
+  LOADER_PREVIOUS_CARD: "Предыдущая карточка",
+  LOADER_NEXT_CARD: "Следующая карточка",
+  FREE_SPINS_TAP_TO_PLAY: "НАЖМИТЕ В ЛЮБОМ МЕСТЕ, ЧТОБЫ ИГРАТЬ",
+  FREE_SPINS_TAP_TO_SKIP: "НАЖМИТЕ В ЛЮБОМ МЕСТЕ, ЧТОБЫ ПРОПУСТИТЬ",
+  ACTIVE: "АКТИВНО",
+  ACTIVATE: "АКТИВИРОВАТЬ",
+  DEACTIVATE: "ОТКЛЮЧИТЬ",
+  BUY: "КУПИТЬ",
+  BONUS: "БОНУС",
+  LOW_FUNDS: "НЕДОСТАТОЧНО СРЕДСТВ",
+  PER_SPIN: "ЗА СПИН",
+  TOTAL: "ИТОГО",
+  CANCEL: "ОТМЕНА",
+  CONFIRM_BUY: "ПОДТВЕРДИТЬ ПОКУПКУ",
+  DECREASE_BET: "уменьшить ставку",
+  INCREASE_BET: "увеличить ставку",
+  BALANCE: "БАЛАНС",
+  WIN: "ВЫИГРЫШ",
+  BET: "СТАВКА",
+  "FREE SPINS": "БЕСПЛАТНЫЕ СПИНЫ",
+  STOP: "СТОП",
+  "AUTO SPINS": "АВТОСПИНЫ",
+  INFO: "ИНФО",
+  MUSIC: "МУЗЫКА",
+  PLAY: "ИГРАТЬ",
+  PLAY_AGAIN: "ИГРАТЬ СНОВА",
+  LOADING_REPLAY: "ЗАГРУЗКА ПОВТОРА...",
+  REPLAY_UNAVAILABLE: "ПОВТОР НЕДОСТУПЕН",
+  REPLAY: "ПОВТОР",
+  SPEED: "СКОРОСТЬ",
+  WIN_TIER_BIG: "БОЛЬШОЙ ВЫИГРЫШ",
+  WIN_TIER_SUPER: "СУПЕР ВЫИГРЫШ",
+  WIN_TIER_HUGE: "ОГРОМНЫЙ ВЫИГРЫШ",
+  WIN_TIER_MEGA: "МЕГА ВЫИГРЫШ",
+  WIN_TIER_EPIC: "ЭПИЧЕСКИЙ ВЫИГРЫШ",
+  WIN_TIER_MAX: "МАКС. ВЫИГРЫШ",
+  TUMBLE_WIN: "ВЫИГРЫШ TUMBLE",
+  TOTAL_MULT: "ОБЩИЙ МНОЖИТЕЛЬ",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "НАЖМИТЕ, ЧТОБЫ ПРОДОЛЖИТЬ",
+  ON: "ВКЛ",
+  OFF: "ВЫКЛ",
+  ANTE_SWITCH_NOTE: "2x триггеры и больше Eyes - ставка 1.25x",
+  AUTO: "АВТО",
+  ALL: "ВСЕ",
+  START: "СТАРТ",
+  BET_MODE_BASE_TITLE: "БАЗА",
+  BET_MODE_BASE_DIALOG: "Стандартный спин Abyssal. Eye выпадает примерно 1 раз на 7 спинов - и может упасть прямо во время tumble.",
+  BET_MODE_BASE_TICKER_IDLE: "СДЕЛАЙТЕ СТАВКУ",
+  BET_MODE_BASE_TICKER_SPIN: "УДАЧИ",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "Поднимите прилив - Eyes и Scatters появляются чаще.",
+  BET_MODE_ANTE_DIALOG: "Удваивает частоту бонуса и повышает частоту Eye за 1.25x ставки. ANTE BET остается активным, пока не будет отключен.",
+  BET_MODE_ANTE_BUTTON: "АКТИВИРОВАТЬ",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "СТАВКА ANTE",
+  BET_MODE_ANTE_TICKER_IDLE: "СТАВКА ANTE АКТИВНА",
+  BET_MODE_ANTE_TICKER_SPIN: "УДАЧИ",
+  BET_MODE_SUPERSPINS_TITLE: "EYE СПИНЫ",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Один спин с гарантированным Eye - один набор силы и выпуск.",
+  BET_MODE_SUPERSPINS_DIALOG: "Один спин за 20x ставки с гарантированным Eye - и еще несколько могут упасть во время tumble. Без снежного кома - одна мощная зарядка и разрядка.",
+  BET_MODE_SUPERSPINS_BUTTON: "АКТИВИРОВАТЬ",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS АКТИВНЫ",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "УДАЧИ",
+  BET_MODE_BONUS_TITLE: "БОНУС",
+  BET_MODE_BONUS_DESCRIPTION: "Покупка прямого входа в нарастающую функцию Free Spins.",
+  BET_MODE_BONUS_DIALOG: "Запускает Free Spins за 100x ставки - скаттеры триггера также платят мгновенный приз. Постоянный множитель (M) растет за фичу по мере появления Eye.",
+  BET_MODE_BONUS_BUTTON: "КУПИТЬ",
+  BET_MODE_BONUS_TICKER_IDLE: "СДЕЛАЙТЕ СТАВКУ",
+  BET_MODE_BONUS_TICKER_SPIN: "FREE SPINS КУПЛЕНЫ",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "Мульти-Eye финал - от 2 до 5 Eyes разрешаются вместе.",
+  BET_MODE_ULTIMATE_DIALOG: "Всегда минимум 2 Eyes на поле (2-5, и еще могут упасть) за 300x ставки - их значения ADD и MUL объединяются в одном разрешении.",
+  BET_MODE_ULTIMATE_BUTTON: "АКТИВИРОВАТЬ",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE АКТИВЕН",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "УДАЧИ",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "Хвостовой режим - двойная Essence и ценные MUL Eyes.",
+  BET_MODE_SUPERBONUS_DIALOG: "Покупает Free Spins за 500x ставки. Gaze заряжается двойной Essence (+4/+6/+10 за кластер), а скаттеры триггера платят мгновенный приз. Режим, который чаще всего приближается к потолку 15 000x.",
+  BET_MODE_SUPERBONUS_BUTTON: "КУПИТЬ",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "СДЕЛАЙТЕ СТАВКУ",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS КУПЛЕН",
+  GAME_INFO_TAGLINE: "ГЛУБОКОВОДНЫЙ TUMBLE-СЛОТ",
+  GAME_INFO_LEAD_HTML: "Символы падают на <strong>поле 6&times;5</strong>. Вы выигрываете, когда <strong>8 или больше одинаковых символов</strong> оказываются <strong>где угодно</strong> &ndash; линий выплат нет. Выигрышные символы исчезают, новые символы падают вниз, и один спин может дать цепочку дополнительных выигрышей. <strong>Wild</strong> отсутствует; <strong>Eye</strong> является единственным множителем.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "Как проходит спин",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "Поле заполняется 30 символами.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "Любой символ с 8+ на поле выигрывает и исчезает.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "Символы сверху падают, а новые появляются &ndash; это <strong>tumble</strong>.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Выигрыши проверяются снова, пока падение не перестанет платить.",
+  GAME_INFO_PAYTABLE_TITLE: "Таблица выплат",
+  GAME_INFO_PAYTABLE_NOTE: "Выплаты являются множителем вашей ставки по количеству выпавших символов - до применения множителя Eye.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "Высокие символы",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "Низкие символы",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "Символ",
+  GAME_INFO_SYMBOL_H1: "Водолазный шлем",
+  GAME_INFO_SYMBOL_H2: "Наутилус",
+  GAME_INFO_SYMBOL_H3: "Удильщик",
+  GAME_INFO_SYMBOL_H4: "Медуза",
+  GAME_INFO_SYMBOL_L1: "Сапфировый камень",
+  GAME_INFO_SYMBOL_L2: "Бирюзовый камень",
+  GAME_INFO_SYMBOL_L3: "Голубой камень",
+  GAME_INFO_SYMBOL_L4: "Фиолетовый камень",
+  GAME_INFO_SYMBOL_L5: "Аквамариновый камень",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Особые символы",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> запускает Free Spins и платит мгновенно: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; в том числе на купленных фичах.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Обычный. Множитель = <strong>старт&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Редкий &amp; взрывной. Множитель = <strong>старт&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "Eye и Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Каждый выигрышный кластер заряжает <strong>Gaze</strong> Essence: <strong>+2</strong> за 8&ndash;9 символов, <strong>+3</strong> за 10&ndash;11, <strong>+5</strong> за 12+, максимум <strong>30</strong>. Если <strong>Eye</strong> находится на поле в конце выигрышного спина &ndash; с самого начала или упав во время tumble &ndash; он превращает Gaze в большой множитель, применяемый ко всему выигрышу этого спина.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Пример: выигрыш 2x из двух обычных кластеров дает Gaze 4. ADD Eye со стартом 10 &rarr; x14 &rarr; платит 28x. MULTIPLY Eye &rarr; x40 &rarr; платит 80x.",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Получите <strong>4+ Leviathan (Scatter)</strong> - они могут выпасть в середине tumble - чтобы запустить функцию.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "Вы получаете фиксированные <strong>15 бесплатных спинов</strong>.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>Сохраненный множитель</strong> начинается с x1 и только растет, выплачиваясь на спинах с Eye.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "Повторный запуск при 3+ Scatters дает <strong>+5 спинов</strong> (до 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "Способы игры",
+  GAME_INFO_MODE_BASE_NAME: "База",
+  GAME_INFO_MODE_BASE_COST: "ставка 1x",
+  GAME_INFO_MODE_BASE_TEXT: "Стандартная игра. Eye выпадает примерно 1 раз на 7 спинов - и может упасть во время tumble - чаще всего дружелюбный тип ADD.",
+  GAME_INFO_MODE_ANTE_COST: "ставка 1.25x",
+  GAME_INFO_MODE_ANTE_TEXT: "Платите на 25% больше за вдвое более частые бонусы и более частые Eye.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Купить Free Spins",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "ставка 100x",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Купите фичу Free Spins напрямую - скаттеры триггера также платят мгновенный приз.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "ставка 20x",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Один спин с гарантированным Eye - без бонусного раунда.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "ставка 500x",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins, где Gaze заряжается двойной Essence, а MULTIPLY Eyes бьют мощно.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "ставка 300x",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "Один спин всегда минимум с 2 Eyes (2-5), которые объединяются - огромный куш или ничего.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Общий отказ от ответственности",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "Неисправность аннулирует все выигрыши и игры. Требуется стабильное интернет-соединение. В случае отключения перезагрузите игру, чтобы завершить незаконченные раунды. Ожидаемая отдача рассчитывается по большому числу игр. Отображение игры не представляет физическое устройство и предназначено только для иллюстрации. Выигрыши рассчитываются по сумме, полученной от Remote Game Server, а не по событиям в веб-браузере. TM и &copy; 2026 Stake Engine."
+};
+const tr = {
+  ...en,
+  HOME: "ANA SAYFA",
+  LOADER_SUBTITLE: "NASIL ÇALIŞIR",
+  LOADER_CARD_1_TITLE: "GAZE ŞARJ ET",
+  LOADER_CARD_1_BODY: "Kazanan kümeler Gaze değerini doldurur.\nBüyük kümeler daha çok Essence verir.",
+  LOADER_CARD_2_TITLE: "EYE ÇARPANLARI",
+  LOADER_CARD_2_BODY: "Bir Eye geldiğinde kazancınızı artırır.\nADD ve MULTIPLY Eyes görünebilir.",
+  LOADER_CARD_3_TITLE: "MAKS. KAZANÇ",
+  LOADER_CARD_3_BODY: "Şarjlı Eyes, Gaze ile birleşerek\nbüyük ödemeler oluşturur.\nGücü biriktirin, sonra serbest bırakın.",
+  LOADER_CTA: "DEVAM ETMEK İÇİN TIKLAYIN",
+  LOADER_LOADING: "YÜKLENİYOR",
+  LOADER_CARDS_LABEL: "Öğretici kartlar",
+  LOADER_PREVIOUS_CARD: "Önceki kart",
+  LOADER_NEXT_CARD: "Sonraki kart",
+  FREE_SPINS_TAP_TO_PLAY: "OYNAMAK İÇİN HERHANGİ BİR YERE DOKUNUN",
+  FREE_SPINS_TAP_TO_SKIP: "ATLAMAK İÇİN HERHANGİ BİR YERE DOKUNUN",
+  ACTIVE: "AKTİF",
+  ACTIVATE: "AKTİF ET",
+  DEACTIVATE: "DEVRE DIŞI BIRAK",
+  BUY: "SATIN AL",
+  BONUS: "BONUS",
+  LOW_FUNDS: "YETERSİZ BAKİYE",
+  PER_SPIN: "SPİN BAŞINA",
+  TOTAL: "TOPLAM",
+  CANCEL: "İPTAL",
+  CONFIRM_BUY: "SATIN ALMAYI ONAYLA",
+  DECREASE_BET: "bahsi azalt",
+  INCREASE_BET: "bahsi artır",
+  BALANCE: "BAKİYE",
+  WIN: "KAZANÇ",
+  BET: "BAHİS",
+  "FREE SPINS": "ÜCRETSİZ SPİNLER",
+  STOP: "DUR",
+  "AUTO SPINS": "OTOMATİK SPİNLER",
+  INFO: "BİLGİ",
+  MUSIC: "MÜZİK",
+  PLAY: "OYNA",
+  PLAY_AGAIN: "TEKRAR OYNA",
+  LOADING_REPLAY: "TEKRAR YÜKLENİYOR...",
+  REPLAY_UNAVAILABLE: "TEKRAR KULLANILAMAZ",
+  REPLAY: "TEKRAR",
+  SPEED: "HIZ",
+  WIN_TIER_BIG: "BÜYÜK KAZANÇ",
+  WIN_TIER_SUPER: "SÜPER KAZANÇ",
+  WIN_TIER_HUGE: "DEV KAZANÇ",
+  WIN_TIER_MEGA: "MEGA KAZANÇ",
+  WIN_TIER_EPIC: "EPİK KAZANÇ",
+  WIN_TIER_MAX: "MAKS. KAZANÇ",
+  TUMBLE_WIN: "TUMBLE KAZANCI",
+  TOTAL_MULT: "TOPLAM ÇARPAN",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "DEVAM ETMEK İÇİN DOKUNUN",
+  ON: "AÇIK",
+  OFF: "KAPALI",
+  ANTE_SWITCH_NOTE: "2x tetikleme ve daha çok Eye - 1.25x bahis",
+  AUTO: "OTO",
+  ALL: "TÜMÜ",
+  START: "BAŞLAT",
+  BET_MODE_BASE_TITLE: "TEMEL",
+  BET_MODE_BASE_DIALOG: "Standart Abyssal spini. Eye yaklaşık 7 spinde 1 gelir - ve tumble ortasında da düşebilir.",
+  BET_MODE_BASE_TICKER_IDLE: "BAHSİNİZİ YAPIN",
+  BET_MODE_BASE_TICKER_SPIN: "İYİ ŞANSLAR",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "Gelgiti yükseltin - Eyes ve Scatters daha sık gelir.",
+  BET_MODE_ANTE_DIALOG: "1.25x bahisle bonus tetikleme sıklığını iki katına çıkarır ve Eye sıklığını artırır. ANTE BET kapatılana kadar aktif kalır.",
+  BET_MODE_ANTE_BUTTON: "AKTİF ET",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "ANTE BAHİS",
+  BET_MODE_ANTE_TICKER_IDLE: "ANTE BAHİS AKTİF",
+  BET_MODE_ANTE_TICKER_SPIN: "İYİ ŞANSLAR",
+  BET_MODE_SUPERSPINS_TITLE: "EYE SPİNLERİ",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Garantili Eye içeren tek spin - tek bir biriktirme ve serbest bırakma.",
+  BET_MODE_SUPERSPINS_DIALOG: "20x bahisle tek spin, Eye garantili - tumble ortasında başkaları da düşebilir. Kartopu yok - tek güçlü doluş ve boşalış.",
+  BET_MODE_SUPERSPINS_BUTTON: "AKTİF ET",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS AKTİF",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "İYİ ŞANSLAR",
+  BET_MODE_BONUS_TITLE: "BONUS",
+  BET_MODE_BONUS_DESCRIPTION: "Free Spins kartopu özelliğine doğrudan giriş satın alın.",
+  BET_MODE_BONUS_DIALOG: "100x bahisle Free Spins tetikler - tetikleyen scatterlar anında ödüllerini de öder. Kalıcı çarpan (M), Eyeler geldikçe özellik boyunca büyür.",
+  BET_MODE_BONUS_BUTTON: "SATIN AL",
+  BET_MODE_BONUS_TICKER_IDLE: "BAHSİNİZİ YAPIN",
+  BET_MODE_BONUS_TICKER_SPIN: "FREE SPINS SATIN ALINDI",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "Çoklu Eye finali - 2 ila 5 Eye birlikte çözülür.",
+  BET_MODE_ULTIMATE_DIALOG: "300x bahisle tahtada her zaman en az 2 Eye (2-5, dahası da düşebilir); ADD ve MUL değerleri tek bir çözümde birleşir.",
+  BET_MODE_ULTIMATE_BUTTON: "AKTİF ET",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE AKTİF",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "İYİ ŞANSLAR",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "Kuyruk modu - çift Essence ve değerli MUL Eyeler.",
+  BET_MODE_SUPERBONUS_DIALOG: "500x bahisle Free Spins özelliğini satın alır. Gaze çift Essence ile dolar (küme başına +4/+6/+10) ve tetikleyen scatterlar anında ödüllerini öder. 15.000x sınırına en sık yaklaşan mod.",
+  BET_MODE_SUPERBONUS_BUTTON: "SATIN AL",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "BAHSİNİZİ YAPIN",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS SATIN ALINDI",
+  GAME_INFO_TAGLINE: "DERİN DENİZ TUMBLE SLOTU",
+  GAME_INFO_LEAD_HTML: "Semboller <strong>6&times;5 tahta</strong> üzerine düşer. <strong>Aynı sembolden 8 veya daha fazlası</strong> <strong>herhangi bir yere</strong> geldiğinde kazanırsınız &ndash; ödeme çizgisi yoktur. Kazananlar patlar ve yeni semboller tumble ile iner; bu da tek spinden zincirleme kazançlar oluşturabilir. <strong>Wild</strong> yoktur; <strong>Eye</strong> tek çarpandır.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "Bir spin nasıl oynanır",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "Tahta 30 sembolle dolar.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "Tahtada 8+ bulunan herhangi bir sembol kazanır ve patlar.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "Üstteki semboller düşer ve yenileri gelir &ndash; bu bir <strong>tumble</strong>dır.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Bir düşüş ödeme yapmayana kadar kazançlar tekrar kontrol edilir.",
+  GAME_INFO_PAYTABLE_TITLE: "Ödeme tablosu",
+  GAME_INFO_PAYTABLE_NOTE: "Ödemeler, kaç sembol geldiğine göre bahsinizin katıdır - Eye çarpanı uygulanmadan önce.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "Yüksek semboller",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "Düşük semboller",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "Sembol",
+  GAME_INFO_SYMBOL_H1: "Dalış kaskı",
+  GAME_INFO_SYMBOL_H2: "Nautilus",
+  GAME_INFO_SYMBOL_H3: "Fener balığı",
+  GAME_INFO_SYMBOL_H4: "Denizanası",
+  GAME_INFO_SYMBOL_L1: "Safir mücevher",
+  GAME_INFO_SYMBOL_L2: "Camgöbeği mücevher",
+  GAME_INFO_SYMBOL_L3: "Siyan mücevher",
+  GAME_INFO_SYMBOL_L4: "Menekşe mücevher",
+  GAME_INFO_SYMBOL_L5: "Aqua mücevher",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Özel semboller",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> Free Spins tetikler ve anında öder: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; satın alınan özelliklerde de.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Yaygın. Çarpan = <strong>başlangıç&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Nadir &amp; patlayıcı. Çarpan = <strong>başlangıç&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "Eye ve Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Her kazanan küme <strong>Gaze</strong> değerini Essence ile doldurur: 8&ndash;9 sembolde <strong>+2</strong>, 10&ndash;11 sembolde <strong>+3</strong>, 12+ sembolde <strong>+5</strong>, en fazla <strong>30</strong>. Kazanan bir spinin sonunda tahtada <strong>Eye</strong> varsa &ndash; baştan beri olsun ya da tumble ortasında düşmüş olsun &ndash; Gaze o spinde kazandığınız her şeye uygulanan büyük bir çarpana dönüşür.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Örnek: iki sıradan kümeden gelen 2x kazanç 4 Gaze biriktirir. 10 ile başlayan bir ADD Eye &rarr; x14 &rarr; 28x öder. Bir MULTIPLY Eye &rarr; x40 &rarr; 80x öder.",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Tetiklemek için <strong>4+ Leviathan (Scatter)</strong> getirin - tumble sırasında da düşebilirler.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "Sabit <strong>15 ücretsiz spin</strong> alırsınız.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>Bankalanmış çarpan</strong> x1 ile başlar ve sadece büyür; Eye spinlerinde ödeme yapar.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "3+ Scatters ile yeniden tetikleyerek <strong>+5 spin</strong> alın (30a kadar).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "Oynama yolları",
+  GAME_INFO_MODE_BASE_NAME: "Temel",
+  GAME_INFO_MODE_BASE_COST: "1x bahis",
+  GAME_INFO_MODE_BASE_TEXT: "Standart oyun. Eye yaklaşık 7 spinde 1 gelir - tumble ortasında da düşebilir - çoğunlukla dost canlısı ADD türü.",
+  GAME_INFO_MODE_ANTE_COST: "1.25x bahis",
+  GAME_INFO_MODE_ANTE_TEXT: "Bonusun iki kat sık tetiklenmesi ve daha sık Eyeler için %25 fazla ödeyin.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Free Spins Satın Al",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "100x bahis",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Free Spins özelliğini doğrudan satın alın - tetikleyen scatterlar anında ödüllerini de öder.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "20x bahis",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Eye garantili tek spin - bonus turu yok.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "500x bahis",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Gaze çift Essence ile dolarken MULTIPLY Eyelerin sert vurduğu Free Spins.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "300x bahis",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "Her zaman en az 2 Eye (2-5) ile tek spin; birleşirler - ya devasa ya hiç.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Genel Sorumluluk Reddi",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "Arıza tüm kazançları ve oyunları geçersiz kılar. Kesintisiz internet bağlantısı gerekir. Bağlantı kesilirse tamamlanmamış turları bitirmek için oyunu yeniden yükleyin. Beklenen getiri çok sayıda oyun üzerinden hesaplanır. Oyun ekranı herhangi bir fiziksel cihazı temsil etmez ve yalnızca açıklama amaçlıdır. Kazançlar web tarayıcısındaki olaylara göre değil, Remote Game Server tarafından alınan tutara göre ödenir. TM ve &copy; 2026 Stake Engine."
+};
+const vi = {
+  ...en,
+  HOME: "TRANG CHỦ",
+  LOADER_SUBTITLE: "CÁCH HOẠT ĐỘNG",
+  LOADER_CARD_1_TITLE: "NẠP GAZE",
+  LOADER_CARD_1_BODY: "Các cụm thắng nạp Gaze của bạn.\nCụm càng lớn cho càng nhiều Essence.",
+  LOADER_CARD_2_TITLE: "HỆ SỐ EYE",
+  LOADER_CARD_2_BODY: "Khi Eye xuất hiện, nó tăng chiến thắng của bạn.\nADD và MULTIPLY Eyes có thể xuất hiện.",
+  LOADER_CARD_3_TITLE: "THẮNG TỐI ĐA",
+  LOADER_CARD_3_BODY: "Eyes đã nạp kết hợp với Gaze\nđể tạo các khoản trả lớn.\nTích sức mạnh rồi giải phóng.",
+  LOADER_CTA: "NHẤP ĐỂ TIẾP TỤC",
+  LOADER_LOADING: "ĐANG TẢI",
+  LOADER_CARDS_LABEL: "Thẻ hướng dẫn",
+  LOADER_PREVIOUS_CARD: "Thẻ trước",
+  LOADER_NEXT_CARD: "Thẻ tiếp theo",
+  FREE_SPINS_TAP_TO_PLAY: "CHẠM BẤT CỨ ĐÂU ĐỂ CHƠI",
+  FREE_SPINS_TAP_TO_SKIP: "CHẠM BẤT CỨ ĐÂU ĐỂ BỎ QUA",
+  ACTIVE: "ĐANG BẬT",
+  ACTIVATE: "BẬT",
+  DEACTIVATE: "TẮT",
+  BUY: "MUA",
+  BONUS: "THƯỞNG",
+  LOW_FUNDS: "KHÔNG ĐỦ TIỀN",
+  PER_SPIN: "MỖI VÒNG",
+  TOTAL: "TỔNG",
+  CANCEL: "HỦY",
+  CONFIRM_BUY: "XÁC NHẬN MUA",
+  DECREASE_BET: "giảm cược",
+  INCREASE_BET: "tăng cược",
+  BALANCE: "SỐ DƯ",
+  WIN: "THẮNG",
+  BET: "CƯỢC",
+  "FREE SPINS": "VÒNG QUAY MIỄN PHÍ",
+  STOP: "DỪNG",
+  "AUTO SPINS": "TỰ ĐỘNG QUAY",
+  INFO: "THÔNG TIN",
+  MUSIC: "NHẠC",
+  PLAY: "CHƠI",
+  PLAY_AGAIN: "CHƠI LẠI",
+  LOADING_REPLAY: "ĐANG TẢI PHÁT LẠI...",
+  REPLAY_UNAVAILABLE: "KHÔNG CÓ PHÁT LẠI",
+  REPLAY: "PHÁT LẠI",
+  SPEED: "TỐC ĐỘ",
+  WIN_TIER_BIG: "THẮNG LỚN",
+  WIN_TIER_SUPER: "SIÊU THẮNG",
+  WIN_TIER_HUGE: "THẮNG KHỔNG LỒ",
+  WIN_TIER_MEGA: "MEGA THẮNG",
+  WIN_TIER_EPIC: "THẮNG HOÀNH TRÁNG",
+  WIN_TIER_MAX: "THẮNG TỐI ĐA",
+  TUMBLE_WIN: "THẮNG TUMBLE",
+  TOTAL_MULT: "TỔNG HỆ SỐ",
+  GAZE: "GAZE",
+  TAP_TO_CONTINUE: "CHẠM ĐỂ TIẾP TỤC",
+  ON: "BẬT",
+  OFF: "TẮT",
+  ANTE_SWITCH_NOTE: "2x kích hoạt và nhiều Eye hơn - cược 1.25x",
+  AUTO: "TỰ ĐỘNG",
+  ALL: "TẤT CẢ",
+  START: "BẮT ĐẦU",
+  BET_MODE_BASE_TITLE: "CƠ BẢN",
+  BET_MODE_BASE_DIALOG: "Vòng quay Abyssal tiêu chuẩn. Eye xuất hiện khoảng 1 trong 7 vòng quay - và có thể rơi vào giữa lúc tumble.",
+  BET_MODE_BASE_TICKER_IDLE: "ĐẶT CƯỢC",
+  BET_MODE_BASE_TICKER_SPIN: "CHÚC MAY MẮN",
+  BET_MODE_ANTE_TITLE: "ANTE",
+  BET_MODE_ANTE_DESCRIPTION: "Nâng thủy triều - Eyes và Scatters xuất hiện thường xuyên hơn.",
+  BET_MODE_ANTE_DIALOG: "Nhân đôi tần suất kích hoạt bonus và tăng tần suất Eye với 1.25x tiền cược. ANTE BET vẫn hoạt động cho đến khi tắt.",
+  BET_MODE_ANTE_BUTTON: "BẬT",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "CƯỢC ANTE",
+  BET_MODE_ANTE_TICKER_IDLE: "CƯỢC ANTE ĐANG BẬT",
+  BET_MODE_ANTE_TICKER_SPIN: "CHÚC MAY MẮN",
+  BET_MODE_SUPERSPINS_TITLE: "VÒNG EYE",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "Một vòng chắc chắn có Eye - một lần tích và giải phóng.",
+  BET_MODE_SUPERSPINS_DIALOG: "Một vòng quay duy nhất với 20x tiền cược, Eye được đảm bảo - và nhiều Eye khác có thể rơi vào giữa lúc tumble. Không có cầu tuyết - một lần tích lũy và bùng nổ.",
+  BET_MODE_SUPERSPINS_BUTTON: "BẬT",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS ĐANG BẬT",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "CHÚC MAY MẮN",
+  BET_MODE_BONUS_TITLE: "THƯỞNG",
+  BET_MODE_BONUS_DESCRIPTION: "Mua thẳng vào tính năng snowball Free Spins.",
+  BET_MODE_BONUS_DIALOG: "Kích hoạt Free Spins với 100x tiền cược - các scatter kích hoạt cũng trả thưởng tức thì. Hệ số bền vững (M) lớn dần trong suốt tính năng khi Eye xuất hiện.",
+  BET_MODE_BONUS_BUTTON: "MUA",
+  BET_MODE_BONUS_TICKER_IDLE: "ĐẶT CƯỢC",
+  BET_MODE_BONUS_TICKER_SPIN: "ĐÃ MUA FREE SPINS",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "Màn kết multi-Eye - 2 đến 5 Eye cùng được giải quyết.",
+  BET_MODE_ULTIMATE_DIALOG: "Luôn có ít nhất 2 Eye trên bảng (2-5, và có thể rơi thêm) với 300x tiền cược, kết hợp các giá trị ADD và MUL trong một lần giải quyết.",
+  BET_MODE_ULTIMATE_BUTTON: "BẬT",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE ĐANG BẬT",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "CHÚC MAY MẮN",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "Chế độ đuôi - Essence gấp đôi và MUL Eye quý giá.",
+  BET_MODE_SUPERBONUS_DIALOG: "Mua tính năng Free Spins với 500x tiền cược. Gaze nạp Essence gấp đôi (+4/+6/+10 mỗi cụm) và các scatter kích hoạt trả thưởng tức thì. Chế độ thường tiến gần nhất tới mức trần 15.000x.",
+  BET_MODE_SUPERBONUS_BUTTON: "MUA",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "ĐẶT CƯỢC",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "ĐÃ MUA SUPER BONUS",
+  GAME_INFO_TAGLINE: "SLOT TUMBLE DƯỚI BIỂN SÂU",
+  GAME_INFO_LEAD_HTML: "Biểu tượng rơi xuống <strong>bảng 6&times;5</strong>. Bạn thắng khi <strong>8 biểu tượng giống nhau trở lên</strong> rơi <strong>bất kỳ đâu</strong> &ndash; không có dòng thanh toán. Biểu tượng thắng nổ ra và biểu tượng mới tumble xuống, có thể tạo chuỗi thắng từ một vòng quay. Không có <strong>wild</strong>; <strong>Eye</strong> là hệ số duy nhất.",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "Một vòng quay diễn ra thế nào",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "Bảng được lấp đầy bằng 30 biểu tượng.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "Bất kỳ biểu tượng nào có 8+ trên bảng sẽ thắng và nổ.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "Biểu tượng phía trên rơi xuống và biểu tượng mới xuất hiện &ndash; đó là một <strong>tumble</strong>.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Thắng được kiểm tra lại, lặp lại cho đến khi một lượt rơi không trả thưởng.",
+  GAME_INFO_PAYTABLE_TITLE: "Bảng trả thưởng",
+  GAME_INFO_PAYTABLE_NOTE: "Khoản trả là bội số cược của bạn, dựa trên số lượng biểu tượng rơi - trước mọi hệ số Eye.",
+  GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "Biểu tượng cao",
+  GAME_INFO_PAYTABLE_LOW_SYMBOLS: "Biểu tượng thấp",
+  GAME_INFO_PAYTABLE_SYMBOL_HEADER: "Biểu tượng",
+  GAME_INFO_SYMBOL_H1: "Mũ lặn",
+  GAME_INFO_SYMBOL_H2: "Ốc nautilus",
+  GAME_INFO_SYMBOL_H3: "Cá cần câu",
+  GAME_INFO_SYMBOL_H4: "Sứa",
+  GAME_INFO_SYMBOL_L1: "Đá quý sapphire",
+  GAME_INFO_SYMBOL_L2: "Đá quý xanh teal",
+  GAME_INFO_SYMBOL_L3: "Đá quý cyan",
+  GAME_INFO_SYMBOL_L4: "Đá quý tím",
+  GAME_INFO_SYMBOL_L5: "Đá quý aqua",
+  GAME_INFO_SPECIAL_SYMBOLS_TITLE: "Biểu tượng đặc biệt",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> kích hoạt Free Spins và trả thưởng ngay: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; kể cả khi mua tính năng.",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "Thường gặp. Hệ số = <strong>khởi đầu&nbsp;+&nbsp;Gaze</strong>.",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Hiếm &amp; bùng nổ. Hệ số = <strong>khởi đầu&nbsp;&times;&nbsp;Gaze</strong>.",
+  GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Mỗi cụm thắng nạp <strong>Gaze</strong> bằng Essence: <strong>+2</strong> với 8&ndash;9 biểu tượng, <strong>+3</strong> với 10&ndash;11, <strong>+5</strong> với 12+, tối đa <strong>30</strong>. Nếu có <strong>Eye</strong> trên bảng khi kết thúc vòng quay thắng &ndash; có từ đầu hoặc rơi vào giữa lúc tumble &ndash; nó biến Gaze thành một hệ số lớn áp dụng cho toàn bộ số thắng trong vòng quay đó.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Ví dụ: thắng 2x từ hai cụm thường tạo Gaze 4. Eye ADD bắt đầu từ 10 &rarr; x14 &rarr; trả 28x. Eye MULTIPLY &rarr; x40 &rarr; trả 80x.",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Rơi <strong>4+ Leviathan (Scatter)</strong> - chúng có thể rơi giữa tumble - để kích hoạt.",
+  GAME_INFO_FREE_SPINS_BULLET_2_HTML: "Bạn nhận cố định <strong>15 vòng quay miễn phí</strong>.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>Hệ số tích lũy</strong> bắt đầu ở x1 và chỉ tăng, trả thưởng trên các vòng có Eye.",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "Tái kích hoạt với 3+ Scatters để nhận <strong>+5 vòng</strong> (tối đa 30).",
+  GAME_INFO_WAYS_TO_PLAY_TITLE: "Cách chơi",
+  GAME_INFO_MODE_BASE_NAME: "Cơ bản",
+  GAME_INFO_MODE_BASE_COST: "cược 1x",
+  GAME_INFO_MODE_BASE_TEXT: "Trò chơi tiêu chuẩn. Eye xuất hiện khoảng 1 trong 7 vòng quay - và có thể rơi vào giữa lúc tumble - chủ yếu là loại ADD thân thiện.",
+  GAME_INFO_MODE_ANTE_COST: "cược 1.25x",
+  GAME_INFO_MODE_ANTE_TEXT: "Trả thêm 25% để bonus kích hoạt gấp đôi và Eye xuất hiện thường xuyên hơn.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Mua Free Spins",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "cược 100x",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Mua thẳng vào tính năng Free Spins - các scatter kích hoạt cũng trả thưởng tức thì.",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "cược 20x",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "Một vòng quay chắc chắn có Eye - không có vòng thưởng.",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "cược 500x",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Free Spins với Gaze nạp Essence gấp đôi và MULTIPLY Eye đánh mạnh.",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
+  GAME_INFO_MODE_ULTIMATE_COST: "cược 300x",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "Một vòng quay luôn có ít nhất 2 Eye (2-5) kết hợp với nhau - cực lớn hoặc không gì cả.",
+  GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Tuyên bố miễn trừ chung",
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "Lỗi kỹ thuật làm vô hiệu mọi chiến thắng và lượt chơi. Cần có kết nối internet ổn định. Nếu mất kết nối, hãy tải lại trò chơi để hoàn tất các vòng chưa xong. Tỷ lệ hoàn trả kỳ vọng được tính trên nhiều lượt chơi. Hiển thị trò chơi không đại diện cho bất kỳ thiết bị vật lý nào và chỉ nhằm mục đích minh họa. Tiền thắng được thanh toán theo số tiền nhận từ Remote Game Server, không theo các sự kiện trong trình duyệt web. TM và &copy; 2026 Stake Engine."
+};
 const zh = {
+  ...en,
   HOME: "主页",
   LOADER_SUBTITLE: "玩法说明",
-  LOADER_LOGO: "ABYSSAL",
-  LOADER_CARD_1_TITLE: "积攒凝视能量",
-  LOADER_CARD_1_BODY: "获胜组合会积攒凝视能量。\n更多连消，更多力量。",
-  LOADER_CARD_2_TITLE: "眼睛倍数",
-  LOADER_CARD_2_BODY: "眼睛出现时会提升您的赢分。\n可能出现加成或倍增眼睛。",
-  LOADER_CARD_3_TITLE: "最高赢分",
-  LOADER_CARD_3_BODY: "充能眼睛与凝视能量结合，\n带来巨额奖励。\n积蓄力量，再尽情释放。",
+  LOADER_CARD_1_TITLE: "充能 GAZE",
+  LOADER_CARD_1_BODY: "获胜的连消组合为 Gaze 充能。\n组合越大，Essence 越多。",
+  LOADER_CARD_2_TITLE: "EYE 倍数",
+  LOADER_CARD_2_BODY: "当 Eye 出现时，它会提升你的赢奖。\nADD 和 MULTIPLY Eyes 都可能出现。",
+  LOADER_CARD_3_TITLE: "最高赢奖",
+  LOADER_CARD_3_BODY: "充能后的 Eyes 会与 Gaze 结合，\n带来巨额支付。\n积蓄力量，然后释放。",
   LOADER_CTA: "点击继续",
   LOADER_LOADING: "加载中",
   LOADER_CARDS_LABEL: "教程卡片",
   LOADER_PREVIOUS_CARD: "上一张卡片",
   LOADER_NEXT_CARD: "下一张卡片",
-  FREE_SPINS_TAP_TO_PLAY: "点击任意处开始",
-  FREE_SPINS_TAP_TO_SKIP: "点击任意处跳过",
-  ACTIVE: "激活中",
+  FREE_SPINS_TAP_TO_PLAY: "点击任意位置开始",
+  FREE_SPINS_TAP_TO_SKIP: "点击任意位置跳过",
+  ACTIVE: "已激活",
   ACTIVATE: "激活",
   DEACTIVATE: "停用",
   BUY: "购买",
@@ -22147,7 +25131,7 @@ const zh = {
   DECREASE_BET: "减少下注",
   INCREASE_BET: "增加下注",
   BALANCE: "余额",
-  WIN: "赢分",
+  WIN: "赢奖",
   BET: "下注",
   "FREE SPINS": "免费旋转",
   STOP: "停止",
@@ -22155,80 +25139,75 @@ const zh = {
   INFO: "信息",
   MUSIC: "音乐",
   SFX: "音效",
-  PLAY: "播放",
-  PLAY_AGAIN: "再次播放",
+  PLAY: "开始",
+  PLAY_AGAIN: "再玩一次",
   LOADING_REPLAY: "正在加载回放...",
   REPLAY_UNAVAILABLE: "回放不可用",
   REPLAY: "回放",
   SPEED: "速度",
   WIN_TIER_BIG: "大奖",
-  WIN_TIER_SUPER: "超级赢分",
+  WIN_TIER_SUPER: "超级大奖",
   WIN_TIER_HUGE: "巨奖",
-  WIN_TIER_MEGA: "超级大奖",
+  WIN_TIER_MEGA: "超巨奖",
   WIN_TIER_EPIC: "史诗大奖",
-  WIN_TIER_MAX: "最高赢分",
-  TUMBLE_WIN: "连消赢分",
+  WIN_TIER_MAX: "最高赢奖",
+  TUMBLE_WIN: "TUMBLE 赢奖",
   TOTAL_MULT: "总倍数",
-  GAZE: "凝视",
+  GAZE: "GAZE",
   TAP_TO_CONTINUE: "点击继续",
   ON: "开启",
   OFF: "关闭",
-  ANTE_SWITCH_NOTE: "更多眼睛和 Scatter - 1.25x 下注",
+  ANTE_SWITCH_NOTE: "2 倍触发 & 更多 Eye - 1.25x 投注",
   AUTO: "自动",
   ALL: "全部",
   START: "开始",
   BET_MODE_BASE_TITLE: "基础",
-  BET_MODE_BASE_DIALOG: "标准 Abyssal 旋转。眼睛较少出现，通常为 ADD 类型。",
-  BET_MODE_BASE_BUTTON: "",
+  BET_MODE_BASE_DIALOG: "标准的 Abyssal 旋转。Eye 大约每 7 次旋转出现 1 次，也可能在 tumble 中途掉落。",
   BET_MODE_BASE_TICKER_IDLE: "请下注",
-  BET_MODE_BASE_TICKER_SPIN: "祝您好运",
+  BET_MODE_BASE_TICKER_SPIN: "祝你好运",
   BET_MODE_ANTE_TITLE: "ANTE",
-  BET_MODE_ANTE_DESCRIPTION: "提高眼睛和 Scatter 的出现频率。",
-  BET_MODE_ANTE_DIALOG: "以 1.25x 下注提高眼睛和 Scatter 的出现频率。ANTE BET 会保持激活直到停用。",
+  BET_MODE_ANTE_DESCRIPTION: "提升潮汐 - Eyes 和 Scatters 出现更频繁。",
+  BET_MODE_ANTE_DIALOG: "以 1.25x 投注让奖励触发率翻倍并提高 Eye 出现率。ANTE BET 在关闭前保持激活。",
   BET_MODE_ANTE_BUTTON: "激活",
   BET_MODE_ANTE_BET_AMOUNT_LABEL: "ANTE 下注",
   BET_MODE_ANTE_TICKER_IDLE: "ANTE 下注已激活",
-  BET_MODE_ANTE_TICKER_SPIN: "祝您好运",
-  BET_MODE_SUPERSPINS_TITLE: "眼睛旋转",
-  BET_MODE_SUPERSPINS_DESCRIPTION: "一次保证出现眼睛的旋转。",
-  BET_MODE_SUPERSPINS_DIALOG: "以 20x 下注进行一次旋转，并保证眼睛落下。无累积奖励，一次直接的蓄力和释放。",
+  BET_MODE_ANTE_TICKER_SPIN: "祝你好运",
+  BET_MODE_SUPERSPINS_TITLE: "EYE 旋转",
+  BET_MODE_SUPERSPINS_DESCRIPTION: "一次保证出现 Eye 的旋转 - 一次蓄力与释放。",
+  BET_MODE_SUPERSPINS_DIALOG: "以 20x 投注进行单次旋转，Eye 必定出现 - tumble 中途还可能掉落更多。没有雪球 - 一次蓄力，一次爆发。",
   BET_MODE_SUPERSPINS_BUTTON: "激活",
-  BET_MODE_SUPERSPINS_TICKER_IDLE: "超级旋转已激活",
-  BET_MODE_SUPERSPINS_TICKER_SPIN: "祝您好运",
+  BET_MODE_SUPERSPINS_TICKER_IDLE: "SUPER SPINS 已激活",
+  BET_MODE_SUPERSPINS_TICKER_SPIN: "祝你好运",
   BET_MODE_BONUS_TITLE: "奖励",
-  BET_MODE_BONUS_DESCRIPTION: "直接购买进入免费旋转累积功能。",
-  BET_MODE_BONUS_DIALOG: "以 100x 下注触发免费旋转。持久倍数 (M) 会在功能中随眼睛落下而累积。",
+  BET_MODE_BONUS_DESCRIPTION: "直接购买进入 Free Spins 滚雪球功能。",
+  BET_MODE_BONUS_DIALOG: "以 100x 投注触发 Free Spins - 触发的 scatter 也会支付即时奖金。随着 Eye 出现，持续倍数（M）在整个功能中不断增长。",
   BET_MODE_BONUS_BUTTON: "购买",
   BET_MODE_BONUS_TICKER_IDLE: "请下注",
-  BET_MODE_BONUS_TICKER_SPIN: "已购买免费旋转",
-  BET_MODE_ULTIMATE_TITLE: "终极",
-  BET_MODE_ULTIMATE_DESCRIPTION: "多个眼睛同时结算的终局模式。",
-  BET_MODE_ULTIMATE_DIALOG: "唯一会让多个眼睛同时开启的模式，300x 下注，并在一次结算中组合 ADD 和 MUL 数值。",
+  BET_MODE_BONUS_TICKER_SPIN: "已购买 FREE SPINS",
+  BET_MODE_ULTIMATE_TITLE: "ULTIMATE",
+  BET_MODE_ULTIMATE_DESCRIPTION: "多 Eye 终局 - 2 到 5 个 Eye 一同结算。",
+  BET_MODE_ULTIMATE_DIALOG: "以 300x 投注，棋盘上始终至少有 2 个 Eye（2-5 个，还可能掉落更多），它们的 ADD 和 MUL 数值在一次结算中合并。",
   BET_MODE_ULTIMATE_BUTTON: "激活",
-  BET_MODE_ULTIMATE_TICKER_IDLE: "终极模式已激活",
-  BET_MODE_ULTIMATE_TICKER_SPIN: "祝您好运",
-  BET_MODE_SUPERBONUS_TITLE: "超级奖励",
-  BET_MODE_SUPERBONUS_DESCRIPTION: "充能 +2 且 MUL 更常见的尾端模式。",
-  BET_MODE_SUPERBONUS_DIALOG: "以 500x 下注购买免费旋转功能，每次连接提供 +2 凝视充能，且 MUL 眼睛更常见。最容易接近 15,000x 上限的模式。",
+  BET_MODE_ULTIMATE_TICKER_IDLE: "ULTIMATE 已激活",
+  BET_MODE_ULTIMATE_TICKER_SPIN: "祝你好运",
+  BET_MODE_SUPERBONUS_TITLE: "SUPER BONUS",
+  BET_MODE_SUPERBONUS_DESCRIPTION: "尾部模式 - 双倍 Essence 与珍贵的 MUL Eye。",
+  BET_MODE_SUPERBONUS_DIALOG: "以 500x 投注购买 Free Spins 功能。Gaze 以双倍 Essence 充能（每个连消组合 +4/+6/+10），触发的 scatter 也支付即时奖金。最常逼近 15,000x 上限的模式。",
   BET_MODE_SUPERBONUS_BUTTON: "购买",
   BET_MODE_SUPERBONUS_TICKER_IDLE: "请下注",
-  BET_MODE_SUPERBONUS_TICKER_SPIN: "已购买超级奖励",
-  GAME_INFO_TITLE: "ABYSSAL",
-  GAME_INFO_TAGLINE: "深海连消老虎机",
-  GAME_INFO_LEAD_HTML: "符号会落入 <strong>6&times;5 盘面</strong>。只要<strong>任意位置</strong>出现 <strong>8 个或更多相同符号</strong>即可获胜，无需 paylines。获胜符号会爆开，新符号继续下落，单次旋转可连锁产生更多赢分。游戏中<strong>没有百搭符号</strong>；<strong>眼睛</strong>是唯一倍数来源。",
-  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "旋转流程",
-  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "盘面填充 30 个符号。",
-  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "盘面上任一符号达到 8 个以上即获胜并爆开。",
-  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "上方符号下落，新符号补入，形成一次 <strong>连消</strong>。",
-  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "再次检测赢分，直到某次下落没有产生赢分为止。",
-  GAME_INFO_PAYTABLE_TITLE: "赔付表",
-  GAME_INFO_PAYTABLE_NOTE: "赔付按下注倍数计算，根据落下数量决定，未计入任何眼睛倍数。",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "已购买 SUPER BONUS",
+  GAME_INFO_TAGLINE: "深海 TUMBLE 老虎机",
+  GAME_INFO_LEAD_HTML: "符号会落到 <strong>6&times;5 棋盘</strong>上。当<strong>8 个或更多相同符号</strong><strong>在任意位置</strong>落下时即可获胜 &ndash; 没有 paylines。获胜符号会爆开，新符号继续 tumble 下落，单次旋转可能连锁产生更多赢奖。游戏中<strong>没有 wild</strong>；<strong>Eye</strong> 是唯一的倍数来源。",
+  GAME_INFO_HOW_SPIN_PLAYS_TITLE: "一次旋转如何进行",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_1: "棋盘填入 30 个符号。",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_2: "棋盘上任意符号达到 8+ 即获胜并爆开。",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_3_HTML: "上方符号下落，新符号补入 &ndash; 这就是一次 <strong>tumble</strong>。",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "再次检查赢奖，直到某次下落没有支付为止。",
+  GAME_INFO_PAYTABLE_TITLE: "支付表",
+  GAME_INFO_PAYTABLE_NOTE: "支付是你的下注倍数，取决于落下数量 - 在任何 Eye 倍数之前计算。",
   GAME_INFO_PAYTABLE_HIGH_SYMBOLS: "高价值符号",
   GAME_INFO_PAYTABLE_LOW_SYMBOLS: "低价值符号",
   GAME_INFO_PAYTABLE_SYMBOL_HEADER: "符号",
-  GAME_INFO_PAYTABLE_COUNT_8_TO_9: "8-9",
-  GAME_INFO_PAYTABLE_COUNT_10_TO_11: "10-11",
-  GAME_INFO_PAYTABLE_COUNT_12_PLUS: "12+",
   GAME_INFO_SYMBOL_H1: "潜水头盔",
   GAME_INFO_SYMBOL_H2: "鹦鹉螺",
   GAME_INFO_SYMBOL_H3: "鮟鱇鱼",
@@ -22238,87 +25217,59 @@ const zh = {
   GAME_INFO_SYMBOL_L3: "青色宝石",
   GAME_INFO_SYMBOL_L4: "紫色宝石",
   GAME_INFO_SYMBOL_L5: "水蓝宝石",
-  GAME_INFO_PAY_H1_8_TO_9: "10.00x",
-  GAME_INFO_PAY_H1_10_TO_11: "25.00x",
-  GAME_INFO_PAY_H1_12_PLUS: "50.00x",
-  GAME_INFO_PAY_H2_8_TO_9: "2.50x",
-  GAME_INFO_PAY_H2_10_TO_11: "10.00x",
-  GAME_INFO_PAY_H2_12_PLUS: "25.00x",
-  GAME_INFO_PAY_H3_8_TO_9: "2.00x",
-  GAME_INFO_PAY_H3_10_TO_11: "5.00x",
-  GAME_INFO_PAY_H3_12_PLUS: "15.00x",
-  GAME_INFO_PAY_H4_8_TO_9: "1.50x",
-  GAME_INFO_PAY_H4_10_TO_11: "2.00x",
-  GAME_INFO_PAY_H4_12_PLUS: "12.00x",
-  GAME_INFO_PAY_L1_8_TO_9: "1.00x",
-  GAME_INFO_PAY_L1_10_TO_11: "1.50x",
-  GAME_INFO_PAY_L1_12_PLUS: "10.00x",
-  GAME_INFO_PAY_L2_8_TO_9: "0.80x",
-  GAME_INFO_PAY_L2_10_TO_11: "1.20x",
-  GAME_INFO_PAY_L2_12_PLUS: "8.00x",
-  GAME_INFO_PAY_L3_8_TO_9: "0.50x",
-  GAME_INFO_PAY_L3_10_TO_11: "1.00x",
-  GAME_INFO_PAY_L3_12_PLUS: "8.00x",
-  GAME_INFO_PAY_L4_8_TO_9: "0.40x",
-  GAME_INFO_PAY_L4_10_TO_11: "0.90x",
-  GAME_INFO_PAY_L4_12_PLUS: "6.00x",
-  GAME_INFO_PAY_L5_8_TO_9: "0.20x",
-  GAME_INFO_PAY_L5_10_TO_11: "0.70x",
-  GAME_INFO_PAY_L5_12_PLUS: "5.00x",
   GAME_INFO_SPECIAL_SYMBOLS_TITLE: "特殊符号",
-  GAME_INFO_SPECIAL_SCATTER_NAME: "利维坦 - Scatter",
-  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> 个触发免费旋转并立即赔付：<strong>4 = 3x</strong>、<strong>5 = 5x</strong>、<strong>6 = 100x</strong>。",
-  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD 眼睛",
-  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "常见。倍数 = <strong>初始值&nbsp;+&nbsp;凝视</strong>。",
-  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY 眼睛",
-  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "稀有且爆发力强。倍数 = <strong>初始值&nbsp;&times;&nbsp;凝视</strong>。",
-  GAME_INFO_EYE_GAZE_TITLE: "眼睛 &amp; 凝视",
-  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "每次获胜连消都会让<strong>凝视</strong>增加 1。若获胜旋转结束时盘面上有<strong>眼睛</strong>，它会将凝视转化为一个大倍数，作用于该次旋转赢得的全部金额。",
-  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "示例：2x 赢分，凝视为 3，ADD 眼睛初始值为 10 &rarr; x13 &rarr; 支付 26x。MULTIPLY 眼睛 &rarr; x30 &rarr; 支付 60x。",
-  GAME_INFO_FREE_SPINS_TITLE: "免费旋转",
-  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "落下 <strong>4+ 个利维坦 (Scatter)</strong> 即触发；它们也可能在连消中途落下。",
+  GAME_INFO_SPECIAL_SCATTER_NAME: "Leviathan - Scatter",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> 触发 Free Spins 并即时支付：<strong>4 = 3x</strong>、<strong>5 = 5x</strong>、<strong>6 = 100x</strong> &ndash; 购买的功能同样适用。",
+  GAME_INFO_SPECIAL_ADD_EYE_NAME: "ADD Eye",
+  GAME_INFO_SPECIAL_ADD_EYE_DESCRIPTION_HTML: "常见。倍数 = <strong>起始值&nbsp;+&nbsp;Gaze</strong>。",
+  GAME_INFO_SPECIAL_MULT_EYE_NAME: "MULTIPLY Eye",
+  GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "稀有且爆发力强。倍数 = <strong>起始值&nbsp;&times;&nbsp;Gaze</strong>。",
+  GAME_INFO_EYE_GAZE_TITLE: "Eye 与 Gaze",
+  GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "每个获胜的连消组合都会用 Essence 为 <strong>Gaze</strong> 充能：8&ndash;9 个符号 <strong>+2</strong>，10&ndash;11 个 <strong>+3</strong>，12 个及以上 <strong>+5</strong>，上限 <strong>30</strong>。若获胜旋转结束时棋盘上有 <strong>Eye</strong> &ndash; 无论是开局就有还是 tumble 中途掉落 &ndash; 它会将 Gaze 转化为一个大倍数，应用于该次旋转赢得的全部金额。",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "例如：两个普通连消组合赢得 2x，Gaze 为 4。起始值 10 的 ADD Eye &rarr; x14 &rarr; 支付 28x。MULTIPLY Eye &rarr; x40 &rarr; 支付 80x。",
+  GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
+  GAME_INFO_FREE_SPINS_BULLET_1_HTML: "落下 <strong>4+ Leviathan (Scatter)</strong> 即触发 - 它们也可能在 tumble 中途落下。",
   GAME_INFO_FREE_SPINS_BULLET_2_HTML: "获得固定 <strong>15 次免费旋转</strong>。",
-  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>累计倍数</strong>从 x1 开始，只会增长，并在眼睛旋转中结算。",
-  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "3+ 个 Scatter 可重新触发，获得 <strong>+5 次旋转</strong>，最多 30 次。",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "<strong>累计倍数</strong>从 x1 开始，只会增长，并在 Eye 旋转中结算。",
+  GAME_INFO_FREE_SPINS_BULLET_4_HTML: "3+ Scatters 可重新触发，获得 <strong>+5 次旋转</strong>（最多 30 次）。",
   GAME_INFO_WAYS_TO_PLAY_TITLE: "玩法模式",
   GAME_INFO_MODE_BASE_NAME: "基础",
   GAME_INFO_MODE_BASE_COST: "1x 下注",
-  GAME_INFO_MODE_BASE_TEXT: "标准游戏。眼睛较少出现，通常为较友好的 ADD 类型。",
-  GAME_INFO_MODE_ANTE_NAME: "Ante",
+  GAME_INFO_MODE_BASE_TEXT: "标准玩法。Eye 大约每 7 次旋转出现 1 次 - 也可能在 tumble 中途掉落 - 多为友好的 ADD 类型。",
   GAME_INFO_MODE_ANTE_COST: "1.25x 下注",
-  GAME_INFO_MODE_ANTE_TEXT: "多支付 25%，提高眼睛和 Scatter 出现频率。",
-  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "购买免费旋转",
+  GAME_INFO_MODE_ANTE_TEXT: "多付 25%，奖励触发率翻倍，Eye 也更常出现。",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "购买 Free Spins",
   GAME_INFO_MODE_BUY_FREE_SPINS_COST: "100x 下注",
-  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "直接购买进入免费旋转功能。",
-  GAME_INFO_MODE_SUPER_SPINS_NAME: "超级旋转",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "直接购买 Free Spins 功能 - 触发的 scatter 也会支付即时奖金。",
+  GAME_INFO_MODE_SUPER_SPINS_NAME: "Super Spins",
   GAME_INFO_MODE_SUPER_SPINS_COST: "20x 下注",
-  GAME_INFO_MODE_SUPER_SPINS_TEXT: "单次旋转必定出现眼睛，无奖励回合。",
-  GAME_INFO_MODE_SUPER_BONUS_NAME: "超级奖励",
+  GAME_INFO_MODE_SUPER_SPINS_TEXT: "单次旋转必定出现 Eye - 没有奖励回合。",
+  GAME_INFO_MODE_SUPER_BONUS_NAME: "Super Bonus",
   GAME_INFO_MODE_SUPER_BONUS_COST: "500x 下注",
-  GAME_INFO_MODE_SUPER_BONUS_TEXT: "免费旋转中凝视充能速度翻倍，MULTIPLY 眼睛更常见。",
-  GAME_INFO_MODE_ULTIMATE_NAME: "终极",
+  GAME_INFO_MODE_SUPER_BONUS_TEXT: "Gaze 以双倍 Essence 充能、MULTIPLY Eye 重拳出击的 Free Spins。",
+  GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "300x 下注",
-  GAME_INFO_MODE_ULTIMATE_TEXT: "单次旋转出现多个眼睛并组合结算，可能爆发，也可能落空。",
+  GAME_INFO_MODE_ULTIMATE_TEXT: "单次旋转始终至少有 2 个 Eye（2-5 个）相互结合 - 要么巨奖，要么归零。",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "一般免责声明",
-  GAME_INFO_GENERAL_DISCLAIMER_HTML: "故障将使所有赢分和游戏无效。需要稳定的互联网连接。如发生断线，请重新加载游戏以完成任何未完成回合。预期返还率按大量游戏计算。游戏显示不代表任何实体设备，仅用于说明。赢分以远程游戏服务器收到的金额为准，而非网页浏览器内事件。TM 和 &copy; 2026 Stake Engine。"
+  GAME_INFO_GENERAL_DISCLAIMER_HTML: "故障将使所有赢奖和游戏无效。需要稳定的互联网连接。如发生断线，请重新加载游戏以完成任何未完成回合。预期返还率按大量游戏计算。游戏显示不代表任何实体设备，仅用于说明。赢奖以 Remote Game Server 收到的金额为准，而非网页浏览器内事件。TM 和 &copy; 2026 Stake Engine。"
 };
 const messagesMapGame = {
-  ar: en,
-  de: en,
+  ar,
+  de,
   en,
-  es: en,
-  fi: en,
-  fr: en,
-  hi: en,
-  id: en,
-  ja: en,
-  ko: en,
-  pl: en,
-  po: en,
-  pt: en,
-  ru: en,
-  tr: en,
-  vi: en,
+  es,
+  fi,
+  fr,
+  hi,
+  id,
+  ja,
+  ko,
+  pl,
+  po: pl,
+  pt,
+  ru,
+  tr,
+  vi,
   zh
 };
 const messagesMap = mergeMessagesMaps([messagesMapGame, messagesMap$1, messagesMap$2]);

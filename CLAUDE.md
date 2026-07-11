@@ -104,12 +104,11 @@ else is generic slot UI.
 
 ## How we work (the loop)
 
-- **Storybook-first.** Every bookEvent gets a `MODE_<X>/bookEvent/<type>` story plus a
-  `MODE_<X>/book` story, fed from real Abyssal books in `src/stories/data/*_books.ts` /
-  `*_events.ts`. A bookEvent isn't done until its story resolves. Every component gets a
-  `COMPONENTS/<Name>` story.
+- **Storybook is NO LONGER USED (2026-07-11).** Do NOT add or update `*.stories.svelte` /
+  `src/stories/**`. Verify in the running app on **localhost:3002** (the user drives spins there
+  themselves) — a bookEvent/component isn't done until it renders correctly in the live game.
 - Run the app: `pnpm run dev --filter=abyssal`. Build packages first if imports don't resolve
-  (`turbo run build --filter=./packages/*`). Test components in isolation first.
+  (`turbo run build --filter=./packages/*`).
 - **The juice is code, not frames:** ~80% of "Gates feel" is PixiJS code (glow/particles/shaders/
   screen-shake/squash-pop on static sprites). Reserve AI spritesheets for hero moments (Eye reveal).
 - Use the official **`pixijs`** skills (installed under `.agents/skills/pixijs-*`, e.g.
@@ -119,13 +118,14 @@ else is generic slot UI.
 
 ## Skills
 
-- **`/new-bookevent <type>`** — full registration chain + handler stub + stories.
-- **`/new-component <Name>`** — pixi-svelte component (conventions + subscribeOnMount) + its story.
+- **`/new-bookevent <type>`** — full registration chain + handler stub (skip the story step —
+  Storybook is retired).
+- **`/new-component <Name>`** — pixi-svelte component (conventions + subscribeOnMount); skip the
+  story step.
 - **`/new-ui-component <Name>`** — same, but lands in the shared brand-neutral package.
 - **`pixijs-*`** — official PixiJS 8 skills (`.agents/skills/`): scene graphics/sprite/text,
   filters, ticker, particle container, performance, migration. Reach for these before animating.
 - **`/wire-asset <name>`** / **`/pack-spritesheet`** — asset registration + atlas pipeline.
-- **`/verify-feel`** — run dev/Storybook, drive a book, confirm a spin renders end-to-end.
 
 ## Guardrails (don'ts)
 

@@ -7,7 +7,7 @@ import { waitForTimeout } from 'utils-shared/wait';
 import { BOOK_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
 
 import { eventEmitter } from './eventEmitter';
-import { ESSENCE_TIER_VALUES, getEssenceTier } from './constants';
+import { ESSENCE_TIER_VALUES, GAZE_METER_MAX_CHARGE, getEssenceTier } from './constants';
 import { skippableWait } from './skip.svelte';
 import { winLevelMap, type WinLevel, type WinLevelData } from './winLevelMap';
 import { stateGame, stateGameDerived } from './stateGame.svelte';
@@ -108,11 +108,13 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 
 		// Abyssal shows the *raw* cluster win — the Eye multiplies the spin total at
 		// resolution, not per cluster (unlike scatter's per-tumble global multiplier).
+		// `count` sizes the floating label by essence tier (8-9/10-11/12+).
 		const promiseAmounts = async () => {
 			await eventEmitter.broadcastAsync({
 				type: 'showClusterWinAmounts',
 				wins: bookEvent.wins.map((win) => ({
 					win: win.win,
+					count: win.count,
 					reel: win.meta.overlay.reel,
 					row: win.meta.overlay.row,
 				})),
@@ -153,12 +155,21 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 					: stateBet.activeBetModeKey.toUpperCase() === 'SUPERBONUS'
 						? 2
 						: 1;
-		const clusters = stateGame.pendingGazeClusters.map((cluster, index) => ({
-			value: tierValues[index] * essenceMult,
-			tier: getEssenceTier(cluster.count),
-			reel: cluster.reel,
-			row: cluster.row,
-		}));
+		// OLD-MATH books (+1/tumble) can't reconcile with the essence tiers — when neither ×1
+		// nor ×2 matches the actual climb (and the 30-cap isn't the reason), drop the breakdown
+		// entirely so the "+N" chips never report numbers the plaque doesn't do; the meter then
+		// falls back to its per-cell orbs. Current-build books always reconcile.
+		const capped = bookEvent.charge >= GAZE_METER_MAX_CHARGE;
+		const reconciles =
+			tierSum > 0 && (delta === tierSum || delta === tierSum * 2 || capped);
+		const clusters = reconciles
+			? stateGame.pendingGazeClusters.map((cluster, index) => ({
+					value: tierValues[index] * essenceMult,
+					tier: getEssenceTier(cluster.count),
+					reel: cluster.reel,
+					row: cluster.row,
+				}))
+			: undefined;
 		stateGame.pendingGazeClusters = [];
 
 		stateGame.gazeCharge = bookEvent.charge;
