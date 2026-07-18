@@ -137,6 +137,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Eye و Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'كل مجموعة رابحة تشحن <strong>Gaze</strong> بمقدار Essence: <strong>+2</strong> لمجموعة 8&ndash;9 رموز، <strong>+3</strong> لمجموعة 10&ndash;11، <strong>+5</strong> لمجموعة 12+، بحد أقصى <strong>30</strong>. إذا كان <strong>Eye</strong> على اللوحة في نهاية دورة رابحة &ndash; سواء كان موجودا منذ البداية أو سقط في منتصف Tumble &ndash; يحول Gaze إلى مضاعف كبير يطبق على كل ما ربحته في تلك الدورة.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'تبدأ العين بأحد هذه الأرقام: <strong>2 أو 5 أو 10 أو 25 أو 50 أو 100</strong> &ndash; القيم الصغيرة هي الأكثر ظهورًا، و100 هي الأندر.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'مثال: ربح 2x من مجموعتين عاديتين يبني Gaze بقيمة 4. ADD Eye يبدأ من 10 &rarr; x14 &rarr; يدفع 28x. أما MULTIPLY Eye &rarr; x40 &rarr; يدفع 80x.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -166,6 +168,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_NAME: 'Ultimate',
 	GAME_INFO_MODE_ULTIMATE_COST: 'رهان 300x',
 	GAME_INFO_MODE_ULTIMATE_TEXT: 'دورة واحدة فيها دائما ما لا يقل عن 2 Eyes (2-5) تتحد معا - إما ضخم أو لا شيء.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'نسبة العائد والحد الأقصى للفوز',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'نسبة العائد للاعب (RTP): <strong>96.00%</strong> &ndash; متطابقة في جميع أوضاع اللعب.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'الحد الأقصى للفوز: <strong>15,000x الرهان</strong>. إجمالي أرباح الجولة محدود بهذا المبلغ؛ وعند بلوغ الحد تنتهي الجولة فوراً.',
+	GAME_INFO_CONTROLS_TITLE: 'الأزرار وعناصر التحكم',
+	GAME_INFO_CONTROL_SPIN_NAME: 'الدوران',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'يضع الرهان ويبدأ الجولة. أثناء تشغيل الجولة، يقوم الزر نفسه بتسريعها.',
+	GAME_INFO_CONTROL_TURBO_NAME: 'التوربو',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'يسرّع الدورات والحركات أثناء تفعيله.',
+	GAME_INFO_CONTROL_AUTO_NAME: 'اللعب التلقائي',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'يفتح لوحة اللعب التلقائي. اختر عدد الدورات ثم اضغط على زر الدوران لبدئها. الضغط على زر اللعب التلقائي مرة أخرى يلغيه.',
+	GAME_INFO_CONTROL_BET_NAME: 'قيمة الرهان',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'زرّا - و + يتنقلان بين مستويات الرهان المتاحة؛ والنقر على المبلغ يفتح القائمة الكاملة.',
+	GAME_INFO_CONTROL_MODES_NAME: 'أوضاع اللعب',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'يفتح لوحة أوضاع اللعب. أي وضع تكلفته أعلى من الدورة العادية يعرض دائماً تأكيداً بتكلفته الإجمالية قبل البدء.',
+	GAME_INFO_CONTROL_MENU_NAME: 'القائمة',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'تحتوي على معلومات اللعبة هذه بالإضافة إلى مؤشرات مستوى صوت الموسيقى والمؤثرات الصوتية.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'لوحة المفاتيح',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'مفتاح المسافة يبدأ الدوران (أو التسريع)؛ والاستمرار في الضغط عليه يواصل الدوران بوضع التوربو. أثناء احتفالات الفوز، النقر يتخطى؛ أما شاشتا الحد الأقصى للفوز ونهاية الجولة المجانية فتنتظران النقر.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'إخلاء مسؤولية عام',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'أي خلل يلغي كل الأرباح والجولات. يلزم اتصال إنترنت مستقر. في حال انقطاع الاتصال، أعد تحميل اللعبة لإكمال أي جولات غير مكتملة. يتم احتساب العائد المتوقع على عدد كبير من الجولات. عرض اللعبة لا يمثل أي جهاز مادي وهو لأغراض التوضيح فقط. تتم تسوية الأرباح بحسب المبلغ المستلم من Remote Game Server وليس بحسب الأحداث داخل متصفح الويب. TM و &copy; 2026 Stake Engine.',

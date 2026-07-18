@@ -436,8 +436,19 @@
 		);
 	});
 
+	// sfx_btn_general is reserved for bet-amount controls (stepper, bet-menu open/pick).
+	// sfx_btn_toggle is an on/off switch or a selection (turbo, close popups, count picks).
+	// sfx_modal_open is revealing a panel (auto popup, buy bonus, info/rules, menu).
 	const press = (fn: () => void) => {
 		context.eventEmitter.broadcast({ type: 'soundPressGeneral' });
+		fn();
+	};
+	const pressToggle = (fn: () => void) => {
+		context.eventEmitter.broadcast({ type: 'soundPressToggle' });
+		fn();
+	};
+	const pressModalOpen = (fn: () => void) => {
+		context.eventEmitter.broadcast({ type: 'soundPressModalOpen' });
 		fn();
 	};
 	const shouldResetBuyModeBeforeManualSpin = () =>
@@ -469,14 +480,15 @@
 	};
 
 	const spin = () => {
-		context.eventEmitter.broadcast({ type: 'soundPressBet' });
 		if (!isIdle) {
 			// playing: the spin button doubles as SKIP — same as a press on the screen
-			// (the current beat accelerates to turbo pace, like holding the spacebar)
+			// (the current beat accelerates to turbo pace, like holding the spacebar). Only
+			// STARTING a spin plays the spin sound — a skip press must stay silent on this cue.
 			armSkip();
 			context.stateGameDerived.speedUpCurrentSpin();
 			return;
 		}
+		context.eventEmitter.broadcast({ type: 'soundPressBet' });
 		if (spinDisabled) return;
 		if (autoSpinArmed) {
 			beginAutoSpin();
@@ -500,26 +512,33 @@
 			stateBetDerived.setBetAmount(next ?? biggest);
 		});
 
-	const autoplay = () =>
-		press(() => {
-			if (autoSpinArmed && !stateBetDerived.hasAutoBetCounter()) {
+	const autoplay = () => {
+		// cancelling an armed/running autobet is a toggle-off, not a panel reveal
+		if (autoSpinArmed && !stateBetDerived.hasAutoBetCounter()) {
+			pressToggle(() => {
 				autoSpinArmed = false;
 				showAutoPopup = false;
-				return;
-			}
-			if (autoDisabled) return;
-			if (stateBetDerived.hasAutoBetCounter()) {
+			});
+			return;
+		}
+		if (autoDisabled) return;
+		if (stateBetDerived.hasAutoBetCounter()) {
+			pressToggle(() => {
 				stateBet.autoSpinsCounter = 0;
 				autoSpinArmed = false;
 				showAutoPopup = false;
-				return;
-			}
+			});
+			return;
+		}
+		// revealing (or dismissing) the auto-spin count picker
+		pressModalOpen(() => {
 			showBetPopup = false;
 			showAutoPopup = !showAutoPopup;
 		});
+	};
 
 	const toggleAutoSpinChoice = (option: AutoSpinsText) =>
-		press(() => {
+		pressToggle(() => {
 			// allow arming even if the bet can't be placed — beginAutoSpin shows the popup
 			if (!isIdle) return;
 			if (autoSpinArmed && stateUi.autoSpinsText === option) {
@@ -533,7 +552,7 @@
 		});
 
 	const toggleTurbo = () =>
-		press(() => {
+		pressToggle(() => {
 			if (turboDisabled) return;
 			if (stateBet.isTurbo) {
 				stateBetDerived.updateIsTurbo(false, { persistent: true });
@@ -542,26 +561,26 @@
 			context.stateGameDerived.enableTurbo();
 		});
 
-	const openMenu = () => press(() => (stateUi.menuOpen = true));
+	const openMenu = () => pressModalOpen(() => (stateUi.menuOpen = true));
 
 	// Click-outside handling: a fullscreen scrim (below the popups) closes whichever of the
 	// hamburger menu / bet / auto popups is open.
 	const anyPopupOpen = $derived(showAutoPopup || showBetPopup || stateUi.menuOpen);
 	const closeAllPopups = () =>
-		press(() => {
+		pressToggle(() => {
 			showAutoPopup = false;
 			showBetPopup = false;
 			stateUi.menuOpen = false;
 		});
-	const openBuyBonus = () =>
-		press(() => {
-			if (!isIdle) return;
-			if (buyBonusIndicatorActive) {
-				stateBet.activeBetModeKey = 'BASE';
-				return;
-			}
-			stateModal.modal = { name: 'buyBonus' };
-		});
+	const openBuyBonus = () => {
+		if (!isIdle) return;
+		if (buyBonusIndicatorActive) {
+			// deactivating an already-active bought mode is a toggle-off, not a panel reveal
+			pressToggle(() => (stateBet.activeBetModeKey = 'BASE'));
+			return;
+		}
+		pressModalOpen(() => (stateModal.modal = { name: 'buyBonus' }));
+	};
 	const openBetMenu = () =>
 		press(() => {
 			if (!isIdle) return;
@@ -679,13 +698,21 @@
 	};
 
 	const displayAutoSpinText = (value: AutoSpinsText) => value;
+	// Show spins REMAINING (excluding the one currently playing). The SDK's autobet machine
+	// decrements the counter AFTER each spin, so during spin N it still reads (total − N + 1) —
+	// subtract 1 so choosing 10 counts 9 → 0 instead of 10 → 1. Infinity stays the ∞ mark.
+	const autoSpinsLeft = $derived(
+		stateBet.autoSpinsCounter === Infinity
+			? Infinity
+			: Math.max(0, stateBet.autoSpinsCounter - 1),
+	);
 	const autoCounterText = $derived(
-		stateBet.autoSpinsCounter === Infinity ? INFINITY_MARK : `${stateBet.autoSpinsCounter}`,
+		autoSpinsLeft === Infinity ? INFINITY_MARK : `${autoSpinsLeft}`,
 	);
 	const autoCounterFontSize = $derived.by(() => {
-		if (stateBet.autoSpinsCounter === Infinity) return 78;
-		if (stateBet.autoSpinsCounter > 99) return 54;
-		if (stateBet.autoSpinsCounter > 9) return 68;
+		if (autoSpinsLeft === Infinity) return 78;
+		if (autoSpinsLeft > 99) return 54;
+		if (autoSpinsLeft > 9) return 68;
 		return 78;
 	});
 	const menuActions: { icon: IconKey; label: () => string; y: number; onpress: () => void }[] = [
@@ -693,7 +720,7 @@
 			icon: 'info',
 			label: () => context.i18nDerived.info(),
 			y: -158,
-			onpress: () => press(() => (stateModal.modal = { name: 'gameRules' })),
+			onpress: () => pressModalOpen(() => (stateModal.modal = { name: 'gameRules' })),
 		},
 	];
 	const menuVolumeSliders: { key: 'music' | 'sfx'; label: () => string; y: number }[] = [

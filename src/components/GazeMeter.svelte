@@ -347,8 +347,9 @@
 				.set(fx, { burst: 1 })
 				.to(fx, { burst: 0, duration: 0.4, ease: 'power2.out' }),
 		);
-		// PLACEHOLDER lap-up stinger — swap for a bespoke "gaze deepens" hit later.
-		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_up' });
+		// the meter laps to the next colour band — the "gaze deepens" milestone hit.
+		// forcePlay: a big essence step can cross several laps in one go — each lap should ring.
+		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_gaze_full', forcePlay: true });
 	};
 
 	onDestroy(() => {
@@ -395,11 +396,8 @@
 		},
 		gazeMeterFill: async (emitterEvent) => {
 			show = true;
-			context.eventEmitter.broadcast({
-				type: 'soundOnce',
-				name: 'sfx_reel_stop_1',
-				forcePlay: !stateBetDerived.isContinuousBet(),
-			});
+			// (no per-orb fill sound — it made the meter too noisy; the lap milestone `sfx_gaze_full`
+			// is the only Gaze sound now)
 			// One hero orb per winning CLUSTER (sized by essence tier, flying from the cluster's
 			// overlay cell), heavier tiers arcing slightly slower. Only the FLIGHT blocks the
 			// book — the fill rise (with its lap crossings) + plaque pops settle on their own

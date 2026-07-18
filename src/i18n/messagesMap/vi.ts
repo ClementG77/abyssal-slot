@@ -137,6 +137,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Eye &amp; Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'Mỗi cụm thắng nạp <strong>Gaze</strong> bằng Essence: <strong>+2</strong> với 8&ndash;9 biểu tượng, <strong>+3</strong> với 10&ndash;11, <strong>+5</strong> với 12+, tối đa <strong>30</strong>. Nếu có <strong>Eye</strong> trên bảng khi kết thúc vòng quay thắng &ndash; có từ đầu hoặc rơi vào giữa lúc tumble &ndash; nó biến Gaze thành một hệ số lớn áp dụng cho toàn bộ số thắng trong vòng quay đó.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'Một Con Mắt bắt đầu với một trong các số: <strong>2, 5, 10, 25, 50 hoặc 100</strong> &ndash; giá trị nhỏ xuất hiện thường xuyên nhất, 100 hiếm nhất.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'Ví dụ: thắng 2x từ hai cụm thường tạo Gaze 4. Eye ADD bắt đầu từ 10 &rarr; x14 &rarr; trả 28x. Eye MULTIPLY &rarr; x40 &rarr; trả 80x.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -167,6 +169,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: 'cược 300x',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'Một vòng quay luôn có ít nhất 2 Eye (2-5) kết hợp với nhau - cực lớn hoặc không gì cả.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP & Thắng tối đa',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'Tỷ lệ hoàn trả cho người chơi (RTP): <strong>96.00%</strong> &ndash; giống nhau ở mọi chế độ chơi.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'Thắng tối đa: <strong>15.000x tiền cược</strong>. Tổng tiền thắng của một vòng được giới hạn ở mức này; khi đạt giới hạn, vòng chơi kết thúc ngay.',
+	GAME_INFO_CONTROLS_TITLE: 'Nút & Điều khiển',
+	GAME_INFO_CONTROL_SPIN_NAME: 'Quay',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'Đặt cược và bắt đầu vòng chơi. Trong khi vòng chơi diễn ra, chính nút này sẽ tua nhanh.',
+	GAME_INFO_CONTROL_TURBO_NAME: 'Turbo',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'Tăng tốc các vòng quay và hiệu ứng khi được bật.',
+	GAME_INFO_CONTROL_AUTO_NAME: 'Tự động quay',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'Mở bảng tự động quay. Chọn số vòng quay rồi nhấn Quay để bắt đầu. Nhấn lại nút tự động quay sẽ hủy.',
+	GAME_INFO_CONTROL_BET_NAME: 'Mức cược',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'Nút - và + chuyển qua các mức cược có sẵn; chạm vào số tiền sẽ mở danh sách đầy đủ.',
+	GAME_INFO_CONTROL_MODES_NAME: 'Chế độ chơi',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'Mở bảng chế độ chơi. Mọi chế độ có chi phí cao hơn vòng quay thường luôn hiển thị xác nhận kèm tổng chi phí trước khi bắt đầu.',
+	GAME_INFO_CONTROL_MENU_NAME: 'Menu',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'Chứa thông tin trò chơi này cùng thanh âm lượng Nhạc và Hiệu ứng âm thanh.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'Bàn phím',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'Phím cách để quay (hoặc tua nhanh); giữ phím cách sẽ tiếp tục quay ở chế độ Turbo. Khi ăn mừng thắng lớn, chạm hoặc nhấp để bỏ qua; màn hình Thắng tối đa và kết thúc bonus chờ một cú nhấp.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'Tuyên bố miễn trừ chung',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'Lỗi kỹ thuật làm vô hiệu mọi chiến thắng và lượt chơi. Cần có kết nối internet ổn định. Nếu mất kết nối, hãy tải lại trò chơi để hoàn tất các vòng chưa xong. Tỷ lệ hoàn trả kỳ vọng được tính trên nhiều lượt chơi. Hiển thị trò chơi không đại diện cho bất kỳ thiết bị vật lý nào và chỉ nhằm mục đích minh họa. Tiền thắng được thanh toán theo số tiền nhận từ Remote Game Server, không theo các sự kiện trong trình duyệt web. TM và &copy; 2026 Stake Engine.',

@@ -1,0 +1,252 @@
+{
+ "sfx_btn_general.mp3": {
+  "prompt": "Video game sound effect, one single clean xylophone note as a UI click, a pure simple musical tone, instant soft attack, dies quickly, quiet, no noise, extremely short",
+  "duration_s": 0.5,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.8,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 8821,
+  "direction": "v2 abyssal-orchestra"
+ },
+ "sfx_reel_stop.mp3": {
+  "prompt": "Video game sound effect, one deep pitched drum note like a soft kick drum, low fundamental around 90 hertz, punchy instant attack, warm and round, quick natural decay, no high frequencies, very short",
+  "duration_s": 0.5,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.8,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 8821,
+  "direction": "v2 abyssal-orchestra"
+ },
+ "sfx_scatter_land.mp3": {
+  "prompt": "deep resonant monster bell with a low watery growl, ancient leviathan stirring",
+  "duration_s": 1.0,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 17180,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_anticipation.mp3": {
+  "prompt": "low rumbling dragon breath swelling and receding, a giant beast breathing underwater, tense loop",
+  "duration_s": 6,
+  "loop": true,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 97010,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_fs_intro.mp3": {
+  "prompt": "Video game sound effect, a quick rising harp and string sweep building excitement, ending in a joyful warm fanfare hit with sparkling bells",
+  "duration_s": 3.5,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 56886,
+  "direction": "riser + celebratory crest (lane B1)"
+ },
+ "sfx_gaze_fill.mp3": {
+  "prompt": "a glowing orb whooshing in and dropping into a meter with a soft plink",
+  "duration_s": 0.6,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 10493,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_gaze_full.mp3": {
+  "prompt": "magical meter charging to full, a glowing energy surge completing",
+  "duration_s": 0.9,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 15090,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_eye_land.mp3": {
+  "prompt": "a heavy bomb dropping and slamming down, whistling fall into a deep booming impact, alarming",
+  "duration_s": 1.1,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 18434,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_eye_reveal_add.mp3": {
+  "prompt": "a soft magical eye blinking open, gentle glow, quick and light",
+  "duration_s": 0.6,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 10493,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_eye_reveal_mul.mp3": {
+  "prompt": "a huge ominous eye snapping open, deep dramatic magical surge, powerful and dark",
+  "duration_s": 0.9,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 15090,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_eye_combine_add.mp3": {
+  "prompt": "a small magical energy absorb, soft warm pop",
+  "duration_s": 0.5,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 8821,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_eye_combine_mul.mp3": {
+  "prompt": "a powerful magical energy slam, deep heavy multiply hit",
+  "duration_s": 0.6,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 10493,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_eye_burst.mp3": {
+  "prompt": "a massive magical explosion, deep boom with a glittering energy shower",
+  "duration_s": 1.2,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 20106,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_snowball_up.mp3": {
+  "prompt": "deep magical power growing, a short rising ominous swell",
+  "duration_s": 0.5,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 8821,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_cluster_win.mp3": {
+  "prompt": "a soft glowing bubble pop underwater, deep and bioluminescent",
+  "duration_s": 0.5,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 8821,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_countup_loop.mp3": {
+  "prompt": "fast rising magical energy counting, glowing ticks climbing higher in pitch",
+  "duration_s": 8,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 129193,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_win_nice.mp3": {
+  "prompt": "Video game sound effect, a short warm major chord on soft strings and harp, small cheerful win, low register, rounded and pleasant, brief",
+  "duration_s": 1.5,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 24703,
+  "direction": "win-tier family (measured low-orchestral pattern)"
+ },
+ "sfx_win_big.mp3": {
+  "prompt": "Video game sound effect, a warm triumphant low orchestral chord with soft brass and harp flourish, satisfying big win, rich and round, no harshness",
+  "duration_s": 2.5,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 40586,
+  "direction": "win-tier family (measured low-orchestral pattern)"
+ },
+ "sfx_win_mega.mp3": {
+  "prompt": "Video game sound effect, a fuller deep orchestral chord swelling with warm brass, choir touch and timpani roll, exciting mega win, low and rich",
+  "duration_s": 3.0,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 48945,
+  "direction": "win-tier family (measured low-orchestral pattern)"
+ },
+ "sfx_win_epic.mp3": {
+  "prompt": "Video game sound effect, a huge deep orchestral fanfare chord, layered low brass, choir and rolling timpani, epic win celebration, powerful and warm",
+  "duration_s": 3.5,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 56886,
+  "direction": "win-tier family (measured low-orchestral pattern)"
+ },
+ "sfx_win_max.mp3": {
+  "prompt": "Video game sound effect, a massive deep victory fanfare with a dragon roar, full low orchestra, choir and thundering drums, ultimate jackpot, warm and colossal",
+  "duration_s": 4.0,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 65245,
+  "direction": "win-tier family (measured low-orchestral pattern)"
+ },
+ "sfx_transition.mp3": {
+  "prompt": "deep rushing water whoosh diving into the abyss",
+  "duration_s": 1.6,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 26793,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "amb_underwater.mp3": {
+  "prompt": "deep dark ocean ambience with distant monster groans, seamless loop",
+  "duration_s": 25,
+  "loop": true,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 401284,
+  "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_btn_spin.mp3": {
+  "prompt": "Video game sound effect, a warm low synth pluck with a soft rising bubble swish, playful action button, bouncy and inviting, rounded attack, no harshness, half a second",
+  "duration_s": 0.5,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.8,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 8821,
+  "direction": "v2 abyssal-orchestra"
+ },
+ "sfx_scatter_win.mp3": {
+  "prompt": "rewarding deep sea treasure burst with rushing water and coins",
+  "duration_s": 1.2,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 20106,
+  "direction": "v6 abyssal-leviathan-themed"
+ }
+}

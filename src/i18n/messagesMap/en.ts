@@ -168,6 +168,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'The Eye &amp; the Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'Every winning cluster charges the <strong>Gaze</strong> with Essence: <strong>+2</strong> for 8&ndash;9 symbols, <strong>+3</strong> for 10&ndash;11, <strong>+5</strong> for 12+, up to a cap of <strong>30</strong>. If an <strong>Eye</strong> is on the board at the end of a winning spin &ndash; from the fill or dropped in mid-tumble &ndash; it turns the Gaze into one big multiplier applied to everything you won that spin.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'An Eye starts on one of these numbers: <strong>2, 5, 10, 25, 50 or 100</strong> &ndash; smaller values land most often, 100 is the rarest.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'Example: a 2x win from two ordinary clusters builds a Gaze of 4. An ADD Eye starting at 10 &rarr; x14 &rarr; pays 28x. A MULTIPLY Eye &rarr; x40 &rarr; pays 80x.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -199,6 +201,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: '300x bet',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'One spin with always at least 2 Eyes (2-5) that combine - huge or nothing.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP & Max Win',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'Return to player (RTP): <strong>96.00%</strong> &ndash; identical in every game mode.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'Maximum win: <strong>15,000x the bet</strong>. The total wins of a round are capped at this amount; once the cap is reached the round ends instantly.',
+	GAME_INFO_CONTROLS_TITLE: 'Buttons & Controls',
+	GAME_INFO_CONTROL_SPIN_NAME: 'Spin',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'Places a bet and starts the round. While the round plays, the same button fast-forwards it.',
+	GAME_INFO_CONTROL_TURBO_NAME: 'Turbo',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'Speeds up spins and animations while active.',
+	GAME_INFO_CONTROL_AUTO_NAME: 'Autoplay',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'Opens the autoplay panel. Pick a number of spins, then press Spin to start them. Pressing the autoplay button again cancels.',
+	GAME_INFO_CONTROL_BET_NAME: 'Bet amount',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'The - and + buttons step through the available bet levels; tapping the amount opens the full list.',
+	GAME_INFO_CONTROL_MODES_NAME: 'Game modes',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'Opens the game-mode panel. Any mode that costs more than the regular spin always shows a confirmation with its total cost before it starts.',
+	GAME_INFO_CONTROL_MENU_NAME: 'Menu',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'Holds this game information plus the Music and Sound effects volume sliders.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'Keyboard',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'Spacebar spins (or fast-forwards); holding Spacebar keeps spinning in Turbo. During win celebrations a tap or click skips ahead; the Max Win and bonus-end screens wait for a click.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'General Disclaimer',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. The expected return is calculated over many plays. The game display is not representative of any physical device and is for illustrative purposes only. Winnings are settled according to the amount received from the Remote Game Server and not from events within the web browser. TM and &copy; 2026 Stake Engine.',

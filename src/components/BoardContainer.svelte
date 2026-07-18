@@ -37,28 +37,49 @@
 	const eyeImpact = $state({ x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 });
 	let eyeImpactTimeline: gsap.core.Timeline | undefined;
 
-	onMount(() => {
-		let raf = 0;
-		const loop = (timestamp: number) => {
-			now = timestamp;
-			raf = requestAnimationFrame(loop);
+	// Self-suspending clock: this component is mounted ~14× (every board-space overlay wraps in
+	// a BoardContainer), so a perpetual rAF per instance is real idle waste. The clock only ticks
+	// while a spin launch or scatter anticipation is live — the two things that read `now`. The
+	// Eye jolt is gsap-driven (it mutates `eyeImpact` directly), so it never needs this clock.
+	let rafId = 0;
+	const LAUNCH_MS = 620;
+	const ANTICIPATION_RELEASE_MS = 200;
+	const clockNeeded = (ts: number) => {
+		const launchActive = launchStartedAt >= 0 && ts - launchStartedAt < LAUNCH_MS;
+		const anticipationActive =
+			scatterAnticipationStartedAt >= 0 &&
+			(scatterAnticipationReleasedAt < 0 ||
+				ts - scatterAnticipationReleasedAt < ANTICIPATION_RELEASE_MS);
+		return launchActive || anticipationActive;
+	};
+	const ensureClock = () => {
+		if (rafId) return;
+		const loop = (ts: number) => {
+			now = ts;
+			rafId = clockNeeded(ts) ? requestAnimationFrame(loop) : 0;
 		};
-		raf = requestAnimationFrame(loop);
-		return () => {
-			cancelAnimationFrame(raf);
-			eyeImpactTimeline?.kill();
-		};
+		rafId = requestAnimationFrame(loop);
+	};
+
+	onMount(() => () => {
+		if (rafId) cancelAnimationFrame(rafId);
+		eyeImpactTimeline?.kill();
 	});
 
 	context.eventEmitter.subscribeOnMount({
-		reelFrameSpinLaunch: () => (launchStartedAt = performance.now()),
+		reelFrameSpinLaunch: () => {
+			launchStartedAt = performance.now();
+			ensureClock();
+		},
 		reelFrameScatterAnticipationStart: () => {
 			scatterAnticipationStartedAt = performance.now();
 			scatterAnticipationReleasedAt = -1;
+			ensureClock();
 		},
 		reelFrameScatterAnticipationEnd: () => {
 			scatterAnticipationReleaseFrom = scatterAnticipationProgress;
 			scatterAnticipationReleasedAt = performance.now();
+			ensureClock();
 		},
 		boardEyeImpact: () => {
 			eyeImpactTimeline?.kill();

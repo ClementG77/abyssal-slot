@@ -1,0 +1,49 @@
+REFERENCE — Waylanders Forge (Valkyrie) sound bank
+Captured live 2026-07-12 from https://valkyrie.live.stake-engine.com/waylanders-forge/v15/ (demo=true)
+The MOST-PLAYED slot on Stake Engine — same SDK as Abyssal. Calibration benchmark ONLY;
+do NOT copy their audio. See docs/ABYSSAL_SOUND_DESIGN.md.
+
+FACTS — this is EXACTLY Abyssal's setup (utils-sound / Howler sprite)
+- ONE audio.m4a sprite (~7.2 MB) + sounds.json  (NOT individual files)
+- sounds.json = { src:["./assets/audio/audio.m4a"], sprite:{name:[offsetMs,durationMs]}, config:{name:{volume}} }
+- 49 sprite segments
+- Format: single .m4a (AAC) — no webm/mp3 fallback
+- Naming: bgm_* / sfx_*  (matches Abyssal sound.ts)
+- Looping handled by the player lane, not a per-sprite flag
+
+MUSIC (6)
+  bgm_basegame
+  bgm_win_loop
+  bgm_freegame1  bgm_freegame2  bgm_freegame3  bgm_freegame4   (4 feature-music variants)
+
+FREE-GAME INTROS (4)
+  sfx_freegame1_intro  sfx_freegame2_intro  sfx_freegame3_intro  sfx_freegame4_intro
+
+WIN LEVELS (4)
+  sfx_levelup_smallwin  sfx_levelup_nicewin  sfx_levelup_bigwin  sfx_levelup_megawin
+
+BUTTONS / STEPPERS (5)
+  sfx_btn_bet  sfx_btn_general  sfx_btn_turbo  sfx_increase  sfx_decrease
+
+REELS (2)
+  sfx_reelstop_01  sfx_reelstop_02
+
+WINS / COUNT-UP (3)
+  sfx_win_01  sfx_win_02  sfx_countup_loop
+
+MULTIPLIER (2)
+  sfx_multiplier_01  sfx_multiplier_02
+
+BOMB / BONUS (4)
+  sfx_bomb_01  sfx_bomb_02  sfx_bonus_start  sfx_bonus_end
+
+CHARACTER CLOTH FOLEY (8)
+  sfx_cloth_movement_01 .. _08
+
+THEME SFX (11)
+  sfx_scatter  sfx_mystery  sfx_break  sfx_transform_short  sfx_star
+  sfx_remover  sfx_lava_pour  sfx_flag_descend  sfx_max_wild_hit  sfx_split  sfx_char_win_short
+
+TAKEAWAYS FOR ABYSSAL
+- Keep the sprite (this #1 game proves it). Single .m4a. bgm_/sfx_ naming already matches.
+- Consider: multiple feature-music variants (bgm_freegameN), a dedicated count-up loop, per-event variations.

@@ -184,6 +184,7 @@
 									rawSymbol: tumbleSymbol.rawSymbol,
 									reel: reelIndex,
 									row: symbolIndexOfBoard,
+									isRefill: tumbleSymbol.isRefill,
 								});
 								landComplete = waitForResolve((resolve) => {
 									tumbleSymbol.oncomplete = () => {
@@ -252,6 +253,14 @@
 					);
 
 					if (deepestLandedRow >= 0) {
+						// forcePlay: refill columns can settle within the same clip's length as each
+						// other (staggered by COLUMN_STAGGER, not a full reel-spin apart) — each
+						// column's drop must still ping, matching the initial spin's onReelStopping.
+						context.eventEmitter.broadcast({
+							type: 'soundOnce',
+							name: 'sfx_reel_stop',
+							forcePlay: !stateBet.isTurbo,
+						});
 						context.eventEmitter.broadcast({
 							type: 'boardLandPuff',
 							cells: [{ reel: reelIndex, row: VISIBLE_ROW_START + deepestLandedRow }],

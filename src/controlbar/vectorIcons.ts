@@ -1,6 +1,6 @@
 import type { Graphics } from 'pixi.js';
 
-export type ControlGlyphKey = 'menu' | 'autoplay' | 'turbo' | 'spin' | 'plus' | 'minus';
+export type ControlGlyphKey = 'menu' | 'autoplay' | 'turbo' | 'spin' | 'plus' | 'minus' | 'sound';
 
 export type ControlGlyphOptions = {
 	active?: boolean;
@@ -11,8 +11,7 @@ export type ControlGlyphOptions = {
 
 const WHITE = 0xffffff;
 // the stop square shown on the spin button while a round plays (doubles as SKIP)
-// — matches the buy-bonus "deactivate" active red so the two read as the same accent
-const STOP_RED = 0xff3f36;
+const STOP_RED = 0xa14340;
 const STOP_BORDER = 0x1a0604; // thin near-black edge
 
 const alphaOf = (options: ControlGlyphOptions) => (options.disabled ? 0.42 : 1);
@@ -137,6 +136,32 @@ export const drawControlGlyph = (
 				alpha: alpha * 0.86,
 				join: 'round',
 			});
+		}
+		return;
+	}
+
+	if (key === 'sound') {
+		// speaker body — same shape whether on or off; `active` (unmuted) fills it solid, muted
+		// leaves it hollow (outline over the black base), matching the turbo glyph's convention
+		const body = [
+			-s * 0.36, -s * 0.12, -s * 0.16, -s * 0.12, s * 0.0, -s * 0.3, s * 0.0, s * 0.3,
+			-s * 0.16, s * 0.12, -s * 0.36, s * 0.12,
+		];
+		g.poly(body, true).fill({ color: 0x000000, alpha: alpha * 0.28 });
+		if (options.active) {
+			g.poly(body, true).fill({ color, alpha });
+			// sound waves
+			drawArcStroke(g, s * 0.22, -Math.PI / 3, Math.PI / 3, s * 0.07, color, alpha);
+			drawArcStroke(g, s * 0.34, -Math.PI / 3, Math.PI / 3, s * 0.07, color, alpha * 0.85);
+		} else {
+			g.poly(body, true).stroke({ width: s * 0.07, color, alpha: alpha * 0.86, join: 'round' });
+			// mute X
+			g.moveTo(s * 0.12, -s * 0.16)
+				.lineTo(s * 0.36, s * 0.16)
+				.stroke({ width: s * 0.08, color, alpha, cap: 'round' });
+			g.moveTo(s * 0.36, -s * 0.16)
+				.lineTo(s * 0.12, s * 0.16)
+				.stroke({ width: s * 0.08, color, alpha, cap: 'round' });
 		}
 		return;
 	}

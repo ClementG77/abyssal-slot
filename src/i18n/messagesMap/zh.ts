@@ -138,6 +138,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Eye 与 Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'每个获胜的连消组合都会用 Essence 为 <strong>Gaze</strong> 充能：8&ndash;9 个符号 <strong>+2</strong>，10&ndash;11 个 <strong>+3</strong>，12 个及以上 <strong>+5</strong>，上限 <strong>30</strong>。若获胜旋转结束时棋盘上有 <strong>Eye</strong> &ndash; 无论是开局就有还是 tumble 中途掉落 &ndash; 它会将 Gaze 转化为一个大倍数，应用于该次旋转赢得的全部金额。',
+	GAME_INFO_EYE_VALUES_HTML:
+		'眼睛以以下数字之一开始：<strong>2、5、10、25、50 或 100</strong> &ndash; 数值越小越常见，100 最为稀有。',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'例如：两个普通连消组合赢得 2x，Gaze 为 4。起始值 10 的 ADD Eye &rarr; x14 &rarr; 支付 28x。MULTIPLY Eye &rarr; x40 &rarr; 支付 80x。',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -168,6 +170,29 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: '300x 下注',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'单次旋转始终至少有 2 个 Eye（2-5 个）相互结合 - 要么巨奖，要么归零。',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP 与最高奖金',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'玩家回报率（RTP）：<strong>96.00%</strong> &ndash; 所有游戏模式均相同。',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'最高奖金：<strong>下注的 15,000 倍</strong>。单局的总奖金以此金额为上限；达到上限后本局立即结束。',
+	GAME_INFO_CONTROLS_TITLE: '按钮与操作',
+	GAME_INFO_CONTROL_SPIN_NAME: '旋转',
+	GAME_INFO_CONTROL_SPIN_TEXT: '下注并开始一局。本局进行时，同一按钮可快进。',
+	GAME_INFO_CONTROL_TURBO_NAME: '快速模式',
+	GAME_INFO_CONTROL_TURBO_TEXT: '开启时加快旋转与动画速度。',
+	GAME_INFO_CONTROL_AUTO_NAME: '自动旋转',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'打开自动旋转面板。选择旋转次数后，按旋转按钮开始。再次按下自动旋转按钮即可取消。',
+	GAME_INFO_CONTROL_BET_NAME: '下注金额',
+	GAME_INFO_CONTROL_BET_TEXT: '- 和 + 按钮可切换可用的下注级别；点击金额可打开完整列表。',
+	GAME_INFO_CONTROL_MODES_NAME: '游戏模式',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'打开游戏模式面板。任何费用高于普通旋转的模式，开始前都会显示包含总费用的确认窗口。',
+	GAME_INFO_CONTROL_MENU_NAME: '菜单',
+	GAME_INFO_CONTROL_MENU_TEXT: '包含本游戏信息，以及音乐和音效的音量滑块。',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: '键盘',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'空格键可旋转（或快进）；按住空格键将以快速模式持续旋转。中奖庆祝期间点按或点击可跳过；最高奖金和奖励结束画面则需点击后才会继续。',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: '一般免责声明',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'故障将使所有赢奖和游戏无效。需要稳定的互联网连接。如发生断线，请重新加载游戏以完成任何未完成回合。预期返还率按大量游戏计算。游戏显示不代表任何实体设备，仅用于说明。赢奖以 Remote Game Server 收到的金额为准，而非网页浏览器内事件。TM 和 &copy; 2026 Stake Engine。',

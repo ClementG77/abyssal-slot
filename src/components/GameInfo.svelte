@@ -50,6 +50,10 @@
 		title: t('TITLE'),
 		tagline: t('TAGLINE'),
 		leadHtml: t('LEAD_HTML'),
+		keyFiguresTitle: t('KEY_FIGURES_TITLE'),
+		keyFiguresRtpHtml: t('KEY_FIGURES_RTP_HTML'),
+		keyFiguresMaxWinHtml: t('KEY_FIGURES_MAX_WIN_HTML'),
+		controlsTitle: t('CONTROLS_TITLE'),
 		howSpinPlaysTitle: t('HOW_SPIN_PLAYS_TITLE'),
 		paytableTitle: t('PAYTABLE_TITLE'),
 		paytableNote: t('PAYTABLE_NOTE'),
@@ -68,6 +72,7 @@
 		specialMultEyeDescriptionHtml: t('SPECIAL_MULT_EYE_DESCRIPTION_HTML'),
 		eyeGazeTitle: t('EYE_GAZE_TITLE'),
 		eyeGazeDescriptionHtml: t('EYE_GAZE_DESCRIPTION_HTML'),
+		eyeValuesHtml: t('EYE_VALUES_HTML'),
 		eyeGazeExampleHtml: t('EYE_GAZE_EXAMPLE_HTML'),
 		freeSpinsTitle: t('FREE_SPINS_TITLE'),
 		waysToPlayTitle: t('WAYS_TO_PLAY_TITLE'),
@@ -136,6 +141,13 @@
 			pays: [pay('L5', '8_TO_9'), pay('L5', '10_TO_11'), pay('L5', '12_PLUS')],
 		},
 	]);
+	// Stake compliance: every button the player can interact with must be explained in the info.
+	const controls = $derived(
+		(['SPIN', 'TURBO', 'AUTO', 'BET', 'MODES', 'MENU', 'KEYBOARD'] as const).map((key) => ({
+			name: t(`CONTROL_${key}_NAME`),
+			text: t(`CONTROL_${key}_TEXT`),
+		})),
+	);
 	const modes: Mode[] = $derived([
 		{ name: t('MODE_BASE_NAME'), cost: t('MODE_BASE_COST'), text: t('MODE_BASE_TEXT') },
 		{ name: t('MODE_ANTE_NAME'), cost: t('MODE_ANTE_COST'), text: t('MODE_ANTE_TEXT') },
@@ -179,6 +191,13 @@
 	<p class="lead">
 		{@html copy.leadHtml}
 	</p>
+
+	<!-- Stake compliance: RTP and Max Win clearly stated (identical across all modes). -->
+	<section>
+		<h2>{copy.keyFiguresTitle}</h2>
+		<p>{@html copy.keyFiguresRtpHtml}</p>
+		<p>{@html copy.keyFiguresMaxWinHtml}</p>
+	</section>
 
 	<section>
 		<h2>{copy.howSpinPlaysTitle}</h2>
@@ -253,6 +272,11 @@
 		<p>
 			{@html copy.eyeGazeDescriptionHtml}
 		</p>
+		<!-- Stake compliance: special symbols must list ALL obtainable values. The list mirrors
+		     the math config's eye_start_values (game_config.py) — [2, 5, 10, 25, 50, 100]. -->
+		<p>
+			{@html copy.eyeValuesHtml}
+		</p>
 		<p class="note">
 			{@html copy.eyeGazeExampleHtml}
 		</p>
@@ -276,6 +300,21 @@
 						<span class="mode-name">{m.name}</span><span class="mode-cost">{m.cost}</span>
 					</div>
 					<p>{m.text}</p>
+				</div>
+			{/each}
+		</div>
+	</section>
+
+	<!-- Stake compliance: the user-interaction guide — one card per interactive control. -->
+	<section>
+		<h2>{copy.controlsTitle}</h2>
+		<div class="modes">
+			{#each controls as control}
+				<div class="mode">
+					<div class="mode-head">
+						<span class="mode-name">{control.name}</span>
+					</div>
+					<p>{control.text}</p>
 				</div>
 			{/each}
 		</div>

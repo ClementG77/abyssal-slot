@@ -137,6 +137,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Eye &amp; Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'勝利クラスターごとに<strong>Gaze</strong>がEssenceでチャージされます：シンボル8&ndash;9個で<strong>+2</strong>、10&ndash;11個で<strong>+3</strong>、12個以上で<strong>+5</strong>、上限は<strong>30</strong>。勝利スピンの終わりにボード上に<strong>Eye</strong>があると &ndash; 最初からでも、tumbleの途中で落ちてきたものでも &ndash; Gazeを大きなマルチプライヤーに変え、そのスピンで得たすべての勝利に適用します。',
+	GAME_INFO_EYE_VALUES_HTML:
+		'目は次のいずれかの数字で始まります: <strong>2、5、10、25、50、100</strong> &ndash; 小さい値ほど出やすく、100が最もレアです。',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'例：普通のクラスター2つで2x勝利、Gazeは4。10から始まるADD Eye &rarr; x14 &rarr; 28x。MULTIPLY Eye &rarr; x40 &rarr; 80x。',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -167,6 +169,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: '300xベット',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'常に2個以上のEye（2〜5個）が組み合わさる1回スピン - 一攫千金かゼロか。',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTPと最大配当',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'プレイヤー還元率（RTP）: <strong>96.00%</strong> &ndash; すべてのゲームモードで同一です。',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'最大配当: <strong>ベットの15,000倍</strong>。1ラウンドの合計配当はこの金額が上限で、上限に達した時点でラウンドは即座に終了します。',
+	GAME_INFO_CONTROLS_TITLE: 'ボタンと操作',
+	GAME_INFO_CONTROL_SPIN_NAME: 'スピン',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'ベットしてラウンドを開始します。ラウンド中は同じボタンで早送りできます。',
+	GAME_INFO_CONTROL_TURBO_NAME: 'ターボ',
+	GAME_INFO_CONTROL_TURBO_TEXT: '有効な間、スピンと演出を高速化します。',
+	GAME_INFO_CONTROL_AUTO_NAME: 'オートプレイ',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'オートプレイパネルを開きます。スピン回数を選び、スピンボタンを押すと開始します。オートプレイボタンをもう一度押すとキャンセルされます。',
+	GAME_INFO_CONTROL_BET_NAME: 'ベット額',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'-と+のボタンで利用可能なベットレベルを切り替えます。金額をタップすると一覧が開きます。',
+	GAME_INFO_CONTROL_MODES_NAME: 'ゲームモード',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'ゲームモードパネルを開きます。通常スピンより高額なモードは、開始前に必ず総額の確認画面が表示されます。',
+	GAME_INFO_CONTROL_MENU_NAME: 'メニュー',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'このゲーム情報と、音楽・効果音の音量スライダーが含まれます。',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'キーボード',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'スペースキーでスピン（または早送り）。押し続けるとターボでスピンを継続します。勝利演出中はタップまたはクリックでスキップできますが、最大配当画面とボーナス終了画面はクリックを待ちます。',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: '一般的な免責事項',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'不具合が発生した場合、すべての勝利とプレイは無効になります。安定したインターネット接続が必要です。接続が切れた場合は、未完了のラウンドを完了するためゲームを再読み込みしてください。期待リターンは多数のプレイに基づいて計算されます。ゲーム表示は物理デバイスを表すものではなく、説明目的のみです。勝利金はWebブラウザ内のイベントではなく、Remote Game Serverから受け取った金額に基づいて精算されます。TM and &copy; 2026 Stake Engine.',

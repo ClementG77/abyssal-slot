@@ -139,6 +139,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'O Eye &amp; o Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'Cada cluster vencedor carrega o <strong>Gaze</strong> com Essence: <strong>+2</strong> com 8&ndash;9 simbolos, <strong>+3</strong> com 10&ndash;11, <strong>+5</strong> com 12+, ate o maximo de <strong>30</strong>. Se um <strong>Eye</strong> estiver no tabuleiro ao fim de um giro vencedor &ndash; presente desde o inicio ou caido no meio do tumble &ndash; ele transforma o Gaze em um grande multiplicador aplicado a tudo que voce ganhou nesse giro.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'Um Olho comeca com um destes numeros: <strong>2, 5, 10, 25, 50 ou 100</strong> &ndash; valores menores aparecem com mais frequencia, 100 e o mais raro.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'Exemplo: uma vitoria de 2x com dois clusters comuns constroi um Gaze de 4. Um ADD Eye comecando em 10 &rarr; x14 &rarr; paga 28x. Um MULTIPLY Eye &rarr; x40 &rarr; paga 80x.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Giros Gratis',
@@ -169,6 +171,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: 'aposta 300x',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'Um giro com sempre pelo menos 2 Eyes (2-5) que se combinam - enorme ou nada.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP e ganho maximo',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'Retorno ao jogador (RTP): <strong>96.00%</strong> &ndash; identico em todos os modos de jogo.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'Ganho maximo: <strong>15.000x a aposta</strong>. Os ganhos totais de uma rodada sao limitados a esse valor; ao atingi-lo, a rodada termina imediatamente.',
+	GAME_INFO_CONTROLS_TITLE: 'Botoes e controles',
+	GAME_INFO_CONTROL_SPIN_NAME: 'Girar',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'Faz uma aposta e inicia a rodada. Enquanto a rodada acontece, o mesmo botao a adianta.',
+	GAME_INFO_CONTROL_TURBO_NAME: 'Turbo',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'Acelera os giros e as animacoes enquanto estiver ativo.',
+	GAME_INFO_CONTROL_AUTO_NAME: 'Jogo automatico',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'Abre o painel de jogo automatico. Escolha um numero de giros e pressione Girar para comecar. Pressionar o botao novamente cancela.',
+	GAME_INFO_CONTROL_BET_NAME: 'Valor da aposta',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'Os botoes - e + percorrem os niveis de aposta disponiveis; tocar no valor abre a lista completa.',
+	GAME_INFO_CONTROL_MODES_NAME: 'Modos de jogo',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'Abre o painel de modos. Qualquer modo que custe mais do que um giro normal sempre mostra uma confirmacao com o custo total antes de comecar.',
+	GAME_INFO_CONTROL_MENU_NAME: 'Menu',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'Contem estas informacoes do jogo e os controles de volume de Musica e Efeitos sonoros.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'Teclado',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'A barra de espaco gira (ou adianta); manter a barra pressionada continua girando em Turbo. Durante as comemoracoes, um toque ou clique avanca; as telas de ganho maximo e fim de bonus esperam um clique.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'Aviso geral',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'Mau funcionamento anula todos os ganhos e jogadas. Uma conexao estavel com a internet e necessaria. Em caso de desconexao, recarregue o jogo para concluir rodadas incompletas. O retorno esperado e calculado em muitas jogadas. A exibicao do jogo nao representa nenhum dispositivo fisico e serve apenas para ilustracao. Ganhos sao liquidados conforme o valor recebido do Remote Game Server, e nao por eventos dentro do navegador. TM e &copy; 2026 Stake Engine.',

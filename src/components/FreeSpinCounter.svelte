@@ -166,7 +166,7 @@
 			const climbed = emitterEvent.mult > lastPersistentMult;
 			lastPersistentMult = emitterEvent.mult;
 			if (!climbed) return;
-			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_up' });
+			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_snowball_up' });
 			blinkGlow(); // runs alongside the pop; doesn't hold the book
 			await totalMultPop.set(1.16);
 			await totalMultPop.set(1);

@@ -62,16 +62,19 @@
 	const decDisabled = $derived(stateBet.betAmount <= smallest);
 	const incDisabled = $derived(stateBet.betAmount >= biggest);
 
-	const sound = () => eventEmitter.broadcast({ type: 'soundPressGeneral' });
+	// bet-stepper clicks share sfx_btn_general with the control-bar stepper; every other action
+	// here (mode confirm/cancel/deactivate) is a toggle, not a bet-amount control.
+	const soundBet = () => eventEmitter.broadcast({ type: 'soundPressGeneral' });
+	const soundToggle = () => eventEmitter.broadcast({ type: 'soundPressToggle' });
 	const dec = () => {
 		const next = [...options].reverse().find((o) => o < stateBet.betAmount);
 		stateBetDerived.setBetAmount(next ?? smallest);
-		sound();
+		soundBet();
 	};
 	const inc = () => {
 		const next = options.find((o) => o > stateBet.betAmount);
 		stateBetDerived.setBetAmount(next ?? biggest);
-		sound();
+		soundBet();
 	};
 
 	const costOf = (m: BetModeData) => stateBet.betAmount * m.costMultiplier;
@@ -106,16 +109,16 @@
 		// never open the confirm for a mode the RGS would reject (belt-and-braces — the buttons
 		// are already disabled when !allowed)
 		if (!allowed(m)) return;
-		sound();
+		soundToggle();
 		pending = m;
 	};
 	const cancelConfirm = () => {
-		sound();
+		soundToggle();
 		pending = null;
 	};
 	const confirmChoice = () => {
 		if (!pending) return;
-		sound();
+		soundToggle();
 		const m = pending;
 		stateBet.activeBetModeKey = m.mode;
 		if (m.type === 'activate') {
@@ -131,7 +134,7 @@
 	};
 	// turning an already-active mode back off is immediate (no confirm needed)
 	const deactivate = (m: BetModeData) => {
-		sound();
+		soundToggle();
 		if (isActive(m)) stateBet.activeBetModeKey = 'BASE';
 	};
 

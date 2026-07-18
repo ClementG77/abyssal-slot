@@ -137,6 +137,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Eye &amp; Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'Setiap cluster menang mengisi <strong>Gaze</strong> dengan Essence: <strong>+2</strong> untuk 8&ndash;9 simbol, <strong>+3</strong> untuk 10&ndash;11, <strong>+5</strong> untuk 12+, maksimal <strong>30</strong>. Jika <strong>Eye</strong> ada di papan pada akhir spin menang &ndash; sejak awal atau jatuh di tengah tumble &ndash; Eye mengubah Gaze menjadi satu pengali besar yang diterapkan ke semua kemenangan pada spin tersebut.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'Mata dimulai dengan salah satu angka ini: <strong>2, 5, 10, 25, 50 atau 100</strong> &ndash; nilai kecil paling sering muncul, 100 paling langka.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'Contoh: kemenangan 2x dari dua cluster biasa membangun Gaze 4. ADD Eye mulai dari 10 &rarr; x14 &rarr; membayar 28x. MULTIPLY Eye &rarr; x40 &rarr; membayar 80x.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -167,6 +169,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: 'taruhan 300x',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'Satu spin dengan selalu minimal 2 Eye (2-5) yang bergabung - besar atau tidak sama sekali.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP & Kemenangan Maksimum',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'Return to player (RTP): <strong>96.00%</strong> &ndash; sama di setiap mode permainan.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'Kemenangan maksimum: <strong>15.000x taruhan</strong>. Total kemenangan dalam satu ronde dibatasi pada jumlah ini; setelah batas tercapai, ronde langsung berakhir.',
+	GAME_INFO_CONTROLS_TITLE: 'Tombol & Kontrol',
+	GAME_INFO_CONTROL_SPIN_NAME: 'Putar',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'Memasang taruhan dan memulai ronde. Saat ronde berjalan, tombol yang sama mempercepatnya.',
+	GAME_INFO_CONTROL_TURBO_NAME: 'Turbo',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'Mempercepat putaran dan animasi saat aktif.',
+	GAME_INFO_CONTROL_AUTO_NAME: 'Putar Otomatis',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'Membuka panel putar otomatis. Pilih jumlah putaran, lalu tekan Putar untuk memulai. Menekan tombol putar otomatis lagi akan membatalkan.',
+	GAME_INFO_CONTROL_BET_NAME: 'Jumlah taruhan',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'Tombol - dan + menelusuri level taruhan yang tersedia; mengetuk jumlahnya membuka daftar lengkap.',
+	GAME_INFO_CONTROL_MODES_NAME: 'Mode permainan',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'Membuka panel mode permainan. Setiap mode yang biayanya lebih besar dari putaran biasa selalu menampilkan konfirmasi dengan total biayanya sebelum dimulai.',
+	GAME_INFO_CONTROL_MENU_NAME: 'Menu',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'Berisi informasi permainan ini serta penggeser volume Musik dan Efek suara.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'Keyboard',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'Spasi memutar (atau mempercepat); menahan Spasi terus memutar dalam mode Turbo. Selama perayaan kemenangan, ketukan atau klik melewatinya; layar Kemenangan Maksimum dan akhir bonus menunggu klik.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'Penafian Umum',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'Kerusakan membatalkan semua kemenangan dan permainan. Koneksi internet yang stabil diperlukan. Jika terjadi pemutusan koneksi, muat ulang game untuk menyelesaikan ronde yang belum selesai. Pengembalian yang diharapkan dihitung dari banyak permainan. Tampilan game tidak mewakili perangkat fisik apa pun dan hanya untuk ilustrasi. Kemenangan diselesaikan berdasarkan jumlah yang diterima dari Remote Game Server dan bukan dari peristiwa di browser web. TM dan &copy; 2026 Stake Engine.',

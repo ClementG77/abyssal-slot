@@ -133,12 +133,17 @@
 			{:else}
 				<ControlBar />
 			{/if}
-			<Win />
-			<WinCapCelebration />
 			<!-- all layouts — the counter positions itself per layout (portrait: above the board) -->
 			<FreeSpinCounter />
-			<FreeSpinOutro />
 			<GameHeader />
+			<!-- Celebration takeovers LAST. This container has no sortableChildren, so the zIndex
+			     props on their FadeContainers do nothing — TREE ORDER is the layering. Being last
+			     is what puts their dim + the tap-to-continue prompt ABOVE the HUD (counter/header);
+			     when they sat before the HUD, the header and free-spin counter floated over the
+			     celebration and could cover the prompt. -->
+			<FreeSpinOutro />
+			<Win />
+			<WinCapCelebration />
 		{/if}
 	</Container>
 

@@ -15,6 +15,13 @@ const WIN_TIER_KEYS = {
 export const i18nDerived = {
 	...i18nDerivedUiPixi,
 	...i18nDerivedUiHtml,
+	// Both SDK packages ship a `bet`, and ui-pixi additionally hardcodes its own social swaps
+	// (bet → 'SPIN', buyBonus → 'PLAY BONUS') instead of reading the message table. Stake.US's
+	// official phrase list maps bet → play and buy bonus → get bonus, so route both through our
+	// table (see i18n/socialMessages.ts) to get the mandated wording. Declared explicitly rather
+	// than relying on the spread order above to settle which package's `bet` wins.
+	bet: () => stateI18nDerived.translate('BET'),
+	buyBonus: () => stateI18nDerived.translate('BUY BONUS'),
 	home: () => stateI18nDerived.translate('HOME'),
 	notTranslated: () => stateI18nDerived.translate('NOT TRANSLATED'),
 	gameInfo: (key: string) => stateI18nDerived.translate(`GAME_INFO_${key}`),

@@ -1,11 +1,10 @@
 <script lang="ts" module>
 	export type EmitterEventTransition =
 		// the dive in two awaited phases: the water wall rises to full cover (Cover), the scene
-		// is swapped underneath, then the wall passes upward off the screen (Reveal)
+		// is swapped underneath, then the wall passes upward off the screen (Reveal). Used on
+		// BOTH ends of the feature — the intro dive in and the bonus-end dive back out.
 		| { type: 'transitionCover' }
-		| { type: 'transitionReveal' }
-		| { type: 'freeSpinExitCover' }
-		| { type: 'freeSpinExitReveal' };
+		| { type: 'transitionReveal' };
 </script>
 
 <script lang="ts">
@@ -14,7 +13,7 @@
 	import { Tween } from 'svelte/motion';
 	import { cubicIn, cubicOut } from 'svelte/easing';
 
-	import { Graphics, Rectangle } from 'pixi-svelte';
+	import { Graphics } from 'pixi-svelte';
 	import { stateBetDerived } from 'state-shared';
 	import { waitForTimeout } from 'utils-shared/wait';
 
@@ -30,15 +29,7 @@
 	// `dive` runs 0 → 2: 0–1 the wall's crest climbs to the top; 1–2 the wall's trailing edge
 	// follows it up, revealing the scene beneath.
 	const dive = new Tween(0, { duration: 1 });
-	const alpha = new Tween(0, { duration: 320 });
-	const irisProgress = new Tween(0, { duration: 680 });
-	const FREE_SPIN_EXIT_COVER_DURATION = 350;
-	const FREE_SPIN_EXIT_REVEAL_DURATION = 1650;
-	let irisActive = $state(false);
 	const sizes = $derived(context.stateLayoutDerived.canvasSizes());
-	const irisRadius = $derived(
-		(Math.hypot(sizes.width, sizes.height) * 0.5 + 4) * irisProgress.current,
-	);
 
 	// ambient clock for the crest wave + bubble motion during the dive
 	const water = $state({ t: 0 });
@@ -58,6 +49,7 @@
 	context.eventEmitter.subscribeOnMount({
 		transitionCover: async () => {
 			const ts = stateBetDerived.timeScale();
+			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_transition' });
 			dive.set(0, { duration: 0 });
 			await dive.set(1, { duration: 620 / ts, easing: cubicOut });
 			// the wall holds full cover until transitionReveal — the caller swaps the scene now
@@ -67,19 +59,6 @@
 			await waitForTimeout(120 / ts);
 			await dive.set(2, { duration: 640 / ts, easing: cubicIn });
 			dive.set(0, { duration: 0 });
-		},
-		freeSpinExitCover: async () => {
-			irisActive = false;
-			void irisProgress.set(0, { duration: 0 });
-			void alpha.set(1, { duration: FREE_SPIN_EXIT_COVER_DURATION });
-			await waitForTimeout(FREE_SPIN_EXIT_COVER_DURATION);
-		},
-		freeSpinExitReveal: async () => {
-			irisActive = true;
-			void irisProgress.set(1, { duration: FREE_SPIN_EXIT_REVEAL_DURATION });
-			await waitForTimeout(FREE_SPIN_EXIT_REVEAL_DURATION);
-			void alpha.set(0, { duration: 0 });
-			irisActive = false;
 		},
 	});
 
@@ -141,41 +120,4 @@
 
 {#if dive.current > 0 && dive.current < 2}
 	<Graphics zIndex={40} draw={drawDive} />
-{/if}
-
-{#if irisActive}
-	<Graphics
-		zIndex={40}
-		draw={(g) => {
-			const centerX = sizes.width * 0.5;
-			const centerY = sizes.height * 0.5;
-			const top = Math.max(0, centerY - irisRadius);
-			const bottom = Math.min(sizes.height, centerY + irisRadius);
-			const fill = { color: 0x05080f, alpha: 1 };
-
-			if (irisRadius < 1) {
-				g.rect(0, 0, sizes.width, sizes.height).fill(fill);
-				return;
-			}
-
-			if (top > 0) g.rect(0, 0, sizes.width, top).fill(fill);
-			if (bottom < sizes.height) g.rect(0, bottom, sizes.width, sizes.height - bottom).fill(fill);
-
-			const left = [{ x: 0, y: top }];
-			const right = [{ x: sizes.width, y: top }];
-			const steps = 28;
-			for (let index = 0; index <= steps; index += 1) {
-				const y = top + ((bottom - top) * index) / steps;
-				const halfChord = Math.sqrt(Math.max(0, irisRadius ** 2 - (y - centerY) ** 2));
-				left.push({ x: Math.max(0, centerX - halfChord), y });
-				right.push({ x: Math.min(sizes.width, centerX + halfChord), y });
-			}
-			left.push({ x: 0, y: bottom });
-			right.push({ x: sizes.width, y: bottom });
-			g.poly(left).fill(fill);
-			g.poly(right).fill(fill);
-		}}
-	/>
-{:else if alpha.current > 0.001}
-	<Rectangle {...sizes} backgroundColor={0x05080f} backgroundAlpha={alpha.current} zIndex={40} />
 {/if}

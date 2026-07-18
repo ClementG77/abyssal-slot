@@ -9,7 +9,9 @@
 		| { type: 'boardEyeImpact'; position?: Position }
 		| {
 				type: 'boardWithAnimateSymbols';
-				symbolPositions: Position[];
+				// each winning cell may carry its cluster's essence tier (1/2/3 by size) so the win
+				// glow ramps hotter for bigger clusters; absent for non-cluster wins (e.g. scatters)
+				symbolPositions: (Position & { winTier?: 1 | 2 | 3 })[];
 		  };
 </script>
 
@@ -45,6 +47,11 @@
 							getPaddedRowIndex(position.row)
 						];
 					if (!reelSymbol) return;
+					// tag the cell with its cluster's essence tier so the win glow ramps hotter for
+					// bigger clusters (Symbol.svelte). Cleared naturally when the cell explodes/resettles.
+					if (position.winTier) {
+						reelSymbol.rawSymbol = { ...reelSymbol.rawSymbol, winTier: position.winTier };
+					}
 					reelSymbol.symbolState = 'win';
 					await waitForResolve((resolve) => (reelSymbol.oncomplete = resolve));
 					reelSymbol.symbolState = 'postWinStatic';

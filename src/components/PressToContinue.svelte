@@ -22,6 +22,11 @@
 	const showPrompt = $derived(props.showPrompt ?? true);
 </script>
 
+<!-- The prompt must be the LAST child of its takeover (Win / WinCapCelebration / FreeSpinOutro
+     render in tree order — no sortableChildren anywhere up this tree), and the takeovers are in
+     turn the last children of the game container, so this text is guaranteed topmost on screen.
+     The dark shadow keeps it readable over the bubble fountain that sprays from the bottom —
+     exactly where this sits. -->
 {#if showPrompt}
 	<MainContainer alignVertical="bottom">
 		<Text
@@ -35,6 +40,7 @@
 				fontSize: 38,
 				fill: 0xeaf6ff,
 				letterSpacing: 3,
+				dropShadow: { color: 0x000000, blur: 8, distance: 2, alpha: 0.85 },
 			}}
 		/>
 	</MainContainer>

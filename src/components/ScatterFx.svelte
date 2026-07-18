@@ -51,7 +51,6 @@
 				{ v: 0 },
 				{ v: 1, duration: 0.85, ease: 'sine.inOut', repeat: -1, yoyo: true, delay: 0.5 },
 			);
-			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_anticipation_start' });
 			context.eventEmitter.broadcast({ type: 'soundLoop', name: 'sfx_anticipation' });
 		},
 		reelFrameScatterAnticipationEnd: () => stopAnticipation(),

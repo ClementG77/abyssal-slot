@@ -14,6 +14,9 @@ export type RawSymbol = {
 	// client-only: set the moment the Eye's combine chip departs to the board centre — the
 	// number leaves with the chip and the plain EMPTY eye art remains on the cell.
 	spent?: boolean;
+	// client-only: the winning cluster's essence tier (1 = 8-9 symbols, 2 = 10-11, 3 = 12+), set
+	// on the cell while it animates a win so the win glow ramps hotter for bigger clusters.
+	winTier?: 1 | 2 | 3;
 };
 export type BetMode = keyof typeof config.betModes;
 export type GameType = keyof typeof config.paddingReels;

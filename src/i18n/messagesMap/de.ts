@@ -139,6 +139,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Das Eye &amp; der Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'Jeder gewinnende Cluster laedt den <strong>Gaze</strong> mit Essence auf: <strong>+2</strong> bei 8&ndash;9 Symbolen, <strong>+3</strong> bei 10&ndash;11, <strong>+5</strong> bei 12+, bis maximal <strong>30</strong>. Wenn am Ende eines gewinnenden Spins ein <strong>Eye</strong> auf dem Feld ist &ndash; von Anfang an oder mitten im Tumble hereingefallen &ndash; verwandelt es den Gaze in einen grossen Multiplikator fuer alles, was du in diesem Spin gewonnen hast.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'Ein Auge startet mit einer dieser Zahlen: <strong>2, 5, 10, 25, 50 oder 100</strong> &ndash; kleinere Werte erscheinen am haeufigsten, 100 ist am seltensten.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'Beispiel: Ein 2x-Gewinn aus zwei gewoehnlichen Clustern baut einen Gaze von 4. Ein ADD Eye ab 10 &rarr; x14 &rarr; zahlt 28x. Ein MULTIPLY Eye &rarr; x40 &rarr; zahlt 80x.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -169,6 +171,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: '300x Einsatz',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'Ein Spin mit immer mindestens 2 Eyes (2-5), die sich kombinieren - riesig oder nichts.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP & Hoechstgewinn',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'Auszahlungsquote (RTP): <strong>96.00%</strong> &ndash; identisch in jedem Spielmodus.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'Hoechstgewinn: <strong>15.000x der Einsatz</strong>. Die Gesamtgewinne einer Runde sind auf diesen Betrag begrenzt; wird er erreicht, endet die Runde sofort.',
+	GAME_INFO_CONTROLS_TITLE: 'Tasten & Steuerung',
+	GAME_INFO_CONTROL_SPIN_NAME: 'Drehen',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'Platziert einen Einsatz und startet die Runde. Waehrend die Runde laeuft, spult dieselbe Taste sie vor.',
+	GAME_INFO_CONTROL_TURBO_NAME: 'Turbo',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'Beschleunigt Drehungen und Animationen, solange aktiv.',
+	GAME_INFO_CONTROL_AUTO_NAME: 'Autoplay',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'Oeffnet das Autoplay-Panel. Waehle eine Anzahl an Drehungen und druecke dann Drehen, um zu starten. Erneutes Druecken der Autoplay-Taste bricht ab.',
+	GAME_INFO_CONTROL_BET_NAME: 'Einsatzhoehe',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'Die Tasten - und + schalten durch die verfuegbaren Einsatzstufen; ein Tipp auf den Betrag oeffnet die vollstaendige Liste.',
+	GAME_INFO_CONTROL_MODES_NAME: 'Spielmodi',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'Oeffnet das Modus-Panel. Jeder Modus, der mehr als eine normale Drehung kostet, zeigt vor dem Start immer eine Bestaetigung mit den Gesamtkosten.',
+	GAME_INFO_CONTROL_MENU_NAME: 'Menue',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'Enthaelt diese Spielinformationen sowie die Lautstaerkeregler fuer Musik und Soundeffekte.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'Tastatur',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'Die Leertaste dreht (oder spult vor); gehaltene Leertaste dreht dauerhaft im Turbo. Bei Gewinn-Feiern ueberspringt ein Tipp oder Klick; der Max-Win- und der Bonusende-Bildschirm warten auf einen Klick.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'Allgemeiner Haftungsausschluss',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'Fehlfunktionen machen alle Gewinne und Spiele ungueltig. Eine stabile Internetverbindung ist erforderlich. Bei Verbindungsabbruch lade das Spiel neu, um unvollstaendige Runden abzuschliessen. Die erwartete Rueckgabe wird ueber viele Spiele berechnet. Die Spielanzeige stellt kein physisches Geraet dar und dient nur der Veranschaulichung. Gewinne werden nach dem vom Remote Game Server erhaltenen Betrag abgerechnet, nicht nach Ereignissen im Webbrowser. TM und &copy; 2026 Stake Engine.',

@@ -137,6 +137,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Eye ve Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'Her kazanan küme <strong>Gaze</strong> değerini Essence ile doldurur: 8&ndash;9 sembolde <strong>+2</strong>, 10&ndash;11 sembolde <strong>+3</strong>, 12+ sembolde <strong>+5</strong>, en fazla <strong>30</strong>. Kazanan bir spinin sonunda tahtada <strong>Eye</strong> varsa &ndash; baştan beri olsun ya da tumble ortasında düşmüş olsun &ndash; Gaze o spinde kazandığınız her şeye uygulanan büyük bir çarpana dönüşür.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'Bir Göz şu sayılardan biriyle başlar: <strong>2, 5, 10, 25, 50 veya 100</strong> &ndash; küçük değerler en sık görülür, 100 en nadiridir.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'Örnek: iki sıradan kümeden gelen 2x kazanç 4 Gaze biriktirir. 10 ile başlayan bir ADD Eye &rarr; x14 &rarr; 28x öder. Bir MULTIPLY Eye &rarr; x40 &rarr; 80x öder.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -167,6 +169,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: '300x bahis',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'Her zaman en az 2 Eye (2-5) ile tek spin; birleşirler - ya devasa ya hiç.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP ve Maksimum Kazanç',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'Oyuncuya dönüş (RTP): <strong>96.00%</strong> &ndash; tüm oyun modlarında aynıdır.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'Maksimum kazanç: <strong>15.000x bahis</strong>. Bir turun toplam kazançları bu tutarla sınırlıdır; sınıra ulaşıldığında tur anında biter.',
+	GAME_INFO_CONTROLS_TITLE: 'Düğmeler ve Kontroller',
+	GAME_INFO_CONTROL_SPIN_NAME: 'Çevir',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'Bahis yapar ve turu başlatır. Tur oynanırken aynı düğme turu hızlı ileri sarar.',
+	GAME_INFO_CONTROL_TURBO_NAME: 'Turbo',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'Etkinken dönüşleri ve animasyonları hızlandırır.',
+	GAME_INFO_CONTROL_AUTO_NAME: 'Otomatik oyun',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'Otomatik oyun panelini açar. Bir dönüş sayısı seçin, ardından başlatmak için Çevir düğmesine basın. Düğmeye tekrar basmak iptal eder.',
+	GAME_INFO_CONTROL_BET_NAME: 'Bahis tutarı',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'- ve + düğmeleri mevcut bahis seviyeleri arasında geçiş yapar; tutara dokunmak tüm listeyi açar.',
+	GAME_INFO_CONTROL_MODES_NAME: 'Oyun modları',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'Oyun modu panelini açar. Normal bir dönüşten daha pahalı olan her mod, başlamadan önce toplam maliyetiyle birlikte daima bir onay gösterir.',
+	GAME_INFO_CONTROL_MENU_NAME: 'Menü',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'Bu oyun bilgilerini ve Müzik ile Ses efektleri seviye ayarlarını içerir.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'Klavye',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'Boşluk tuşu çevirir (veya ileri sarar); basılı tutmak Turbo modunda çevirmeye devam eder. Kazanç kutlamalarında dokunma veya tıklama atlar; Maksimum Kazanç ve bonus sonu ekranları tıklama bekler.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'Genel Sorumluluk Reddi',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'Arıza tüm kazançları ve oyunları geçersiz kılar. Kesintisiz internet bağlantısı gerekir. Bağlantı kesilirse tamamlanmamış turları bitirmek için oyunu yeniden yükleyin. Beklenen getiri çok sayıda oyun üzerinden hesaplanır. Oyun ekranı herhangi bir fiziksel cihazı temsil etmez ve yalnızca açıklama amaçlıdır. Kazançlar web tarayıcısındaki olaylara göre değil, Remote Game Server tarafından alınan tutara göre ödenir. TM ve &copy; 2026 Stake Engine.',

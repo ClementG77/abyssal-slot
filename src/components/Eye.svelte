@@ -114,9 +114,12 @@
 				.add(() => {
 					running = eye.eyeType === 'ADD' ? running + eye.startValue : running * eye.startValue;
 					popCenter();
+					// forcePlay: Ultimate folds several eyes in quick succession — each must sound
+					// (the once-player drops a repeat while the same clip is still ringing)
 					context.eventEmitter.broadcast({
 						type: 'soundOnce',
-						name: eye.eyeType === 'MUL' ? 'sfx_multiplier_explosion_b' : 'sfx_multiplier_combine_a',
+						name: eye.eyeType === 'MUL' ? 'sfx_eye_combine_mul' : 'sfx_eye_combine_add',
+						forcePlay: true,
 					});
 				})
 				.to(chip, { scale: 1.7, alpha: 0, duration: 0.16, ease: 'power2.in' });
@@ -124,10 +127,13 @@
 
 	context.eventEmitter.subscribeOnMount({
 		eyeShow: (e) => {
-			// each Eye opens on the board (its Symbol renders the reveal); play the open sound
+			// each Eye opens on the board (its Symbol renders the reveal); play the open sound.
+			// forcePlay: Ultimate reveals 2–5 eyes ~0.7s apart — without it the once-player drops
+			// every reveal after the first while the clip is still ringing (only one eye heard).
 			context.eventEmitter.broadcast({
 				type: 'soundOnce',
-				name: e.eyeType === 'MUL' ? 'sfx_multiplier_explosion_b' : 'sfx_multiplier_win',
+				name: e.eyeType === 'MUL' ? 'sfx_eye_reveal_mul' : 'sfx_eye_reveal_add',
+				forcePlay: true,
 			});
 		},
 		eyeBurst: async (e) => {
@@ -148,7 +154,8 @@
 			gsap.to(dimFx, { alpha: 0.72, duration: 0.18 / ts(), ease: 'power2.out' });
 
 			popCenter();
-			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_landing' });
+			// the Gaze charge lands at the combine centre — its pay-off moment, not an Eye landing
+			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_gaze_full' });
 			await skippableWait(450 / ts());
 			gazeLabel = false;
 
@@ -167,14 +174,15 @@
 				await context.eventEmitter.broadcastAsync({ type: 'snowballToCombine' });
 				running = e.totalMult;
 				popCenter();
-				context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_combine_a' });
+				// forcePlay: the banked ×M folds right after the per-eye combines — must sound too
+				context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_eye_combine_add', forcePlay: true }); // prettier-ignore
 				await skippableWait(220 / ts());
 			}
 
 			// land exactly on the math's total, with a hero punch
 			running = e.totalMult;
 			popCenter(true);
-			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_explosion_a' });
+			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_eye_burst' });
 			await skippableWait(750 / ts());
 
 			// fade out — the multiplier is carried to the tumble-win banner from here (setWin)

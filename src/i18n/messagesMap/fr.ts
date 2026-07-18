@@ -139,6 +139,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Le Eye &amp; le Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'Chaque cluster gagnant charge le <strong>Gaze</strong> en Essence : <strong>+2</strong> pour 8&ndash;9 symboles, <strong>+3</strong> pour 10&ndash;11, <strong>+5</strong> pour 12+, jusqu a un maximum de <strong>30</strong>. Si un <strong>Eye</strong> est sur le plateau a la fin d un tour gagnant &ndash; present des le depart ou tombe en plein tumble &ndash; il transforme le Gaze en un gros multiplicateur applique a tout ce que vous avez gagne pendant ce tour.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'Un Oeil demarre sur un de ces nombres : <strong>2, 5, 10, 25, 50 ou 100</strong> &ndash; les petites valeurs apparaissent le plus souvent, 100 est la plus rare.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'Exemple : un gain de 2x issu de deux clusters ordinaires construit un Gaze de 4. Un ADD Eye demarrant a 10 &rarr; x14 &rarr; paie 28x. Un MULTIPLY Eye &rarr; x40 &rarr; paie 80x.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Tours Gratuits',
@@ -170,6 +172,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: 'mise 300x',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'Un spin avec toujours au moins 2 Eyes (2-5) qui se combinent - enorme ou rien.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP et gain maximum',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'Taux de retour au joueur (RTP) : <strong>96.00%</strong> &ndash; identique dans tous les modes de jeu.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'Gain maximum : <strong>15 000x la mise</strong>. Les gains totaux d une manche sont plafonnes a ce montant ; une fois atteint, la manche se termine aussitot.',
+	GAME_INFO_CONTROLS_TITLE: 'Boutons et commandes',
+	GAME_INFO_CONTROL_SPIN_NAME: 'Lancer',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'Place une mise et demarre la manche. Pendant la manche, le meme bouton accelere le deroulement.',
+	GAME_INFO_CONTROL_TURBO_NAME: 'Turbo',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'Accelere les tours et les animations tant que le mode est actif.',
+	GAME_INFO_CONTROL_AUTO_NAME: 'Jeu automatique',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'Ouvre le panneau de jeu automatique. Choisis un nombre de tours puis appuie sur Lancer pour demarrer. Appuyer de nouveau sur le bouton annule.',
+	GAME_INFO_CONTROL_BET_NAME: 'Montant de la mise',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'Les boutons - et + parcourent les niveaux de mise disponibles ; toucher le montant ouvre la liste complete.',
+	GAME_INFO_CONTROL_MODES_NAME: 'Modes de jeu',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'Ouvre le panneau des modes. Tout mode coutant plus qu un tour normal affiche toujours une confirmation avec son cout total avant de commencer.',
+	GAME_INFO_CONTROL_MENU_NAME: 'Menu',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'Contient ces informations de jeu ainsi que les reglages de volume musique et effets.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'Clavier',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'La barre espace lance (ou accelere) ; la maintenir enfoncee enchaine les tours en Turbo. Pendant les celebrations, un clic passe a la suite ; les ecrans Max Win et fin de bonus attendent un clic.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'Avertissement general',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'Un dysfonctionnement annule tous les gains et parties. Une connexion internet stable est requise. En cas de deconnexion, rechargez le jeu pour terminer les manches incompletes. Le retour attendu est calcule sur de nombreuses parties. L affichage du jeu ne represente aucun appareil physique et sert uniquement d illustration. Les gains sont regles selon le montant recu du Remote Game Server et non selon les evenements du navigateur web. TM et &copy; 2026 Stake Engine.',

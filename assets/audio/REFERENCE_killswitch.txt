@@ -1,0 +1,77 @@
+REFERENCE — Kill Switch (Terminal Games) sound bank
+Captured live 2026-07-12 from https://terminal-games.live.stake-engine.com/kill-switch/v14/ (demo=true)
+A shipped slot on the SAME Stake Engine SDK as Abyssal. Use as a calibration benchmark ONLY —
+do NOT copy their audio (licensed to Terminal Games). See docs/ABYSSAL_SOUND_DESIGN.md.
+
+FACTS
+- 73 unique files, ~6.2 MB total
+- Format: individual .m4a (AAC) files under /assets/sounds/ , build-hashed (NOT a Howler sprite)
+- Naming: tg_<studio/game>_<category>_<name>_<variant>
+    tg_        = studio (Terminal Games)
+    shared_    = cross-game shared bank
+    klsw_      = game code (Kill Switch)
+- Win tiers: big / super / mega / epic / max  == our winLevelMap exactly
+
+SHARED UI BANK (8) — cross-game, would live in a shared package
+  tg_shared_btn_bet_down
+  tg_shared_btn_bet_up
+  tg_shared_btn_close_menu
+  tg_shared_btn_open_menu
+  tg_shared_btn_general_click
+  tg_shared_btn_select_feature
+  tg_shared_btn_feature_activate
+  tg_shared_btn_feature_buy
+
+MUSIC / BGM (8) — base & bonus each have 3 intensity LAYERS (l0/l1/l2)
+  tg_klsw_bgm_base_l0
+  tg_klsw_bgm_base_l1
+  tg_klsw_bgm_base_l2
+  tg_klsw_bgm_bonus_l0
+  tg_klsw_bgm_bonus_l1
+  tg_klsw_bgm_bonus_l2
+  tg_klsw_bgm_fanfare
+  tg_klsw_bgm_max_or_zero
+
+AMBIENCE (12) — bed separate from music + 10 texture one-shots
+  tg_klsw_amb_base_loop
+  tg_klsw_amb_base_chains_0 .. _9   (10 variations)
+  tg_klsw_amb_bonus_loop
+
+REELS (7)
+  tg_klsw_reel_start
+  tg_klsw_reel_spin_loop
+  tg_klsw_reel_stop_0 .. _4         (5 stop variations)
+
+SYMBOLS (7)
+  tg_klsw_monster_symbol_land_0 .. _3   (4 land variations)
+  tg_klsw_special_a_symbol_reveal
+  tg_klsw_special_m_symbol_reveal
+  tg_klsw_special_x_symbol_reveal
+
+FREE SPINS (8)
+  tg_klsw_fs_intro
+  tg_klsw_fs_land_0 .. _4           (5 scatter-land variations)
+  tg_klsw_fs_outro
+  tg_klsw_fs_win
+
+THEME SFX (11)
+  tg_klsw_game_enter
+  tg_klsw_anticipation
+  tg_klsw_cluster_win
+  tg_klsw_character_shoot
+  tg_klsw_vo_character_shoot        (voice-over)
+  tg_klsw_missile_fly_0 .. _2       (3)
+  tg_klsw_missile_land_0 .. _3      (4)
+
+WIN PRESENTATION (11) — count-up is 3 parts (start / loop / end)
+  tg_klsw_total_win_intro
+  tg_klsw_total_win_outro
+  tg_klsw_counting_start
+  tg_klsw_counting
+  tg_klsw_counting_end
+  tg_klsw_wincap_bigwin
+  tg_klsw_wincap_superwin
+  tg_klsw_wincap_megawin
+  tg_klsw_wincap_epicwin
+  tg_klsw_wincap_maxwin
+  tg_klsw_wincap_outro

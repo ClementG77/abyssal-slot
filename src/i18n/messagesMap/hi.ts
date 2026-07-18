@@ -137,6 +137,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Eye और Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'हर जीतने वाला क्लस्टर <strong>Gaze</strong> को Essence से चार्ज करता है: 8&ndash;9 सिंबल पर <strong>+2</strong>, 10&ndash;11 पर <strong>+3</strong>, 12+ पर <strong>+5</strong>, ज्यादा से ज्यादा <strong>30</strong>. अगर जीतने वाले स्पिन के अंत में बोर्ड पर <strong>Eye</strong> है &ndash; शुरू से या tumble के बीच गिरा हुआ &ndash; तो यह Gaze को एक बड़े मल्टीप्लायर में बदलता है जो उस स्पिन में जीती हर चीज पर लगता है.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'एक आँख इनमें से किसी एक संख्या से शुरू होती है: <strong>2, 5, 10, 25, 50 या 100</strong> &ndash; छोटे मान सबसे अधिक दिखते हैं, 100 सबसे दुर्लभ है।',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'उदाहरण: दो आम क्लस्टर से 2x की जीत Gaze 4 बनाती है. 10 से शुरू ADD Eye &rarr; x14 &rarr; 28x देता है. MULTIPLY Eye &rarr; x40 &rarr; 80x देता है.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -166,6 +168,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_NAME: 'Ultimate',
 	GAME_INFO_MODE_ULTIMATE_COST: '300x बेट',
 	GAME_INFO_MODE_ULTIMATE_TEXT: 'एक स्पिन जिसमें हमेशा कम से कम 2 Eyes (2-5) मिलकर जुड़ते हैं - बहुत बड़ा या कुछ नहीं.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP और अधिकतम जीत',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'खिलाड़ी को वापसी (RTP): <strong>96.00%</strong> &ndash; हर गेम मोड में एक समान।',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'अधिकतम जीत: <strong>दांव का 15,000x</strong>। एक राउंड की कुल जीत इसी राशि तक सीमित है; सीमा तक पहुँचते ही राउंड तुरंत समाप्त हो जाता है।',
+	GAME_INFO_CONTROLS_TITLE: 'बटन और नियंत्रण',
+	GAME_INFO_CONTROL_SPIN_NAME: 'स्पिन',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'दांव लगाता है और राउंड शुरू करता है। राउंड चलने के दौरान यही बटन उसे तेज़ी से आगे बढ़ाता है।',
+	GAME_INFO_CONTROL_TURBO_NAME: 'टर्बो',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'सक्रिय रहने पर स्पिन और एनिमेशन को तेज़ करता है।',
+	GAME_INFO_CONTROL_AUTO_NAME: 'ऑटोप्ले',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'ऑटोप्ले पैनल खोलता है। स्पिन की संख्या चुनें, फिर शुरू करने के लिए स्पिन दबाएँ। ऑटोप्ले बटन दोबारा दबाने पर यह रद्द हो जाता है।',
+	GAME_INFO_CONTROL_BET_NAME: 'दांव राशि',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'- और + बटन उपलब्ध दांव स्तरों में आगे-पीछे जाते हैं; राशि पर टैप करने से पूरी सूची खुलती है।',
+	GAME_INFO_CONTROL_MODES_NAME: 'गेम मोड',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'गेम-मोड पैनल खोलता है। सामान्य स्पिन से अधिक लागत वाला कोई भी मोड शुरू होने से पहले हमेशा अपनी कुल लागत के साथ पुष्टि दिखाता है।',
+	GAME_INFO_CONTROL_MENU_NAME: 'मेन्यू',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'इसमें यह गेम जानकारी तथा संगीत और ध्वनि प्रभाव के वॉल्यूम स्लाइडर शामिल हैं।',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'कीबोर्ड',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'स्पेसबार से स्पिन (या फ़ास्ट-फ़ॉरवर्ड) होता है; स्पेसबार दबाए रखने पर टर्बो में स्पिन चलते रहते हैं। जीत के जश्न के दौरान टैप या क्लिक आगे बढ़ा देता है; अधिकतम जीत और बोनस-समाप्ति स्क्रीन क्लिक की प्रतीक्षा करती हैं।',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'सामान्य अस्वीकरण',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'खराबी सभी जीत और खेल को अमान्य कर देती है. स्थिर इंटरनेट कनेक्शन आवश्यक है. कनेक्शन टूटने पर, किसी भी अधूरे राउंड को पूरा करने के लिए गेम फिर से लोड करें. अपेक्षित रिटर्न कई खेलों पर गणना किया जाता है. गेम डिस्प्ले किसी भौतिक डिवाइस का प्रतिनिधित्व नहीं करता और केवल उदाहरण के लिए है. जीतों का निपटान Remote Game Server से प्राप्त राशि के अनुसार किया जाता है, वेब ब्राउजर की घटनाओं के अनुसार नहीं. TM और &copy; 2026 Stake Engine.',

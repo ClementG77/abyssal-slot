@@ -47,11 +47,17 @@
 	const INNER_H = BANNER_H * 0.42;
 	const INNER_RADIUS = INNER_H * 0.22;
 
-	// Sits just above the reels, centred — all layouts, all game types (the feature HUD lives
-	// above the gaze meter in portrait now, so nothing competes for this spot anymore).
+	// Sits just above the reels, centred. On HORIZONTAL layouts (popup/laptop/desktop) the
+	// FREE-SPINS reel frame is taller and sits higher, so the board scales up and rides up —
+	// which pushes this banner (already well above the board top) off the top edge and crops it.
+	// Shrink + lower it for the feature on horizontal only; base-horizontal and portrait keep
+	// their placement (portrait has its own spot above the gaze meter).
+	const feature = $derived(context.stateGame.gameType === 'freegame');
+	const FEATURE_DESKTOP_SCALE = 0.82; // horizontal free-spins: smaller so it isn't cropped
+	const FEATURE_DESKTOP_Y = -SYMBOL_SIZE * 0.3; // …and lower (was -0.55 in base)
 	const desktopPosition = $derived({
 		x: context.stateGameDerived.boardLayout().width * 0.5,
-		y: -SYMBOL_SIZE * 0.55,
+		y: feature ? FEATURE_DESKTOP_Y : -SYMBOL_SIZE * 0.55,
 	});
 	const portraitPosition = $derived({
 		x: context.stateGameDerived.boardLayout().width * 0.5,
@@ -60,7 +66,9 @@
 	const position = $derived(
 		context.stateLayoutDerived.isStacked() ? portraitPosition : desktopPosition,
 	);
-	const bannerScale = $derived(context.stateLayoutDerived.isStacked() ? 1.18 : 1);
+	const bannerScale = $derived(
+		context.stateLayoutDerived.isStacked() ? 1.18 : feature ? FEATURE_DESKTOP_SCALE : 1,
+	);
 
 	// ---- state -----------------------------------------------------------------------------
 	let show = $state(false);
@@ -108,8 +116,8 @@
 			.to(panelFx, { flash: 0, duration: 0.42, ease: 'power2.out' })
 			.to(panelFx, { scale: 1, duration: 0.55, ease: 'elastic.out(1, 0.5)' }, 0)
 			.to(panelFx, { glow: 0, duration: 0.7, ease: 'power2.out' }, 0.1);
-		// PLACEHOLDER multiplier-impact hit — swap for a bespoke sound later.
-		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_multiplier_landing' });
+		// the ×N multiplier slams into the win amount — a multiply application, not an Eye landing
+		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_eye_combine_mul', forcePlay: true });
 	};
 
 	const flyMultiplier = ({
@@ -125,6 +133,9 @@
 			flyFx.mult = mult;
 			flyFx.active = true;
 			gsap.killTweensOf(flyFx);
+			// the combined final multiplier launches toward the banner — the travel whoosh
+			// (panelImpact's combine hit lands the arrival beat)
+			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_mult_moove', forcePlay: true });
 			const tl = gsap.timeline({
 				onComplete: () => {
 					flyFx.active = false;
@@ -195,12 +206,15 @@
 			}
 			// celebration wins never reveal the final on the banner (guards the mult<2 path too)
 			if (emitterEvent.countToFinal === false) return;
-			// count the banner up from the raw win to the multiplied final
+			// count the banner up from the raw win to the multiplied final — the count-up loop runs
+			// ONLY here (a real multiplied count), not on plain tumble amount adds
+			context.eventEmitter.broadcast({ type: 'soundLoop', name: 'sfx_countup_loop' });
 			await waitForResolve((resolve) => {
 				amount = emitterEvent.totalWin;
 				animate = true;
 				oncomplete = resolve;
 			});
+			context.eventEmitter.broadcast({ type: 'soundStop', name: 'sfx_countup_loop' });
 			// let the multiplied total read before the round proceeds (finalWin hides the banner)
 			await skippableWait(500 / ts());
 		},

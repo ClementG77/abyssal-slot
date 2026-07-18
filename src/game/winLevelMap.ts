@@ -36,7 +36,7 @@ export const winLevelMap = {
 		type: 'medium',
 		text: null,
 		presentDuration: 1.5 * SECOND,
-		sound: { sfx: undefined, bgm: undefined },
+		sound: { sfx: 'sfx_win_nice', bgm: undefined },
 		animation: undefined,
 	},
 	5: {
@@ -45,7 +45,7 @@ export const winLevelMap = {
 		type: 'medium',
 		text: null,
 		presentDuration: 2.0 * SECOND,
-		sound: { sfx: undefined, bgm: undefined },
+		sound: { sfx: 'sfx_win_nice', bgm: undefined },
 		animation: undefined,
 	},
 	6: {
@@ -56,7 +56,7 @@ export const winLevelMap = {
 			return i18nDerived.winTier('bigWin');
 		},
 		presentDuration: 6 * SECOND,
-		sound: { sfx: undefined, bgm: 'bgm_winlevel_big' },
+		sound: { sfx: 'sfx_win_big', bgm: 'bgm_win' },
 		animation: { intro: 'big_win_intro', idle: 'big_win_idle', outro: 'big_win_exit' },
 	},
 	7: {
@@ -67,7 +67,7 @@ export const winLevelMap = {
 			return i18nDerived.winTier('superWin');
 		},
 		presentDuration: 18 * SECOND,
-		sound: { sfx: undefined, bgm: 'bgm_winlevel_superwin' },
+		sound: { sfx: 'sfx_win_big', bgm: 'bgm_win' },
 		animation: { intro: 'super_win_intro', idle: 'super_win_idle', outro: 'super_win_exit' },
 	},
 	8: {
@@ -78,7 +78,7 @@ export const winLevelMap = {
 			return i18nDerived.winTier('megaWin');
 		},
 		presentDuration: 20 * SECOND,
-		sound: { sfx: undefined, bgm: 'bgm_winlevel_mega' },
+		sound: { sfx: 'sfx_win_mega', bgm: 'bgm_win' },
 		animation: { intro: 'mega_win_intro', idle: 'mega_win_idle', outro: 'mega_win_exit' },
 	},
 	9: {
@@ -89,7 +89,7 @@ export const winLevelMap = {
 			return i18nDerived.winTier('epicWin');
 		},
 		presentDuration: 26 * SECOND,
-		sound: { sfx: undefined, bgm: 'bgm_winlevel_epic' },
+		sound: { sfx: 'sfx_win_epic', bgm: 'bgm_win' },
 		animation: { intro: 'epic_win_intro', idle: 'epic_win_idle', outro: 'epic_win_exit' },
 	},
 	10: {
@@ -100,7 +100,7 @@ export const winLevelMap = {
 			return i18nDerived.winTier('maxWin');
 		},
 		presentDuration: 32 * SECOND,
-		sound: { sfx: undefined, bgm: 'bgm_winlevel_max' },
+		sound: { sfx: 'sfx_win_max', bgm: 'bgm_win' },
 		animation: { intro: 'max_win_intro', idle: 'max_win_idle', outro: 'max_win_exit' },
 	},
 } as const;

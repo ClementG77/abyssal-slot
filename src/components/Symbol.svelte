@@ -165,33 +165,56 @@
 		return () => winGlowTween?.kill();
 	});
 
-	// Shape-hugging AURA: a GlowFilter traces the art's actual silhouette in the symbol's own
-	// colour (same tool as the Eye/GazeBar glows). Created lazily the first time this cell wins,
-	// pulsing via outerStrength; detached (filters=[]) whenever the cell isn't winning.
-	const WIN_AURA = {
-		distance: 26, // how far the aura reaches off the silhouette (px)
-		minStrength: 1.6, // aura at the bottom of the breath
-		maxStrength: 4.4, // aura at the top of the breath
-		quality: 0.3, // filter sample quality (higher = smoother, costlier)
+	// Shape-hugging AURA: a GlowFilter traces the art's actual silhouette. It ramps HOTTER for
+	// bigger clusters (the winning cell's essence tier): 8-9 keeps the symbol's own colour at the
+	// base strength; 10-11 reaches further and whitens; 12+ is a white-hot flare. Deliberately an
+	// INTENSITY ramp, not a hue swap — purple/red are the gaze language, so cluster size reads as
+	// "hotter", not "a different colour". Detached (filters=[]) whenever the cell isn't winning.
+	const winTier = $derived((props.rawSymbol.winTier ?? 1) as 1 | 2 | 3);
+	const WIN_TIER = {
+		1: { distance: 26, minStrength: 1.6, maxStrength: 4.4, whiten: 0, core: 0.55 }, // 8-9
+		2: { distance: 34, minStrength: 2.4, maxStrength: 6.4, whiten: 0.24, core: 0.82 }, // 10-11
+		3: { distance: 44, minStrength: 3.4, maxStrength: 8.8, whiten: 0.55, core: 1.1 }, // 12+
+	} as const;
+	const winTierCfg = $derived(WIN_TIER[winTier]);
+	const WIN_AURA_QUALITY = 0.3; // filter sample quality (higher = smoother, costlier)
+	// lerp a colour toward white by t (the hotter tiers whiten their glow)
+	const whitenColor = (color: number, t: number) => {
+		const r = (color >> 16) & 0xff;
+		const g = (color >> 8) & 0xff;
+		const b = color & 0xff;
+		return (
+			((Math.round(r + (255 - r) * t) << 16) |
+				(Math.round(g + (255 - g) * t) << 8) |
+				Math.round(b + (255 - b) * t)) >>>
+			0
+		);
 	};
+	const winAuraColor = $derived(whitenColor(info.color, winTierCfg.whiten));
 	let winAuraFilter = $state<GlowFilter | null>(null);
+	let winAuraFilterTier = 0;
 	$effect(() => {
 		if (!winGlowOn) return;
-		if (!winAuraFilter) {
+		// (re)create when the tier changes — `distance` is baked into the filter's padding, so it
+		// can't be re-tuned at runtime. Tier is set once per win, so this is not a per-frame cost.
+		if (!winAuraFilter || winAuraFilterTier !== winTier) {
+			winAuraFilter?.destroy();
 			winAuraFilter = new GlowFilter({
-				distance: WIN_AURA.distance,
-				outerStrength: WIN_AURA.minStrength,
+				distance: winTierCfg.distance,
+				outerStrength: winTierCfg.minStrength,
 				innerStrength: 0,
-				color: info.color,
-				quality: WIN_AURA.quality,
+				color: winAuraColor,
+				quality: WIN_AURA_QUALITY,
 			});
+			winAuraFilterTier = winTier;
 		}
-		winAuraFilter.color = info.color;
+		winAuraFilter.color = winAuraColor;
 	});
 	$effect(() => {
 		if (winAuraFilter && winGlowOn) {
 			winAuraFilter.outerStrength =
-				WIN_AURA.minStrength + (WIN_AURA.maxStrength - WIN_AURA.minStrength) * winGlowFx.pulse;
+				winTierCfg.minStrength +
+				(winTierCfg.maxStrength - winTierCfg.minStrength) * winGlowFx.pulse;
 		}
 	});
 	onDestroy(() => winAuraFilter?.destroy());
@@ -548,14 +571,15 @@
 			/>
 		{/if}
 
-		<!-- pulsing self-glow while winning: an additive copy of the art brightens its own colours -->
+		<!-- pulsing self-glow while winning: an additive copy of the art brightens its own colours,
+		     hotter (brighter + a touch bigger) for bigger clusters -->
 		{#if winGlowOn && frame}
 			<Sprite
 				key={frame}
 				anchor={0.5}
-				width={symbolSize.width * 1.07}
-				height={symbolSize.height * 1.07}
-				alpha={winGlowFx.pulse * 0.55}
+				width={symbolSize.width * (1.05 + winTier * 0.02)}
+				height={symbolSize.height * (1.05 + winTier * 0.02)}
+				alpha={Math.min(1, winGlowFx.pulse * winTierCfg.core)}
 				tint={0xffffff}
 				blendMode="add"
 			/>

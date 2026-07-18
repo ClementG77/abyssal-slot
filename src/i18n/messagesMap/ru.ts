@@ -137,6 +137,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Eye и Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'Каждый выигрышный кластер заряжает <strong>Gaze</strong> Essence: <strong>+2</strong> за 8&ndash;9 символов, <strong>+3</strong> за 10&ndash;11, <strong>+5</strong> за 12+, максимум <strong>30</strong>. Если <strong>Eye</strong> находится на поле в конце выигрышного спина &ndash; с самого начала или упав во время tumble &ndash; он превращает Gaze в большой множитель, применяемый ко всему выигрышу этого спина.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'Глаз начинается с одного из этих чисел: <strong>2, 5, 10, 25, 50 или 100</strong> &ndash; меньшие значения выпадают чаще всего, 100 &mdash; самое редкое.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'Пример: выигрыш 2x из двух обычных кластеров дает Gaze 4. ADD Eye со стартом 10 &rarr; x14 &rarr; платит 28x. MULTIPLY Eye &rarr; x40 &rarr; платит 80x.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -167,6 +169,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: 'ставка 300x',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'Один спин всегда минимум с 2 Eyes (2-5), которые объединяются - огромный куш или ничего.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP и максимальный выигрыш',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'Возврат игроку (RTP): <strong>96.00%</strong> &ndash; одинаков во всех режимах игры.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'Максимальный выигрыш: <strong>15 000x от ставки</strong>. Суммарный выигрыш раунда ограничен этой суммой; при достижении лимита раунд немедленно завершается.',
+	GAME_INFO_CONTROLS_TITLE: 'Кнопки и управление',
+	GAME_INFO_CONTROL_SPIN_NAME: 'Вращение',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'Делает ставку и запускает раунд. Во время раунда та же кнопка ускоряет его.',
+	GAME_INFO_CONTROL_TURBO_NAME: 'Турбо',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'Ускоряет вращения и анимации, пока включён.',
+	GAME_INFO_CONTROL_AUTO_NAME: 'Автоигра',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'Открывает панель автоигры. Выберите количество вращений, затем нажмите кнопку вращения, чтобы начать. Повторное нажатие кнопки автоигры отменяет её.',
+	GAME_INFO_CONTROL_BET_NAME: 'Размер ставки',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'Кнопки - и + переключают доступные уровни ставки; нажатие на сумму открывает полный список.',
+	GAME_INFO_CONTROL_MODES_NAME: 'Режимы игры',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'Открывает панель режимов. Любой режим дороже обычного вращения всегда показывает подтверждение с полной стоимостью перед запуском.',
+	GAME_INFO_CONTROL_MENU_NAME: 'Меню',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'Содержит эту информацию об игре, а также регуляторы громкости музыки и звуковых эффектов.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'Клавиатура',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'Пробел запускает вращение (или ускоряет его); удержание пробела продолжает вращения в режиме турбо. Во время празднования выигрыша нажатие или клик пропускает его; экраны максимального выигрыша и завершения бонуса ждут клика.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'Общий отказ от ответственности',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'Неисправность аннулирует все выигрыши и игры. Требуется стабильное интернет-соединение. В случае отключения перезагрузите игру, чтобы завершить незаконченные раунды. Ожидаемая отдача рассчитывается по большому числу игр. Отображение игры не представляет физическое устройство и предназначено только для иллюстрации. Выигрыши рассчитываются по сумме, полученной от Remote Game Server, а не по событиям в веб-браузере. TM и &copy; 2026 Stake Engine.',

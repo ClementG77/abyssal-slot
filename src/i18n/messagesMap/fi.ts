@@ -137,6 +137,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Eye &amp; Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'Jokainen voittava klusteri lataa <strong>Gazea</strong> Essencellä: <strong>+2</strong> 8&ndash;9 symbolista, <strong>+3</strong> 10&ndash;11 symbolista, <strong>+5</strong> 12+ symbolista, enintään <strong>30</strong>. Jos <strong>Eye</strong> on laudalla voittavan pyöräytyksen lopussa &ndash; alusta asti tai kesken tumblen pudonneena &ndash; se muuttaa Gazen yhdeksi suureksi kertoimeksi, joka koskee kaikkea kyseisen pyöräytyksen voittoa.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'Silmä alkaa yhdellä näistä luvuista: <strong>2, 5, 10, 25, 50 tai 100</strong> &ndash; pienet arvot ovat yleisimpiä, 100 on harvinaisin.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'Esimerkki: 2x voitto kahdesta tavallisesta klusterista rakentaa Gazen 4. ADD Eye alkaen 10 &rarr; x14 &rarr; maksaa 28x. MULTIPLY Eye &rarr; x40 &rarr; maksaa 80x.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -167,6 +169,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: '300x panos',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'Yksi pyöräytys, jossa aina vähintään 2 Eyeta (2-5) yhdistyvät - jättipotti tai ei mitään.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP ja maksimivoitto',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'Palautusprosentti (RTP): <strong>96.00%</strong> &ndash; sama kaikissa pelitiloissa.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'Maksimivoitto: <strong>15 000x panos</strong>. Kierroksen kokonaisvoitot on rajattu tähän summaan; kun raja saavutetaan, kierros päättyy heti.',
+	GAME_INFO_CONTROLS_TITLE: 'Painikkeet ja säätimet',
+	GAME_INFO_CONTROL_SPIN_NAME: 'Pyöräytä',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'Asettaa panoksen ja aloittaa kierroksen. Kierroksen aikana sama painike kelaa sen eteenpäin.',
+	GAME_INFO_CONTROL_TURBO_NAME: 'Turbo',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'Nopeuttaa pyöräytyksiä ja animaatioita, kun se on käytössä.',
+	GAME_INFO_CONTROL_AUTO_NAME: 'Automaattipeli',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'Avaa automaattipelin paneelin. Valitse kierrosten määrä ja paina sitten Pyöräytä aloittaaksesi. Painikkeen painaminen uudelleen peruuttaa.',
+	GAME_INFO_CONTROL_BET_NAME: 'Panoksen määrä',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'Painikkeet - ja + selaavat käytettävissä olevia panostasoja; summaa napauttamalla avautuu koko lista.',
+	GAME_INFO_CONTROL_MODES_NAME: 'Pelitilat',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'Avaa pelitilapaneelin. Jokainen tila, joka maksaa tavallista pyöräytystä enemmän, näyttää aina vahvistuksen kokonaishinnalla ennen aloitusta.',
+	GAME_INFO_CONTROL_MENU_NAME: 'Valikko',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'Sisältää nämä pelitiedot sekä musiikin ja ääniefektien voimakkuussäätimet.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'Näppäimistö',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'Välilyönti pyöräyttää (tai kelaa); välilyöntiä pohjassa pitämällä peli jatkaa pyörimistä Turbossa. Voittojuhlien aikana napautus tai klikkaus ohittaa; maksimivoiton ja bonuksen loppuruudut odottavat klikkausta.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'Yleinen vastuuvapauslauseke',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'Toimintahäiriö mitätöi kaikki voitot ja pelit. Vakaa internetyhteys vaaditaan. Jos yhteys katkeaa, lataa peli uudelleen päättääksesi keskeneräiset kierrokset. Odotettu palautus lasketaan suuresta määrästä pelejä. Pelinäkymä ei edusta fyysistä laitetta ja on vain havainnollistava. Voitot maksetaan Remote Game Serveriltä saadun määrän mukaan, ei verkkoselaimen tapahtumien perusteella. TM ja &copy; 2026 Stake Engine.',

@@ -9,6 +9,7 @@ import { BOOK_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
 import { eventEmitter } from './eventEmitter';
 import { ESSENCE_TIER_VALUES, GAZE_METER_MAX_CHARGE, getEssenceTier } from './constants';
 import { skippableWait } from './skip.svelte';
+import { stateXstateDerived } from './stateXstate';
 import { winLevelMap, type WinLevel, type WinLevelData } from './winLevelMap';
 import { stateGame, stateGameDerived } from './stateGame.svelte';
 import type { BookEvent, BookEventOfType, BookEventContext } from './typesBookEvent';
@@ -19,22 +20,41 @@ import type { Position } from './types';
 // but get no centre-screen takeover. Must match Win.svelte's lowest WIN_TIER (bigWin, 20×).
 const WIN_PRESENT_MIN_MULTIPLIER = 20;
 
-const winLevelSoundsPlay = ({ winLevelData }: { winLevelData: WinLevelData }) => {
+// Turbo/autoplay leave a SETTLED spin no natural pause — a no-win ("no connection") spin snaps
+// straight into the next, so a rushed round becomes an unreadable blur (worst in the feature,
+// which auto-advances every spin). This is a small fixed beat after each board lands, applied
+// ONLY when spins are being rushed. It is NOT divided by timeScale — it's the floor turbo can't
+// compress — but a manual press still cuts through it (skippableWait).
+const TURBO_SPIN_SETTLE_MS = 260;
+
+const winLevelSoundsPlay = ({
+	winLevelData,
+	skipSfx = false,
+}: {
+	winLevelData: WinLevelData;
+	skipSfx?: boolean;
+}) => {
 	if (winLevelData?.alias === 'max') eventEmitter.broadcastAsync({ type: 'uiHide' });
-	if (winLevelData?.sound?.sfx) {
-		eventEmitter.broadcast({ type: 'soundOnce', name: winLevelData.sound.sfx });
+	// skipSfx: the wincap flow lets the trophy slam own the max stinger (no double fanfare)
+	if (!skipSfx && winLevelData?.sound?.sfx) {
+		// forcePlay: the same tier (or a re-presented win) can fire again while the previous
+		// stinger is still ringing — each presentation must replay from the start, not be dropped.
+		eventEmitter.broadcast({ type: 'soundOnce', name: winLevelData.sound.sfx, forcePlay: true });
 	}
 	if (winLevelData?.sound?.bgm) {
 		eventEmitter.broadcast({ type: 'soundMusic', name: winLevelData.sound.bgm });
 	}
-	if (winLevelData?.type === 'big') {
-		eventEmitter.broadcast({ type: 'soundLoop', name: 'sfx_bigwin_coinloop' });
-	}
+	// the count-up loop runs for EVERY presented win (also covers scatter-pay takeovers that have
+	// no tumble banner); small (<20×) tumble wins start it from updateTumbleWin instead. It's a
+	// loop (idempotent) and stops at finalWin / winLevelSoundsStop / the next reveal.
+	eventEmitter.broadcast({ type: 'soundLoop', name: 'sfx_countup_loop' });
 };
 
 const winLevelSoundsStop = () => {
-	eventEmitter.broadcast({ type: 'soundStop', name: 'sfx_bigwin_coinloop' });
+	eventEmitter.broadcast({ type: 'soundStop', name: 'sfx_countup_loop' });
 	if (stateGame.gameType === 'freegame') {
+		// mid-bonus interruption (bgm_win takeover) → the feature bed RESUMES where it paused.
+		// It only restarts from 0:00 on a fresh bonus ENTRY (freeSpinTrigger / Super Spins reveal).
 		eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_freespin' });
 	} else {
 		eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_main' });
@@ -48,7 +68,11 @@ const resetCompletedBuyMode = () => {
 	}
 };
 
-const animateSymbols = async ({ positions }: { positions: Position[] }) => {
+const animateSymbols = async ({
+	positions,
+}: {
+	positions: (Position & { winTier?: 1 | 2 | 3 })[];
+}) => {
 	eventEmitter.broadcast({ type: 'boardShow' });
 	await eventEmitter.broadcastAsync({
 		type: 'boardWithAnimateSymbols',
@@ -58,6 +82,8 @@ const animateSymbols = async ({ positions }: { positions: Position[] }) => {
 
 export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContext> = {
 	reveal: async (bookEvent: BookEventOfType<'reveal'>, { bookEvents }: BookEventContext) => {
+		// a new spin starts — make sure the previous win's count-up loop is stopped
+		eventEmitter.broadcast({ type: 'soundStop', name: 'sfx_countup_loop' });
 		eventEmitter.broadcast({ type: 'tumbleWinAmountReset' });
 		const isBonusGame = checkIsMultipleRevealEvents({ bookEvents });
 		if (isBonusGame) {
@@ -88,8 +114,29 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		const revealEvent = bookEvent;
 
 		stateGame.gameType = bookEvent.gameType;
+
+		// Music bed for this spin. Free spins keep bgm_freespin (set by freeSpinTrigger — untouched
+		// here). In the base scene, ride the FEATURE bed for a Super Spins buy (a single-spin feature
+		// with no free-spin events, so nothing else would switch it) and the base bed otherwise. Both
+		// calls are no-ops when that track is already playing, so this also self-corrects the music
+		// back to base once the player leaves Super Spins. (bgm_betmode switching, since Abyssal
+		// doesn't use components-ui-pixi's soundBetMode.)
+		if (stateGame.gameType !== 'freegame') {
+			const isSuperSpins = stateBet.activeBetModeKey === 'SUPERSPINS';
+			if (isSuperSpins) {
+				// each Super Spins buy is a fresh single-spin feature — the bed opens on its intro
+				eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_freespin', restart: true });
+			} else {
+				eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_main' });
+			}
+		}
+
 		await stateGameDerived.enhancedBoard.spin({ revealEvent });
 		eventEmitter.broadcast({ type: 'reelFrameScatterAnticipationEnd' });
+
+		// keep rushed spins readable — a small settle after the board lands (see TURBO_SPIN_SETTLE_MS)
+		const rushing = stateBetDerived.timeScale() > 1 || stateXstateDerived.isAutoBetting();
+		if (rushing) await skippableWait(TURBO_SPIN_SETTLE_MS);
 	},
 
 	winInfo: async (bookEvent: BookEventOfType<'winInfo'>) => {
@@ -102,8 +149,13 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		}));
 
 		const promiseAnimate = async () => {
-			eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_winlevel_small' });
-			await animateSymbols({ positions: _.flatten(bookEvent.wins.map((win) => win.positions)) });
+			eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_cluster_win' });
+			// tag each winning cell with its cluster's essence tier (8-9 / 10-11 / 12+) so the win
+			// glow ramps hotter for bigger clusters
+			const positions = bookEvent.wins.flatMap((win) =>
+				win.positions.map((position) => ({ ...position, winTier: getEssenceTier(win.count) })),
+			);
+			await animateSymbols({ positions });
 		};
 
 		// Abyssal shows the *raw* cluster win — the Eye multiplies the spin total at
@@ -126,6 +178,9 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 
 	updateTumbleWin: async (bookEvent: BookEventOfType<'updateTumbleWin'>) => {
 		if (bookEvent.amount > 0) {
+			// NB: no count-up sound here — a plain tumble amount add just snaps the banner. The
+			// count-up loop only runs when the banner actually COUNTS (an Eye multiply, see
+			// TumbleWinAmount) or in the win-steps takeover (winLevelSoundsPlay).
 			eventEmitter.broadcast({ type: 'tumbleWinAmountShow' });
 			eventEmitter.broadcast({
 				type: 'tumbleWinAmountUpdate',
@@ -193,7 +248,9 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		stateBet.winBookEventAmount += bookEvent.amount;
 
 		// A 6-scatter pay is 100× — that earns the full win-steps takeover, same gate as
-		// setWin (≥20×). 4/5 scatters (3×/5×) show on the WIN readout instead.
+		// setWin (≥20×). The takeover owns its sound (tier stinger + count-up loop via
+		// winLevelSoundsPlay) — no extra flourish on top. 4/5 scatters (3×/5×) show on the
+		// WIN readout with the same win pop a cluster makes (they're the same size of win).
 		if (bookEvent.amount >= WIN_PRESENT_MIN_MULTIPLIER * BOOK_AMOUNT_MULTIPLIER) {
 			const mult = bookEvent.amount / BOOK_AMOUNT_MULTIPLIER;
 			const winLevelData = mult >= 250 ? winLevelMap[9] : mult >= 100 ? winLevelMap[8] : winLevelMap[6];
@@ -208,6 +265,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 			winLevelSoundsStop();
 			eventEmitter.broadcast({ type: 'winHide' });
 		} else {
+			eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_cluster_win', forcePlay: true });
 			// 4/5 scatters: hold a beat so the pay visibly lands on the WIN readout before the
 			// trigger celebration → intro takes the screen (a press skips the hold)
 			await skippableWait(900 / stateBetDerived.timeScale());
@@ -290,9 +348,11 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 			amount: bookEvent.amount,
 			winLevelData,
 		});
-		// A max-level setWin (winLevel 10 — capped books only) is always followed by `wincap`:
-		// keep the UI hidden and the max-win music rolling so the ladder hands straight off to
-		// the trophy takeover; the wincap handler below restores both when the trophy closes.
+		// In practice capped books DON'T emit a max-level setWin — their cap is reached by the
+		// round cumulative and only `wincap` fires (every setWin in them is a small sub-20× tumble
+		// that returns early above). So the full MAX celebration lives in WinCapCelebration, not
+		// here. This branch stays defensive: if a max-level setWin ever did arrive, keep the UI
+		// hidden and the max-win music rolling so it hands straight off to the trophy.
 		if (winLevelData?.alias !== 'max') winLevelSoundsStop();
 		eventEmitter.broadcast({ type: 'winHide' });
 	},
@@ -302,6 +362,8 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	},
 
 	finalWin: async (_bookEvent: BookEventOfType<'finalWin'>) => {
+		// the round win is settled — stop the count-up loop
+		eventEmitter.broadcast({ type: 'soundStop', name: 'sfx_countup_loop' });
 		eventEmitter.broadcast({ type: 'tumbleWinAmountHide' });
 		// the `capped` max-win takeover is driven by the separate `wincap` event below.
 	},
@@ -390,21 +452,25 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	},
 
 	// --- Win-cap (15,000×) ------------------------------------------------------------
-	// Fires on the ROUND cumulative hitting the cap — possibly right after a win ladder that
-	// never reached MAX WIN (a small spin win can tip the total over). The trophy takeover is
-	// therefore the authoritative MAX WIN reveal: the red-dragon plaque slams in at the end of
-	// the win celebrations and holds until a press (see WinCapCelebration.svelte).
+	// Fires on the ROUND cumulative hitting the cap. Capped books never emit a max-level
+	// `setWin` (their setWins are all small sub-20× tumbles), so WinCapCelebration plays the
+	// WHOLE escalation itself: the BIG → HUGE → MEGA → EPIC banner morphs, the ruby MAX slam,
+	// the lock, then the indefinite click-to-continue hold. Hand off directly — do NOT also
+	// run Win.svelte's ladder (winShow/winUpdate) here: the takeover already contains that
+	// exact escalation, and running both plays the same ladder twice back to back.
 	wincap: async (bookEvent: BookEventOfType<'wincap'>) => {
 		const winLevelData = winLevelMap[10]; // alias 'max' → hides the UI + max-win music
 		eventEmitter.broadcast({ type: 'tumbleWinAmountHide' });
-		winLevelSoundsPlay({ winLevelData });
+		// skipSfx: the takeover voices its own ladder (entry stinger, tier-ups, the max slam);
+		// this call still owns uiHide + the max-win music + the count-up loop under the climb
+		winLevelSoundsPlay({ winLevelData, skipSfx: true });
 		await eventEmitter.broadcastAsync({ type: 'winCapTrigger', amount: bookEvent.amount });
 		winLevelSoundsStop();
 	},
 
 	// --- Free Spins lifecycle ---------------------------------------------------------
 	freeSpinTrigger: async (bookEvent: BookEventOfType<'freeSpinTrigger'>) => {
-		eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_scatter_win_v2' });
+		eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_fs_intro' });
 		await animateSymbols({ positions: bookEvent.positions });
 		// the scatters connect with energy and flash before we dive into the feature
 		await eventEmitter.broadcastAsync({ type: 'scatterCelebrate', positions: bookEvent.positions });
@@ -413,7 +479,8 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 
 		stateGame.freeSpinIntroActive = true;
 		eventEmitter.broadcast({ type: 'freeSpinIntroShow' });
-		eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_freespin' });
+		// (base music keeps playing over the intro card + the water-wall cover — the feature bed
+		// only starts once we're actually inside the free game, below)
 		await eventEmitter.broadcastAsync({
 			type: 'freeSpinIntroUpdate',
 			totalFreeSpins: bookEvent.totalFs,
@@ -424,6 +491,9 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		// …and while the screen is fully covered: swap to the free-spins scene (background, reel
 		// frame, Gaze skin), drop the intro card and release the blur — all invisible under water.
 		stateGame.gameType = 'freegame';
+		// NOW switch to the feature bed — we've entered the bonus, under the water cover.
+		// restart: every bonus opens on the track's intro, never resuming a previous bonus's spot.
+		eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_freespin', restart: true });
 		await eventEmitter.broadcastAsync({ type: 'freeSpinIntroHide' });
 		stateGame.freeSpinIntroActive = false;
 		eventEmitter.broadcast({ type: 'reelFrameGlowShow' });
@@ -454,7 +524,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	},
 
 	freeSpinRetrigger: async (bookEvent: BookEventOfType<'freeSpinRetrigger'>) => {
-		eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_scatter_win_v2' });
+		eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_fs_intro' });
 		await animateSymbols({ positions: bookEvent.positions });
 		// same stakes as the initial trigger — give it the same celebration (sequential scatter
 		// ignites → flash → shockwave) before the retrigger banner
@@ -473,7 +543,8 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		eventEmitter.broadcast({ type: 'reelFrameGlowHide' });
 		eventEmitter.broadcast({ type: 'snowballHide' });
 		eventEmitter.broadcast({ type: 'freeSpinOutroShow' });
-		winLevelSoundsPlay({ winLevelData });
+		// skipSfx: no tier stinger on the outro card — the bgm takeover + the count carry it
+		winLevelSoundsPlay({ winLevelData, skipSfx: true });
 		await eventEmitter.broadcastAsync({
 			type: 'freeSpinOutroCountUp',
 			// the ROUND total (latest setTotalWin), not just the feature's: it includes any
@@ -485,10 +556,16 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		eventEmitter.broadcast({ type: 'freeSpinOutroHide' });
 		eventEmitter.broadcast({ type: 'freeSpinCounterHide' });
 		eventEmitter.broadcast({ type: 'tumbleWinAmountHide' });
-		await eventEmitter.broadcastAsync({ type: 'freeSpinExitCover' });
+		// the same water-wall dive as the intro: the wave rises to full cover, the base scene is
+		// swapped underneath, then the wave passes upward off the screen revealing it
+		await eventEmitter.broadcastAsync({ type: 'transitionCover' });
 		stateGame.gameType = 'basegame';
 		resetCompletedBuyMode();
-		await eventEmitter.broadcastAsync({ type: 'freeSpinExitReveal' });
+		await eventEmitter.broadcastAsync({ type: 'transitionReveal' });
+		// back in the base game, the wave has passed — NOW resume the base bed where it left
+		// off. (winLevelSoundsStop ran while gameType was still 'freegame', so it re-armed the
+		// FEATURE bed; without this the feature music keeps playing forever after the bonus.)
+		eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_main' });
 		await eventEmitter.broadcastAsync({ type: 'uiShow' });
 	},
 
@@ -522,6 +599,9 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		// if the player was inside the feature, restore its HUD directly (no intro/transition)
 		if (lastFreeSpinTrigger) {
 			stateGame.gameType = 'freegame';
+			// resumed mid-bonus → the feature bed, not bgm_main (Sound.svelte's onMount also
+			// checks gameType for the case where it mounts after this handler ran)
+			eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_freespin' });
 			eventEmitter.broadcast({ type: 'reelFrameGlowShow' });
 			eventEmitter.broadcast({ type: 'freeSpinCounterShow' });
 			eventEmitter.broadcast({

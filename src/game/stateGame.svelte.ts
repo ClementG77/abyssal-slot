@@ -16,7 +16,6 @@ import {
 	SPIN_OPTIONS_DEFAULT,
 	SPIN_OPTIONS_FAST,
 	INITIAL_SYMBOL_STATE,
-	SCATTER_LAND_SOUND_MAP,
 	VISIBLE_ROW_START,
 	REEL_LAYOUT_BASE,
 	REEL_LAYOUT_FREE_SPINS,
@@ -42,19 +41,32 @@ const getVisibleLandPosition = ({ reel, row }: { reel?: number; row?: number }) 
 	return isVisiblePosition ? position : undefined;
 };
 
+// The Eye jolt coalesces a near-simultaneous group (multi-Eye Ultimate reveal, several drops in
+// one refill) into ONE shake — each boardEyeImpact kills+restarts the timeline, so back-to-back
+// lands would stutter. Eyes that land distinctly apart still each bump; genuine separate drops
+// (seconds apart) are never suppressed.
+const EYE_JOLT_COOLDOWN_MS = 160;
+let lastEyeJoltAt = 0;
+
 const onSymbolLand = ({
 	rawSymbol,
 	reel,
 	row,
+	isRefill = true,
 }: {
 	rawSymbol: RawSymbol;
 	reel?: number;
 	row?: number;
+	// Cascade settles reuse `land` for symbols that only SHIFT down (survivors of the tumble,
+	// not new drops) — callers default this true (the initial reveal spin has no such concept,
+	// every symbol there is a genuine fresh land). Only a genuine land should re-trigger the
+	// once-per-land fanfare below.
+	isRefill?: boolean;
 }) => {
 	const position = getVisibleLandPosition({ reel, row });
 	if (reel !== undefined && row !== undefined && position === undefined) return;
 
-	if (rawSymbol.name === 'S') {
+	if (rawSymbol.name === 'S' && isRefill) {
 		const scatterCountAfterLand = stateGame.scatterCounter + 1;
 
 		// No board jolt on a scatter land. A base book caps at 3 scatters (a near-miss that pays
@@ -72,15 +84,24 @@ const onSymbolLand = ({
 		if (scatterCountAfterLand >= triggerCount && stateGame.scatterAnticipating) {
 			eventEmitter.broadcast({ type: 'reelFrameScatterAnticipationEnd' });
 		}
-		eventEmitter.broadcast({
-			type: 'soundOnce',
-			name: SCATTER_LAND_SOUND_MAP[getScatterLandSoundIndex(scatterCountAfterLand)],
-		});
+		// forcePlay: several scatters can land within one clip's length — each should ping
+		eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_scatter_land', forcePlay: true });
 	}
 
+	// The Eye's heavy board-wide jolt + frame burst play whenever an Eye lands — an Eye appearing
+	// on the reveal board AND a mid-cascade drop both shake the board (that's the "an Eye!" beat).
+	// `onSymbolLand` runs for EVERY landing symbol, so a multi-Eye reveal (Ultimate: 2–5) or two
+	// drops in one refill would fire back-to-back and stutter the jolt — the cooldown coalesces a
+	// near-simultaneous group into one clean shake (see EYE_JOLT_COOLDOWN_MS).
 	if (rawSymbol.name === 'EYE') {
-		eventEmitter.broadcast({ type: 'boardEyeImpact', position });
-		eventEmitter.broadcast({ type: 'reelFrameEyeLand', position });
+		const nowMs = performance.now();
+		if (nowMs - lastEyeJoltAt > EYE_JOLT_COOLDOWN_MS) {
+			lastEyeJoltAt = nowMs;
+			eventEmitter.broadcast({ type: 'boardEyeImpact', position });
+			eventEmitter.broadcast({ type: 'reelFrameEyeLand', position });
+			// the Eye's arrival IS the jolt moment — one boss-landing boom per coalesced group
+			eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_eye_land', forcePlay: true });
+		}
 	}
 };
 
@@ -93,7 +114,7 @@ const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
 		onReelStopping: () => {
 			eventEmitter.broadcast({
 				type: 'soundOnce',
-				name: 'sfx_reel_stop_1',
+				name: 'sfx_reel_stop',
 				forcePlay: !stateBet.isTurbo,
 			});
 			// contact feedback: the column's weight lands — a tiny frame dip + a bubble puff

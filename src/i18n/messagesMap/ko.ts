@@ -137,6 +137,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Eye &amp; Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'승리한 클러스터마다 <strong>Gaze</strong>가 Essence로 충전됩니다: 심볼 8&ndash;9개는 <strong>+2</strong>, 10&ndash;11개는 <strong>+3</strong>, 12개 이상은 <strong>+5</strong>, 최대 <strong>30</strong>. 승리 스핀이 끝날 때 보드에 <strong>Eye</strong>가 있으면 &ndash; 처음부터 있었든 tumble 도중 떨어졌든 &ndash; Gaze를 해당 스핀에서 얻은 모든 승리에 적용되는 큰 배수로 바꿉니다.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'눈은 다음 숫자 중 하나로 시작합니다: <strong>2, 5, 10, 25, 50, 100</strong> &ndash; 작은 값일수록 자주 나오며 100이 가장 희귀합니다.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'예시: 평범한 클러스터 2개로 2x 승리, Gaze는 4. 10에서 시작하는 ADD Eye &rarr; x14 &rarr; 28x 지급. MULTIPLY Eye &rarr; x40 &rarr; 80x 지급.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Free Spins',
@@ -167,6 +169,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: '300x 베팅',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'항상 최소 2개의 Eye(2-5개)가 결합하는 단 한 번의 스핀 - 대박 아니면 꽝.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP 및 최대 당첨',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'플레이어 환수율(RTP): <strong>96.00%</strong> &ndash; 모든 게임 모드에서 동일합니다.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'최대 당첨: <strong>베팅의 15,000배</strong>. 한 라운드의 총 당첨금은 이 금액으로 제한되며, 한도에 도달하면 라운드가 즉시 종료됩니다.',
+	GAME_INFO_CONTROLS_TITLE: '버튼 및 조작',
+	GAME_INFO_CONTROL_SPIN_NAME: '스핀',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'베팅하고 라운드를 시작합니다. 라운드가 진행되는 동안 같은 버튼으로 빨리 감을 수 있습니다.',
+	GAME_INFO_CONTROL_TURBO_NAME: '터보',
+	GAME_INFO_CONTROL_TURBO_TEXT: '활성화되어 있는 동안 스핀과 연출을 빠르게 합니다.',
+	GAME_INFO_CONTROL_AUTO_NAME: '자동 플레이',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'자동 플레이 패널을 엽니다. 스핀 횟수를 선택한 뒤 스핀 버튼을 눌러 시작합니다. 자동 플레이 버튼을 다시 누르면 취소됩니다.',
+	GAME_INFO_CONTROL_BET_NAME: '베팅 금액',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'- 와 + 버튼으로 사용 가능한 베팅 단계를 이동합니다. 금액을 누르면 전체 목록이 열립니다.',
+	GAME_INFO_CONTROL_MODES_NAME: '게임 모드',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'게임 모드 패널을 엽니다. 일반 스핀보다 비용이 높은 모드는 시작 전에 항상 총 비용과 함께 확인 창을 표시합니다.',
+	GAME_INFO_CONTROL_MENU_NAME: '메뉴',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'이 게임 정보와 음악 및 효과음 볼륨 슬라이더가 들어 있습니다.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: '키보드',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'스페이스바로 스핀(또는 빨리 감기)합니다. 스페이스바를 누르고 있으면 터보로 계속 스핀합니다. 당첨 연출 중에는 탭이나 클릭으로 건너뛸 수 있지만, 최대 당첨 화면과 보너스 종료 화면은 클릭을 기다립니다.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: '일반 면책 조항',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'오작동 시 모든 승리와 플레이는 무효입니다. 안정적인 인터넷 연결이 필요합니다. 연결이 끊기면 완료되지 않은 라운드를 끝내기 위해 게임을 다시 불러오세요. 예상 반환율은 많은 플레이를 기준으로 계산됩니다. 게임 화면은 실제 물리적 장치를 나타내지 않으며 설명 목적으로만 제공됩니다. 승리는 웹 브라우저 내 이벤트가 아니라 Remote Game Server에서 수신한 금액에 따라 정산됩니다. TM 및 &copy; 2026 Stake Engine.',

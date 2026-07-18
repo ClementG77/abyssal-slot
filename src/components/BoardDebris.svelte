@@ -51,19 +51,24 @@
 	let bursts = $state<Burst[]>([]);
 	let nextId = 0;
 
-	onMount(() => {
-		let raf = 0;
+	// Self-suspending clock: bubbles only exist for ~0.4–0.6s after a burst, so there's no reason
+	// to run a perpetual rAF between them. The loop runs while bursts are alive and stops once
+	// they've all expired; spawning a burst wakes it (ensureClock).
+	let rafId = 0;
+	const ensureClock = () => {
+		if (rafId) return;
 		const loop = (t: number) => {
 			now = t;
 			// prune finished bursts (only rebuild the array when something actually expired)
-			if (bursts.length) {
-				const alive = bursts.filter((b) => t - b.start < b.duration);
-				if (alive.length !== bursts.length) bursts = alive;
-			}
-			raf = requestAnimationFrame(loop);
+			const alive = bursts.filter((b) => t - b.start < b.duration);
+			if (alive.length !== bursts.length) bursts = alive;
+			rafId = alive.length ? requestAnimationFrame(loop) : 0;
 		};
-		raf = requestAnimationFrame(loop);
-		return () => cancelAnimationFrame(raf);
+		rafId = requestAnimationFrame(loop);
+	};
+
+	onMount(() => () => {
+		if (rafId) cancelAnimationFrame(rafId);
 	});
 
 	context.eventEmitter.subscribeOnMount({
@@ -96,6 +101,7 @@
 				};
 			});
 			bursts = [...bursts, ...spawned];
+			ensureClock();
 		},
 		boardLandPuff: ({ cells }) => {
 			const t = performance.now();
@@ -127,6 +133,7 @@
 				};
 			});
 			bursts = [...bursts, ...spawned];
+			ensureClock();
 		},
 	});
 

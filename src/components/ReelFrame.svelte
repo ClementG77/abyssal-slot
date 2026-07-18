@@ -66,6 +66,7 @@
 	);
 
 	let now = $state(0);
+	let rafId = 0;
 	let boosted = $state(false);
 	let launchStartedAt = $state(-1);
 	let reelStopStartedAt = $state(-1);
@@ -76,30 +77,45 @@
 	let scatterAnticipationReleaseFrom = $state(0);
 	const t = $derived(now / 1000);
 
-	onMount(() => {
-		let raf = 0;
-		const loop = (timestamp: number) => {
-			now = timestamp;
-			raf = requestAnimationFrame(loop);
-		};
-		raf = requestAnimationFrame(loop);
-		return () => cancelAnimationFrame(raf);
+	// Self-suspending clock (mounted twice — background + overlay layers): it only ticks while
+	// something is actually animating — a burst window, an anticipation, the gaze-heat breathe,
+	// or the feature glint boost. At true base idle it stops (the near-invisible idle glint just
+	// freezes). `ensureClock`/`clockNeeded` are defined below, after `heat` is in scope.
+	onMount(() => () => {
+		if (rafId) cancelAnimationFrame(rafId);
 	});
 
 	context.eventEmitter.subscribeOnMount({
-		reelFrameGlowShow: () => (boosted = true),
+		reelFrameGlowShow: () => {
+			boosted = true;
+			ensureClock();
+		},
 		reelFrameGlowHide: () => (boosted = false),
-		reelFrameSpinLaunch: () => (launchStartedAt = performance.now()),
-		reelFrameReelStop: () => (reelStopStartedAt = performance.now()),
-		reelFrameScatterLand: () => (scatterStartedAt = performance.now()),
-		reelFrameEyeLand: () => (eyeStartedAt = performance.now()),
+		reelFrameSpinLaunch: () => {
+			launchStartedAt = performance.now();
+			ensureClock();
+		},
+		reelFrameReelStop: () => {
+			reelStopStartedAt = performance.now();
+			ensureClock();
+		},
+		reelFrameScatterLand: () => {
+			scatterStartedAt = performance.now();
+			ensureClock();
+		},
+		reelFrameEyeLand: () => {
+			eyeStartedAt = performance.now();
+			ensureClock();
+		},
 		reelFrameScatterAnticipationStart: () => {
 			scatterAnticipationStartedAt = performance.now();
 			scatterAnticipationReleasedAt = -1;
+			ensureClock();
 		},
 		reelFrameScatterAnticipationEnd: () => {
 			scatterAnticipationReleaseFrom = scatterAnticipationProgress;
 			scatterAnticipationReleasedAt = performance.now();
+			ensureClock();
 		},
 	});
 
@@ -138,8 +154,38 @@
 		hotColor: 0xffb46a, // hot amber at full charge
 	};
 	const heat = new Tween(0, { duration: 550 });
+
+	// Clock is "needed" while any burst is inside its window, an anticipation is live, the gaze
+	// heat is still visible (breathing/easing), or the feature glint is boosted.
+	const clockNeeded = (ts: number) => {
+		const within = (startedAt: number, ms: number) => startedAt >= 0 && ts - startedAt < ms;
+		const anticipationActive =
+			scatterAnticipationStartedAt >= 0 &&
+			(scatterAnticipationReleasedAt < 0 || ts - scatterAnticipationReleasedAt < 200);
+		return (
+			within(launchStartedAt, 620) ||
+			within(reelStopStartedAt, 240) ||
+			within(scatterStartedAt, 520) ||
+			within(eyeStartedAt, 760) ||
+			anticipationActive ||
+			heat.current > 0.01 ||
+			boosted
+		);
+	};
+	const ensureClock = () => {
+		if (rafId) return;
+		const loop = (ts: number) => {
+			now = ts;
+			rafId = clockNeeded(ts) ? requestAnimationFrame(loop) : 0;
+		};
+		rafId = requestAnimationFrame(loop);
+	};
+
 	$effect(() => {
-		heat.set(Math.min(context.stateGame.gazeCharge / FRAME_HEAT.fullCharge, 1));
+		const target = Math.min(context.stateGame.gazeCharge / FRAME_HEAT.fullCharge, 1);
+		heat.set(target);
+		// wake the clock so the heat bloom breathes/eases; it self-suspends once heat < 0.01
+		if (target > 0) ensureClock();
 	});
 	const heatColor = $derived(
 		heat.current < 0.5
@@ -158,13 +204,16 @@
 	const launchEnergy = $derived(getBurstEnergy(launchStartedAt, 0.62));
 	const scatterEnergy = $derived(getBurstEnergy(scatterStartedAt, 0.52));
 	const eyeEnergy = $derived(getBurstEnergy(eyeStartedAt, 0.76));
-	const eyeColorPopEnergy = $derived(getBurstEnergy(eyeStartedAt, 0.18));
 	const specialEnergy = $derived(Math.max(scatterEnergy, eyeEnergy));
 	const effectEnergy = $derived(Math.max(launchEnergy, specialEnergy));
+	// The bottom aura reacts to spin launch ONLY — scatter no longer lights it, and the Eye's
+	// reaction is the puffs behind the frame (drawFrameBackPuffs), not the bottom rail.
+	const bottomAuraEnergy = $derived(launchEnergy);
 	const effectColor = $derived(
 		eyeEnergy > scatterEnergy ? 0xd866ff : scatterEnergy > 0 ? 0x4cecff : frame.glowColor,
 	);
-	const borderTint = $derived(mixColor(0xffffff, 0xd866ff, eyeColorPopEnergy));
+	// border stays untinted — the Eye's frame reaction is the backglow puffs, not a border flash
+	const borderTint = 0xffffff;
 	const launchMotion = $derived(launchEnergy > 0 ? Math.sin((1 - launchEnergy) * Math.PI) : 0);
 	// each reel stop dips the frame a touch — the column's weight hits the chassis
 	const REEL_STOP_DIP = 6; // px at the dip's peak
@@ -226,23 +275,95 @@
 		g.rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight).fill(0xffffff);
 	};
 
-	const drawBottomSurge = (g: import('pixi.js').Graphics, layout: ReelFrameLayout) => {
+	// A soft pool of light welling up from the bottom rail of the reel window (replaces the old
+	// per-column blobs + hard bars). Tuned to read as a gentle aura, not a flash.
+	const BOTTOM_AURA = {
+		reach: 0.22, // how far up the glow reaches, as a fraction of the reel window height
+		spread: 0.62, // half-width of the pool, as a fraction of the reel window width
+		layers: 6, // stacked-ellipse radial falloff resolution
+		glow: 0.5, // pool brightness at the core (before the effectEnergy fade)
+		railAlpha: 0.18, // the hot white light rail hugging the very bottom edge
+	};
+	const drawBottomAura = (g: import('pixi.js').Graphics, layout: ReelFrameLayout) => {
 		const bottom = layout.gridY + layout.gridHeight;
-		const cellWidth = layout.gridWidth / layout.columns;
-
-		for (let index = 0; index < layout.columns; index++) {
-			const x = layout.gridX + cellWidth * (index + 0.5);
-			const height = 26 + ((index * 11) % 18);
-			const y = bottom + 10;
-			g.ellipse(x, y, cellWidth * 0.46, height).fill({ color: effectColor, alpha: 0.28 });
-			g.ellipse(x + cellWidth * 0.1, y - height * 0.22, cellWidth * 0.24, height * 0.62).fill({
-				color: 0xffffff,
-				alpha: 0.2,
-			});
-			g.roundRect(x - cellWidth * 0.32, bottom - 9, cellWidth * 0.64, 8, 4).fill({
+		const cx = layout.gridX + layout.gridWidth / 2;
+		const reach = layout.gridHeight * BOTTOM_AURA.reach;
+		const spread = layout.gridWidth * BOTTOM_AURA.spread;
+		// stacked additive ellipses centred on the bottom-centre give a smooth radial falloff
+		// (no per-frame gradient allocation); the effect mask clips the lower half so the pool
+		// hugs the bottom rail and only its top half rises into the reels.
+		for (let i = 0; i < BOTTOM_AURA.layers; i++) {
+			const f = (i + 1) / BOTTOM_AURA.layers;
+			g.ellipse(cx, bottom, spread * f, reach * f).fill({
 				color: effectColor,
-				alpha: 0.7,
+				alpha: BOTTOM_AURA.glow / BOTTOM_AURA.layers,
 			});
+		}
+		// hot light rail hugging the bottom edge — the glow's apparent source
+		g.ellipse(cx, bottom, spread * 0.7, reach * 0.14).fill({
+			color: 0xffffff,
+			alpha: BOTTOM_AURA.railAlpha,
+		});
+	};
+
+	// The Eye's reaction: soft PUFFS of purple light seeping out from BEHIND the reel frame
+	// (background layer, behind the panel/board/border). Instead of one centred ellipse (which
+	// reads as a visible disc), a ring of overlapping soft puffs hugs the frame perimeter — each
+	// puff has a heavily-tapered falloff so it has no hard edge, and they breathe gently so the
+	// aura feels alive, like light diffusing through water. Only the part past the frame edge
+	// peeks through.
+	const FRAME_BACK_PUFFS = {
+		colorA: 0xff2f4e, // red — puffs lerp red → purple around the ring (test colours)
+		colorB: 0x9a3fff, // purple
+		count: 18, // puffs distributed around the frame perimeter
+		size: 0.34, // puff radius as a fraction of the reel-window width (bigger — easier to see)
+		margin: 0.1, // placement ring, fraction outside the grid (≈ the frame's outer edge)
+		softLayers: 5, // per-puff soft falloff — enough taper that no hard circle edge shows
+		glow: 0.95, // overall brightness before the eyeEnergy fade
+	};
+	// a point at parameter u∈[0,1) around a rectangle's perimeter (clockwise from top-left)
+	const perimeterPoint = (x: number, y: number, w: number, h: number, u: number) => {
+		const per = 2 * (w + h);
+		let d = (u - Math.floor(u)) * per;
+		if (d < w) return { x: x + d, y };
+		d -= w;
+		if (d < h) return { x: x + w, y: y + d };
+		d -= h;
+		if (d < w) return { x: x + w - d, y: y + h };
+		d -= w;
+		return { x, y: y + h - d };
+	};
+	const drawFrameBackPuffs = (g: import('pixi.js').Graphics, layout: ReelFrameLayout) => {
+		const clock = t; // reactive → the puffs breathe while the clock ticks (the eye window)
+		const mx = layout.gridWidth * FRAME_BACK_PUFFS.margin;
+		const my = layout.gridHeight * FRAME_BACK_PUFFS.margin;
+		const rx = layout.gridX - mx;
+		const ry = layout.gridY - my;
+		const rw = layout.gridWidth + mx * 2;
+		const rh = layout.gridHeight + my * 2;
+		const baseR = layout.gridWidth * FRAME_BACK_PUFFS.size;
+		const L = FRAME_BACK_PUFFS.softLayers;
+		for (let i = 0; i < FRAME_BACK_PUFFS.count; i++) {
+			// deterministic per-puff jitter so the ring is organic, not mechanical
+			const jitter = Math.sin(i * 12.9898) * 0.5;
+			const u = (i + 0.5 + jitter * 0.4) / FRAME_BACK_PUFFS.count;
+			const p = perimeterPoint(rx, ry, rw, rh, u);
+			const breathe = 0.78 + 0.24 * Math.sin(clock * 1.4 + i * 1.7) + jitter * 0.14;
+			const puffR = baseR * breathe;
+			// lerp each puff's hue red → purple around the ring
+			const color = mixColor(
+				FRAME_BACK_PUFFS.colorA,
+				FRAME_BACK_PUFFS.colorB,
+				FRAME_BACK_PUFFS.count > 1 ? i / (FRAME_BACK_PUFFS.count - 1) : 0,
+			);
+			for (let s = 1; s <= L; s++) {
+				const f = s / L;
+				g.circle(p.x, p.y, puffR * f).fill({
+					color,
+					// heavy taper: the outermost ring is near-zero alpha → no visible circle edge
+					alpha: (FRAME_BACK_PUFFS.glow / FRAME_BACK_PUFFS.count) * Math.pow(1 - (s - 1) / L, 1.6),
+				});
+			}
 		}
 	};
 
@@ -297,6 +418,15 @@
 		alpha={variant.alpha}
 	>
 		{#if layer === 'background'}
+			<!-- Eye backglow: soft purple puffs behind the frame when an Eye lands (before the
+			     panel, so the frame reads as back-lit; only the part past the frame edges peeks) -->
+			{#if eyeEnergy > 0}
+				<Graphics
+					draw={(g) => drawFrameBackPuffs(g, variant.layout)}
+					alpha={eyeEnergy}
+					blendMode="add"
+				/>
+			{/if}
 			<Sprite
 				key={LAYER_KEYS.background}
 				x={variant.layout.gridX - BACKGROUND_BLEED}
@@ -308,8 +438,8 @@
 			<Container>
 				<Graphics draw={(g) => drawEffectMask(g, variant.layout)} isMask />
 				<Graphics
-					draw={(g) => drawBottomSurge(g, variant.layout)}
-					alpha={effectEnergy}
+					draw={(g) => drawBottomAura(g, variant.layout)}
+					alpha={bottomAuraEnergy}
 					blendMode="add"
 				/>
 				<Graphics

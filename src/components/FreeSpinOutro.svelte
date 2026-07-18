@@ -72,8 +72,10 @@
 			.to(numFx, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.5)' })
 			.set(numFx, { flash: 0.95 }, 0)
 			.to(numFx, { flash: 0, duration: 0.45, ease: 'power2.out' }, 0);
-		// PLACEHOLDER lock stinger — swap for a bespoke "feature total locked" hit later.
-		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_winlevel_end' });
+		// the roll is over — kill the count-up loop HERE, not at dismissal: the card holds
+		// indefinitely on the locked total and the loop must not drone under it. The lock is
+		// deliberately stinger-free (visual punch only) — the bgm takeover carries the moment.
+		context.eventEmitter.broadcast({ type: 'soundStop', name: 'sfx_countup_loop' });
 	};
 
 	onMount(() => () => {
@@ -99,6 +101,9 @@
 		numFx.flash = 0;
 		await countUp.set(0, { duration: 0 });
 
+		// the congratulations card lands — its own fanfare (the tier stinger from
+		// winLevelSoundsPlay covers the win SIZE; this covers the "bonus complete" moment)
+		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_fs_outro' });
 		playEntrance();
 		await interruptible.add(runCount);
 		await countUp.set(amount, { duration: 0 }); // snap to final if skipped mid-count
@@ -146,8 +151,13 @@
 			</Container>
 		</Container>
 
+		<!-- the bonus-end card holds until a deliberate click/tap (mid-count a tap snaps the
+		     count to the lock). The spacebar is fully INERT — pressed or held (turbo carried
+		     over from previous spins), it can never skip past the feature total. -->
 		<PressToContinue
+			showPrompt={countUpCompleted}
 			onpress={() => (countUpCompleted ? oncomplete() : interruptible.interrupt())}
+			onspace={() => {}}
 		/>
 	{/if}
 </FadeContainer>

@@ -1,0 +1,233 @@
+{
+ "src": [
+  "./assets/sounds/audio.m4a"
+ ],
+ "sprite": {
+  "bgm_main": [
+   0,
+   120033
+  ],
+  "bgm_freespin": [
+   121033,
+   120033
+  ],
+  "bgm_win": [
+   242065,
+   30041
+  ],
+  "amb_underwater": [
+   273106,
+   25000
+  ],
+  "sfx_btn_general": [
+   299106,
+   480
+  ],
+  "sfx_btn_toggle": [
+   300586,
+   480
+  ],
+  "sfx_modal_open": [
+   302066,
+   480
+  ],
+  "sfx_btn_spin": [
+   303546,
+   480
+  ],
+  "sfx_reel_stop": [
+   305026,
+   480
+  ],
+  "sfx_scatter_land": [
+   306506,
+   1000
+  ],
+  "sfx_anticipation": [
+   308506,
+   5000
+  ],
+  "sfx_scatter_win": [
+   314506,
+   1993
+  ],
+  "sfx_fs_intro": [
+   317499,
+   2880
+  ],
+  "sfx_fs_outro": [
+   321379,
+   1480
+  ],
+  "sfx_gaze_fill": [
+   323859,
+   600
+  ],
+  "sfx_gaze_full": [
+   325459,
+   1487
+  ],
+  "sfx_eye_land": [
+   327946,
+   1000
+  ],
+  "sfx_eye_reveal_add": [
+   329946,
+   1600
+  ],
+  "sfx_eye_reveal_mul": [
+   332546,
+   1600
+  ],
+  "sfx_eye_combine_add": [
+   335146,
+   1209
+  ],
+  "sfx_eye_combine_mul": [
+   337355,
+   1045
+  ],
+  "sfx_eye_burst": [
+   339400,
+   1480
+  ],
+  "sfx_mult_moove": [
+   341880,
+   730
+  ],
+  "sfx_snowball_up": [
+   343610,
+   1499
+  ],
+  "sfx_cluster_win": [
+   346109,
+   1000
+  ],
+  "sfx_countup_loop": [
+   348109,
+   2774
+  ],
+  "sfx_win_nice": [
+   351883,
+   2080
+  ],
+  "sfx_win_big": [
+   354963,
+   2080
+  ],
+  "sfx_win_mega": [
+   358043,
+   2080
+  ],
+  "sfx_win_epic": [
+   361123,
+   2080
+  ],
+  "sfx_win_max": [
+   364203,
+   3680
+  ],
+  "sfx_transition": [
+   368883,
+   1480
+  ]
+ },
+ "config": {
+  "bgm_main": {
+   "volume": 0.175
+  },
+  "bgm_freespin": {
+   "volume": 0.25
+  },
+  "bgm_win": {
+   "volume": 0.3
+  },
+  "amb_underwater": {
+   "volume": 0.25
+  },
+  "sfx_btn_general": {
+   "volume": 0.5
+  },
+  "sfx_btn_toggle": {
+   "volume": 0.55
+  },
+  "sfx_modal_open": {
+   "volume": 0.5
+  },
+  "sfx_btn_spin": {
+   "volume": 0.8
+  },
+  "sfx_reel_stop": {
+   "volume": 1.0
+  },
+  "sfx_scatter_land": {
+   "volume": 0.9
+  },
+  "sfx_anticipation": {
+   "volume": 0.7
+  },
+  "sfx_scatter_win": {
+   "volume": 0.9
+  },
+  "sfx_fs_intro": {
+   "volume": 0.9
+  },
+  "sfx_fs_outro": {
+   "volume": 0.9
+  },
+  "sfx_mult_moove": {
+   "volume": 0.9
+  },
+  "sfx_gaze_fill": {
+   "volume": 0.5
+  },
+  "sfx_gaze_full": {
+   "volume": 0.8
+  },
+  "sfx_eye_land": {
+   "volume": 1.0
+  },
+  "sfx_eye_reveal_add": {
+   "volume": 0.9
+  },
+  "sfx_eye_reveal_mul": {
+   "volume": 0.9
+  },
+  "sfx_eye_combine_add": {
+   "volume": 0.9
+  },
+  "sfx_eye_combine_mul": {
+   "volume": 0.9
+  },
+  "sfx_eye_burst": {
+   "volume": 1.0
+  },
+  "sfx_snowball_up": {
+   "volume": 0.7
+  },
+  "sfx_cluster_win": {
+   "volume": 0.7
+  },
+  "sfx_countup_loop": {
+   "volume": 0.45
+  },
+  "sfx_win_nice": {
+   "volume": 0.85
+  },
+  "sfx_win_big": {
+   "volume": 0.9
+  },
+  "sfx_win_mega": {
+   "volume": 0.95
+  },
+  "sfx_win_epic": {
+   "volume": 0.95
+  },
+  "sfx_win_max": {
+   "volume": 1.0
+  },
+  "sfx_transition": {
+   "volume": 0.9
+  }
+ }
+}

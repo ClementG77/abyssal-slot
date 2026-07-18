@@ -517,6 +517,10 @@ const stateBetDerived = {
   hasAutoBetCounter
 };
 const stateModal = { modal: null };
+const DEFAULT_VOLUME_VALUE = 75;
+const stateSound = {
+  volumeValueMaster: DEFAULT_VOLUME_VALUE
+};
 const INFINITY_MARK = "∞";
 const AUTO_SPINS_TEXT_OPTIONS = [
   "10",
@@ -11860,13 +11864,6 @@ const SPIN_OPTIONS_FAST = {
   symbolFallOutSpeed: 7,
   symbolFallOutInterval: 0
 };
-const SCATTER_LAND_SOUND_MAP = {
-  1: "sfx_scatter_stop_1",
-  2: "sfx_scatter_stop_2",
-  3: "sfx_scatter_stop_3",
-  4: "sfx_scatter_stop_4",
-  5: "sfx_scatter_stop_5"
-};
 const { stateLayout, stateLayoutDerived } = createLayout({
   backgroundRatio: {
     normal: 2039 / 1e3,
@@ -11960,6 +11957,15 @@ const assets = {
   abyssalFont: {
     type: "font",
     src: new URL("../../assets/fonts/abyssal_bitmap_font_package/abyssal_font.fnt", import.meta.url).href,
+    preload: true
+  },
+  // Sound sprite — the production set (docs/ABYSSAL_SOUND_DESIGN.md §3), packed as one audio.m4a
+  // + Howler offset map (Valkyrie/Waylanders pattern). The m4a lives in static/ because Howler
+  // resolves the JSON's `src` relative to the PAGE, not the JSON — static/ serves it at
+  // ./assets/sounds/audio.m4a in both dev and build. Repack via assets/audio/README.md.
+  sound: {
+    type: "audio",
+    src: new URL("../../static/assets/sounds/sounds.json", import.meta.url).href,
     preload: true
   }
 };
@@ -12357,6 +12363,13 @@ const WIN_TIER_KEYS = {
 const i18nDerived = {
   ...i18nDerived$1,
   ...i18nDerived$2,
+  // Both SDK packages ship a `bet`, and ui-pixi additionally hardcodes its own social swaps
+  // (bet → 'SPIN', buyBonus → 'PLAY BONUS') instead of reading the message table. Stake.US's
+  // official phrase list maps bet → play and buy bonus → get bonus, so route both through our
+  // table (see i18n/socialMessages.ts) to get the mandated wording. Declared explicitly rather
+  // than relying on the spread order above to settle which package's `bet` wins.
+  bet: () => stateI18nDerived.translate("BET"),
+  buyBonus: () => stateI18nDerived.translate("BUY BONUS"),
   home: () => stateI18nDerived.translate("HOME"),
   notTranslated: () => stateI18nDerived.translate("NOT TRANSLATED"),
   gameInfo: (key) => stateI18nDerived.translate(`GAME_INFO_${key}`),
@@ -12442,7 +12455,7 @@ const winLevelMap = {
     type: "medium",
     text: null,
     presentDuration: 1.5 * SECOND,
-    sound: { sfx: void 0, bgm: void 0 },
+    sound: { sfx: "sfx_win_nice", bgm: void 0 },
     animation: void 0
   },
   5: {
@@ -12451,7 +12464,7 @@ const winLevelMap = {
     type: "medium",
     text: null,
     presentDuration: 2 * SECOND,
-    sound: { sfx: void 0, bgm: void 0 },
+    sound: { sfx: "sfx_win_nice", bgm: void 0 },
     animation: void 0
   },
   6: {
@@ -12462,7 +12475,7 @@ const winLevelMap = {
       return i18nDerived.winTier("bigWin");
     },
     presentDuration: 6 * SECOND,
-    sound: { sfx: void 0, bgm: "bgm_winlevel_big" },
+    sound: { sfx: "sfx_win_big", bgm: "bgm_win" },
     animation: { intro: "big_win_intro", idle: "big_win_idle", outro: "big_win_exit" }
   },
   7: {
@@ -12473,7 +12486,7 @@ const winLevelMap = {
       return i18nDerived.winTier("superWin");
     },
     presentDuration: 18 * SECOND,
-    sound: { sfx: void 0, bgm: "bgm_winlevel_superwin" },
+    sound: { sfx: "sfx_win_big", bgm: "bgm_win" },
     animation: { intro: "super_win_intro", idle: "super_win_idle", outro: "super_win_exit" }
   },
   8: {
@@ -12484,7 +12497,7 @@ const winLevelMap = {
       return i18nDerived.winTier("megaWin");
     },
     presentDuration: 20 * SECOND,
-    sound: { sfx: void 0, bgm: "bgm_winlevel_mega" },
+    sound: { sfx: "sfx_win_mega", bgm: "bgm_win" },
     animation: { intro: "mega_win_intro", idle: "mega_win_idle", outro: "mega_win_exit" }
   },
   9: {
@@ -12495,7 +12508,7 @@ const winLevelMap = {
       return i18nDerived.winTier("epicWin");
     },
     presentDuration: 26 * SECOND,
-    sound: { sfx: void 0, bgm: "bgm_winlevel_epic" },
+    sound: { sfx: "sfx_win_epic", bgm: "bgm_win" },
     animation: { intro: "epic_win_intro", idle: "epic_win_idle", outro: "epic_win_exit" }
   },
   10: {
@@ -12506,7 +12519,7 @@ const winLevelMap = {
       return i18nDerived.winTier("maxWin");
     },
     presentDuration: 32 * SECOND,
-    sound: { sfx: void 0, bgm: "bgm_winlevel_max" },
+    sound: { sfx: "sfx_win_max", bgm: "bgm_win" },
     animation: { intro: "max_win_intro", idle: "max_win_idle", outro: "max_win_exit" }
   }
 };
@@ -12590,10 +12603,12 @@ const getVisibleLandPosition = ({ reel, row }) => {
   const isVisiblePosition = position === void 0 || position.reel >= 0 && position.reel < BOARD_DIMENSIONS.x && position.row >= 0 && position.row < BOARD_DIMENSIONS.y;
   return isVisiblePosition ? position : void 0;
 };
-const onSymbolLand = ({ rawSymbol, reel, row }) => {
+const EYE_JOLT_COOLDOWN_MS = 160;
+let lastEyeJoltAt = 0;
+const onSymbolLand = ({ rawSymbol, reel, row, isRefill = true }) => {
   const position = getVisibleLandPosition({ reel, row });
   if (reel !== void 0 && row !== void 0 && position === void 0) return;
-  if (rawSymbol.name === "S") {
+  if (rawSymbol.name === "S" && isRefill) {
     const scatterCountAfterLand = stateGame.scatterCounter + 1;
     eventEmitter.broadcast({ type: "reelFrameScatterLand", position });
     eventEmitter.broadcast({ type: "soundScatterCounterIncrease" });
@@ -12603,12 +12618,22 @@ const onSymbolLand = ({ rawSymbol, reel, row }) => {
     }
     eventEmitter.broadcast({
       type: "soundOnce",
-      name: SCATTER_LAND_SOUND_MAP[getScatterLandSoundIndex(scatterCountAfterLand)]
+      name: "sfx_scatter_land",
+      forcePlay: true
     });
   }
   if (rawSymbol.name === "EYE") {
-    eventEmitter.broadcast({ type: "boardEyeImpact", position });
-    eventEmitter.broadcast({ type: "reelFrameEyeLand", position });
+    const nowMs = performance.now();
+    if (nowMs - lastEyeJoltAt > EYE_JOLT_COOLDOWN_MS) {
+      lastEyeJoltAt = nowMs;
+      eventEmitter.broadcast({ type: "boardEyeImpact", position });
+      eventEmitter.broadcast({ type: "reelFrameEyeLand", position });
+      eventEmitter.broadcast({
+        type: "soundOnce",
+        name: "sfx_eye_land",
+        forcePlay: true
+      });
+    }
   }
 };
 const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
@@ -12620,7 +12645,7 @@ const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
     onReelStopping: () => {
       eventEmitter.broadcast({
         type: "soundOnce",
-        name: "sfx_reel_stop_1",
+        name: "sfx_reel_stop",
         forcePlay: !stateBet$1.isTurbo
       });
       eventEmitter.broadcast({ type: "reelFrameReelStop" });
@@ -15131,12 +15156,14 @@ function createPlayMusic(options) {
   const newMusic = (sound2) => {
     pauseAllMusic();
     const soundId = options.howl.play(sound2.soundName);
+    options.howl.loop(true, soundId);
     options.getSoundMap()[sound2.soundName] = { ...sound2, soundId, soundState: "playing" };
     options.initSoundVolume(sound2.soundName);
   };
   const resumeMusic = (sound2) => {
     pauseAllMusic();
     options.howl.play(sound2.soundId);
+    options.howl.loop(true, sound2.soundId);
     options.getSoundMap()[sound2.soundName] = { ...sound2, soundState: "playing" };
   };
   const soundPlayMap = {
@@ -15155,6 +15182,7 @@ function createPlayMusic(options) {
 function createPlayLoop(options) {
   const playLoop = (sound2) => {
     const soundId = options.howl.play(sound2.soundName);
+    options.howl.loop(true, soundId);
     options.getSoundMap()[sound2.soundName] = { ...sound2, soundId, soundState: "playing" };
     options.initSoundVolume(sound2.soundName);
   };
@@ -15285,9 +15313,43 @@ function createSound() {
     }
   };
 }
+const ENABLED_SOUNDS = /* @__PURE__ */ new Set([
+  // music (validated)
+  "bgm_main",
+  "bgm_freespin",
+  "bgm_win",
+  // ui + reels (validated)
+  "sfx_btn_general",
+  "sfx_btn_spin",
+  "sfx_reel_stop",
+  // --- add sounds below one at a time as they pass validation ---
+  // batch under test (2026-07-14) — user-authored clips imported from the drop folder
+  "sfx_cluster_win",
+  "sfx_anticipation",
+  "sfx_countup_loop",
+  "sfx_eye_burst",
+  "sfx_eye_land",
+  "sfx_fs_intro",
+  "sfx_scatter_land",
+  "sfx_transition",
+  // batch under test (2026-07-15) — new button-sound split
+  "sfx_btn_toggle",
+  "sfx_modal_open",
+  // batch under test (2026-07-15) — win-tier stingers
+  "sfx_win_nice",
+  "sfx_win_big",
+  "sfx_win_mega",
+  "sfx_win_epic",
+  "sfx_win_max",
+  // batch under test (2026-07-16) — outro card + multiplier flight
+  "sfx_fs_outro",
+  "sfx_mult_moove"
+]);
+const isSoundEnabled = (name) => ENABLED_SOUNDS.has(name);
 const sound = createSound();
 function EnableSound($$payload, $$props) {
   push();
+  getContext();
   pop();
 }
 function TurboSpaceHold($$payload, $$props) {
@@ -15370,20 +15432,22 @@ function createPlayBookUtils({
   };
 }
 const WIN_PRESENT_MIN_MULTIPLIER = 20;
-const winLevelSoundsPlay = ({ winLevelData }) => {
+const TURBO_SPIN_SETTLE_MS = 260;
+const winLevelSoundsPlay = ({
+  winLevelData,
+  skipSfx = false
+}) => {
   if (winLevelData?.alias === "max") eventEmitter.broadcastAsync({ type: "uiHide" });
-  if (winLevelData?.sound?.sfx) {
-    eventEmitter.broadcast({ type: "soundOnce", name: winLevelData.sound.sfx });
+  if (!skipSfx && winLevelData?.sound?.sfx) {
+    eventEmitter.broadcast({ type: "soundOnce", name: winLevelData.sound.sfx, forcePlay: true });
   }
   if (winLevelData?.sound?.bgm) {
     eventEmitter.broadcast({ type: "soundMusic", name: winLevelData.sound.bgm });
   }
-  if (winLevelData?.type === "big") {
-    eventEmitter.broadcast({ type: "soundLoop", name: "sfx_bigwin_coinloop" });
-  }
+  eventEmitter.broadcast({ type: "soundLoop", name: "sfx_countup_loop" });
 };
 const winLevelSoundsStop = () => {
-  eventEmitter.broadcast({ type: "soundStop", name: "sfx_bigwin_coinloop" });
+  eventEmitter.broadcast({ type: "soundStop", name: "sfx_countup_loop" });
   if (stateGame.gameType === "freegame") {
     eventEmitter.broadcast({ type: "soundMusic", name: "bgm_freespin" });
   } else {
@@ -15396,7 +15460,9 @@ const resetCompletedBuyMode = () => {
     stateBet$1.activeBetModeKey = "BASE";
   }
 };
-const animateSymbols = async ({ positions }) => {
+const animateSymbols = async ({
+  positions
+}) => {
   eventEmitter.broadcast({ type: "boardShow" });
   await eventEmitter.broadcastAsync({
     type: "boardWithAnimateSymbols",
@@ -15405,6 +15471,7 @@ const animateSymbols = async ({ positions }) => {
 };
 const bookEventHandlerMap = {
   reveal: async (bookEvent, { bookEvents }) => {
+    eventEmitter.broadcast({ type: "soundStop", name: "sfx_countup_loop" });
     eventEmitter.broadcast({ type: "tumbleWinAmountReset" });
     const isBonusGame = checkIsMultipleRevealEvents({ bookEvents });
     if (isBonusGame) {
@@ -15424,8 +15491,18 @@ const bookEventHandlerMap = {
     eventEmitter.broadcast({ type: "eyeHide" });
     const revealEvent = bookEvent;
     stateGame.gameType = bookEvent.gameType;
+    if (stateGame.gameType !== "freegame") {
+      const isSuperSpins = stateBet$1.activeBetModeKey === "SUPERSPINS";
+      if (isSuperSpins) {
+        eventEmitter.broadcast({ type: "soundMusic", name: "bgm_freespin", restart: true });
+      } else {
+        eventEmitter.broadcast({ type: "soundMusic", name: "bgm_main" });
+      }
+    }
     await stateGameDerived.enhancedBoard.spin({ revealEvent });
     eventEmitter.broadcast({ type: "reelFrameScatterAnticipationEnd" });
+    const rushing = stateBetDerived.timeScale() > 1 || stateXstateDerived.isAutoBetting();
+    if (rushing) await skippableWait(TURBO_SPIN_SETTLE_MS);
   },
   winInfo: async (bookEvent) => {
     stateGame.pendingGazeClusters = bookEvent.wins.map((win) => ({
@@ -15434,8 +15511,11 @@ const bookEventHandlerMap = {
       row: win.meta.overlay.row
     }));
     const promiseAnimate = async () => {
-      eventEmitter.broadcast({ type: "soundOnce", name: "sfx_winlevel_small" });
-      await animateSymbols({ positions: _.flatten(bookEvent.wins.map((win) => win.positions)) });
+      eventEmitter.broadcast({ type: "soundOnce", name: "sfx_cluster_win" });
+      const positions = bookEvent.wins.flatMap(
+        (win) => win.positions.map((position) => ({ ...position, winTier: getEssenceTier(win.count) }))
+      );
+      await animateSymbols({ positions });
     };
     const promiseAmounts = async () => {
       await eventEmitter.broadcastAsync({
@@ -15467,12 +15547,14 @@ const bookEventHandlerMap = {
     const tierSum = tierValues.reduce((a, b) => a + b, 0);
     const delta = bookEvent.charge - stateGame.gazeCharge;
     const essenceMult = tierSum > 0 && delta === tierSum * 2 ? 2 : tierSum > 0 && delta === tierSum ? 1 : stateBet$1.activeBetModeKey.toUpperCase() === "SUPERBONUS" ? 2 : 1;
-    const clusters = stateGame.pendingGazeClusters.map((cluster, index) => ({
+    const capped = bookEvent.charge >= GAZE_METER_MAX_CHARGE;
+    const reconciles = tierSum > 0 && (delta === tierSum || delta === tierSum * 2 || capped);
+    const clusters = reconciles ? stateGame.pendingGazeClusters.map((cluster, index) => ({
       value: tierValues[index] * essenceMult,
       tier: getEssenceTier(cluster.count),
       reel: cluster.reel,
       row: cluster.row
-    }));
+    })) : void 0;
     stateGame.pendingGazeClusters = [];
     stateGame.gazeCharge = bookEvent.charge;
     await eventEmitter.broadcastAsync({
@@ -15503,6 +15585,7 @@ const bookEventHandlerMap = {
       winLevelSoundsStop();
       eventEmitter.broadcast({ type: "winHide" });
     } else {
+      eventEmitter.broadcast({ type: "soundOnce", name: "sfx_cluster_win", forcePlay: true });
       await skippableWait(900 / stateBetDerived.timeScale());
     }
   },
@@ -15567,6 +15650,7 @@ const bookEventHandlerMap = {
     stateBet$1.winBookEventAmount = bookEvent.amount;
   },
   finalWin: async (_bookEvent) => {
+    eventEmitter.broadcast({ type: "soundStop", name: "sfx_countup_loop" });
     eventEmitter.broadcast({ type: "tumbleWinAmountHide" });
   },
   // --- The Eye (end of a winning tumble sequence) -----------------------------------
@@ -15633,32 +15717,48 @@ const bookEventHandlerMap = {
     await eventEmitter.broadcastAsync({ type: "snowballUpdate", mult: bookEvent.mult });
   },
   // --- Win-cap (15,000×) ------------------------------------------------------------
-  // Fires on the ROUND cumulative hitting the cap — possibly right after a win ladder that
-  // never reached MAX WIN (a small spin win can tip the total over). The trophy takeover is
-  // therefore the authoritative MAX WIN reveal: the red-dragon plaque slams in at the end of
-  // the win celebrations and holds until a press (see WinCapCelebration.svelte).
+  // Fires on the ROUND cumulative hitting the cap. In real capped books the cap is usually
+  // reached by many small tumble/scatter wins across a bonus round, NONE of which individually
+  // cross the 20x celebrate threshold in `setWin` (see WIN_PRESENT_MIN_MULTIPLIER) — so without
+  // help here the player jumps straight from ordinary small wins to the trophy with no
+  // escalation at all. Fix: replay the FULL BIG → HUGE → MEGA → EPIC ladder (Win.svelte) for the
+  // capped ROUND TOTAL first — always at full speed, same as any other big win — and only then
+  // hand off to the trophy, which is the authoritative, INDEFINITE-hold MAX WIN reveal: the
+  // red-dragon plaque slams in and holds until a press (see WinCapCelebration.svelte).
+  // (Edge case: if a single spin's own `setWin` already reached winLevel 10 on its own, this
+  // replays the ladder a second time for the round total — accepted as strictly better than the
+  // no-escalation bug this fixes, and unconfirmed to occur in practice.)
   wincap: async (bookEvent) => {
     const winLevelData = winLevelMap[10];
     eventEmitter.broadcast({ type: "tumbleWinAmountHide" });
+    eventEmitter.broadcast({ type: "winShow" });
     winLevelSoundsPlay({ winLevelData });
+    await eventEmitter.broadcastAsync({
+      type: "winUpdate",
+      amount: bookEvent.amount,
+      winLevelData
+    });
+    eventEmitter.broadcast({ type: "winHide" });
+    await waitForTimeout(400);
+    winLevelSoundsPlay({ winLevelData, skipSfx: true });
     await eventEmitter.broadcastAsync({ type: "winCapTrigger", amount: bookEvent.amount });
     winLevelSoundsStop();
   },
   // --- Free Spins lifecycle ---------------------------------------------------------
   freeSpinTrigger: async (bookEvent) => {
-    eventEmitter.broadcast({ type: "soundOnce", name: "sfx_scatter_win_v2" });
+    eventEmitter.broadcast({ type: "soundOnce", name: "sfx_fs_intro" });
     await animateSymbols({ positions: bookEvent.positions });
     await eventEmitter.broadcastAsync({ type: "scatterCelebrate", positions: bookEvent.positions });
     await eventEmitter.broadcastAsync({ type: "uiHide" });
     stateGame.freeSpinIntroActive = true;
     eventEmitter.broadcast({ type: "freeSpinIntroShow" });
-    eventEmitter.broadcast({ type: "soundMusic", name: "bgm_freespin" });
     await eventEmitter.broadcastAsync({
       type: "freeSpinIntroUpdate",
       totalFreeSpins: bookEvent.totalFs
     });
     await eventEmitter.broadcastAsync({ type: "transitionCover" });
     stateGame.gameType = "freegame";
+    eventEmitter.broadcast({ type: "soundMusic", name: "bgm_freespin", restart: true });
     await eventEmitter.broadcastAsync({ type: "freeSpinIntroHide" });
     stateGame.freeSpinIntroActive = false;
     eventEmitter.broadcast({ type: "reelFrameGlowShow" });
@@ -15683,7 +15783,7 @@ const bookEventHandlerMap = {
     });
   },
   freeSpinRetrigger: async (bookEvent) => {
-    eventEmitter.broadcast({ type: "soundOnce", name: "sfx_scatter_win_v2" });
+    eventEmitter.broadcast({ type: "soundOnce", name: "sfx_fs_intro" });
     await animateSymbols({ positions: bookEvent.positions });
     await eventEmitter.broadcastAsync({ type: "scatterCelebrate", positions: bookEvent.positions });
     await eventEmitter.broadcastAsync({
@@ -15698,7 +15798,7 @@ const bookEventHandlerMap = {
     eventEmitter.broadcast({ type: "reelFrameGlowHide" });
     eventEmitter.broadcast({ type: "snowballHide" });
     eventEmitter.broadcast({ type: "freeSpinOutroShow" });
-    winLevelSoundsPlay({ winLevelData });
+    winLevelSoundsPlay({ winLevelData, skipSfx: true });
     await eventEmitter.broadcastAsync({
       type: "freeSpinOutroCountUp",
       // the ROUND total (latest setTotalWin), not just the feature's: it includes any
@@ -15710,10 +15810,11 @@ const bookEventHandlerMap = {
     eventEmitter.broadcast({ type: "freeSpinOutroHide" });
     eventEmitter.broadcast({ type: "freeSpinCounterHide" });
     eventEmitter.broadcast({ type: "tumbleWinAmountHide" });
-    await eventEmitter.broadcastAsync({ type: "freeSpinExitCover" });
+    await eventEmitter.broadcastAsync({ type: "transitionCover" });
     stateGame.gameType = "basegame";
     resetCompletedBuyMode();
-    await eventEmitter.broadcastAsync({ type: "freeSpinExitReveal" });
+    await eventEmitter.broadcastAsync({ type: "transitionReveal" });
+    eventEmitter.broadcast({ type: "soundMusic", name: "bgm_main" });
     await eventEmitter.broadcastAsync({ type: "uiShow" });
   },
   // customised — reconstruct the on-screen state at a mid-round resume point WITHOUT
@@ -15738,6 +15839,7 @@ const bookEventHandlerMap = {
     eventEmitter.broadcast({ type: "gazeMeterShow" });
     if (lastFreeSpinTrigger) {
       stateGame.gameType = "freegame";
+      eventEmitter.broadcast({ type: "soundMusic", name: "bgm_freespin" });
       eventEmitter.broadcast({ type: "reelFrameGlowShow" });
       eventEmitter.broadcast({ type: "freeSpinCounterShow" });
       eventEmitter.broadcast({
@@ -15840,27 +15942,40 @@ function Sound$1($$payload, $$props) {
     // ui
     soundBetMode: async ({ betModeKey }) => {
       if (betModeKey === "SUPERSPINS") {
-        sound.players?.once?.play({ name: "sfx_winlevel_end" });
+        playOnce("sfx_fs_intro");
         await waitForTimeout(SECOND);
-        sound.players?.music?.play({ name: "bgm_freespin" });
+        playMusic("bgm_freespin");
       } else {
-        sound.players?.music?.play({ name: "bgm_main" });
+        playMusic("bgm_main");
       }
     },
-    soundPressGeneral: () => sound.players?.once?.play({ name: "sfx_btn_general" }),
-    soundPressBet: () => sound.players?.once?.play({ name: "sfx_btn_spin" }),
+    // forcePlay: rapid presses (bet stepper spam, quick UI taps) must EACH click — without it the
+    // once-player silently drops any play while the same clip is still ringing.
+    soundPressGeneral: () => playOnce("sfx_btn_general", true),
+    soundPressBet: () => playOnce("sfx_btn_spin", true),
+    soundPressToggle: () => playOnce("sfx_btn_toggle", true),
+    soundPressModalOpen: () => playOnce("sfx_modal_open", true),
     // scatterCounter
     soundScatterCounterIncrease: () => context2.stateGame.scatterCounter = context2.stateGame.scatterCounter + 1,
     // prettier-ignore
     soundScatterCounterClear: () => context2.stateGame.scatterCounter = 0,
-    // game
-    soundMusic: ({ name }) => sound.players?.music?.play({ name }),
-    soundLoop: ({ name }) => sound.players?.loop?.play({ name }),
-    soundOnce: ({ name, forcePlay }) => sound.players?.once?.play({ name, forcePlay }),
+    // game — every play route is gated by the production enable-list (see sound.ts)
+    soundMusic: ({ name, restart }) => playMusic(name, restart),
+    soundLoop: ({ name }) => isSoundEnabled(name) && sound.players?.loop?.play({ name }),
+    soundOnce: ({ name, forcePlay }) => playOnce(name, forcePlay),
     soundStop: ({ name }) => sound.stop({ name }),
+    // stopping is never gated
     soundFade: async ({ name, duration, from, to }) => await sound.fade({ name, duration, from, to })
     // prettier-ignore
   });
+  function playOnce(name, forcePlay) {
+    if (isSoundEnabled(name)) sound.players?.once?.play({ name, forcePlay });
+  }
+  function playMusic(name, restart) {
+    if (!isSoundEnabled(name)) return;
+    if (restart) sound.stop({ name });
+    sound.players?.music?.play({ name });
+  }
   pop();
 }
 function Background($$payload, $$props) {
@@ -16086,6 +16201,7 @@ function ReelFrame($$payload, $$props) {
   const layer = props.layer ?? "background";
   const mobileReelScale = context2.stateLayoutDerived.layoutType() === "portrait" ? MOBILE_REEL_DISPLAY_SCALE : 1;
   let now2 = 0;
+  let rafId = 0;
   let boosted = false;
   let launchStartedAt = -1;
   let reelStopStartedAt = -1;
@@ -16096,19 +16212,36 @@ function ReelFrame($$payload, $$props) {
   let scatterAnticipationReleaseFrom = 0;
   const t2 = now2 / 1e3;
   context2.eventEmitter.subscribeOnMount({
-    reelFrameGlowShow: () => boosted = true,
+    reelFrameGlowShow: () => {
+      boosted = true;
+      ensureClock();
+    },
     reelFrameGlowHide: () => boosted = false,
-    reelFrameSpinLaunch: () => launchStartedAt = performance.now(),
-    reelFrameReelStop: () => reelStopStartedAt = performance.now(),
-    reelFrameScatterLand: () => scatterStartedAt = performance.now(),
-    reelFrameEyeLand: () => eyeStartedAt = performance.now(),
+    reelFrameSpinLaunch: () => {
+      launchStartedAt = performance.now();
+      ensureClock();
+    },
+    reelFrameReelStop: () => {
+      reelStopStartedAt = performance.now();
+      ensureClock();
+    },
+    reelFrameScatterLand: () => {
+      scatterStartedAt = performance.now();
+      ensureClock();
+    },
+    reelFrameEyeLand: () => {
+      eyeStartedAt = performance.now();
+      ensureClock();
+    },
     reelFrameScatterAnticipationStart: () => {
       scatterAnticipationStartedAt = performance.now();
       scatterAnticipationReleasedAt = -1;
+      ensureClock();
     },
     reelFrameScatterAnticipationEnd: () => {
       scatterAnticipationReleaseFrom = scatterAnticipationProgress;
       scatterAnticipationReleasedAt = performance.now();
+      ensureClock();
     }
   });
   const getBurstEnergy = (startedAt, duration) => {
@@ -16145,6 +16278,19 @@ function ReelFrame($$payload, $$props) {
     // hot amber at full charge
   };
   const heat = new Tween(0, { duration: 550 });
+  const clockNeeded = (ts) => {
+    const within = (startedAt, ms) => startedAt >= 0 && ts - startedAt < ms;
+    const anticipationActive = scatterAnticipationStartedAt >= 0 && (scatterAnticipationReleasedAt < 0 || ts - scatterAnticipationReleasedAt < 200);
+    return within(launchStartedAt, 620) || within(reelStopStartedAt, 240) || within(scatterStartedAt, 520) || within(eyeStartedAt, 760) || anticipationActive || heat.current > 0.01 || boosted;
+  };
+  const ensureClock = () => {
+    if (rafId) return;
+    const loop2 = (ts) => {
+      now2 = ts;
+      rafId = clockNeeded(ts) ? requestAnimationFrame(loop2) : 0;
+    };
+    rafId = requestAnimationFrame(loop2);
+  };
   const heatColor = heat.current < 0.5 ? mixColor(FRAME_HEAT.coolColor, FRAME_HEAT.midColor, heat.current * 2) : mixColor(FRAME_HEAT.midColor, FRAME_HEAT.hotColor, (heat.current - 0.5) * 2);
   const heatAlpha = (() => {
     const h = heat.current;
@@ -16155,11 +16301,11 @@ function ReelFrame($$payload, $$props) {
   const launchEnergy = getBurstEnergy(launchStartedAt, 0.62);
   const scatterEnergy = getBurstEnergy(scatterStartedAt, 0.52);
   const eyeEnergy = getBurstEnergy(eyeStartedAt, 0.76);
-  const eyeColorPopEnergy = getBurstEnergy(eyeStartedAt, 0.18);
   const specialEnergy = Math.max(scatterEnergy, eyeEnergy);
   const effectEnergy = Math.max(launchEnergy, specialEnergy);
+  const bottomAuraEnergy = launchEnergy;
   const effectColor = eyeEnergy > scatterEnergy ? 14182143 : scatterEnergy > 0 ? 5041407 : frame.glowColor;
-  const borderTint = mixColor(16777215, 14182143, eyeColorPopEnergy);
+  const borderTint = 16777215;
   const launchMotion = launchEnergy > 0 ? Math.sin((1 - launchEnergy) * Math.PI) : 0;
   const REEL_STOP_DIP = 6;
   const stopEnergy = getBurstEnergy(reelStopStartedAt, 0.24);
@@ -16212,16 +16358,84 @@ function ReelFrame($$payload, $$props) {
   const drawEffectMask = (g, layout) => {
     g.rect(layout.gridX, layout.gridY, layout.gridWidth, layout.gridHeight).fill(16777215);
   };
-  const drawBottomSurge = (g, layout) => {
+  const BOTTOM_AURA = {
+    reach: 0.22,
+    // how far up the glow reaches, as a fraction of the reel window height
+    spread: 0.62,
+    // half-width of the pool, as a fraction of the reel window width
+    layers: 6,
+    // stacked-ellipse radial falloff resolution
+    glow: 0.5,
+    // pool brightness at the core (before the effectEnergy fade)
+    railAlpha: 0.18
+    // the hot white light rail hugging the very bottom edge
+  };
+  const drawBottomAura = (g, layout) => {
     const bottom = layout.gridY + layout.gridHeight;
-    const cellWidth = layout.gridWidth / layout.columns;
-    for (let index = 0; index < layout.columns; index++) {
-      const x = layout.gridX + cellWidth * (index + 0.5);
-      const height = 26 + index * 11 % 18;
-      const y = bottom + 10;
-      g.ellipse(x, y, cellWidth * 0.46, height).fill({ color: effectColor, alpha: 0.28 });
-      g.ellipse(x + cellWidth * 0.1, y - height * 0.22, cellWidth * 0.24, height * 0.62).fill({ color: 16777215, alpha: 0.2 });
-      g.roundRect(x - cellWidth * 0.32, bottom - 9, cellWidth * 0.64, 8, 4).fill({ color: effectColor, alpha: 0.7 });
+    const cx = layout.gridX + layout.gridWidth / 2;
+    const reach = layout.gridHeight * BOTTOM_AURA.reach;
+    const spread = layout.gridWidth * BOTTOM_AURA.spread;
+    for (let i = 0; i < BOTTOM_AURA.layers; i++) {
+      const f = (i + 1) / BOTTOM_AURA.layers;
+      g.ellipse(cx, bottom, spread * f, reach * f).fill({
+        color: effectColor,
+        alpha: BOTTOM_AURA.glow / BOTTOM_AURA.layers
+      });
+    }
+    g.ellipse(cx, bottom, spread * 0.7, reach * 0.14).fill({ color: 16777215, alpha: BOTTOM_AURA.railAlpha });
+  };
+  const FRAME_BACK_PUFFS = {
+    colorA: 16723790,
+    // red — puffs lerp red → purple around the ring (test colours)
+    colorB: 10108927,
+    // purple
+    count: 18,
+    // puffs distributed around the frame perimeter
+    size: 0.34,
+    // puff radius as a fraction of the reel-window width (bigger — easier to see)
+    margin: 0.1,
+    // placement ring, fraction outside the grid (≈ the frame's outer edge)
+    softLayers: 5,
+    // per-puff soft falloff — enough taper that no hard circle edge shows
+    glow: 0.95
+    // overall brightness before the eyeEnergy fade
+  };
+  const perimeterPoint = (x, y, w, h, u) => {
+    const per = 2 * (w + h);
+    let d = (u - Math.floor(u)) * per;
+    if (d < w) return { x: x + d, y };
+    d -= w;
+    if (d < h) return { x: x + w, y: y + d };
+    d -= h;
+    if (d < w) return { x: x + w - d, y: y + h };
+    d -= w;
+    return { x, y: y + h - d };
+  };
+  const drawFrameBackPuffs = (g, layout) => {
+    const clock = t2;
+    const mx = layout.gridWidth * FRAME_BACK_PUFFS.margin;
+    const my = layout.gridHeight * FRAME_BACK_PUFFS.margin;
+    const rx = layout.gridX - mx;
+    const ry = layout.gridY - my;
+    const rw = layout.gridWidth + mx * 2;
+    const rh = layout.gridHeight + my * 2;
+    const baseR = layout.gridWidth * FRAME_BACK_PUFFS.size;
+    const L = FRAME_BACK_PUFFS.softLayers;
+    for (let i = 0; i < FRAME_BACK_PUFFS.count; i++) {
+      const jitter = Math.sin(i * 12.9898) * 0.5;
+      const u = (i + 0.5 + jitter * 0.4) / FRAME_BACK_PUFFS.count;
+      const p = perimeterPoint(rx, ry, rw, rh, u);
+      const breathe = 0.78 + 0.24 * Math.sin(clock * 1.4 + i * 1.7) + jitter * 0.14;
+      const puffR = baseR * breathe;
+      const color = mixColor(FRAME_BACK_PUFFS.colorA, FRAME_BACK_PUFFS.colorB, i / (FRAME_BACK_PUFFS.count - 1));
+      for (let s = 1; s <= L; s++) {
+        const f = s / L;
+        g.circle(p.x, p.y, puffR * f).fill({
+          color,
+          // heavy taper: the outermost ring is near-zero alpha → no visible circle edge
+          alpha: FRAME_BACK_PUFFS.glow / FRAME_BACK_PUFFS.count * Math.pow(1 - (s - 1) / L, 1.6)
+        });
+      }
     }
   };
   const drawGlint = (g) => {
@@ -16259,6 +16473,17 @@ function ReelFrame($$payload, $$props) {
       children: ($$payload2) => {
         if (layer === "background") {
           $$payload2.out += "<!--[-->";
+          if (eyeEnergy > 0) {
+            $$payload2.out += "<!--[-->";
+            Graphics($$payload2, {
+              draw: (g) => drawFrameBackPuffs(g, variant.layout),
+              alpha: eyeEnergy,
+              blendMode: "add"
+            });
+          } else {
+            $$payload2.out += "<!--[!-->";
+          }
+          $$payload2.out += `<!--]--> `;
           Sprite($$payload2, {
             key: LAYER_KEYS.background,
             x: variant.layout.gridX - BACKGROUND_BLEED,
@@ -16266,6 +16491,7 @@ function ReelFrame($$payload, $$props) {
             width: variant.layout.gridWidth + BACKGROUND_BLEED * 2,
             height: variant.layout.gridHeight + BACKGROUND_BLEED * 2
           });
+          $$payload2.out += `<!---->`;
         } else {
           $$payload2.out += "<!--[!-->";
           const border = getBorderPlacement(variant.layout);
@@ -16278,8 +16504,8 @@ function ReelFrame($$payload, $$props) {
               });
               $$payload3.out += `<!----> `;
               Graphics($$payload3, {
-                draw: (g) => drawBottomSurge(g, variant.layout),
-                alpha: effectEnergy,
+                draw: (g) => drawBottomAura(g, variant.layout),
+                alpha: bottomAuraEnergy,
                 blendMode: "add"
               });
               $$payload3.out += `<!----> `;
@@ -16373,15 +16599,36 @@ function BoardContainer($$payload, $$props) {
     rotation: 0
   };
   let eyeImpactTimeline;
+  let rafId = 0;
+  const LAUNCH_MS = 620;
+  const ANTICIPATION_RELEASE_MS = 200;
+  const clockNeeded = (ts) => {
+    const launchActive = launchStartedAt >= 0 && ts - launchStartedAt < LAUNCH_MS;
+    const anticipationActive = scatterAnticipationStartedAt >= 0 && (scatterAnticipationReleasedAt < 0 || ts - scatterAnticipationReleasedAt < ANTICIPATION_RELEASE_MS);
+    return launchActive || anticipationActive;
+  };
+  const ensureClock = () => {
+    if (rafId) return;
+    const loop2 = (ts) => {
+      now2 = ts;
+      rafId = clockNeeded(ts) ? requestAnimationFrame(loop2) : 0;
+    };
+    rafId = requestAnimationFrame(loop2);
+  };
   context2.eventEmitter.subscribeOnMount({
-    reelFrameSpinLaunch: () => launchStartedAt = performance.now(),
+    reelFrameSpinLaunch: () => {
+      launchStartedAt = performance.now();
+      ensureClock();
+    },
     reelFrameScatterAnticipationStart: () => {
       scatterAnticipationStartedAt = performance.now();
       scatterAnticipationReleasedAt = -1;
+      ensureClock();
     },
     reelFrameScatterAnticipationEnd: () => {
       scatterAnticipationReleaseFrom = scatterAnticipationProgress;
       scatterAnticipationReleasedAt = performance.now();
+      ensureClock();
     },
     boardEyeImpact: () => {
       eyeImpactTimeline?.kill();
@@ -16725,6 +16972,41 @@ function Symbol$1($$payload, $$props) {
   const winGlowFx = { pulse: 0 };
   const isScatter = props.rawSymbol.name === "S";
   const winGlowOn = !isEye && !isScatter && (props.state === "win" || props.state === "postWinStatic");
+  const winTier = props.rawSymbol.winTier ?? 1;
+  const WIN_TIER = {
+    1: {
+      distance: 26,
+      minStrength: 1.6,
+      maxStrength: 4.4,
+      whiten: 0,
+      core: 0.55
+    },
+    // 8-9
+    2: {
+      distance: 34,
+      minStrength: 2.4,
+      maxStrength: 6.4,
+      whiten: 0.24,
+      core: 0.82
+    },
+    // 10-11
+    3: {
+      distance: 44,
+      minStrength: 3.4,
+      maxStrength: 8.8,
+      whiten: 0.55,
+      core: 1.1
+    }
+    // 12+
+  };
+  const winTierCfg = WIN_TIER[winTier];
+  const whitenColor = (color, t2) => {
+    const r = color >> 16 & 255;
+    const g = color >> 8 & 255;
+    const b = color & 255;
+    return (Math.round(r + (255 - r) * t2) << 16 | Math.round(g + (255 - g) * t2) << 8 | Math.round(b + (255 - b) * t2)) >>> 0;
+  };
+  whitenColor(info.color, winTierCfg.whiten);
   let winAuraFilter = null;
   onDestroy(() => winAuraFilter?.destroy());
   const scatterFx = { breathe: 1, connect: 0, landGlow: 0 };
@@ -16853,9 +17135,9 @@ function Symbol$1($$payload, $$props) {
           Sprite($$payload2, {
             key: frame,
             anchor: 0.5,
-            width: symbolSize.width * 1.07,
-            height: symbolSize.height * 1.07,
-            alpha: winGlowFx.pulse * 0.55,
+            width: symbolSize.width * (1.05 + winTier * 0.02),
+            height: symbolSize.height * (1.05 + winTier * 0.02),
+            alpha: Math.min(1, winGlowFx.pulse * winTierCfg.core),
             tint: 16777215,
             blendMode: "add"
           });
@@ -16996,6 +17278,12 @@ function Board($$payload, $$props) {
       const getPromises = () => uniquePositions.map(async (position) => {
         const reelSymbol = context2.stateGame.board[position.reel]?.reelState.symbols[getPaddedRowIndex(position.row)];
         if (!reelSymbol) return;
+        if (position.winTier) {
+          reelSymbol.rawSymbol = {
+            ...reelSymbol.rawSymbol,
+            winTier: position.winTier
+          };
+        }
         reelSymbol.symbolState = "win";
         await waitForResolve((resolve) => reelSymbol.oncomplete = resolve);
         reelSymbol.symbolState = "postWinStatic";
@@ -17127,27 +17415,14 @@ function Anticipations($$payload, $$props) {
 function ClusterWinAmount($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
-  const TIER_FONT_SIZE = [0.4, 0.48, 0.6];
-  const BACKING_ALPHA = 0.34;
-  const tier = getEssenceTier(props.win.count);
-  const fontSize = SYMBOL_SIZE * TIER_FONT_SIZE[tier - 1];
-  const text = bookEventAmountToCurrencyString(props.win.win);
   const y = new Tween(0);
   const scale = new Tween(0.4, { duration: 150, easing: backOut });
-  const rotation = new Tween(-0.035, { duration: 220, easing: backOut });
-  const flash = new Tween(0, { duration: 0 });
   let show = true;
-  const drawBacking = (g) => {
-    const rx = fontSize * (1.5 + text.length * 0.18);
-    const ry = fontSize * 0.85;
-    for (let i = 3; i >= 1; i--) {
-      const t2 = i / 3;
-      g.ellipse(0, 0, rx * t2, ry * t2).fill({
-        color: 201244,
-        alpha: BACKING_ALPHA / 3 * (2 - t2)
-      });
-    }
-  };
+  const TIER_LABEL_SCALE = [1, 1.22, 1.5];
+  const tier = getEssenceTier(props.win.count ?? 8);
+  const labelStyle = abyssalBitmapStyle({
+    fontSize: SYMBOL_SIZE * 0.34 * TIER_LABEL_SCALE[tier - 1]
+  });
   FadeContainer($$payload, {
     show,
     duration: 130,
@@ -17158,34 +17433,12 @@ function ClusterWinAmount($$payload, $$props) {
         x: getPositionX(props.win.reel),
         y: getPositionY(props.win.row) + y.current,
         scale: scale.current,
-        rotation: rotation.current,
         children: ($$payload3) => {
-          Graphics($$payload3, { draw: drawBacking });
-          $$payload3.out += `<!----> `;
           BitmapText($$payload3, {
             anchor: 0.5,
-            text,
-            style: abyssalBitmapStyle({ fontSize })
+            text: bookEventAmountToCurrencyString(props.win.win),
+            style: labelStyle
           });
-          $$payload3.out += `<!----> `;
-          if (flash.current > 0) {
-            $$payload3.out += "<!--[-->";
-            Container($$payload3, {
-              alpha: flash.current,
-              blendMode: "add",
-              children: ($$payload4) => {
-                BitmapText($$payload4, {
-                  anchor: 0.5,
-                  text,
-                  style: abyssalBitmapStyle({ fontSize })
-                });
-              },
-              $$slots: { default: true }
-            });
-          } else {
-            $$payload3.out += "<!--[!-->";
-          }
-          $$payload3.out += `<!--]-->`;
         },
         $$slots: { default: true }
       });
@@ -17368,7 +17621,8 @@ function TumbleBoard($$payload, $$props) {
             context2.stateGameDerived.onSymbolLand({
               rawSymbol: tumbleSymbol.rawSymbol,
               reel: reelIndex,
-              row: symbolIndexOfBoard
+              row: symbolIndexOfBoard,
+              isRefill: tumbleSymbol.isRefill
             });
             landComplete = waitForResolve((resolve) => {
               tumbleSymbol.oncomplete = () => {
@@ -17409,6 +17663,11 @@ function TumbleBoard($$payload, $$props) {
           await landComplete;
         }));
         if (deepestLandedRow >= 0) {
+          context2.eventEmitter.broadcast({
+            type: "soundOnce",
+            name: "sfx_reel_stop",
+            forcePlay: !stateBet$1.isTurbo
+          });
           context2.eventEmitter.broadcast({
             type: "boardLandPuff",
             cells: [
@@ -17467,6 +17726,17 @@ function BoardDebris($$payload, $$props) {
   let now2 = performance.now();
   let bursts = [];
   let nextId = 0;
+  let rafId = 0;
+  const ensureClock = () => {
+    if (rafId) return;
+    const loop2 = (t2) => {
+      now2 = t2;
+      const alive = bursts.filter((b) => t2 - b.start < b.duration);
+      if (alive.length !== bursts.length) bursts = alive;
+      rafId = alive.length ? requestAnimationFrame(loop2) : 0;
+    };
+    rafId = requestAnimationFrame(loop2);
+  };
   context2.eventEmitter.subscribeOnMount({
     boardDebris: ({ cells }) => {
       const t2 = performance.now();
@@ -17497,6 +17767,7 @@ function BoardDebris($$payload, $$props) {
         };
       });
       bursts = [...bursts, ...spawned];
+      ensureClock();
     },
     boardLandPuff: ({ cells }) => {
       const t2 = performance.now();
@@ -17527,6 +17798,7 @@ function BoardDebris($$payload, $$props) {
         };
       });
       bursts = [...bursts, ...spawned];
+      ensureClock();
     }
   });
   const easeOut = (p) => 1 - (1 - p) * (1 - p);
@@ -17597,16 +17869,19 @@ function TumbleWinAmount($$payload, $$props) {
   const INNER_W = BANNER_W * 0.78;
   const INNER_H = BANNER_H * 0.42;
   const INNER_RADIUS = INNER_H * 0.22;
+  const feature = context2.stateGame.gameType === "freegame";
+  const FEATURE_DESKTOP_SCALE = 0.82;
+  const FEATURE_DESKTOP_Y = -SYMBOL_SIZE * 0.3;
   const desktopPosition = {
     x: context2.stateGameDerived.boardLayout().width * 0.5,
-    y: -SYMBOL_SIZE * 0.55
+    y: feature ? FEATURE_DESKTOP_Y : -SYMBOL_SIZE * 0.55
   };
   const portraitPosition = {
     x: context2.stateGameDerived.boardLayout().width * 0.5,
     y: -SYMBOL_SIZE * 0.62
   };
   const position = context2.stateLayoutDerived.isStacked() ? portraitPosition : desktopPosition;
-  const bannerScale = context2.stateLayoutDerived.isStacked() ? 1.18 : 1;
+  const bannerScale = context2.stateLayoutDerived.isStacked() ? 1.18 : feature ? FEATURE_DESKTOP_SCALE : 1;
   let show = false;
   let amount2 = 0;
   const displayAmount = new Tween(0);
@@ -17634,13 +17909,19 @@ function TumbleWinAmount($$payload, $$props) {
     ).to(panelFx, { glow: 0, duration: 0.7, ease: "power2.out" }, 0.1);
     context2.eventEmitter.broadcast({
       type: "soundOnce",
-      name: "sfx_multiplier_landing"
+      name: "sfx_eye_combine_mul",
+      forcePlay: true
     });
   };
   const flyMultiplier = ({ mult, fromReel, fromRow }) => new Promise((resolve) => {
     flyFx.mult = mult;
     flyFx.active = true;
     gsap.killTweensOf(flyFx);
+    context2.eventEmitter.broadcast({
+      type: "soundOnce",
+      name: "sfx_mult_moove",
+      forcePlay: true
+    });
     const tl = gsap.timeline({
       onComplete: () => {
         flyFx.active = false;
@@ -17726,9 +18007,11 @@ function TumbleWinAmount($$payload, $$props) {
         multiplyExpr = null;
       }
       if (emitterEvent.countToFinal === false) return;
+      context2.eventEmitter.broadcast({ type: "soundLoop", name: "sfx_countup_loop" });
       await waitForResolve((resolve) => {
         amount2 = emitterEvent.totalWin;
       });
+      context2.eventEmitter.broadcast({ type: "soundStop", name: "sfx_countup_loop" });
       await skippableWait(500 / ts());
     }
   });
@@ -17878,7 +18161,7 @@ function GazeMeter($$payload, $$props) {
     backingStroke: 871251
   };
   const GAZE_LAPS = [
-    // lap 1 — tide teal (the original fill ramp, bright against the dark backing)
+    // lap 1 — classic tide teal (the original fill ramp, bright against the dark backing)
     {
       fillDeep: 818560,
       fillMid: 1623222,
@@ -17887,49 +18170,54 @@ function GazeMeter($$payload, $$props) {
       fillGlow: 6750184,
       edge: 15335423
     },
-    // lap 2 — abyssal purple
+    // lap 2 — deep abyssal purple (saturated, clearly violet)
     {
-      fillDeep: 6109864,
-      fillMid: 10120191,
-      fillCore: 13073919,
-      fillTop: 15919359,
-      fillGlow: 14264063,
-      edge: 16182527
+      fillDeep: 4857758,
+      fillMid: 9060351,
+      fillCore: 11889663,
+      fillTop: 15721727,
+      fillGlow: 13208575,
+      edge: 15984895
     },
-    // lap 3 — ember red
+    // lap 3 — molten red (pushed off the old orange ember toward true red)
     {
-      fillDeep: 11547156,
-      fillMid: 16734762,
-      fillCore: 16757866,
-      fillTop: 16771529,
-      fillGlow: 16761722,
-      edge: 16773590
+      fillDeep: 9376784,
+      fillMid: 16723754,
+      fillCore: 16738898,
+      fillTop: 16768210,
+      fillGlow: 16743002,
+      edge: 16770782
     }
   ];
-  const LAP_BACKING_ALPHA = 0.4;
+  const LAP_BACKING_ALPHA = 0.72;
   const LAP_FLOOD_ALPHA = 0.7;
-  const ORB_TIER_RADIUS = [0.14, 0.18, 0.24];
-  const ORB_TIER_WEIGHT = [1, 1.08, 1.22];
-  const ORB_GOLD_CORE = 16774089;
+  const ORB_TIER_RADIUS = [0.085, 0.14, 0.2];
+  const ORB_TIER_WEIGHT = [1, 1.05, 1.12];
+  const ORB_LAP_COLORS = [
+    {
+      halo: 1732568,
+      body: 3649791,
+      core: 15136255
+    },
+    // 0-10 blue
+    {
+      halo: 6959054,
+      body: 11626751,
+      core: 15984895
+    },
+    // 10-20 purple
+    {
+      halo: 12066580,
+      body: 16728624,
+      core: 16767436
+    }
+    // 20-30 red
+  ];
   const CHIP_LIFE = 0.9;
-  const SIPHON_MS_BASE = 460;
-  const SIPHON_MS_PER_ORB = 110;
-  const SIPHON_STAGGER = 0.14;
-  const GATHER_FRACTION = 0.28;
-  const GATHER_MOTES = [4, 5, 7];
-  const GATHER_RADIUS = 0.9;
-  const GATHER_LIFT = 0.55;
-  const STREAM_WIDTH = [0.045, 0.06, 0.085];
-  const STREAM_SAMPLES = 14;
-  const STREAM_FLOW_SPEED = 2.6;
-  const SIPHON_APEX_LIFT = 1.15;
-  const SIPHON_DRAIN_MS = 220;
-  const SIPHON_RIM = 201244;
   let show = false;
   let charge = 0;
   let lap = 0;
   const lapFx = { flood: 0 };
-  const siphonFx = { drain: 0 };
   let chips = [];
   let nextChipId = 0;
   let orbs = [];
@@ -18082,7 +18370,11 @@ function GazeMeter($$payload, $$props) {
     track(gsap.fromTo(lapFx, { flood: 1 }, { flood: 0, duration: 0.45, ease: "power2.out" }));
     gsap.killTweensOf(fx, "burst");
     track(gsap.timeline().set(fx, { burst: 1 }).to(fx, { burst: 0, duration: 0.4, ease: "power2.out" }));
-    context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_multiplier_up" });
+    context2.eventEmitter.broadcast({
+      type: "soundOnce",
+      name: "sfx_gaze_full",
+      forcePlay: true
+    });
   };
   onDestroy(() => {
     animations.forEach((animation) => animation.kill());
@@ -18090,7 +18382,6 @@ function GazeMeter($$payload, $$props) {
     killChipCalls();
     gsap.killTweensOf(fx);
     gsap.killTweensOf(lapFx);
-    gsap.killTweensOf(siphonFx);
   });
   const setChargeStaged = async (value) => {
     charge = value;
@@ -18112,8 +18403,6 @@ function GazeMeter($$payload, $$props) {
       orbs = [];
       chips = [];
       killChipCalls();
-      gsap.killTweensOf(siphonFx);
-      siphonFx.drain = 0;
       orbFlight.set(0, { duration: 0 });
       flying = false;
       toCenter.set(0, { duration: 0 });
@@ -18123,11 +18412,6 @@ function GazeMeter($$payload, $$props) {
     },
     gazeMeterFill: async (emitterEvent) => {
       show = true;
-      context2.eventEmitter.broadcast({
-        type: "soundOnce",
-        name: "sfx_reel_stop_1",
-        forcePlay: !stateBetDerived.isContinuousBet()
-      });
       const ts = stateBetDerived.timeScale();
       const clusterData = emitterEvent.clusters && emitterEvent.clusters.length > 0 ? emitterEvent.clusters : (
         // fallback (old fixtures / resume snapshots): one small orb per winning cell
@@ -18138,28 +18422,22 @@ function GazeMeter($$payload, $$props) {
           row: position2.row
         }))
       );
-      orbs = clusterData.map((cluster) => {
-        const sx = getPositionX(cluster.reel);
-        const sy = getPositionY(cluster.row);
-        return {
-          sx,
-          sy,
-          ox: sx,
-          oy: sy - SYMBOL_SIZE * GATHER_LIFT,
-          wobble: (Math.random() - 0.5) * SYMBOL_SIZE * 0.9,
-          tier: cluster.tier,
-          value: cluster.value
-        };
-      });
+      const targetLap = emitterEvent.charge <= 0 ? 0 : Math.min(GAZE_LAPS.length - 1, Math.ceil(emitterEvent.charge / GAZE_LAP_SIZE) - 1);
+      orbs = clusterData.map((cluster) => ({
+        sx: getPositionX(cluster.reel),
+        sy: getPositionY(cluster.row),
+        wobble: (Math.random() - 0.5) * SYMBOL_SIZE * 0.9,
+        tier: cluster.tier,
+        value: cluster.value,
+        lap: targetLap
+      }));
       orbFlight.set(0, { duration: 0 });
-      gsap.killTweensOf(siphonFx);
-      siphonFx.drain = 0;
-      const flightBaseMs = SIPHON_MS_BASE + orbs.length * SIPHON_MS_PER_ORB;
+      const flightBaseMs = 340 + orbs.length * 90;
       killChipCalls();
       chipQueue = [...orbs];
-      const { stagger, windowFrac } = siphonTiming(orbs.length);
+      const stagger = orbs.length > 1 ? (1 - ORB_TRAVEL_FRACTION) / (orbs.length - 1) : 0;
       orbs.forEach((orb, index) => {
-        const arrival = Math.min(1, index * stagger + windowFrac);
+        const arrival = Math.min(1, index * stagger + ORB_TRAVEL_FRACTION * ORB_TIER_WEIGHT[orb.tier - 1]);
         chipCalls.push(gsap.delayedCall(arrival * flightBaseMs / ts / 1e3, () => {
           chipQueue = chipQueue.filter((queued) => queued !== orb);
           spawnChip(orb);
@@ -18169,15 +18447,7 @@ function GazeMeter($$payload, $$props) {
       const outran = chipQueue.slice();
       killChipCalls();
       outran.forEach(spawnChip);
-      track(gsap.fromTo(siphonFx, { drain: 1e-3 }, {
-        drain: 1,
-        duration: SIPHON_DRAIN_MS / 1e3,
-        ease: "power2.in",
-        onComplete: () => {
-          orbs = [];
-          siphonFx.drain = 0;
-        }
-      }));
+      orbs = [];
       void setChargeStaged(emitterEvent.charge).then(() => playChargeFx(emitterEvent.charge >= GAZE_METER_MAX_CHARGE));
     },
     gazeMeterToEye: async () => {
@@ -18208,143 +18478,67 @@ function GazeMeter($$payload, $$props) {
       orbs = [];
     }
   });
-  const siphonTiming = (count) => {
-    const stagger = count > 1 ? Math.min(SIPHON_STAGGER, 0.5 / (count - 1)) : 0;
-    return {
-      stagger,
-      windowFrac: 1 - stagger * (count - 1)
-    };
-  };
-  const siphonPoint = (orb, s) => {
-    const cx = (orb.ox + meterEnergyX) / 2;
-    const cy = Math.min(orb.oy, meterEnergyY) - SYMBOL_SIZE * SIPHON_APEX_LIFT + orb.wobble * 0.4;
-    const u = 1 - s;
-    return {
-      x: u * u * orb.ox + 2 * u * s * cx + s * s * meterEnergyX,
-      y: u * u * orb.oy + 2 * u * s * cy + s * s * meterEnergyY
-    };
-  };
-  const siphonPhase = (orb, index, count) => {
-    const { stagger, windowFrac } = siphonTiming(count);
-    const local = Math.min(Math.max((orbFlight.current - index * stagger) / windowFrac, 0), 1);
-    const gather = Math.min(local / GATHER_FRACTION, 1);
-    const travelLinear = Math.max(0, (local - GATHER_FRACTION) / (1 - GATHER_FRACTION));
-    const travel = Math.pow(travelLinear, ORB_TIER_WEIGHT[orb.tier - 1]);
-    return { local, gather, travel };
-  };
-  const drawSiphonBase = (g) => {
-    if (orbs.length === 0 || orbFlight.current <= 0) return;
-    const drain = siphonFx.drain;
+  const ORB_TRAVEL_FRACTION = 0.6;
+  const ORB_TAIL_SAMPLES = 5;
+  const drawOrbs = (g) => {
+    const t2 = orbFlight.current;
+    if (t2 <= 0 || orbs.length === 0) return;
+    const count = orbs.length;
+    const stagger = count > 1 ? (1 - ORB_TRAVEL_FRACTION) / (count - 1) : 0;
     orbs.forEach((orb, index) => {
-      const { local, gather, travel } = siphonPhase(orb, index, orbs.length);
-      if (local <= 0) return;
-      const headR = SYMBOL_SIZE * ORB_TIER_RADIUS[orb.tier - 1];
-      const streamW = SYMBOL_SIZE * STREAM_WIDTH[orb.tier - 1];
-      if (local < 1 && travel <= 0) {
-        g.circle(orb.ox, orb.oy, headR * (0.6 + gather * 0.9)).fill({ color: SIPHON_RIM, alpha: 0.4 * gather });
-        return;
-      }
-      const holdFade = local >= 1 ? drain > 0 ? 1 - drain : 0.55 : 1;
-      const from = local >= 1 ? drain : 0;
-      const to = local >= 1 ? 1 : travel;
-      if (to > from) {
-        const first = siphonPoint(orb, from);
-        g.moveTo(first.x, first.y);
-        for (let k = 1; k <= STREAM_SAMPLES; k++) {
-          const pt2 = siphonPoint(orb, from + (to - from) * k / STREAM_SAMPLES);
-          g.lineTo(pt2.x, pt2.y);
-        }
-        g.stroke({
-          width: streamW * 2.4,
-          color: SIPHON_RIM,
-          alpha: 0.35 * holdFade
+      const col = ORB_LAP_COLORS[orb.lap];
+      const weight = ORB_TIER_WEIGHT[orb.tier - 1];
+      const p = Math.min(Math.max((t2 - index * stagger) / (ORB_TRAVEL_FRACTION * weight), 0), 1);
+      if (p <= 0 || p >= 1) return;
+      const cx = (orb.sx + meterEnergyX) / 2;
+      const cy = Math.min(orb.sy, meterEnergyY) - SYMBOL_SIZE * 0.45 + orb.wobble;
+      const bez = (tt) => {
+        const uu = 1 - tt;
+        return {
+          x: uu * uu * orb.sx + 2 * uu * tt * cx + tt * tt * meterEnergyX,
+          y: uu * uu * orb.sy + 2 * uu * tt * cy + tt * tt * meterEnergyY
+        };
+      };
+      const appear = Math.min(p / 0.12, 1);
+      const r = SYMBOL_SIZE * ORB_TIER_RADIUS[orb.tier - 1] * appear * (1 - p * 0.35);
+      const tailSpan = orb.tier === 3 ? 0.26 : orb.tier === 2 ? 0.2 : 0.15;
+      for (let s = 1; s <= ORB_TAIL_SAMPLES; s++) {
+        const frac = s / ORB_TAIL_SAMPLES;
+        const pt2 = p - tailSpan * frac;
+        if (pt2 <= 0) continue;
+        const tail = bez(pt2);
+        const tr2 = r * (1 - frac * 0.72);
+        if (tr2 <= 0.5) continue;
+        g.circle(tail.x, tail.y, tr2).fill({
+          color: col.body,
+          alpha: (1 - frac) * 0.4 * appear
         });
       }
-      if (local < 1) {
-        const head = siphonPoint(orb, travel);
-        g.circle(head.x, head.y, headR * 1.3).fill({ color: SIPHON_RIM, alpha: 0.5 });
-      }
-    });
-  };
-  const drawSiphonGlow = (g) => {
-    if (orbs.length === 0 || orbFlight.current <= 0) return;
-    const tide = GAZE_LAPS[0];
-    const drain = siphonFx.drain;
-    const flow = liquid.t * STREAM_FLOW_SPEED;
-    orbs.forEach((orb, index) => {
-      const { local, gather, travel } = siphonPhase(orb, index, orbs.length);
-      if (local <= 0) return;
-      const headR = SYMBOL_SIZE * ORB_TIER_RADIUS[orb.tier - 1];
-      const streamW = SYMBOL_SIZE * STREAM_WIDTH[orb.tier - 1];
-      const gold = orb.tier === 3;
-      const coreColor = gold ? ORB_GOLD_CORE : orb.tier === 2 ? 16777215 : tide.fillTop;
-      const bodyColor = gold ? 16766826 : tide.fillCore;
-      if (local < 1 && travel <= 0) {
-        const moteCount = GATHER_MOTES[orb.tier - 1];
-        const startR = SYMBOL_SIZE * GATHER_RADIUS;
-        for (let m = 0; m < moteCount; m++) {
-          const angle = m / moteCount * Math.PI * 2 + orb.wobble;
-          const mx0 = orb.sx + Math.cos(angle) * startR;
-          const my0 = orb.sy + Math.sin(angle) * startR * 0.8;
-          const mx = mx0 + (orb.ox - mx0) * gather;
-          const my = my0 + (orb.oy - my0) * gather;
-          g.circle(mx, my, headR * 0.3).fill({ color: bodyColor, alpha: 0.8 * gather });
-        }
-        g.circle(orb.ox, orb.oy, startR * (1 - gather * 0.85)).stroke({
-          width: Math.max(1.5, headR * 0.12),
-          color: GAZE_COLORS.energy,
-          alpha: 0.45 * gather
-        });
-        g.circle(orb.ox, orb.oy, headR * gather * 1.6).fill({
-          color: GAZE_COLORS.energy,
-          alpha: 0.2 * gather
-        });
-        g.circle(orb.ox, orb.oy, headR * gather * 0.8).fill({ color: coreColor, alpha: 0.9 * gather });
-        return;
-      }
-      const from = local >= 1 ? drain : 0;
-      const to = local >= 1 ? 1 : travel;
-      const fade = local >= 1 ? drain > 0 ? 1 - drain : 0.55 : 1;
-      if (to > from) {
-        const first = siphonPoint(orb, from);
-        g.moveTo(first.x, first.y);
-        for (let k = 1; k <= STREAM_SAMPLES; k++) {
-          const pt2 = siphonPoint(orb, from + (to - from) * k / STREAM_SAMPLES);
-          g.lineTo(pt2.x, pt2.y);
-        }
-        g.stroke({
-          width: streamW * 2,
-          color: GAZE_COLORS.energy,
-          alpha: 0.16 * fade
-        });
-        for (let k = 0; k < STREAM_SAMPLES; k++) {
-          const s0 = from + (to - from) * k / STREAM_SAMPLES;
-          const s1 = from + (to - from) * (k + 1) / STREAM_SAMPLES;
-          const a = siphonPoint(orb, s0);
-          const b = siphonPoint(orb, s1);
-          const taper = 0.35 + 0.65 * ((k + 1) / STREAM_SAMPLES);
-          g.moveTo(a.x, a.y).lineTo(b.x, b.y).stroke({
-            width: streamW * taper,
-            color: bodyColor,
-            alpha: 0.5 * fade
-          });
-        }
-        for (let k = 0; k < 5; k++) {
-          const frac = (k / 5 + flow) % 1;
-          const s = from + (to - from) * frac;
-          const pt2 = siphonPoint(orb, s);
-          g.circle(pt2.x, pt2.y, streamW * 0.65).fill({ color: coreColor, alpha: 0.7 * fade });
+      const head = bez(p);
+      g.circle(head.x, head.y, r * 2.6).fill({ color: col.halo, alpha: 0.14 * appear });
+      g.circle(head.x, head.y, r * 1.65).fill({ color: col.body, alpha: 0.4 * appear });
+      g.circle(head.x, head.y, r * 1.02).fill({ color: col.body, alpha: 0.9 * appear });
+      g.circle(head.x, head.y, r * 0.58).fill({ color: col.core, alpha: 0.98 * appear });
+      g.circle(head.x - r * 0.26, head.y - r * 0.3, r * 0.22).fill({ color: 16777215, alpha: 0.85 * appear });
+      const satCount = orb.tier === 3 ? 4 : orb.tier === 2 ? 2 : 0;
+      if (satCount > 0) {
+        const orbitR = r * 1.95;
+        const spin = p * 9 + index;
+        for (let s = 0; s < satCount; s++) {
+          const ang = s / satCount * Math.PI * 2 + spin;
+          const sxo = head.x + Math.cos(ang) * orbitR;
+          const syo = head.y + Math.sin(ang) * orbitR;
+          g.circle(sxo, syo, r * 0.5).fill({ color: col.body, alpha: 0.38 * appear });
+          g.circle(sxo, syo, r * 0.26).fill({ color: col.core, alpha: 0.92 * appear });
         }
       }
-      if (local < 1) {
-        const head = siphonPoint(orb, travel);
-        const r = headR * (1 - travel * 0.25);
-        g.circle(head.x, head.y, r * 2.4).fill({
-          color: GAZE_COLORS.energy,
-          alpha: 0.12 + orb.tier * 0.05
+      if (orb.tier === 3) {
+        const ring = 0.5 + 0.5 * Math.sin(p * 14);
+        g.circle(head.x, head.y, r * (2 + ring * 0.35)).stroke({
+          width: Math.max(1, r * 0.14),
+          color: col.body,
+          alpha: 0.45 * appear
         });
-        g.circle(head.x, head.y, r * 1.4).fill({ color: bodyColor, alpha: 0.55 });
-        g.circle(head.x, head.y, r * 0.7).fill({ color: coreColor, alpha: 0.98 });
       }
     });
   };
@@ -18382,9 +18576,16 @@ function GazeMeter($$payload, $$props) {
     const lapColors = GAZE_LAPS[lap];
     if (lap > 0) {
       const prev = GAZE_LAPS[lap - 1];
-      g.rect(segment.x, segment.y, segment.w, segment.h).fill({ color: prev.fillMid, alpha: LAP_BACKING_ALPHA });
-      g.rect(segment.x, segment.y + segment.h * 0.45, segment.w, segment.h * 0.55).fill({
+      g.rect(segment.x, segment.y, segment.w, segment.h).fill({
         color: prev.fillDeep,
+        alpha: LAP_BACKING_ALPHA
+      });
+      g.rect(segment.x, segment.y, segment.w, segment.h).fill({
+        color: prev.fillMid,
+        alpha: LAP_BACKING_ALPHA * 0.65
+      });
+      g.rect(segment.x, segment.y, segment.w, Math.max(1, segment.h * 0.05)).fill({
+        color: prev.fillTop,
         alpha: LAP_BACKING_ALPHA * 0.7
       });
     }
@@ -18457,22 +18658,6 @@ function GazeMeter($$payload, $$props) {
     const orbAlpha = 0.18 + pulse * 0.58;
     const gemAlpha = pulse * 0.5;
     const edgeAlpha = fillLead ? 0.28 + pulse * 0.5 : 0;
-    if (orbs.length > 0 && orbFlight.current > 0.12) {
-      const inbound = Math.min(1, orbFlight.current * 1.25);
-      const flicker = 0.8 + Math.sin(liquid.t * 7) * 0.2;
-      const intakeR = gemR * 2.6;
-      for (let i = 3; i >= 1; i--) {
-        const t2 = i / 3;
-        g.circle(eyeX, eyeY, intakeR * t2).fill({
-          color: GAZE_COLORS.energy,
-          alpha: 0.16 * inbound * flicker * (1.2 - t2)
-        });
-      }
-      g.circle(eyeX, eyeY, gemR * 0.8).fill({
-        color: 16777215,
-        alpha: 0.35 * inbound * flicker
-      });
-    }
     if (gemAlpha > 0) {
       const gemGlow = new FillGradient({
         type: "radial",
@@ -18521,12 +18706,10 @@ function GazeMeter($$payload, $$props) {
     children: ($$payload2) => {
       BoardContainer($$payload2, {
         children: ($$payload3) => {
-          Graphics($$payload3, { draw: drawSiphonBase });
-          $$payload3.out += `<!----> `;
           Container($$payload3, {
             blendMode: "add",
             children: ($$payload4) => {
-              Graphics($$payload4, { draw: drawSiphonGlow });
+              Graphics($$payload4, { draw: drawOrbs });
             },
             $$slots: { default: true }
           });
@@ -18567,8 +18750,9 @@ function GazeMeter($$payload, $$props) {
                   rotation: multiplierTextRotation,
                   scale: fx.textScale,
                   children: ($$payload5) => {
-                    BitmapText($$payload5, {
+                    ResponsiveBitmapText($$payload5, {
                       anchor: 0.5,
+                      maxWidth: plaqueR * 1.55,
                       text: String(charge),
                       style: abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })
                     });
@@ -18579,8 +18763,9 @@ function GazeMeter($$payload, $$props) {
                         alpha: fx.overcharge * 0.7,
                         blendMode: "add",
                         children: ($$payload6) => {
-                          BitmapText($$payload6, {
+                          ResponsiveBitmapText($$payload6, {
                             anchor: 0.5,
+                            maxWidth: plaqueR * 1.55,
                             text: String(charge),
                             style: abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })
                           });
@@ -18669,8 +18854,6 @@ function Eye($$payload, $$props) {
   const ts = () => stateBetDerived.timeScale();
   const ADD_COLOR = 2285567;
   const MUL_COLOR = 16734762;
-  const GAZE_COLOR = 10120191;
-  const TOTAL_COLOR = 16766826;
   const center = {
     x: BOARD_SIZES.width / 2,
     y: BOARD_SIZES.height / 2
@@ -18745,7 +18928,8 @@ function Eye($$payload, $$props) {
       popCenter();
       context2.eventEmitter.broadcast({
         type: "soundOnce",
-        name: eye.eyeType === "MUL" ? "sfx_multiplier_explosion_b" : "sfx_multiplier_combine_a"
+        name: eye.eyeType === "MUL" ? "sfx_eye_combine_mul" : "sfx_eye_combine_add",
+        forcePlay: true
       });
     }).to(chip, {
       scale: 1.7,
@@ -18758,7 +18942,8 @@ function Eye($$payload, $$props) {
     eyeShow: (e) => {
       context2.eventEmitter.broadcast({
         type: "soundOnce",
-        name: e.eyeType === "MUL" ? "sfx_multiplier_explosion_b" : "sfx_multiplier_win"
+        name: e.eyeType === "MUL" ? "sfx_eye_reveal_mul" : "sfx_eye_reveal_add",
+        forcePlay: true
       });
     },
     eyeBurst: async (e) => {
@@ -18775,10 +18960,7 @@ function Eye($$payload, $$props) {
         ease: "power2.out"
       });
       popCenter();
-      context2.eventEmitter.broadcast({
-        type: "soundOnce",
-        name: "sfx_multiplier_landing"
-      });
+      context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_gaze_full" });
       await skippableWait(450 / ts());
       gazeLabel = false;
       for (const eye of eyes) {
@@ -18791,16 +18973,14 @@ function Eye($$payload, $$props) {
         popCenter();
         context2.eventEmitter.broadcast({
           type: "soundOnce",
-          name: "sfx_multiplier_combine_a"
+          name: "sfx_eye_combine_add",
+          forcePlay: true
         });
         await skippableWait(220 / ts());
       }
       running = e.totalMult;
       popCenter(true);
-      context2.eventEmitter.broadcast({
-        type: "soundOnce",
-        name: "sfx_multiplier_explosion_a"
-      });
+      context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_eye_burst" });
       await skippableWait(750 / ts());
       gsap.killTweensOf(dimFx);
       await new Promise((resolve) => {
@@ -18819,20 +18999,11 @@ function Eye($$payload, $$props) {
       dimFx.alpha = 0;
     }
   });
-  const totalStyle = eyeValueTextStyle({
-    fontSize: SYMBOL_SIZE * 0.92,
-    fill: TOTAL_COLOR
+  const totalStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.78 });
+  const gazeStyle = abyssalBitmapStyle({
+    fontSize: SYMBOL_SIZE * 0.22,
+    letterSpacing: 3
   });
-  const flashStyle = eyeValueTextStyle({ fontSize: SYMBOL_SIZE * 0.92, fill: 16777215 });
-  const gazeStyle = {
-    fontFamily: "Cinzel, Georgia, serif",
-    fontWeight: "700",
-    fontSize: SYMBOL_SIZE * 0.26,
-    fill: GAZE_COLOR,
-    letterSpacing: 3,
-    align: "center",
-    stroke: { color: 329743, width: 4 }
-  };
   const chipStyle = eyeValueTextStyle({
     fontSize: SYMBOL_SIZE * 0.6,
     fill: chip.mul ? MUL_COLOR : ADD_COLOR
@@ -18864,7 +19035,7 @@ function Eye($$payload, $$props) {
             children: ($$payload4) => {
               if (gazeLabel) {
                 $$payload4.out += "<!--[-->";
-                Text($$payload4, {
+                BitmapText($$payload4, {
                   anchor: 0.5,
                   y: -SYMBOL_SIZE * 0.62,
                   text: context2.i18nDerived.gaze(),
@@ -18878,7 +19049,7 @@ function Eye($$payload, $$props) {
                 scale: centerFx.scale,
                 filters: [],
                 children: ($$payload5) => {
-                  Text($$payload5, {
+                  BitmapText($$payload5, {
                     anchor: 0.5,
                     text: `${running}`,
                     style: totalStyle
@@ -18888,11 +19059,12 @@ function Eye($$payload, $$props) {
                     $$payload5.out += "<!--[-->";
                     Container($$payload5, {
                       alpha: centerFx.flash,
+                      blendMode: "add",
                       children: ($$payload6) => {
-                        Text($$payload6, {
+                        BitmapText($$payload6, {
                           anchor: 0.5,
                           text: `${running}`,
-                          style: flashStyle
+                          style: totalStyle
                         });
                       },
                       $$slots: { default: true }
@@ -18965,10 +19137,6 @@ function ScatterFx($$payload, $$props) {
         repeat: -1,
         yoyo: true,
         delay: 0.5
-      });
-      context2.eventEmitter.broadcast({
-        type: "soundOnce",
-        name: "sfx_anticipation_start"
       });
       context2.eventEmitter.broadcast({ type: "soundLoop", name: "sfx_anticipation" });
     },
@@ -19274,17 +19442,39 @@ function PressToContinue($$payload, $$props) {
 function WinCapCelebration($$payload, $$props) {
   push();
   const context2 = getContext();
-  const COUNT_SECONDS = 1.6;
-  const CRAWL_EXPONENT = 2.2;
+  const WIN_TIERS = [
+    { min: 15e3, key: "maxWin" },
+    { min: 250, key: "epicWin" },
+    { min: 100, key: "megaWin" },
+    { min: 50, key: "hugeWin" },
+    { min: 20, key: "bigWin" }
+  ];
+  const TIER_COLOR = {
+    bigWin: 3133548,
+    // emerald
+    hugeWin: 4164863,
+    // sapphire
+    megaWin: 16757052,
+    // amber
+    epicWin: 11820287,
+    // amethyst
+    maxWin: 16729144
+    // ruby (dragon) — the 15,000× climax
+  };
+  const STEP_BASE_SECONDS = 5;
+  const STEP_ACCEL = 0.72;
+  const STEP_MIN_SECONDS = 1.3;
+  const FINAL_STEP_MIN_SECONDS = 3.2;
+  const CRAWL_EXPONENT = 2.4;
   const BACKDROP_ALPHA = 0.78;
   const SCENE_TINT_ALPHA = 0.1;
-  const RUBY = 16729144;
   const FRAME_SCALE = 0.72;
   const AMOUNT_Y = 0.08;
   const AMOUNT_SIZE = 0.24;
   const AMOUNT_MAX_WIDTH = 0.66;
   const BANNER_SHIFT = 0.12;
-  const SLAM_SCALE = 1.6;
+  const tierFor = (mult) => WIN_TIERS.find((t2) => mult >= t2.min);
+  const lowestTier = WIN_TIERS[WIN_TIERS.length - 1];
   const ts = () => 1;
   let show = false;
   let amount2 = 0;
@@ -19298,8 +19488,11 @@ function WinCapCelebration($$payload, $$props) {
   const interruptible = createInterruptible();
   let countUpCompleted = false;
   const countEase = (t2) => 1 - Math.pow(1 - t2, CRAWL_EXPONENT);
+  const skipToNextStep = () => interruptible.interrupt();
+  const liveMult = countUp.current / BOOK_AMOUNT_MULTIPLIER;
+  const bannerTier = tierFor(liveMult) ?? lowestTier;
   const numFx = { scale: 1, flash: 0, throb: 1 };
-  const groupFx = { scale: SLAM_SCALE, alpha: 0 };
+  const groupFx = { scale: 0.6, alpha: 0 };
   const shake = { x: 0, y: 0 };
   let burstKey = 0;
   const triggerShake = (power) => {
@@ -19329,18 +19522,22 @@ function WinCapCelebration($$payload, $$props) {
   };
   const playEntrance = () => {
     gsap.killTweensOf(groupFx);
-    gsap.timeline().set(groupFx, { scale: SLAM_SCALE, alpha: 0 }).to(groupFx, { alpha: 1, duration: 0.16, ease: "power2.out" }).to(
+    gsap.timeline().set(groupFx, { scale: 0.6, alpha: 0 }).to(groupFx, { alpha: 1, duration: 0.2, ease: "power2.out" }).to(
       groupFx,
       {
         scale: 1,
-        duration: 0.62,
-        ease: "elastic.out(1, 0.5)"
+        duration: 0.7,
+        ease: "elastic.out(1, 0.55)"
       },
-      0.02
+      0
     );
     burstKey++;
-    triggerShake(SYMBOL_SIZE * 0.3);
-    context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_youwon_panel" });
+    triggerShake(SYMBOL_SIZE * 0.16);
+    context2.eventEmitter.broadcast({
+      type: "soundOnce",
+      name: "sfx_win_big",
+      forcePlay: true
+    });
   };
   const startThrob = () => {
     gsap.killTweensOf(numFx);
@@ -19366,13 +19563,40 @@ function WinCapCelebration($$payload, $$props) {
     }).set(numFx, { flash: 0.95 }, 0).to(numFx, { flash: 0, duration: 0.45, ease: "power2.out" }, 0);
     burstKey++;
     triggerShake(SYMBOL_SIZE * 0.26);
-    context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_winlevel_end" });
+    context2.eventEmitter.broadcast({ type: "soundStop", name: "sfx_countup_loop" });
+    context2.eventEmitter.broadcast({
+      type: "soundOnce",
+      name: "sfx_win_big",
+      forcePlay: true
+    });
+  };
+  const startCountUp = async () => {
+    const boundaries = [...WIN_TIERS].reverse().slice(1).map((tier) => tier.min * BOOK_AMOUNT_MULTIPLIER).filter((boundary) => boundary < amount2);
+    const targets = [...boundaries, amount2];
+    for (const [index, target] of targets.entries()) {
+      const paced = STEP_BASE_SECONDS * Math.pow(STEP_ACCEL, index);
+      const seconds = Math.max(paced, index === targets.length - 1 ? FINAL_STEP_MIN_SECONDS : STEP_MIN_SECONDS);
+      const { interrupted } = await interruptible.add(() => countUp.set(target, {
+        duration: seconds * SECOND / ts(),
+        easing: countEase
+      }));
+      await countUp.set(target, { duration: 0 });
+      interruptible.clear();
+      if (interrupted && index < targets.length - 1) {
+        gsap.killTweensOf(numFx, "scale");
+        gsap.fromTo(numFx, { scale: 1.22 }, {
+          scale: 1,
+          duration: 0.34,
+          ease: "back.out(2.5)"
+        });
+      }
+    }
   };
   context2.eventEmitter.subscribeOnMount({
     winCapTrigger: async (emitterEvent) => {
       countUp.set(0, { duration: 0 });
       groupFx.alpha = 0;
-      groupFx.scale = SLAM_SCALE;
+      groupFx.scale = 0.6;
       amount2 = emitterEvent.amount;
       show = true;
       await waitForResolve((resolve) => oncomplete = resolve);
@@ -19390,12 +19614,7 @@ function WinCapCelebration($$payload, $$props) {
     await countUp.set(0, { duration: 0 });
     playEntrance();
     startThrob();
-    await interruptible.add(() => countUp.set(amount2, {
-      duration: COUNT_SECONDS * SECOND / ts(),
-      easing: countEase
-    }));
-    await countUp.set(amount2, { duration: 0 });
-    interruptible.clear();
+    await startCountUp();
     playLock();
     countUpCompleted = true;
   };
@@ -19413,7 +19632,7 @@ function WinCapCelebration($$payload, $$props) {
         });
         $$payload2.out += `<!----> `;
         CanvasSizeRectangle($$payload2, {
-          backgroundColor: RUBY,
+          backgroundColor: TIER_COLOR[bannerTier.key],
           backgroundAlpha: SCENE_TINT_ALPHA * groupFx.alpha
         });
         $$payload2.out += `<!----> `;
@@ -19431,8 +19650,8 @@ function WinCapCelebration($$payload, $$props) {
                   y: frameH * BANNER_SHIFT,
                   children: ($$payload5) => {
                     WinBanner($$payload5, {
-                      tierKey: "maxWin",
-                      color: RUBY,
+                      tierKey: bannerTier.key,
+                      color: TIER_COLOR[bannerTier.key],
                       width: frameW,
                       height: frameH
                     });
@@ -19484,9 +19703,8 @@ function WinCapCelebration($$payload, $$props) {
         $$payload2.out += `<!----> `;
         PressToContinue($$payload2, {
           showPrompt: countUpCompleted,
-          onpress: () => countUpCompleted ? oncomplete() : interruptible.interrupt(),
+          onpress: () => countUpCompleted ? oncomplete() : skipToNextStep(),
           onspace: () => {
-            if (countUpCompleted) oncomplete();
           }
         });
         $$payload2.out += `<!---->`;
@@ -19640,7 +19858,12 @@ function Win($$payload, $$props) {
     }).set(numFx, { flash: 0.95 }, 0).to(numFx, { flash: 0, duration: 0.45, ease: "power2.out" }, 0);
     burstKey++;
     triggerShake(SYMBOL_SIZE * 0.26);
-    context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_winlevel_end" });
+    context2.eventEmitter.broadcast({ type: "soundStop", name: "sfx_countup_loop" });
+    context2.eventEmitter.broadcast({
+      type: "soundOnce",
+      name: "sfx_win_big",
+      forcePlay: true
+    });
   };
   context2.eventEmitter.subscribeOnMount({
     winShow: () => show = true,
@@ -20239,7 +20462,7 @@ function FreeSpinCounter($$payload, $$props) {
       const climbed = emitterEvent.mult > lastPersistentMult;
       lastPersistentMult = emitterEvent.mult;
       if (!climbed) return;
-      context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_multiplier_up" });
+      context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_snowball_up" });
       blinkGlow();
       await totalMultPop.set(1.16);
       await totalMultPop.set(1);
@@ -20412,7 +20635,7 @@ function FreeSpinOutro($$payload, $$props) {
       duration: 0.6,
       ease: "elastic.out(1, 0.5)"
     }).set(numFx, { flash: 0.95 }, 0).to(numFx, { flash: 0, duration: 0.45, ease: "power2.out" }, 0);
-    context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_winlevel_end" });
+    context2.eventEmitter.broadcast({ type: "soundStop", name: "sfx_countup_loop" });
   };
   context2.eventEmitter.subscribeOnMount({
     freeSpinOutroShow: () => show = true,
@@ -20430,6 +20653,7 @@ function FreeSpinOutro($$payload, $$props) {
     numFx.scale = 1;
     numFx.flash = 0;
     await countUp.set(0, { duration: 0 });
+    context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_fs_outro" });
     playEntrance();
     await interruptible.add(runCount);
     await countUp.set(amount2, { duration: 0 });
@@ -20511,7 +20735,10 @@ function FreeSpinOutro($$payload, $$props) {
         });
         $$payload2.out += `<!----> `;
         PressToContinue($$payload2, {
-          onpress: () => countUpCompleted ? oncomplete() : interruptible.interrupt()
+          showPrompt: countUpCompleted,
+          onpress: () => countUpCompleted ? oncomplete() : interruptible.interrupt(),
+          onspace: () => {
+          }
         });
         $$payload2.out += `<!---->`;
       } else {
@@ -20527,13 +20754,7 @@ function Transition($$payload, $$props) {
   push();
   const context2 = getContext();
   const dive = new Tween(0, { duration: 1 });
-  const alpha = new Tween(0, { duration: 320 });
-  const irisProgress = new Tween(0, { duration: 680 });
-  const FREE_SPIN_EXIT_COVER_DURATION = 350;
-  const FREE_SPIN_EXIT_REVEAL_DURATION = 1650;
-  let irisActive = false;
   const sizes = context2.stateLayoutDerived.canvasSizes();
-  const irisRadius = (Math.hypot(sizes.width, sizes.height) * 0.5 + 4) * irisProgress.current;
   const water = { t: 0 };
   const BUBBLES = Array.from({ length: 26 }, (_2, i) => ({
     x: i * 0.383 % 1 * 0.96 + 0.02,
@@ -20544,6 +20765,7 @@ function Transition($$payload, $$props) {
   context2.eventEmitter.subscribeOnMount({
     transitionCover: async () => {
       const ts = stateBetDerived.timeScale();
+      context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_transition" });
       dive.set(0, { duration: 0 });
       await dive.set(1, { duration: 620 / ts, easing: cubicOut });
     },
@@ -20552,19 +20774,6 @@ function Transition($$payload, $$props) {
       await waitForTimeout(120 / ts);
       await dive.set(2, { duration: 640 / ts, easing: cubicIn });
       dive.set(0, { duration: 0 });
-    },
-    freeSpinExitCover: async () => {
-      irisActive = false;
-      void irisProgress.set(0, { duration: 0 });
-      void alpha.set(1, { duration: FREE_SPIN_EXIT_COVER_DURATION });
-      await waitForTimeout(FREE_SPIN_EXIT_COVER_DURATION);
-    },
-    freeSpinExitReveal: async () => {
-      irisActive = true;
-      void irisProgress.set(1, { duration: FREE_SPIN_EXIT_REVEAL_DURATION });
-      await waitForTimeout(FREE_SPIN_EXIT_REVEAL_DURATION);
-      void alpha.set(0, { duration: 0 });
-      irisActive = false;
     }
   });
   const drawDive = (g) => {
@@ -20619,58 +20828,6 @@ function Transition($$payload, $$props) {
   } else {
     $$payload.out += "<!--[!-->";
   }
-  $$payload.out += `<!--]--> `;
-  if (irisActive) {
-    $$payload.out += "<!--[-->";
-    Graphics($$payload, {
-      zIndex: 40,
-      draw: (g) => {
-        const centerX = sizes.width * 0.5;
-        const centerY = sizes.height * 0.5;
-        const top = Math.max(0, centerY - irisRadius);
-        const bottom = Math.min(sizes.height, centerY + irisRadius);
-        const fill = { color: 329743, alpha: 1 };
-        if (irisRadius < 1) {
-          g.rect(0, 0, sizes.width, sizes.height).fill(fill);
-          return;
-        }
-        if (top > 0) g.rect(0, 0, sizes.width, top).fill(fill);
-        if (bottom < sizes.height) g.rect(0, bottom, sizes.width, sizes.height - bottom).fill(fill);
-        const left = [{ x: 0, y: top }];
-        const right = [{ x: sizes.width, y: top }];
-        const steps = 28;
-        for (let index = 0; index <= steps; index += 1) {
-          const y = top + (bottom - top) * index / steps;
-          const halfChord = Math.sqrt(Math.max(0, irisRadius ** 2 - (y - centerY) ** 2));
-          left.push({ x: Math.max(0, centerX - halfChord), y });
-          right.push({
-            x: Math.min(sizes.width, centerX + halfChord),
-            y
-          });
-        }
-        left.push({ x: 0, y: bottom });
-        right.push({ x: sizes.width, y: bottom });
-        g.poly(left).fill(fill);
-        g.poly(right).fill(fill);
-      }
-    });
-  } else {
-    $$payload.out += "<!--[!-->";
-    if (alpha.current > 1e-3) {
-      $$payload.out += "<!--[-->";
-      Rectangle$1($$payload, spread_props([
-        sizes,
-        {
-          backgroundColor: 329743,
-          backgroundAlpha: alpha.current,
-          zIndex: 40
-        }
-      ]));
-    } else {
-      $$payload.out += "<!--[!-->";
-    }
-    $$payload.out += `<!--]-->`;
-  }
   $$payload.out += `<!--]-->`;
   pop();
 }
@@ -20714,7 +20871,7 @@ const ABYSSAL_CONTROL_BAR_LAYOUT = {
   }
 };
 const WHITE = 16777215;
-const STOP_RED = 16727862;
+const STOP_RED = 10568512;
 const STOP_BORDER = 1705476;
 const alphaOf = (options) => options.disabled ? 0.42 : 1;
 const strokeLine = (g, width, color, alpha, cap = "round") => {
@@ -20793,6 +20950,33 @@ const drawControlGlyph = (g, key, size, options = {}) => {
         alpha: alpha * 0.86,
         join: "round"
       });
+    }
+    return;
+  }
+  if (key === "sound") {
+    const body = [
+      -s * 0.36,
+      -s * 0.12,
+      -s * 0.16,
+      -s * 0.12,
+      s * 0,
+      -s * 0.3,
+      s * 0,
+      s * 0.3,
+      -s * 0.16,
+      s * 0.12,
+      -s * 0.36,
+      s * 0.12
+    ];
+    g.poly(body, true).fill({ color: 0, alpha: alpha * 0.28 });
+    if (options.active) {
+      g.poly(body, true).fill({ color, alpha });
+      drawArcStroke(g, s * 0.22, -Math.PI / 3, Math.PI / 3, s * 0.07, color, alpha);
+      drawArcStroke(g, s * 0.34, -Math.PI / 3, Math.PI / 3, s * 0.07, color, alpha * 0.85);
+    } else {
+      g.poly(body, true).stroke({ width: s * 0.07, color, alpha: alpha * 0.86, join: "round" });
+      g.moveTo(s * 0.12, -s * 0.16).lineTo(s * 0.36, s * 0.16).stroke({ width: s * 0.08, color, alpha, cap: "round" });
+      g.moveTo(s * 0.36, -s * 0.16).lineTo(s * 0.12, s * 0.16).stroke({ width: s * 0.08, color, alpha, cap: "round" });
     }
     return;
   }
@@ -21087,6 +21271,14 @@ function ControlBar($$payload, $$props) {
     context2.eventEmitter.broadcast({ type: "soundPressGeneral" });
     fn();
   };
+  const pressToggle = (fn) => {
+    context2.eventEmitter.broadcast({ type: "soundPressToggle" });
+    fn();
+  };
+  const pressModalOpen = (fn) => {
+    context2.eventEmitter.broadcast({ type: "soundPressModalOpen" });
+    fn();
+  };
   const shouldResetBuyModeBeforeManualSpin = () => stateBetDerived.activeBetMode()?.type === "buy" && stateBet$1.activeBetModeKey.toUpperCase() !== "SUPERSPINS";
   const beginAutoSpin = () => {
     if (!canPlaceBet) {
@@ -21110,12 +21302,12 @@ function ControlBar($$payload, $$props) {
     context2.eventEmitter.broadcast({ type: "autoBet" });
   };
   const spin = () => {
-    context2.eventEmitter.broadcast({ type: "soundPressBet" });
     if (!isIdle) {
       armSkip();
       context2.stateGameDerived.speedUpCurrentSpin();
       return;
     }
+    context2.eventEmitter.broadcast({ type: "soundPressBet" });
     if (spinDisabled) return;
     if (autoSpinArmed) {
       beginAutoSpin();
@@ -21134,23 +21326,29 @@ function ControlBar($$payload, $$props) {
     const next = options.find((option) => option > stateBet$1.betAmount);
     stateBetDerived.setBetAmount(next ?? biggest);
   });
-  const autoplay = () => press(() => {
+  const autoplay = () => {
     if (autoSpinArmed && !stateBetDerived.hasAutoBetCounter()) {
-      autoSpinArmed = false;
-      showAutoPopup = false;
+      pressToggle(() => {
+        autoSpinArmed = false;
+        showAutoPopup = false;
+      });
       return;
     }
     if (autoDisabled) return;
     if (stateBetDerived.hasAutoBetCounter()) {
-      stateBet$1.autoSpinsCounter = 0;
-      autoSpinArmed = false;
-      showAutoPopup = false;
+      pressToggle(() => {
+        stateBet$1.autoSpinsCounter = 0;
+        autoSpinArmed = false;
+        showAutoPopup = false;
+      });
       return;
     }
-    showBetPopup = false;
-    showAutoPopup = !showAutoPopup;
-  });
-  const toggleTurbo = () => press(() => {
+    pressModalOpen(() => {
+      showBetPopup = false;
+      showAutoPopup = !showAutoPopup;
+    });
+  };
+  const toggleTurbo = () => pressToggle(() => {
     if (turboDisabled) return;
     if (stateBet$1.isTurbo) {
       stateBetDerived.updateIsTurbo(false, { persistent: true });
@@ -21158,21 +21356,21 @@ function ControlBar($$payload, $$props) {
     }
     context2.stateGameDerived.enableTurbo();
   });
-  const openMenu = () => press(() => stateUi.menuOpen = true);
+  const openMenu = () => pressModalOpen(() => stateUi.menuOpen = true);
   const anyPopupOpen = showAutoPopup || showBetPopup || stateUi.menuOpen;
-  const closeAllPopups = () => press(() => {
+  const closeAllPopups = () => pressToggle(() => {
     showAutoPopup = false;
     showBetPopup = false;
     stateUi.menuOpen = false;
   });
-  const openBuyBonus = () => press(() => {
+  const openBuyBonus = () => {
     if (!isIdle) return;
     if (buyBonusIndicatorActive) {
-      stateBet$1.activeBetModeKey = "BASE";
+      pressToggle(() => stateBet$1.activeBetModeKey = "BASE");
       return;
     }
-    stateModal.modal = { name: "buyBonus" };
-  });
+    pressModalOpen(() => stateModal.modal = { name: "buyBonus" });
+  };
   const openBetMenu = () => press(() => {
     if (!isIdle) return;
     showAutoPopup = false;
@@ -21233,11 +21431,12 @@ function ControlBar($$payload, $$props) {
     if (hovered) return hoverScale;
     return 1;
   };
-  const autoCounterText = stateBet$1.autoSpinsCounter === Infinity ? INFINITY_MARK : `${stateBet$1.autoSpinsCounter}`;
+  const autoSpinsLeft = stateBet$1.autoSpinsCounter === Infinity ? Infinity : Math.max(0, stateBet$1.autoSpinsCounter - 1);
+  const autoCounterText = autoSpinsLeft === Infinity ? INFINITY_MARK : `${autoSpinsLeft}`;
   const autoCounterFontSize = (() => {
-    if (stateBet$1.autoSpinsCounter === Infinity) return 78;
-    if (stateBet$1.autoSpinsCounter > 99) return 54;
-    if (stateBet$1.autoSpinsCounter > 9) return 68;
+    if (autoSpinsLeft === Infinity) return 78;
+    if (autoSpinsLeft > 99) return 54;
+    if (autoSpinsLeft > 9) return 68;
     return 78;
   })();
   const drawGlassPanel = (g, w, h, radius = 24, active = false) => {
@@ -21930,15 +22129,27 @@ function ReplayControls($$payload, $$props) {
   const turboDisabled = stateBet$1.isSpaceHold;
   const toggleTurbo = () => {
     if (turboDisabled) return;
-    context2.eventEmitter.broadcast({ type: "soundPressGeneral" });
+    context2.eventEmitter.broadcast({ type: "soundPressToggle" });
     if (stateBet$1.isTurbo) {
       stateBetDerived.updateIsTurbo(false, { persistent: true });
     } else {
       context2.stateGameDerived.enableTurbo();
     }
   };
+  let volumeBeforeMute = stateSound.volumeValueMaster || 75;
+  const muted = stateSound.volumeValueMaster === 0;
+  const toggleMute = () => {
+    context2.eventEmitter.broadcast({ type: "soundPressToggle" });
+    if (muted) {
+      stateSound.volumeValueMaster = volumeBeforeMute;
+    } else {
+      volumeBeforeMute = stateSound.volumeValueMaster;
+      stateSound.volumeValueMaster = 0;
+    }
+  };
   const winText = bookEventAmountToCurrencyString(stateBet$1.winBookEventAmount);
-  const betText = numberToCurrencyString(stateBetDerived.betCost());
+  const betCostAmount = stateBetDerived.betCost();
+  const betText = stateBet$1.betAmount > 0 ? numberToCurrencyString(betCostAmount) : "—";
   context2.i18nDerived.play();
   const statusText = context2.i18nDerived.loadingReplay();
   const layout = context2.stateLayoutDerived.mainLayoutStandard();
@@ -22079,6 +22290,65 @@ function ReplayControls($$payload, $$props) {
       });
       $$payload2.out += `<!----> `;
       Container($$payload2, {
+        x: layout.width - 192,
+        y: layout.height - BAR_H * 0.5 - 36,
+        children: ($$payload3) => {
+          {
+            let children = function($$payload4, { center, hovered, pressed }) {
+              Container($$payload4, {
+                x: center.x,
+                y: center.y,
+                scale: pressed ? 0.96 : hovered ? 1.04 : 1,
+                children: ($$payload5) => {
+                  Graphics($$payload5, {
+                    draw: (g) => {
+                      g.circle(0, 0, 38).fill({
+                        color: muted ? C.navyDeep : C.purpleBright,
+                        alpha: 0.92
+                      });
+                      g.circle(0, 0, 38).stroke({
+                        width: 2,
+                        color: muted ? C.purpleBright : C.white,
+                        alpha: 0.8
+                      });
+                    }
+                  });
+                  $$payload5.out += `<!----> `;
+                  Graphics($$payload5, {
+                    draw: (g) => drawControlGlyph(g, "sound", 42, { active: !muted, color: C.white })
+                  });
+                  $$payload5.out += `<!---->`;
+                },
+                $$slots: { default: true }
+              });
+            };
+            Button($$payload3, {
+              anchor: 0.5,
+              sizes: { width: 76, height: 76 },
+              onpress: toggleMute,
+              children,
+              $$slots: { default: true }
+            });
+          }
+          $$payload3.out += `<!----> `;
+          Text($$payload3, {
+            anchor: 0.5,
+            y: 54,
+            text: context2.i18nDerived.audio(),
+            style: {
+              fontFamily: FONT,
+              fontWeight: "800",
+              fontSize: 12,
+              fill: C.textDim,
+              letterSpacing: 1.5
+            }
+          });
+          $$payload3.out += `<!---->`;
+        },
+        $$slots: { default: true }
+      });
+      $$payload2.out += `<!----> `;
+      Container($$payload2, {
         x: layout.width - 96,
         y: layout.height - BAR_H * 0.5 - 36,
         children: ($$payload3) => {
@@ -22176,6 +22446,10 @@ function GameInfo($$payload, $$props) {
     title: t2("TITLE"),
     tagline: t2("TAGLINE"),
     leadHtml: t2("LEAD_HTML"),
+    keyFiguresTitle: t2("KEY_FIGURES_TITLE"),
+    keyFiguresRtpHtml: t2("KEY_FIGURES_RTP_HTML"),
+    keyFiguresMaxWinHtml: t2("KEY_FIGURES_MAX_WIN_HTML"),
+    controlsTitle: t2("CONTROLS_TITLE"),
     howSpinPlaysTitle: t2("HOW_SPIN_PLAYS_TITLE"),
     paytableTitle: t2("PAYTABLE_TITLE"),
     paytableNote: t2("PAYTABLE_NOTE"),
@@ -22297,6 +22571,18 @@ function GameInfo($$payload, $$props) {
       ]
     }
   ];
+  const controls = [
+    "SPIN",
+    "TURBO",
+    "AUTO",
+    "BET",
+    "MODES",
+    "MENU",
+    "KEYBOARD"
+  ].map((key) => ({
+    name: t2(`CONTROL_${key}_NAME`),
+    text: t2(`CONTROL_${key}_TEXT`)
+  }));
   const modes = [
     {
       name: t2("MODE_BASE_NAME"),
@@ -22349,7 +22635,8 @@ function GameInfo($$payload, $$props) {
   }
   const each_array_2 = ensure_array_like(freeSpinBullets);
   const each_array_3 = ensure_array_like(modes);
-  $$payload.out += `<div class="game-info svelte-19s4fcf"><header class="svelte-19s4fcf"><h1 class="svelte-19s4fcf">${escape_html(copy.title)}</h1> <p class="tag svelte-19s4fcf">${escape_html(copy.tagline)}</p></header> <p class="lead svelte-19s4fcf">${html(copy.leadHtml)}</p> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.howSpinPlaysTitle)}</h2> <ol class="steps svelte-19s4fcf"><!--[-->`;
+  const each_array_4 = ensure_array_like(controls);
+  $$payload.out += `<div class="game-info svelte-19s4fcf"><header class="svelte-19s4fcf"><h1 class="svelte-19s4fcf">${escape_html(copy.title)}</h1> <p class="tag svelte-19s4fcf">${escape_html(copy.tagline)}</p></header> <p class="lead svelte-19s4fcf">${html(copy.leadHtml)}</p> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.keyFiguresTitle)}</h2> <p class="svelte-19s4fcf">${html(copy.keyFiguresRtpHtml)}</p> <p class="svelte-19s4fcf">${html(copy.keyFiguresMaxWinHtml)}</p></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.howSpinPlaysTitle)}</h2> <ol class="steps svelte-19s4fcf"><!--[-->`;
   for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
     let step = each_array[$$index];
     $$payload.out += `<li class="svelte-19s4fcf">${html(step)}</li>`;
@@ -22373,6 +22660,11 @@ function GameInfo($$payload, $$props) {
   for (let $$index_3 = 0, $$length = each_array_3.length; $$index_3 < $$length; $$index_3++) {
     let m = each_array_3[$$index_3];
     $$payload.out += `<div class="mode svelte-19s4fcf"><div class="mode-head svelte-19s4fcf"><span class="mode-name svelte-19s4fcf">${escape_html(m.name)}</span><span class="mode-cost svelte-19s4fcf">${escape_html(m.cost)}</span></div> <p class="svelte-19s4fcf">${escape_html(m.text)}</p></div>`;
+  }
+  $$payload.out += `<!--]--></div></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.controlsTitle)}</h2> <div class="modes svelte-19s4fcf"><!--[-->`;
+  for (let $$index_4 = 0, $$length = each_array_4.length; $$index_4 < $$length; $$index_4++) {
+    let control = each_array_4[$$index_4];
+    $$payload.out += `<div class="mode svelte-19s4fcf"><div class="mode-head svelte-19s4fcf"><span class="mode-name svelte-19s4fcf">${escape_html(control.name)}</span></div> <p class="svelte-19s4fcf">${escape_html(control.text)}</p></div>`;
   }
   $$payload.out += `<!--]--></div></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.generalDisclaimerTitle)}</h2> <p class="disclaimer svelte-19s4fcf">${html(copy.generalDisclaimerHtml)}</p></section></div>`;
   pop();
@@ -22720,6 +23012,10 @@ function AbyssalPixiLogo($$payload, $$props) {
   $$payload.out += `<div class="abyssal-pixi-logo svelte-1sswcpt" role="img"${attr("aria-label", props.title)}></div>`;
   pop();
 }
+new URL(
+  "../../assets/fonts/Cinzel/Cinzel-VariableFont_wght.ttf",
+  import.meta.url
+).href;
 function AbyssalLoader($$payload, $$props) {
   push();
   const context2 = getContext();
@@ -22741,7 +23037,6 @@ function AbyssalLoader($$payload, $$props) {
     card3Body: i18nDerived.loaderCard3Body()
   };
   const backgroundUrl = new URL("../../assets/background/base.webp", import.meta.url).href;
-  new URL("../../assets/fonts/Cinzel/Cinzel-VariableFont_wght.ttf", import.meta.url).href;
   const cards = [
     {
       art: new URL("../../assets/bonus/gaze_card.png", import.meta.url).href,
@@ -22764,36 +23059,51 @@ function AbyssalLoader($$payload, $$props) {
     const each_array = ensure_array_like(Array.from({ length: 28 }));
     const each_array_1 = ensure_array_like(cards);
     const each_array_2 = ensure_array_like(cards);
-    $$payload.out += `<div${attr("class", to_class("abyssal-loader", "svelte-ar2twb", { "ready": ready, "leaving": leaving }))} role="button" tabindex="0"${attr("aria-label", ready ? copy.cta : copy.loading)}><div class="background svelte-ar2twb" aria-hidden="true"${attr("style", `background-image: url(${backgroundUrl})`)}></div> <div class="vignette svelte-ar2twb" aria-hidden="true"></div> <div class="light-rays svelte-ar2twb" aria-hidden="true"></div> <div class="bubbles svelte-ar2twb" aria-hidden="true"><!--[-->`;
+    $$payload.out += `<div${attr("class", to_class("abyssal-loader", "svelte-8xsqlh", { "ready": ready, "leaving": leaving }))} role="button" tabindex="0"${attr("aria-label", ready ? copy.cta : copy.loading)}><div class="background svelte-8xsqlh" aria-hidden="true"${attr("style", `background-image: url(${backgroundUrl})`)}></div> <div class="vignette svelte-8xsqlh" aria-hidden="true"></div> <div class="light-rays svelte-8xsqlh" aria-hidden="true"></div> <div class="bubbles svelte-8xsqlh" aria-hidden="true"><!--[-->`;
     for (let index = 0, $$length = each_array.length; index < $$length; index++) {
       each_array[index];
-      $$payload.out += `<i${attr("style", `--i: ${index}`)} class="svelte-ar2twb"></i>`;
+      $$payload.out += `<i${attr("style", `--i: ${index}`)} class="svelte-8xsqlh"></i>`;
     }
-    $$payload.out += `<!--]--></div> <div class="loader-stage svelte-ar2twb"><header class="loader-header svelte-ar2twb">`;
+    $$payload.out += `<!--]--></div> <div class="loader-stage svelte-8xsqlh"><header class="loader-header svelte-8xsqlh">`;
     AbyssalPixiLogo($$payload, { title: copy.logo });
-    $$payload.out += `<!----></header> <div class="cards-grid svelte-ar2twb"><!--[-->`;
+    $$payload.out += `<!----></header> <div class="cards-grid svelte-8xsqlh"><!--[-->`;
     for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
       let card = each_array_1[$$index_1];
-      $$payload.out += `<article class="info-card svelte-ar2twb"><img class="card-icon svelte-ar2twb"${attr("src", card.art)} alt=""> <h2 class="svelte-ar2twb">${escape_html(card.title)}</h2> <p class="svelte-ar2twb">${escape_html(card.body)}</p></article>`;
+      $$payload.out += `<article class="info-card svelte-8xsqlh"><img class="card-icon svelte-8xsqlh"${attr("src", card.art)} alt=""> <h2 class="svelte-8xsqlh">${escape_html(card.title)}</h2> <p class="svelte-8xsqlh">${escape_html(card.body)}</p> <i class="card-flash svelte-8xsqlh" aria-hidden="true"></i></article>`;
     }
-    $$payload.out += `<!--]--></div> <div class="carousel svelte-ar2twb" aria-live="polite"><button class="carousel-arrow previous svelte-ar2twb" type="button"${attr("aria-label", copy.previousCard)}>‹</button> <!---->`;
+    $$payload.out += `<!--]--></div> <div class="carousel svelte-8xsqlh" aria-live="polite"><button class="carousel-arrow previous svelte-8xsqlh" type="button"${attr("aria-label", copy.previousCard)}>‹</button> <!---->`;
     {
-      $$payload.out += `<div class="slide svelte-ar2twb"><img class="slide-icon svelte-ar2twb"${attr("src", cards[activeCard].art)} alt=""> <div class="slide-text svelte-ar2twb"><h2 class="svelte-ar2twb">${escape_html(cards[activeCard].title)}</h2> <p class="svelte-ar2twb">${escape_html(cards[activeCard].body)}</p></div></div>`;
+      $$payload.out += `<div class="slide svelte-8xsqlh"><img class="slide-icon svelte-8xsqlh"${attr("src", cards[activeCard].art)} alt=""> <div class="slide-text svelte-8xsqlh"><h2 class="svelte-8xsqlh">${escape_html(cards[activeCard].title)}</h2> <p class="svelte-8xsqlh">${escape_html(cards[activeCard].body)}</p></div></div>`;
     }
-    $$payload.out += `<!----> <button class="carousel-arrow next svelte-ar2twb" type="button"${attr("aria-label", copy.nextCard)}>›</button> <div class="carousel-dots svelte-ar2twb" aria-hidden="true"><!--[-->`;
+    $$payload.out += `<!----> <button class="carousel-arrow next svelte-8xsqlh" type="button"${attr("aria-label", copy.nextCard)}>›</button> <div class="carousel-dots svelte-8xsqlh" aria-hidden="true"><!--[-->`;
     for (let index = 0, $$length = each_array_2.length; index < $$length; index++) {
       each_array_2[index];
-      $$payload.out += `<i${attr("class", to_class("", "svelte-ar2twb", { "active": index === activeCard }))}></i>`;
+      $$payload.out += `<i${attr("class", to_class("", "svelte-8xsqlh", { "active": index === activeCard }))}></i>`;
     }
-    $$payload.out += `<!--]--></div></div> <div class="loader-gate svelte-ar2twb">`;
-    if (ready) {
-      $$payload.out += "<!--[-->";
-      $$payload.out += `<span class="cta svelte-ar2twb">${escape_html(copy.cta)}</span>`;
-    } else {
-      $$payload.out += "<!--[!-->";
-      $$payload.out += `<div class="progress svelte-ar2twb"><div class="progress-fill svelte-ar2twb"${attr("style", `width: ${progress}%`)}></div></div> <span class="loading-label svelte-ar2twb">${escape_html(copy.loading)} ${escape_html(progress)}%</span>`;
-    }
-    $$payload.out += `<!--]--></div></div></div>`;
+    $$payload.out += `<!--]--></div></div> <div class="loader-gate svelte-8xsqlh"><span class="cta svelte-8xsqlh">${escape_html(copy.cta)}</span></div></div></div>`;
+  }
+  $$payload.out += `<!--]-->`;
+  pop();
+}
+function AbyssalBootLoader($$payload, $$props) {
+  push();
+  const { $$slots, $$events, ...props } = $$props;
+  const context2 = getContext();
+  const copy = { loading: i18nDerived.loaderLoading() };
+  const pixiProgress = Math.round(context2.stateApp.loadingProgress ?? 0);
+  context2.stateApp.loaded || pixiProgress >= 100;
+  const shown = Math.min(pixiProgress, 99);
+  const providerLogoUrl = new URL("../../assets/provider_logo.png", import.meta.url).href;
+  const PROVIDER_NAME = "Celest Studios";
+  [
+    new URL("../../assets/background/base.webp", import.meta.url).href,
+    new URL("../../assets/bonus/gaze_card.png", import.meta.url).href,
+    new URL("../../assets/bonus/eye_card.png", import.meta.url).href,
+    new URL("../../assets/bonus/win_card.png", import.meta.url).href
+  ];
+  {
+    $$payload.out += "<!--[-->";
+    $$payload.out += `<div class="abyssal-boot svelte-p15oix" aria-busy="true"${attr("aria-label", copy.loading)}><div class="backdrop svelte-p15oix" aria-hidden="true"></div> <div class="glow svelte-p15oix" aria-hidden="true"></div> <div class="boot-stage svelte-p15oix"><div class="boot-brand svelte-p15oix"><img class="boot-logo svelte-p15oix"${attr("src", providerLogoUrl)} alt="" draggable="false"> <span class="boot-name svelte-p15oix">${escape_html(PROVIDER_NAME)}</span></div> <div class="boot-gate svelte-p15oix"><div class="progress svelte-p15oix"><div class="progress-fill svelte-p15oix"${attr("style", `width: ${shown}%`)}></div></div> <span class="loading-label svelte-p15oix">${escape_html(copy.loading)} ${escape_html(shown)}%</span></div></div></div>`;
   }
   $$payload.out += `<!--]-->`;
   pop();
@@ -22801,6 +23111,62 @@ function AbyssalLoader($$payload, $$props) {
 const mergeMessagesMaps = (messagesMapList) => {
   const merged = messagesMapList.filter(Boolean).reduce((acc, current) => _.merge(acc, current), {});
   return merged;
+};
+const SOCIAL_MESSAGE_OVERRIDES = {
+  // --- SDK package strings (key = the English source text) --------------------------------
+  BET: "PLAY",
+  "BET MENU": "PLAY MENU",
+  "SELECT YOUR BET": "SELECT YOUR PLAY AMOUNT",
+  "BUY BONUS": "GET BONUS",
+  // the SDK's own paytable modal — our menu never opens it, but the string is one line to cover
+  PAYTABLE: "WIN TABLE",
+  "INSUFFICIENT FUNDS TO PLACE THIS BET. PLEASE ADD FUNDS TO YOUR ACCOUNT OR LOWER THE BET LEVEL.": "NOT ENOUGH BALANCE FOR THIS PLAY. PLEASE GET MORE COINS OR LOWER THE PLAY AMOUNT.",
+  // --- App-level UI ------------------------------------------------------------------------
+  BUY: "PLAY",
+  CONFIRM_BUY: "CONFIRM",
+  DECREASE_BET: "decrease play amount",
+  INCREASE_BET: "increase play amount",
+  LOW_FUNDS: "LOW BALANCE",
+  ANTE_SWITCH_NOTE: "2x triggers & more Eyes - 1.25x play",
+  LOADER_CARD_3_BODY: "Charged Eyes combine with Gaze\nfor massive wins.\nBuild power, then unleash it.",
+  // --- Bet modes (cards, dialogs, tickers) -------------------------------------------------
+  BET_MODE_BASE_TICKER_IDLE: "COME AND PLAY",
+  BET_MODE_ANTE_DIALOG: "Doubles the bonus trigger rate and raises the Eye frequency for 1.25x the play. ANTE stays active until disabled.",
+  BET_MODE_ANTE_BET_AMOUNT_LABEL: "ANTE PLAY",
+  BET_MODE_ANTE_TICKER_IDLE: "ANTE IS ACTIVE",
+  BET_MODE_SUPERSPINS_DIALOG: "A single spin for 20x the play with the Eye guaranteed to land - and more can drop in mid-tumble. No snowball - one punchy build and release.",
+  BET_MODE_BONUS_DESCRIPTION: "Play straight into the Free Spins snowball feature.",
+  BET_MODE_BONUS_DIALOG: "Triggers Free Spins for 100x the play - the trigger scatters win their instant coins too. The persistent multiplier (M) snowballs across the feature as Eyes land.",
+  BET_MODE_BONUS_BUTTON: "PLAY",
+  BET_MODE_BONUS_TICKER_IDLE: "COME AND PLAY",
+  BET_MODE_BONUS_TICKER_SPIN: "FREE SPINS INSTANTLY TRIGGERED",
+  BET_MODE_ULTIMATE_DIALOG: "Always at least 2 Eyes on the board (2-5, and more can drop in) for 300x the play, combining their ADD and MUL values in one resolution.",
+  BET_MODE_SUPERBONUS_DIALOG: "The Free Spins feature can be played for 500x the play. The Gaze charges at double Essence (+4/+6/+10 per cluster) and the trigger scatters win their instant coins. The mode that most often approaches the 15,000x cap.",
+  BET_MODE_SUPERBONUS_BUTTON: "PLAY",
+  BET_MODE_SUPERBONUS_TICKER_IDLE: "COME AND PLAY",
+  BET_MODE_SUPERBONUS_TICKER_SPIN: "SUPER BONUS INSTANTLY TRIGGERED",
+  // --- Game info ---------------------------------------------------------------------------
+  GAME_INFO_LEAD_HTML: "Symbols drop onto a <strong>6&times;5 board</strong>. You win whenever <strong>8 or more of the same symbol</strong> land <strong>anywhere</strong> &ndash; no fixed lines. Winners burst and new symbols tumble in, which can chain into more wins from a single spin. There is <strong>no wild</strong>; the <strong>Eye</strong> is the sole multiplier.",
+  GAME_INFO_HOW_SPIN_PLAYS_STEP_4: "Wins are checked again, repeating until a drop wins nothing.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Maximum win: <strong>15,000x the play</strong>. The total wins of a round are capped at this amount; once the cap is reached the round ends instantly.",
+  GAME_INFO_PAYTABLE_TITLE: "Win table",
+  GAME_INFO_PAYTABLE_NOTE: "Wins are a multiple of your play, by how many land - before any Eye multiplier.",
+  GAME_INFO_SPECIAL_SCATTER_DESCRIPTION_HTML: "<strong>4+</strong> triggers Free Spins and wins instantly: <strong>4 = 3x</strong>, <strong>5 = 5x</strong>, <strong>6 = 100x</strong> &ndash; also on instantly triggered features.",
+  GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Example: a 2x win from two ordinary clusters builds a Gaze of 4. An ADD Eye starting at 10 &rarr; x14 &rarr; wins 28x. A MULTIPLY Eye &rarr; x40 &rarr; wins 80x.",
+  GAME_INFO_FREE_SPINS_BULLET_3_HTML: "A <strong>banked multiplier</strong> starts at x1 and only grows, winning for you on Eye spins.",
+  GAME_INFO_MODE_BASE_COST: "1x play",
+  GAME_INFO_MODE_ANTE_COST: "1.25x play",
+  GAME_INFO_MODE_ANTE_TEXT: "For 1.25x the play, twice the bonus triggers and more frequent Eyes.",
+  GAME_INFO_MODE_BUY_FREE_SPINS_NAME: "Free Spins",
+  GAME_INFO_MODE_BUY_FREE_SPINS_COST: "100x play",
+  GAME_INFO_MODE_BUY_FREE_SPINS_TEXT: "Play straight into the Free Spins feature - the trigger scatters win their instant coins too.",
+  GAME_INFO_MODE_SUPER_SPINS_COST: "20x play",
+  GAME_INFO_MODE_SUPER_BONUS_COST: "500x play",
+  GAME_INFO_MODE_ULTIMATE_COST: "300x play",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Starts the round at your chosen play amount. While the round plays, the same button fast-forwards it.",
+  GAME_INFO_CONTROL_BET_NAME: "Play amount",
+  GAME_INFO_CONTROL_BET_TEXT: "The - and + buttons step through the available play amounts; tapping the amount opens the full list.",
+  GAME_INFO_CONTROL_MODES_TEXT: "Opens the game-mode panel. Any mode that needs a higher play amount than the regular spin always shows a confirmation with its total play before it starts."
 };
 const en = {
   HOME: "HOME",
@@ -22984,6 +23350,24 @@ const en = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "300x bet",
   GAME_INFO_MODE_ULTIMATE_TEXT: "One spin with always at least 2 Eyes (2-5) that combine - huge or nothing.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP & Max Win",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "Return to player (RTP): <strong>96.00%</strong> &ndash; identical in every game mode.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Maximum win: <strong>15,000x the bet</strong>. The total wins of a round are capped at this amount; once the cap is reached the round ends instantly.",
+  GAME_INFO_CONTROLS_TITLE: "Buttons & Controls",
+  GAME_INFO_CONTROL_SPIN_NAME: "Spin",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Places a bet and starts the round. While the round plays, the same button fast-forwards it.",
+  GAME_INFO_CONTROL_TURBO_NAME: "Turbo",
+  GAME_INFO_CONTROL_TURBO_TEXT: "Speeds up spins and animations while active.",
+  GAME_INFO_CONTROL_AUTO_NAME: "Autoplay",
+  GAME_INFO_CONTROL_AUTO_TEXT: "Opens the autoplay panel. Pick a number of spins, then press Spin to start them. Pressing the autoplay button again cancels.",
+  GAME_INFO_CONTROL_BET_NAME: "Bet amount",
+  GAME_INFO_CONTROL_BET_TEXT: "The - and + buttons step through the available bet levels; tapping the amount opens the full list.",
+  GAME_INFO_CONTROL_MODES_NAME: "Game modes",
+  GAME_INFO_CONTROL_MODES_TEXT: "Opens the game-mode panel. Any mode that costs more than the regular spin always shows a confirmation with its total cost before it starts.",
+  GAME_INFO_CONTROL_MENU_NAME: "Menu",
+  GAME_INFO_CONTROL_MENU_TEXT: "Holds this game information plus the Music and Sound effects volume sliders.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "Keyboard",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "Spacebar spins (or fast-forwards); holding Spacebar keeps spinning in Turbo. During win celebrations a tap or click skips ahead; the Max Win and bonus-end screens wait for a click.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "General Disclaimer",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Malfunction voids all wins and plays. A consistent internet connection is required. In the event of a disconnection, reload the game to finish any uncompleted rounds. The expected return is calculated over many plays. The game display is not representative of any physical device and is for illustrative purposes only. Winnings are settled according to the amount received from the Remote Game Server and not from events within the web browser. TM and &copy; 2026 Stake Engine."
 };
@@ -23135,6 +23519,24 @@ const ar = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "رهان 300x",
   GAME_INFO_MODE_ULTIMATE_TEXT: "دورة واحدة فيها دائما ما لا يقل عن 2 Eyes (2-5) تتحد معا - إما ضخم أو لا شيء.",
+  GAME_INFO_KEY_FIGURES_TITLE: "نسبة العائد والحد الأقصى للفوز",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "نسبة العائد للاعب (RTP): <strong>96.00%</strong> &ndash; متطابقة في جميع أوضاع اللعب.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "الحد الأقصى للفوز: <strong>15,000x الرهان</strong>. إجمالي أرباح الجولة محدود بهذا المبلغ؛ وعند بلوغ الحد تنتهي الجولة فوراً.",
+  GAME_INFO_CONTROLS_TITLE: "الأزرار وعناصر التحكم",
+  GAME_INFO_CONTROL_SPIN_NAME: "الدوران",
+  GAME_INFO_CONTROL_SPIN_TEXT: "يضع الرهان ويبدأ الجولة. أثناء تشغيل الجولة، يقوم الزر نفسه بتسريعها.",
+  GAME_INFO_CONTROL_TURBO_NAME: "التوربو",
+  GAME_INFO_CONTROL_TURBO_TEXT: "يسرّع الدورات والحركات أثناء تفعيله.",
+  GAME_INFO_CONTROL_AUTO_NAME: "اللعب التلقائي",
+  GAME_INFO_CONTROL_AUTO_TEXT: "يفتح لوحة اللعب التلقائي. اختر عدد الدورات ثم اضغط على زر الدوران لبدئها. الضغط على زر اللعب التلقائي مرة أخرى يلغيه.",
+  GAME_INFO_CONTROL_BET_NAME: "قيمة الرهان",
+  GAME_INFO_CONTROL_BET_TEXT: "زرّا - و + يتنقلان بين مستويات الرهان المتاحة؛ والنقر على المبلغ يفتح القائمة الكاملة.",
+  GAME_INFO_CONTROL_MODES_NAME: "أوضاع اللعب",
+  GAME_INFO_CONTROL_MODES_TEXT: "يفتح لوحة أوضاع اللعب. أي وضع تكلفته أعلى من الدورة العادية يعرض دائماً تأكيداً بتكلفته الإجمالية قبل البدء.",
+  GAME_INFO_CONTROL_MENU_NAME: "القائمة",
+  GAME_INFO_CONTROL_MENU_TEXT: "تحتوي على معلومات اللعبة هذه بالإضافة إلى مؤشرات مستوى صوت الموسيقى والمؤثرات الصوتية.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "لوحة المفاتيح",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "مفتاح المسافة يبدأ الدوران (أو التسريع)؛ والاستمرار في الضغط عليه يواصل الدوران بوضع التوربو. أثناء احتفالات الفوز، النقر يتخطى؛ أما شاشتا الحد الأقصى للفوز ونهاية الجولة المجانية فتنتظران النقر.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "إخلاء مسؤولية عام",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "أي خلل يلغي كل الأرباح والجولات. يلزم اتصال إنترنت مستقر. في حال انقطاع الاتصال، أعد تحميل اللعبة لإكمال أي جولات غير مكتملة. يتم احتساب العائد المتوقع على عدد كبير من الجولات. عرض اللعبة لا يمثل أي جهاز مادي وهو لأغراض التوضيح فقط. تتم تسوية الأرباح بحسب المبلغ المستلم من Remote Game Server وليس بحسب الأحداث داخل متصفح الويب. TM و &copy; 2026 Stake Engine."
 };
@@ -23286,6 +23688,24 @@ const de = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "300x Einsatz",
   GAME_INFO_MODE_ULTIMATE_TEXT: "Ein Spin mit immer mindestens 2 Eyes (2-5), die sich kombinieren - riesig oder nichts.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP & Hoechstgewinn",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "Auszahlungsquote (RTP): <strong>96.00%</strong> &ndash; identisch in jedem Spielmodus.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Hoechstgewinn: <strong>15.000x der Einsatz</strong>. Die Gesamtgewinne einer Runde sind auf diesen Betrag begrenzt; wird er erreicht, endet die Runde sofort.",
+  GAME_INFO_CONTROLS_TITLE: "Tasten & Steuerung",
+  GAME_INFO_CONTROL_SPIN_NAME: "Drehen",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Platziert einen Einsatz und startet die Runde. Waehrend die Runde laeuft, spult dieselbe Taste sie vor.",
+  GAME_INFO_CONTROL_TURBO_NAME: "Turbo",
+  GAME_INFO_CONTROL_TURBO_TEXT: "Beschleunigt Drehungen und Animationen, solange aktiv.",
+  GAME_INFO_CONTROL_AUTO_NAME: "Autoplay",
+  GAME_INFO_CONTROL_AUTO_TEXT: "Oeffnet das Autoplay-Panel. Waehle eine Anzahl an Drehungen und druecke dann Drehen, um zu starten. Erneutes Druecken der Autoplay-Taste bricht ab.",
+  GAME_INFO_CONTROL_BET_NAME: "Einsatzhoehe",
+  GAME_INFO_CONTROL_BET_TEXT: "Die Tasten - und + schalten durch die verfuegbaren Einsatzstufen; ein Tipp auf den Betrag oeffnet die vollstaendige Liste.",
+  GAME_INFO_CONTROL_MODES_NAME: "Spielmodi",
+  GAME_INFO_CONTROL_MODES_TEXT: "Oeffnet das Modus-Panel. Jeder Modus, der mehr als eine normale Drehung kostet, zeigt vor dem Start immer eine Bestaetigung mit den Gesamtkosten.",
+  GAME_INFO_CONTROL_MENU_NAME: "Menue",
+  GAME_INFO_CONTROL_MENU_TEXT: "Enthaelt diese Spielinformationen sowie die Lautstaerkeregler fuer Musik und Soundeffekte.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "Tastatur",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "Die Leertaste dreht (oder spult vor); gehaltene Leertaste dreht dauerhaft im Turbo. Bei Gewinn-Feiern ueberspringt ein Tipp oder Klick; der Max-Win- und der Bonusende-Bildschirm warten auf einen Klick.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Allgemeiner Haftungsausschluss",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Fehlfunktionen machen alle Gewinne und Spiele ungueltig. Eine stabile Internetverbindung ist erforderlich. Bei Verbindungsabbruch lade das Spiel neu, um unvollstaendige Runden abzuschliessen. Die erwartete Rueckgabe wird ueber viele Spiele berechnet. Die Spielanzeige stellt kein physisches Geraet dar und dient nur der Veranschaulichung. Gewinne werden nach dem vom Remote Game Server erhaltenen Betrag abgerechnet, nicht nach Ereignissen im Webbrowser. TM und &copy; 2026 Stake Engine."
 };
@@ -23437,6 +23857,24 @@ const es = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "apuesta 300x",
   GAME_INFO_MODE_ULTIMATE_TEXT: "Un giro con siempre al menos 2 Eyes (2-5) que se combinan - enorme o nada.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP y ganancia maxima",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "Retorno al jugador (RTP): <strong>96.00%</strong> &ndash; identico en todos los modos de juego.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Ganancia maxima: <strong>15,000x la apuesta</strong>. Las ganancias totales de una ronda estan limitadas a esta cantidad; al alcanzarla, la ronda termina al instante.",
+  GAME_INFO_CONTROLS_TITLE: "Botones y controles",
+  GAME_INFO_CONTROL_SPIN_NAME: "Girar",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Realiza una apuesta e inicia la ronda. Mientras la ronda se reproduce, el mismo boton la acelera.",
+  GAME_INFO_CONTROL_TURBO_NAME: "Turbo",
+  GAME_INFO_CONTROL_TURBO_TEXT: "Acelera giros y animaciones mientras esta activo.",
+  GAME_INFO_CONTROL_AUTO_NAME: "Juego automatico",
+  GAME_INFO_CONTROL_AUTO_TEXT: "Abre el panel de juego automatico. Elige un numero de giros y pulsa Girar para comenzar. Pulsar de nuevo el boton lo cancela.",
+  GAME_INFO_CONTROL_BET_NAME: "Importe de apuesta",
+  GAME_INFO_CONTROL_BET_TEXT: "Los botones - y + recorren los niveles de apuesta disponibles; tocar el importe abre la lista completa.",
+  GAME_INFO_CONTROL_MODES_NAME: "Modos de juego",
+  GAME_INFO_CONTROL_MODES_TEXT: "Abre el panel de modos. Todo modo que cueste mas que un giro normal muestra siempre una confirmacion con su coste total antes de empezar.",
+  GAME_INFO_CONTROL_MENU_NAME: "Menu",
+  GAME_INFO_CONTROL_MENU_TEXT: "Contiene esta informacion del juego y los controles de volumen de musica y efectos.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "Teclado",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "La barra espaciadora gira (o acelera); mantenerla pulsada sigue girando en Turbo. En las celebraciones, un toque o clic avanza; las pantallas de Max Win y fin de bono esperan un clic.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Aviso general",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Un mal funcionamiento anula todas las ganancias y jugadas. Se requiere una conexion estable a internet. En caso de desconexion, recarga el juego para terminar rondas incompletas. El retorno esperado se calcula sobre muchas jugadas. La visualizacion del juego no representa ningun dispositivo fisico y es solo ilustrativa. Las ganancias se liquidan segun la cantidad recibida del Remote Game Server y no por eventos dentro del navegador. TM y &copy; 2026 Stake Engine."
 };
@@ -23588,6 +24026,24 @@ const fi = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "300x panos",
   GAME_INFO_MODE_ULTIMATE_TEXT: "Yksi pyöräytys, jossa aina vähintään 2 Eyeta (2-5) yhdistyvät - jättipotti tai ei mitään.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP ja maksimivoitto",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "Palautusprosentti (RTP): <strong>96.00%</strong> &ndash; sama kaikissa pelitiloissa.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Maksimivoitto: <strong>15 000x panos</strong>. Kierroksen kokonaisvoitot on rajattu tähän summaan; kun raja saavutetaan, kierros päättyy heti.",
+  GAME_INFO_CONTROLS_TITLE: "Painikkeet ja säätimet",
+  GAME_INFO_CONTROL_SPIN_NAME: "Pyöräytä",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Asettaa panoksen ja aloittaa kierroksen. Kierroksen aikana sama painike kelaa sen eteenpäin.",
+  GAME_INFO_CONTROL_TURBO_NAME: "Turbo",
+  GAME_INFO_CONTROL_TURBO_TEXT: "Nopeuttaa pyöräytyksiä ja animaatioita, kun se on käytössä.",
+  GAME_INFO_CONTROL_AUTO_NAME: "Automaattipeli",
+  GAME_INFO_CONTROL_AUTO_TEXT: "Avaa automaattipelin paneelin. Valitse kierrosten määrä ja paina sitten Pyöräytä aloittaaksesi. Painikkeen painaminen uudelleen peruuttaa.",
+  GAME_INFO_CONTROL_BET_NAME: "Panoksen määrä",
+  GAME_INFO_CONTROL_BET_TEXT: "Painikkeet - ja + selaavat käytettävissä olevia panostasoja; summaa napauttamalla avautuu koko lista.",
+  GAME_INFO_CONTROL_MODES_NAME: "Pelitilat",
+  GAME_INFO_CONTROL_MODES_TEXT: "Avaa pelitilapaneelin. Jokainen tila, joka maksaa tavallista pyöräytystä enemmän, näyttää aina vahvistuksen kokonaishinnalla ennen aloitusta.",
+  GAME_INFO_CONTROL_MENU_NAME: "Valikko",
+  GAME_INFO_CONTROL_MENU_TEXT: "Sisältää nämä pelitiedot sekä musiikin ja ääniefektien voimakkuussäätimet.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "Näppäimistö",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "Välilyönti pyöräyttää (tai kelaa); välilyöntiä pohjassa pitämällä peli jatkaa pyörimistä Turbossa. Voittojuhlien aikana napautus tai klikkaus ohittaa; maksimivoiton ja bonuksen loppuruudut odottavat klikkausta.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Yleinen vastuuvapauslauseke",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Toimintahäiriö mitätöi kaikki voitot ja pelit. Vakaa internetyhteys vaaditaan. Jos yhteys katkeaa, lataa peli uudelleen päättääksesi keskeneräiset kierrokset. Odotettu palautus lasketaan suuresta määrästä pelejä. Pelinäkymä ei edusta fyysistä laitetta ja on vain havainnollistava. Voitot maksetaan Remote Game Serveriltä saadun määrän mukaan, ei verkkoselaimen tapahtumien perusteella. TM ja &copy; 2026 Stake Engine."
 };
@@ -23739,6 +24195,24 @@ const fr = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "mise 300x",
   GAME_INFO_MODE_ULTIMATE_TEXT: "Un spin avec toujours au moins 2 Eyes (2-5) qui se combinent - enorme ou rien.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP et gain maximum",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "Taux de retour au joueur (RTP) : <strong>96.00%</strong> &ndash; identique dans tous les modes de jeu.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Gain maximum : <strong>15 000x la mise</strong>. Les gains totaux d une manche sont plafonnes a ce montant ; une fois atteint, la manche se termine aussitot.",
+  GAME_INFO_CONTROLS_TITLE: "Boutons et commandes",
+  GAME_INFO_CONTROL_SPIN_NAME: "Lancer",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Place une mise et demarre la manche. Pendant la manche, le meme bouton accelere le deroulement.",
+  GAME_INFO_CONTROL_TURBO_NAME: "Turbo",
+  GAME_INFO_CONTROL_TURBO_TEXT: "Accelere les tours et les animations tant que le mode est actif.",
+  GAME_INFO_CONTROL_AUTO_NAME: "Jeu automatique",
+  GAME_INFO_CONTROL_AUTO_TEXT: "Ouvre le panneau de jeu automatique. Choisis un nombre de tours puis appuie sur Lancer pour demarrer. Appuyer de nouveau sur le bouton annule.",
+  GAME_INFO_CONTROL_BET_NAME: "Montant de la mise",
+  GAME_INFO_CONTROL_BET_TEXT: "Les boutons - et + parcourent les niveaux de mise disponibles ; toucher le montant ouvre la liste complete.",
+  GAME_INFO_CONTROL_MODES_NAME: "Modes de jeu",
+  GAME_INFO_CONTROL_MODES_TEXT: "Ouvre le panneau des modes. Tout mode coutant plus qu un tour normal affiche toujours une confirmation avec son cout total avant de commencer.",
+  GAME_INFO_CONTROL_MENU_NAME: "Menu",
+  GAME_INFO_CONTROL_MENU_TEXT: "Contient ces informations de jeu ainsi que les reglages de volume musique et effets.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "Clavier",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "La barre espace lance (ou accelere) ; la maintenir enfoncee enchaine les tours en Turbo. Pendant les celebrations, un clic passe a la suite ; les ecrans Max Win et fin de bonus attendent un clic.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Avertissement general",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Un dysfonctionnement annule tous les gains et parties. Une connexion internet stable est requise. En cas de deconnexion, rechargez le jeu pour terminer les manches incompletes. Le retour attendu est calcule sur de nombreuses parties. L affichage du jeu ne represente aucun appareil physique et sert uniquement d illustration. Les gains sont regles selon le montant recu du Remote Game Server et non selon les evenements du navigateur web. TM et &copy; 2026 Stake Engine."
 };
@@ -23890,6 +24364,24 @@ const hi = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "300x बेट",
   GAME_INFO_MODE_ULTIMATE_TEXT: "एक स्पिन जिसमें हमेशा कम से कम 2 Eyes (2-5) मिलकर जुड़ते हैं - बहुत बड़ा या कुछ नहीं.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP और अधिकतम जीत",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "खिलाड़ी को वापसी (RTP): <strong>96.00%</strong> &ndash; हर गेम मोड में एक समान।",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "अधिकतम जीत: <strong>दांव का 15,000x</strong>। एक राउंड की कुल जीत इसी राशि तक सीमित है; सीमा तक पहुँचते ही राउंड तुरंत समाप्त हो जाता है।",
+  GAME_INFO_CONTROLS_TITLE: "बटन और नियंत्रण",
+  GAME_INFO_CONTROL_SPIN_NAME: "स्पिन",
+  GAME_INFO_CONTROL_SPIN_TEXT: "दांव लगाता है और राउंड शुरू करता है। राउंड चलने के दौरान यही बटन उसे तेज़ी से आगे बढ़ाता है।",
+  GAME_INFO_CONTROL_TURBO_NAME: "टर्बो",
+  GAME_INFO_CONTROL_TURBO_TEXT: "सक्रिय रहने पर स्पिन और एनिमेशन को तेज़ करता है।",
+  GAME_INFO_CONTROL_AUTO_NAME: "ऑटोप्ले",
+  GAME_INFO_CONTROL_AUTO_TEXT: "ऑटोप्ले पैनल खोलता है। स्पिन की संख्या चुनें, फिर शुरू करने के लिए स्पिन दबाएँ। ऑटोप्ले बटन दोबारा दबाने पर यह रद्द हो जाता है।",
+  GAME_INFO_CONTROL_BET_NAME: "दांव राशि",
+  GAME_INFO_CONTROL_BET_TEXT: "- और + बटन उपलब्ध दांव स्तरों में आगे-पीछे जाते हैं; राशि पर टैप करने से पूरी सूची खुलती है।",
+  GAME_INFO_CONTROL_MODES_NAME: "गेम मोड",
+  GAME_INFO_CONTROL_MODES_TEXT: "गेम-मोड पैनल खोलता है। सामान्य स्पिन से अधिक लागत वाला कोई भी मोड शुरू होने से पहले हमेशा अपनी कुल लागत के साथ पुष्टि दिखाता है।",
+  GAME_INFO_CONTROL_MENU_NAME: "मेन्यू",
+  GAME_INFO_CONTROL_MENU_TEXT: "इसमें यह गेम जानकारी तथा संगीत और ध्वनि प्रभाव के वॉल्यूम स्लाइडर शामिल हैं।",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "कीबोर्ड",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "स्पेसबार से स्पिन (या फ़ास्ट-फ़ॉरवर्ड) होता है; स्पेसबार दबाए रखने पर टर्बो में स्पिन चलते रहते हैं। जीत के जश्न के दौरान टैप या क्लिक आगे बढ़ा देता है; अधिकतम जीत और बोनस-समाप्ति स्क्रीन क्लिक की प्रतीक्षा करती हैं।",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "सामान्य अस्वीकरण",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "खराबी सभी जीत और खेल को अमान्य कर देती है. स्थिर इंटरनेट कनेक्शन आवश्यक है. कनेक्शन टूटने पर, किसी भी अधूरे राउंड को पूरा करने के लिए गेम फिर से लोड करें. अपेक्षित रिटर्न कई खेलों पर गणना किया जाता है. गेम डिस्प्ले किसी भौतिक डिवाइस का प्रतिनिधित्व नहीं करता और केवल उदाहरण के लिए है. जीतों का निपटान Remote Game Server से प्राप्त राशि के अनुसार किया जाता है, वेब ब्राउजर की घटनाओं के अनुसार नहीं. TM और &copy; 2026 Stake Engine."
 };
@@ -24041,6 +24533,24 @@ const id = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "taruhan 300x",
   GAME_INFO_MODE_ULTIMATE_TEXT: "Satu spin dengan selalu minimal 2 Eye (2-5) yang bergabung - besar atau tidak sama sekali.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP & Kemenangan Maksimum",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "Return to player (RTP): <strong>96.00%</strong> &ndash; sama di setiap mode permainan.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Kemenangan maksimum: <strong>15.000x taruhan</strong>. Total kemenangan dalam satu ronde dibatasi pada jumlah ini; setelah batas tercapai, ronde langsung berakhir.",
+  GAME_INFO_CONTROLS_TITLE: "Tombol & Kontrol",
+  GAME_INFO_CONTROL_SPIN_NAME: "Putar",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Memasang taruhan dan memulai ronde. Saat ronde berjalan, tombol yang sama mempercepatnya.",
+  GAME_INFO_CONTROL_TURBO_NAME: "Turbo",
+  GAME_INFO_CONTROL_TURBO_TEXT: "Mempercepat putaran dan animasi saat aktif.",
+  GAME_INFO_CONTROL_AUTO_NAME: "Putar Otomatis",
+  GAME_INFO_CONTROL_AUTO_TEXT: "Membuka panel putar otomatis. Pilih jumlah putaran, lalu tekan Putar untuk memulai. Menekan tombol putar otomatis lagi akan membatalkan.",
+  GAME_INFO_CONTROL_BET_NAME: "Jumlah taruhan",
+  GAME_INFO_CONTROL_BET_TEXT: "Tombol - dan + menelusuri level taruhan yang tersedia; mengetuk jumlahnya membuka daftar lengkap.",
+  GAME_INFO_CONTROL_MODES_NAME: "Mode permainan",
+  GAME_INFO_CONTROL_MODES_TEXT: "Membuka panel mode permainan. Setiap mode yang biayanya lebih besar dari putaran biasa selalu menampilkan konfirmasi dengan total biayanya sebelum dimulai.",
+  GAME_INFO_CONTROL_MENU_NAME: "Menu",
+  GAME_INFO_CONTROL_MENU_TEXT: "Berisi informasi permainan ini serta penggeser volume Musik dan Efek suara.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "Keyboard",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "Spasi memutar (atau mempercepat); menahan Spasi terus memutar dalam mode Turbo. Selama perayaan kemenangan, ketukan atau klik melewatinya; layar Kemenangan Maksimum dan akhir bonus menunggu klik.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Penafian Umum",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Kerusakan membatalkan semua kemenangan dan permainan. Koneksi internet yang stabil diperlukan. Jika terjadi pemutusan koneksi, muat ulang game untuk menyelesaikan ronde yang belum selesai. Pengembalian yang diharapkan dihitung dari banyak permainan. Tampilan game tidak mewakili perangkat fisik apa pun dan hanya untuk ilustrasi. Kemenangan diselesaikan berdasarkan jumlah yang diterima dari Remote Game Server dan bukan dari peristiwa di browser web. TM dan &copy; 2026 Stake Engine."
 };
@@ -24192,6 +24702,24 @@ const ja = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "300xベット",
   GAME_INFO_MODE_ULTIMATE_TEXT: "常に2個以上のEye（2〜5個）が組み合わさる1回スピン - 一攫千金かゼロか。",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTPと最大配当",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "プレイヤー還元率（RTP）: <strong>96.00%</strong> &ndash; すべてのゲームモードで同一です。",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "最大配当: <strong>ベットの15,000倍</strong>。1ラウンドの合計配当はこの金額が上限で、上限に達した時点でラウンドは即座に終了します。",
+  GAME_INFO_CONTROLS_TITLE: "ボタンと操作",
+  GAME_INFO_CONTROL_SPIN_NAME: "スピン",
+  GAME_INFO_CONTROL_SPIN_TEXT: "ベットしてラウンドを開始します。ラウンド中は同じボタンで早送りできます。",
+  GAME_INFO_CONTROL_TURBO_NAME: "ターボ",
+  GAME_INFO_CONTROL_TURBO_TEXT: "有効な間、スピンと演出を高速化します。",
+  GAME_INFO_CONTROL_AUTO_NAME: "オートプレイ",
+  GAME_INFO_CONTROL_AUTO_TEXT: "オートプレイパネルを開きます。スピン回数を選び、スピンボタンを押すと開始します。オートプレイボタンをもう一度押すとキャンセルされます。",
+  GAME_INFO_CONTROL_BET_NAME: "ベット額",
+  GAME_INFO_CONTROL_BET_TEXT: "-と+のボタンで利用可能なベットレベルを切り替えます。金額をタップすると一覧が開きます。",
+  GAME_INFO_CONTROL_MODES_NAME: "ゲームモード",
+  GAME_INFO_CONTROL_MODES_TEXT: "ゲームモードパネルを開きます。通常スピンより高額なモードは、開始前に必ず総額の確認画面が表示されます。",
+  GAME_INFO_CONTROL_MENU_NAME: "メニュー",
+  GAME_INFO_CONTROL_MENU_TEXT: "このゲーム情報と、音楽・効果音の音量スライダーが含まれます。",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "キーボード",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "スペースキーでスピン（または早送り）。押し続けるとターボでスピンを継続します。勝利演出中はタップまたはクリックでスキップできますが、最大配当画面とボーナス終了画面はクリックを待ちます。",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "一般的な免責事項",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "不具合が発生した場合、すべての勝利とプレイは無効になります。安定したインターネット接続が必要です。接続が切れた場合は、未完了のラウンドを完了するためゲームを再読み込みしてください。期待リターンは多数のプレイに基づいて計算されます。ゲーム表示は物理デバイスを表すものではなく、説明目的のみです。勝利金はWebブラウザ内のイベントではなく、Remote Game Serverから受け取った金額に基づいて精算されます。TM and &copy; 2026 Stake Engine."
 };
@@ -24343,6 +24871,24 @@ const ko = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "300x 베팅",
   GAME_INFO_MODE_ULTIMATE_TEXT: "항상 최소 2개의 Eye(2-5개)가 결합하는 단 한 번의 스핀 - 대박 아니면 꽝.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP 및 최대 당첨",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "플레이어 환수율(RTP): <strong>96.00%</strong> &ndash; 모든 게임 모드에서 동일합니다.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "최대 당첨: <strong>베팅의 15,000배</strong>. 한 라운드의 총 당첨금은 이 금액으로 제한되며, 한도에 도달하면 라운드가 즉시 종료됩니다.",
+  GAME_INFO_CONTROLS_TITLE: "버튼 및 조작",
+  GAME_INFO_CONTROL_SPIN_NAME: "스핀",
+  GAME_INFO_CONTROL_SPIN_TEXT: "베팅하고 라운드를 시작합니다. 라운드가 진행되는 동안 같은 버튼으로 빨리 감을 수 있습니다.",
+  GAME_INFO_CONTROL_TURBO_NAME: "터보",
+  GAME_INFO_CONTROL_TURBO_TEXT: "활성화되어 있는 동안 스핀과 연출을 빠르게 합니다.",
+  GAME_INFO_CONTROL_AUTO_NAME: "자동 플레이",
+  GAME_INFO_CONTROL_AUTO_TEXT: "자동 플레이 패널을 엽니다. 스핀 횟수를 선택한 뒤 스핀 버튼을 눌러 시작합니다. 자동 플레이 버튼을 다시 누르면 취소됩니다.",
+  GAME_INFO_CONTROL_BET_NAME: "베팅 금액",
+  GAME_INFO_CONTROL_BET_TEXT: "- 와 + 버튼으로 사용 가능한 베팅 단계를 이동합니다. 금액을 누르면 전체 목록이 열립니다.",
+  GAME_INFO_CONTROL_MODES_NAME: "게임 모드",
+  GAME_INFO_CONTROL_MODES_TEXT: "게임 모드 패널을 엽니다. 일반 스핀보다 비용이 높은 모드는 시작 전에 항상 총 비용과 함께 확인 창을 표시합니다.",
+  GAME_INFO_CONTROL_MENU_NAME: "메뉴",
+  GAME_INFO_CONTROL_MENU_TEXT: "이 게임 정보와 음악 및 효과음 볼륨 슬라이더가 들어 있습니다.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "키보드",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "스페이스바로 스핀(또는 빨리 감기)합니다. 스페이스바를 누르고 있으면 터보로 계속 스핀합니다. 당첨 연출 중에는 탭이나 클릭으로 건너뛸 수 있지만, 최대 당첨 화면과 보너스 종료 화면은 클릭을 기다립니다.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "일반 면책 조항",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "오작동 시 모든 승리와 플레이는 무효입니다. 안정적인 인터넷 연결이 필요합니다. 연결이 끊기면 완료되지 않은 라운드를 끝내기 위해 게임을 다시 불러오세요. 예상 반환율은 많은 플레이를 기준으로 계산됩니다. 게임 화면은 실제 물리적 장치를 나타내지 않으며 설명 목적으로만 제공됩니다. 승리는 웹 브라우저 내 이벤트가 아니라 Remote Game Server에서 수신한 금액에 따라 정산됩니다. TM 및 &copy; 2026 Stake Engine."
 };
@@ -24494,6 +25040,24 @@ const pl = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "stawka 300x",
   GAME_INFO_MODE_ULTIMATE_TEXT: "Jeden spin z zawsze co najmniej 2 Eyes (2-5), ktore sie lacza - ogromna wygrana albo nic.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP i maksymalna wygrana",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "Zwrot dla gracza (RTP): <strong>96.00%</strong> &ndash; identyczny w kazdym trybie gry.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Maksymalna wygrana: <strong>15 000x zakladu</strong>. Laczne wygrane w rundzie sa ograniczone do tej kwoty; po jej osiagnieciu runda natychmiast sie konczy.",
+  GAME_INFO_CONTROLS_TITLE: "Przyciski i sterowanie",
+  GAME_INFO_CONTROL_SPIN_NAME: "Zakrec",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Stawia zaklad i rozpoczyna runde. W trakcie rundy ten sam przycisk ja przewija.",
+  GAME_INFO_CONTROL_TURBO_NAME: "Turbo",
+  GAME_INFO_CONTROL_TURBO_TEXT: "Przyspiesza obroty i animacje, gdy jest aktywne.",
+  GAME_INFO_CONTROL_AUTO_NAME: "Autogra",
+  GAME_INFO_CONTROL_AUTO_TEXT: "Otwiera panel autogry. Wybierz liczbe obrotow, a nastepnie nacisnij Zakrec, aby je rozpoczac. Ponowne nacisniecie przycisku autogry anuluje.",
+  GAME_INFO_CONTROL_BET_NAME: "Kwota zakladu",
+  GAME_INFO_CONTROL_BET_TEXT: "Przyciski - i + przechodza przez dostepne poziomy zakladu; dotkniecie kwoty otwiera pelna liste.",
+  GAME_INFO_CONTROL_MODES_NAME: "Tryby gry",
+  GAME_INFO_CONTROL_MODES_TEXT: "Otwiera panel trybow gry. Kazdy tryb kosztujacy wiecej niz zwykly obrot zawsze pokazuje potwierdzenie z calkowitym kosztem przed startem.",
+  GAME_INFO_CONTROL_MENU_NAME: "Menu",
+  GAME_INFO_CONTROL_MENU_TEXT: "Zawiera te informacje o grze oraz suwaki glosnosci Muzyki i Efektow dzwiekowych.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "Klawiatura",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "Spacja krec (lub przewija); przytrzymanie spacji kreci dalej w trybie Turbo. Podczas celebracji wygranych dotkniecie lub klikniecie pomija; ekrany maksymalnej wygranej i konca bonusu czekaja na klikniecie.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Ogólne zastrzezenie",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Awaria uniewaznia wszystkie wygrane i gry. Wymagane jest stabilne polaczenie internetowe. W przypadku rozlaczenia odswiez gre, aby dokonczyc nieukonczone rundy. Oczekiwany zwrot jest obliczany na podstawie wielu gier. Wyswietlanie gry nie reprezentuje zadnego fizycznego urzadzenia i sluzy tylko ilustracji. Wygrane sa rozliczane zgodnie z kwota otrzymana z Remote Game Server, a nie zdarzeniami w przegladarce. TM i &copy; 2026 Stake Engine."
 };
@@ -24645,6 +25209,24 @@ const pt = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "aposta 300x",
   GAME_INFO_MODE_ULTIMATE_TEXT: "Um giro com sempre pelo menos 2 Eyes (2-5) que se combinam - enorme ou nada.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP e ganho maximo",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "Retorno ao jogador (RTP): <strong>96.00%</strong> &ndash; identico em todos os modos de jogo.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Ganho maximo: <strong>15.000x a aposta</strong>. Os ganhos totais de uma rodada sao limitados a esse valor; ao atingi-lo, a rodada termina imediatamente.",
+  GAME_INFO_CONTROLS_TITLE: "Botoes e controles",
+  GAME_INFO_CONTROL_SPIN_NAME: "Girar",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Faz uma aposta e inicia a rodada. Enquanto a rodada acontece, o mesmo botao a adianta.",
+  GAME_INFO_CONTROL_TURBO_NAME: "Turbo",
+  GAME_INFO_CONTROL_TURBO_TEXT: "Acelera os giros e as animacoes enquanto estiver ativo.",
+  GAME_INFO_CONTROL_AUTO_NAME: "Jogo automatico",
+  GAME_INFO_CONTROL_AUTO_TEXT: "Abre o painel de jogo automatico. Escolha um numero de giros e pressione Girar para comecar. Pressionar o botao novamente cancela.",
+  GAME_INFO_CONTROL_BET_NAME: "Valor da aposta",
+  GAME_INFO_CONTROL_BET_TEXT: "Os botoes - e + percorrem os niveis de aposta disponiveis; tocar no valor abre a lista completa.",
+  GAME_INFO_CONTROL_MODES_NAME: "Modos de jogo",
+  GAME_INFO_CONTROL_MODES_TEXT: "Abre o painel de modos. Qualquer modo que custe mais do que um giro normal sempre mostra uma confirmacao com o custo total antes de comecar.",
+  GAME_INFO_CONTROL_MENU_NAME: "Menu",
+  GAME_INFO_CONTROL_MENU_TEXT: "Contem estas informacoes do jogo e os controles de volume de Musica e Efeitos sonoros.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "Teclado",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "A barra de espaco gira (ou adianta); manter a barra pressionada continua girando em Turbo. Durante as comemoracoes, um toque ou clique avanca; as telas de ganho maximo e fim de bonus esperam um clique.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Aviso geral",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Mau funcionamento anula todos os ganhos e jogadas. Uma conexao estavel com a internet e necessaria. Em caso de desconexao, recarregue o jogo para concluir rodadas incompletas. O retorno esperado e calculado em muitas jogadas. A exibicao do jogo nao representa nenhum dispositivo fisico e serve apenas para ilustracao. Ganhos sao liquidados conforme o valor recebido do Remote Game Server, e nao por eventos dentro do navegador. TM e &copy; 2026 Stake Engine."
 };
@@ -24796,6 +25378,24 @@ const ru = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "ставка 300x",
   GAME_INFO_MODE_ULTIMATE_TEXT: "Один спин всегда минимум с 2 Eyes (2-5), которые объединяются - огромный куш или ничего.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP и максимальный выигрыш",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "Возврат игроку (RTP): <strong>96.00%</strong> &ndash; одинаков во всех режимах игры.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Максимальный выигрыш: <strong>15 000x от ставки</strong>. Суммарный выигрыш раунда ограничен этой суммой; при достижении лимита раунд немедленно завершается.",
+  GAME_INFO_CONTROLS_TITLE: "Кнопки и управление",
+  GAME_INFO_CONTROL_SPIN_NAME: "Вращение",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Делает ставку и запускает раунд. Во время раунда та же кнопка ускоряет его.",
+  GAME_INFO_CONTROL_TURBO_NAME: "Турбо",
+  GAME_INFO_CONTROL_TURBO_TEXT: "Ускоряет вращения и анимации, пока включён.",
+  GAME_INFO_CONTROL_AUTO_NAME: "Автоигра",
+  GAME_INFO_CONTROL_AUTO_TEXT: "Открывает панель автоигры. Выберите количество вращений, затем нажмите кнопку вращения, чтобы начать. Повторное нажатие кнопки автоигры отменяет её.",
+  GAME_INFO_CONTROL_BET_NAME: "Размер ставки",
+  GAME_INFO_CONTROL_BET_TEXT: "Кнопки - и + переключают доступные уровни ставки; нажатие на сумму открывает полный список.",
+  GAME_INFO_CONTROL_MODES_NAME: "Режимы игры",
+  GAME_INFO_CONTROL_MODES_TEXT: "Открывает панель режимов. Любой режим дороже обычного вращения всегда показывает подтверждение с полной стоимостью перед запуском.",
+  GAME_INFO_CONTROL_MENU_NAME: "Меню",
+  GAME_INFO_CONTROL_MENU_TEXT: "Содержит эту информацию об игре, а также регуляторы громкости музыки и звуковых эффектов.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "Клавиатура",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "Пробел запускает вращение (или ускоряет его); удержание пробела продолжает вращения в режиме турбо. Во время празднования выигрыша нажатие или клик пропускает его; экраны максимального выигрыша и завершения бонуса ждут клика.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Общий отказ от ответственности",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Неисправность аннулирует все выигрыши и игры. Требуется стабильное интернет-соединение. В случае отключения перезагрузите игру, чтобы завершить незаконченные раунды. Ожидаемая отдача рассчитывается по большому числу игр. Отображение игры не представляет физическое устройство и предназначено только для иллюстрации. Выигрыши рассчитываются по сумме, полученной от Remote Game Server, а не по событиям в веб-браузере. TM и &copy; 2026 Stake Engine."
 };
@@ -24947,6 +25547,24 @@ const tr = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "300x bahis",
   GAME_INFO_MODE_ULTIMATE_TEXT: "Her zaman en az 2 Eye (2-5) ile tek spin; birleşirler - ya devasa ya hiç.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP ve Maksimum Kazanç",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "Oyuncuya dönüş (RTP): <strong>96.00%</strong> &ndash; tüm oyun modlarında aynıdır.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Maksimum kazanç: <strong>15.000x bahis</strong>. Bir turun toplam kazançları bu tutarla sınırlıdır; sınıra ulaşıldığında tur anında biter.",
+  GAME_INFO_CONTROLS_TITLE: "Düğmeler ve Kontroller",
+  GAME_INFO_CONTROL_SPIN_NAME: "Çevir",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Bahis yapar ve turu başlatır. Tur oynanırken aynı düğme turu hızlı ileri sarar.",
+  GAME_INFO_CONTROL_TURBO_NAME: "Turbo",
+  GAME_INFO_CONTROL_TURBO_TEXT: "Etkinken dönüşleri ve animasyonları hızlandırır.",
+  GAME_INFO_CONTROL_AUTO_NAME: "Otomatik oyun",
+  GAME_INFO_CONTROL_AUTO_TEXT: "Otomatik oyun panelini açar. Bir dönüş sayısı seçin, ardından başlatmak için Çevir düğmesine basın. Düğmeye tekrar basmak iptal eder.",
+  GAME_INFO_CONTROL_BET_NAME: "Bahis tutarı",
+  GAME_INFO_CONTROL_BET_TEXT: "- ve + düğmeleri mevcut bahis seviyeleri arasında geçiş yapar; tutara dokunmak tüm listeyi açar.",
+  GAME_INFO_CONTROL_MODES_NAME: "Oyun modları",
+  GAME_INFO_CONTROL_MODES_TEXT: "Oyun modu panelini açar. Normal bir dönüşten daha pahalı olan her mod, başlamadan önce toplam maliyetiyle birlikte daima bir onay gösterir.",
+  GAME_INFO_CONTROL_MENU_NAME: "Menü",
+  GAME_INFO_CONTROL_MENU_TEXT: "Bu oyun bilgilerini ve Müzik ile Ses efektleri seviye ayarlarını içerir.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "Klavye",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "Boşluk tuşu çevirir (veya ileri sarar); basılı tutmak Turbo modunda çevirmeye devam eder. Kazanç kutlamalarında dokunma veya tıklama atlar; Maksimum Kazanç ve bonus sonu ekranları tıklama bekler.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Genel Sorumluluk Reddi",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Arıza tüm kazançları ve oyunları geçersiz kılar. Kesintisiz internet bağlantısı gerekir. Bağlantı kesilirse tamamlanmamış turları bitirmek için oyunu yeniden yükleyin. Beklenen getiri çok sayıda oyun üzerinden hesaplanır. Oyun ekranı herhangi bir fiziksel cihazı temsil etmez ve yalnızca açıklama amaçlıdır. Kazançlar web tarayıcısındaki olaylara göre değil, Remote Game Server tarafından alınan tutara göre ödenir. TM ve &copy; 2026 Stake Engine."
 };
@@ -25098,6 +25716,24 @@ const vi = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "cược 300x",
   GAME_INFO_MODE_ULTIMATE_TEXT: "Một vòng quay luôn có ít nhất 2 Eye (2-5) kết hợp với nhau - cực lớn hoặc không gì cả.",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP & Thắng tối đa",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "Tỷ lệ hoàn trả cho người chơi (RTP): <strong>96.00%</strong> &ndash; giống nhau ở mọi chế độ chơi.",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "Thắng tối đa: <strong>15.000x tiền cược</strong>. Tổng tiền thắng của một vòng được giới hạn ở mức này; khi đạt giới hạn, vòng chơi kết thúc ngay.",
+  GAME_INFO_CONTROLS_TITLE: "Nút & Điều khiển",
+  GAME_INFO_CONTROL_SPIN_NAME: "Quay",
+  GAME_INFO_CONTROL_SPIN_TEXT: "Đặt cược và bắt đầu vòng chơi. Trong khi vòng chơi diễn ra, chính nút này sẽ tua nhanh.",
+  GAME_INFO_CONTROL_TURBO_NAME: "Turbo",
+  GAME_INFO_CONTROL_TURBO_TEXT: "Tăng tốc các vòng quay và hiệu ứng khi được bật.",
+  GAME_INFO_CONTROL_AUTO_NAME: "Tự động quay",
+  GAME_INFO_CONTROL_AUTO_TEXT: "Mở bảng tự động quay. Chọn số vòng quay rồi nhấn Quay để bắt đầu. Nhấn lại nút tự động quay sẽ hủy.",
+  GAME_INFO_CONTROL_BET_NAME: "Mức cược",
+  GAME_INFO_CONTROL_BET_TEXT: "Nút - và + chuyển qua các mức cược có sẵn; chạm vào số tiền sẽ mở danh sách đầy đủ.",
+  GAME_INFO_CONTROL_MODES_NAME: "Chế độ chơi",
+  GAME_INFO_CONTROL_MODES_TEXT: "Mở bảng chế độ chơi. Mọi chế độ có chi phí cao hơn vòng quay thường luôn hiển thị xác nhận kèm tổng chi phí trước khi bắt đầu.",
+  GAME_INFO_CONTROL_MENU_NAME: "Menu",
+  GAME_INFO_CONTROL_MENU_TEXT: "Chứa thông tin trò chơi này cùng thanh âm lượng Nhạc và Hiệu ứng âm thanh.",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "Bàn phím",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "Phím cách để quay (hoặc tua nhanh); giữ phím cách sẽ tiếp tục quay ở chế độ Turbo. Khi ăn mừng thắng lớn, chạm hoặc nhấp để bỏ qua; màn hình Thắng tối đa và kết thúc bonus chờ một cú nhấp.",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "Tuyên bố miễn trừ chung",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "Lỗi kỹ thuật làm vô hiệu mọi chiến thắng và lượt chơi. Cần có kết nối internet ổn định. Nếu mất kết nối, hãy tải lại trò chơi để hoàn tất các vòng chưa xong. Tỷ lệ hoàn trả kỳ vọng được tính trên nhiều lượt chơi. Hiển thị trò chơi không đại diện cho bất kỳ thiết bị vật lý nào và chỉ nhằm mục đích minh họa. Tiền thắng được thanh toán theo số tiền nhận từ Remote Game Server, không theo các sự kiện trong trình duyệt web. TM và &copy; 2026 Stake Engine."
 };
@@ -25250,6 +25886,24 @@ const zh = {
   GAME_INFO_MODE_ULTIMATE_NAME: "Ultimate",
   GAME_INFO_MODE_ULTIMATE_COST: "300x 下注",
   GAME_INFO_MODE_ULTIMATE_TEXT: "单次旋转始终至少有 2 个 Eye（2-5 个）相互结合 - 要么巨奖，要么归零。",
+  GAME_INFO_KEY_FIGURES_TITLE: "RTP 与最高奖金",
+  GAME_INFO_KEY_FIGURES_RTP_HTML: "玩家回报率（RTP）：<strong>96.00%</strong> &ndash; 所有游戏模式均相同。",
+  GAME_INFO_KEY_FIGURES_MAX_WIN_HTML: "最高奖金：<strong>下注的 15,000 倍</strong>。单局的总奖金以此金额为上限；达到上限后本局立即结束。",
+  GAME_INFO_CONTROLS_TITLE: "按钮与操作",
+  GAME_INFO_CONTROL_SPIN_NAME: "旋转",
+  GAME_INFO_CONTROL_SPIN_TEXT: "下注并开始一局。本局进行时，同一按钮可快进。",
+  GAME_INFO_CONTROL_TURBO_NAME: "快速模式",
+  GAME_INFO_CONTROL_TURBO_TEXT: "开启时加快旋转与动画速度。",
+  GAME_INFO_CONTROL_AUTO_NAME: "自动旋转",
+  GAME_INFO_CONTROL_AUTO_TEXT: "打开自动旋转面板。选择旋转次数后，按旋转按钮开始。再次按下自动旋转按钮即可取消。",
+  GAME_INFO_CONTROL_BET_NAME: "下注金额",
+  GAME_INFO_CONTROL_BET_TEXT: "- 和 + 按钮可切换可用的下注级别；点击金额可打开完整列表。",
+  GAME_INFO_CONTROL_MODES_NAME: "游戏模式",
+  GAME_INFO_CONTROL_MODES_TEXT: "打开游戏模式面板。任何费用高于普通旋转的模式，开始前都会显示包含总费用的确认窗口。",
+  GAME_INFO_CONTROL_MENU_NAME: "菜单",
+  GAME_INFO_CONTROL_MENU_TEXT: "包含本游戏信息，以及音乐和音效的音量滑块。",
+  GAME_INFO_CONTROL_KEYBOARD_NAME: "键盘",
+  GAME_INFO_CONTROL_KEYBOARD_TEXT: "空格键可旋转（或快进）；按住空格键将以快速模式持续旋转。中奖庆祝期间点按或点击可跳过；最高奖金和奖励结束画面则需点击后才会继续。",
   GAME_INFO_GENERAL_DISCLAIMER_TITLE: "一般免责声明",
   GAME_INFO_GENERAL_DISCLAIMER_HTML: "故障将使所有赢奖和游戏无效。需要稳定的互联网连接。如发生断线，请重新加载游戏以完成任何未完成回合。预期返还率按大量游戏计算。游戏显示不代表任何实体设备，仅用于说明。赢奖以 Remote Game Server 收到的金额为准，而非网页浏览器内事件。TM 和 &copy; 2026 Stake Engine。"
 };
@@ -25273,20 +25927,43 @@ const messagesMapGame = {
   zh
 };
 const messagesMap = mergeMessagesMaps([messagesMapGame, messagesMap$1, messagesMap$2]);
+const socialMessagesMap = Object.fromEntries(
+  Object.keys(messagesMap).map((locale) => [
+    locale,
+    { ...messagesMap.en, ...SOCIAL_MESSAGE_OVERRIDES }
+  ])
+);
 function _layout($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
   setContext();
+  const context2 = getContext();
+  const activeMessagesMap = stateUrlDerived.social() ? socialMessagesMap : messagesMap;
+  let showMainLoader = false;
+  const onBootHandoff = () => {
+    if (stateUrlDerived.replay()) {
+      context2.stateLayout.showLoadingScreen = false;
+    } else {
+      showMainLoader = true;
+    }
+  };
   GlobalStyle($$payload, {
     children: ($$payload2) => {
       Authenticate($$payload2, {
         children: ($$payload3) => {
           LoadI18n($$payload3, {
-            messagesMap,
+            messagesMap: activeMessagesMap,
             children: ($$payload4) => {
               Game($$payload4);
               $$payload4.out += `<!----> `;
-              AbyssalLoader($$payload4);
+              if (showMainLoader) {
+                $$payload4.out += "<!--[-->";
+                AbyssalLoader($$payload4);
+              } else {
+                $$payload4.out += "<!--[!-->";
+              }
+              $$payload4.out += `<!--]--> `;
+              AbyssalBootLoader($$payload4, { onhandoff: onBootHandoff });
               $$payload4.out += `<!---->`;
             },
             $$slots: { default: true }

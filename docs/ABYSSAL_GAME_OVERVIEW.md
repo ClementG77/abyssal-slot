@@ -173,7 +173,7 @@ meter's climbing… will an Eye come?"* — is the heart of the game.
 | **Volatility** | **High** for Base & Ante (swingy — but ~28% of base spins pay, ~30% on Ante); the buy modes are tail-heavy (small per-spin wins, rare huge ones) |
 | **Gaze charge (Essence)** | **+2 / +3 / +5** per winning cluster (size 8–9 / 10–11 / 12+), doubled in Super Bonus, **max 30** |
 | **Eye types** | ADD (start + Gaze) and MULTIPLY (start × Gaze) |
-| **Eye starting numbers** | 2, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50, 75, 100 (small-weighted) |
+| **Eye starting numbers** | 2, 5, 10, 25, 50, 100 (small-weighted — per `game_config.py` `eye_start_values`) |
 | **Eye frequency** | ~1 in 7 base spins / ~1 in 5 free spins at the board fill — plus a fresh drop chance on **every winning tumble** |
 | **Scatter pays** | 4 = 3×, 5 = 5×, 6 = 100× your bet (instant, on trigger) |
 | **Free Spins** | 4+ scatters → **flat 15 spins** (retrigger +5, max 30), with a growing multiplier |

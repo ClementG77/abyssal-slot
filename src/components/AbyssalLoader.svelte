@@ -6,12 +6,15 @@
 	import AbyssalPixiLogo from './AbyssalPixiLogo.svelte';
 	import { getContext } from '../game/context';
 	import { i18nDerived } from '../i18n/i18nDerived';
+	import { registerLoaderFonts } from '../game/loaderFonts';
 
 	// Hacksaw-style start screen: the logo is the hero, the feature copy plays as a carousel —
 	// one info slide at a time on a full-width white-glass band, auto-advancing with manual
-	// arrows — and the gate is a chunky gold slider that gives way to the CTA when the preload
-	// completes. Responsiveness is pure CSS against the Stake device matrix (STAKE_TEST_DEVICES
-	// in game/constants.ts) — the band works at every size, only type/icon scales change.
+	// arrows. The asset preload happens on the AbyssalBootLoader splash BEFORE this mounts
+	// (+layout only mounts this at the splash's handoff), so the gate is just the pulsing
+	// "click to continue" CTA. Responsiveness is pure CSS against the Stake device matrix
+	// (STAKE_TEST_DEVICES in game/constants.ts) — the band works at every size, only type/icon
+	// scales change.
 	const context = getContext();
 
 	let visible = $state(true);
@@ -42,10 +45,6 @@
 	// argument a static literal — that's the form Vite leaves as a runtime resolve. Same form as
 	// game/assets.ts.
 	const backgroundUrl = new URL('../../assets/background/base.webp', import.meta.url).href;
-	const cinzelFontUrl = new URL(
-		'../../assets/fonts/Cinzel/Cinzel-VariableFont_wght.ttf',
-		import.meta.url,
-	).href;
 
 	const cards = $derived([
 		{
@@ -81,7 +80,6 @@
 	const enter = async () => {
 		if (!ready || !visible || leaving || !loaderElement) return;
 		leaving = true;
-		context.eventEmitter.broadcast({ type: 'soundPressGeneral' });
 
 		// Mount the slots underneath first — the water wall lives in the Pixi scene.
 		context.stateLayout.showLoadingScreen = false;
@@ -124,29 +122,9 @@
 	};
 
 	onMount(() => {
-		// @font-face can't read a JS-resolved URL, so register Cinzel at runtime from the
-		// deploy-safe asset URL. Harmless if it fails — text falls back to Georgia/serif.
-		// Register under BOTH names: 'Abyssal Cinzel' for this loader's DOM, and 'Cinzel' for the
-		// in-game Pixi canvas (the family the Eye / Gaze / Win labels reference). Without the
-		// 'Cinzel' registration those canvas labels silently render as Georgia. `weight: '400 900'`
-		// exposes the variable font's full weight range so the 800/900 requests render bold.
-		// (The branded display type is the AbyssalBitmap bitmap font, loaded as a Pixi asset in
-		// game/assets.ts — DOM FontFace registration doesn't apply to it.)
-		if (typeof FontFace !== 'undefined') {
-			for (const [family, url] of [
-				['Abyssal Cinzel', cinzelFontUrl],
-				['Cinzel', cinzelFontUrl],
-			] as const) {
-				const face = new FontFace(family, `url(${url}) format('truetype')`, {
-					display: 'swap',
-					weight: '400 900',
-				});
-				face
-					.load()
-					.then((loaded) => document.fonts.add(loaded))
-					.catch(() => {});
-			}
-		}
+		// No-op when the boot splash already registered them — kept here so this screen still
+		// works if it's ever mounted on its own.
+		registerLoaderFonts();
 
 		startCardTimer();
 
@@ -154,35 +132,34 @@
 			return () => window.clearInterval(cardTimer);
 		}
 
+		// Entrance choreography — this mounts at the boot splash's handoff, and the splash takes
+		// 0.9s to dissolve. The logo and background stay STATIC through that reveal (never
+		// animate the logo's blur/scale: a soft-in on something that big reads as a huge blob
+		// shrinking). The cards hold hidden (from() renders its start state immediately), then
+		// once the splash is gone they pop in one by one — a scale-up with a back overshoot and
+		// a light-flash as each lands — and the CTA follows.
 		const animation = gsap.context(() => {
-			gsap.from('.loader-header', {
+			const intro = gsap.timeline({ defaults: { ease: 'power2.out' }, delay: 0.75 });
+			intro.from('.info-card', {
 				autoAlpha: 0,
-				y: -26,
+				y: 46,
+				scale: 0.8,
 				duration: 0.6,
-				ease: 'power2.out',
+				stagger: 0.2,
+				ease: 'back.out(1.7)',
+				// leave no transform residue: hover uses the CSS `scale` property and the idle
+				// bob uses `translate`, and both read cleaner with the matrix gone
+				clearProps: 'transform',
 			});
-			gsap.from('.info-card', {
-				autoAlpha: 0,
-				y: 22,
-				duration: 0.5,
-				stagger: 0.12,
-				ease: 'back.out(1.4)',
-				delay: 0.3,
-			});
-			gsap.from('.carousel', {
-				autoAlpha: 0,
-				y: 18,
-				duration: 0.5,
-				ease: 'power2.out',
-				delay: 0.3,
-			});
-			gsap.from('.loader-gate', {
-				autoAlpha: 0,
-				y: 16,
-				duration: 0.4,
-				ease: 'power2.out',
-				delay: 0.65,
-			});
+			// the flash peaks as each card settles (back-ease lands ~0.4s in), same stagger
+			intro.fromTo(
+				'.card-flash',
+				{ opacity: 0.55 },
+				{ opacity: 0, duration: 0.5, stagger: 0.2, ease: 'power1.out' },
+				0.4,
+			);
+			intro.from('.carousel', { autoAlpha: 0, y: 22, scale: 0.94, duration: 0.55 }, 0);
+			intro.from('.loader-gate', { autoAlpha: 0, y: 14, duration: 0.45 }, 1.0);
 		}, loaderElement);
 
 		return () => {
@@ -236,6 +213,7 @@
 						<img class="card-icon" src={card.art} alt="" />
 						<h2>{card.title}</h2>
 						<p>{card.body}</p>
+						<i class="card-flash" aria-hidden="true"></i>
 					</article>
 				{/each}
 			</div>
@@ -283,14 +261,7 @@
 			</div>
 
 			<div class="loader-gate">
-				{#if ready}
-					<span class="cta">{copy.cta}</span>
-				{:else}
-					<div class="progress">
-						<div class="progress-fill" style={`width: ${progress}%`}></div>
-					</div>
-					<span class="loading-label">{copy.loading} {progress}%</span>
-				{/if}
+				<span class="cta">{copy.cta}</span>
 			</div>
 		</div>
 	</div>
@@ -506,6 +477,22 @@
 			text-shadow: 0 2px 5px #000;
 		}
 	}
+	// Entrance-only light wash: gsap flashes it as each card lands, then it sits at opacity 0.
+	.card-flash {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		border-radius: inherit;
+		background: radial-gradient(
+			ellipse at 50% 40%,
+			rgba(255, 255, 255, 0.55),
+			rgba(255, 215, 106, 0.25) 55%,
+			transparent 80%
+		);
+		mix-blend-mode: screen;
+		opacity: 0;
+		pointer-events: none;
+	}
 	.card-icon {
 		position: absolute;
 		inset: 0;
@@ -664,7 +651,7 @@
 		}
 	}
 
-	// --- Gate: slider-style progress bar → CTA -------------------------------------------------
+	// --- Gate: the pulsing CTA (the preload bar lives on AbyssalBootLoader now) -----------------
 	.loader-gate {
 		position: absolute;
 		left: 50%;
@@ -674,51 +661,6 @@
 		display: grid;
 		justify-items: center;
 		gap: 12px;
-	}
-	.progress {
-		// Clean and slim: a hairline glass track — the fill and its light do the talking.
-		position: relative;
-		width: 100%;
-		height: clamp(5px, 0.55vw, 8px);
-		border-radius: 999px;
-		background: rgba(4, 10, 26, 0.72);
-		box-shadow:
-			inset 0 1px 2px rgba(0, 0, 0, 0.7),
-			0 0 0 1px rgba(255, 255, 255, 0.07);
-	}
-	.progress-fill {
-		position: relative;
-		height: 100%;
-		border-radius: inherit;
-		background: linear-gradient(90deg, #b8860b, #ffd76a 60%, #ffedb0);
-		box-shadow: 0 0 10px rgba(255, 215, 106, 0.45);
-		transition: width 0.25s ease-out;
-		// a soft luminous tip rides the head of the fill — light, not hardware
-		&::after {
-			content: '';
-			position: absolute;
-			top: 50%;
-			right: 0;
-			width: clamp(12px, 1.3vw, 18px);
-			height: clamp(12px, 1.3vw, 18px);
-			transform: translate(50%, -50%);
-			border-radius: 50%;
-			background: radial-gradient(
-				circle,
-				#fff8dc 0%,
-				rgba(255, 215, 106, 0.9) 38%,
-				rgba(255, 215, 106, 0) 72%
-			);
-			animation: tip-breathe 1.4s ease-in-out infinite alternate;
-		}
-	}
-	.loading-label {
-		font-family: 'Abyssal Cinzel', Georgia, serif;
-		font-weight: 700;
-		font-size: clamp(9px, 1vw, 17px);
-		letter-spacing: 0.26em;
-		color: #cfe8ff;
-		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 	}
 	.cta {
 		font-family: 'Abyssal Cinzel', Georgia, serif;
@@ -751,16 +693,6 @@
 	@keyframes cta-pulse {
 		to {
 			opacity: 0.62;
-		}
-	}
-	@keyframes tip-breathe {
-		from {
-			opacity: 0.75;
-			scale: 0.85;
-		}
-		to {
-			opacity: 1;
-			scale: 1.15;
 		}
 	}
 	@keyframes card-float {
@@ -830,16 +762,6 @@
 			top: auto;
 			bottom: 8%;
 			width: 76%;
-		}
-		.progress {
-			height: clamp(6px, 1.6vw, 9px);
-		}
-		.progress-fill::after {
-			width: clamp(14px, 3.6vw, 20px);
-			height: clamp(14px, 3.6vw, 20px);
-		}
-		.loading-label {
-			font-size: clamp(11px, 3.2vw, 18px);
 		}
 		.cta {
 			font-size: clamp(14px, 4.2vw, 22px);

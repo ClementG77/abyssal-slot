@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 
 	import { Container, Graphics, Rectangle, Text } from 'pixi-svelte';
 	import { Button, FadeContainer } from 'components-pixi';
 	import { MainContainer } from 'components-layout';
-	import { stateBet, stateBetDerived, stateUrlDerived } from 'state-shared';
+	import { stateBet, stateBetDerived, stateSound, stateUrlDerived } from 'state-shared';
 	import { requestReplay } from 'rgs-requests';
 	import { API_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
 	import { bookEventAmountToCurrencyString, numberToCurrencyString } from 'utils-shared/amount';
@@ -26,8 +27,10 @@
 	let leftIdle = false;
 
 	// Immutable copy of the replay bet so it can be replayed any number of times (the resume
-	// machine nulls stateBet.betToResume when it plays).
-	let snapshot: typeof stateBet.betToResume = null;
+	// machine nulls stateBet.betToResume when it plays). `$state`, not a plain `let` — the
+	// `betCostAmount` derived below reads it, and only a rune tracks that reassignment inside
+	// onMount.
+	let snapshot = $state<typeof stateBet.betToResume>(null);
 
 	onMount(async () => {
 		// the replay bet mode + amount drive the read-only cost display
@@ -37,6 +40,14 @@
 			stateBet.betAmount = amount / API_AMOUNT_MULTIPLIER;
 			stateBet.wageredBetAmount = stateBet.betAmount;
 		}
+
+		// Bet Replay's `currency` query param (optional per spec, but authoritative when
+		// present): a replay never authenticates — no session — so `stateBet.currency` is
+		// otherwise left at its hardcoded default and every amount below would render in the
+		// wrong currency for a non-default-currency round. `page` (SvelteKit, not an SDK
+		// package) mirrors how state-shared's own stateUrlDerived reads the URL.
+		const currency = page.url.searchParams.get('currency');
+		if (currency) stateBet.currency = currency;
 
 		// prefer data already loaded by <Authenticate>; otherwise fetch it ourselves
 		if (stateBet.betToResume?.state) {
@@ -74,7 +85,10 @@
 	const play = () => {
 		if (status !== 'ready' || !snapshot) return;
 		context.eventEmitter.broadcast({ type: 'soundPressGeneral' });
-		stateBet.betToResume = structuredClone(snapshot) as typeof stateBet.betToResume;
+		// snapshot is now $state (reactive, so betCostAmount can watch it) — de-proxy it before
+		// structuredClone, which chokes on Svelte's reactive proxies the same way it would on
+		// stateBet.betToResume itself (the reason the initial assignment above ALSO snapshots).
+		stateBet.betToResume = structuredClone($state.snapshot(snapshot)) as typeof stateBet.betToResume;
 		stateBet.winBookEventAmount = 0;
 		leftIdle = false;
 		phase = 'playing';
@@ -93,7 +107,7 @@
 	const turboDisabled = $derived(stateBet.isSpaceHold);
 	const toggleTurbo = () => {
 		if (turboDisabled) return;
-		context.eventEmitter.broadcast({ type: 'soundPressGeneral' });
+		context.eventEmitter.broadcast({ type: 'soundPressToggle' });
 		if (stateBet.isTurbo) {
 			stateBetDerived.updateIsTurbo(false, { persistent: true });
 		} else {
@@ -101,8 +115,41 @@
 		}
 	};
 
+	// music/sfx mute toggle — same global `stateSound.volumeValueMaster` the main ControlBar's
+	// menu sliders drive (state-shared), so it's a real cut, not a replay-local fake. Remembers
+	// the level it muted FROM so unmuting restores it exactly, instead of snapping to a fixed
+	// value like the SDK's own ButtonSoundSwitch does.
+	let volumeBeforeMute = stateSound.volumeValueMaster || 75;
+	const muted = $derived(stateSound.volumeValueMaster === 0);
+	const toggleMute = () => {
+		context.eventEmitter.broadcast({ type: 'soundPressToggle' });
+		if (muted) {
+			stateSound.volumeValueMaster = volumeBeforeMute;
+		} else {
+			volumeBeforeMute = stateSound.volumeValueMaster;
+			stateSound.volumeValueMaster = 0;
+		}
+	};
+
 	const winText = $derived(bookEventAmountToCurrencyString(stateBet.winBookEventAmount));
-	const betText = $derived(numberToCurrencyString(stateBetDerived.betCost()));
+
+	// The RGS's own `costMultiplier` for THIS historical round (returned by the replay endpoint
+	// itself — see rgs-requests' requestReplay) is the authoritative figure for an audit-trail
+	// feature: prefer it over our local bet-mode table, which is tuned for pricing LIVE bets and
+	// could in principle drift from the math config a past round actually priced under. Read
+	// defensively — the replay response isn't fully modeled in rgs-fetcher's schema yet (see the
+	// `@ts-ignore` on requestReplay), so `snapshot` may or may not carry the field at runtime.
+	const responseCostMultiplier = $derived(
+		(snapshot as unknown as { costMultiplier?: number } | null)?.costMultiplier,
+	);
+	const betCostAmount = $derived(
+		responseCostMultiplier !== undefined
+			? stateBet.betAmount * responseCostMultiplier
+			: stateBetDerived.betCost(),
+	);
+	// `amount` is optional per the Bet Replay spec; if a replay link omits it, show a placeholder
+	// instead of a misleading "$0.00" (a round that happened obviously wasn't free).
+	const betText = $derived(stateBet.betAmount > 0 ? numberToCurrencyString(betCostAmount) : '—');
 	const showButton = $derived(phase !== 'playing' && status === 'ready');
 	const buttonLabel = $derived(
 		phase === 'done' ? context.i18nDerived.playAgain() : context.i18nDerived.play(),
@@ -250,6 +297,44 @@
 			{/if}
 		</Container>
 	</FadeContainer>
+
+	<!-- music/sfx mute: stays visible the whole time, same as the turbo toggle beside it -->
+	<Container x={layout.width - 192} y={layout.height - BAR_H * 0.5 - 36}>
+		<Button anchor={0.5} sizes={{ width: 76, height: 76 }} onpress={toggleMute}>
+			{#snippet children({ center, hovered, pressed })}
+				<Container x={center.x} y={center.y} scale={pressed ? 0.96 : hovered ? 1.04 : 1}>
+					<Graphics
+						draw={(g) => {
+							g.circle(0, 0, 38).fill({
+								color: muted ? C.navyDeep : C.purpleBright,
+								alpha: 0.92,
+							});
+							g.circle(0, 0, 38).stroke({
+								width: 2,
+								color: muted ? C.purpleBright : C.white,
+								alpha: 0.8,
+							});
+						}}
+					/>
+					<Graphics
+						draw={(g) => drawControlGlyph(g, 'sound', 42, { active: !muted, color: C.white })}
+					/>
+				</Container>
+			{/snippet}
+		</Button>
+		<Text
+			anchor={0.5}
+			y={54}
+			text={context.i18nDerived.audio()}
+			style={{
+				fontFamily: FONT,
+				fontWeight: '800',
+				fontSize: 12,
+				fill: C.textDim,
+				letterSpacing: 1.5,
+			}}
+		/>
+	</Container>
 
 	<!-- speed/turbo toggle: stays visible the whole time so the replay can be sped up mid-play -->
 	<Container x={layout.width - 96} y={layout.height - BAR_H * 0.5 - 36}>

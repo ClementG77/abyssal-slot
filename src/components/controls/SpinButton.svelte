@@ -31,8 +31,10 @@
 	});
 
 	const onpress = () => {
-		context.eventEmitter.broadcast({ type: 'soundPressBet' });
 		if (isIdle) {
+			// only STARTING a spin plays the spin sound — pressing the button again mid-spin
+			// (to stop/skip) must not replay it
+			context.eventEmitter.broadcast({ type: 'soundPressBet' });
 			if (stateBetDerived.activeBetMode()?.type === 'buy') stateBet.activeBetModeKey = 'BASE';
 			context.eventEmitter.broadcast({ type: 'bet' });
 		} else {

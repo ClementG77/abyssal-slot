@@ -90,10 +90,17 @@
 	const multiplier = $derived(amount / BOOK_AMOUNT_MULTIPLIER);
 	const finalTier = $derived(tierFor(multiplier)); // gates the banner celebration (≥20×)
 
-	// takeover geometry: the plaque frame centred over the board, at the art's 522:383 aspect
+	// takeover geometry: the plaque frame centred over the board, at the art's 522:383 aspect.
+	// 0.72 matches WinCapCelebration's FRAME_SCALE — the win ladder and the max-win takeover
+	// share ONE plaque size (the bigger read was preferred over the old 0.62). On portrait
+	// phones the board itself is squeezed by the narrow screen, so the plaque takes a bigger
+	// share of it (0.95) to stay a real centre-piece — same pair of numbers as WinCapCelebration.
 	const boardWidth = $derived(context.stateGameDerived.boardLayout().width);
 	const imgW = $derived(boardWidth * 1.05);
-	const frameW = $derived(imgW * 0.62);
+	const frameScale = $derived(
+		context.stateLayoutDerived.layoutType() === 'portrait' ? 0.95 : 0.72,
+	);
+	const frameW = $derived(imgW * frameScale);
 	const frameH = $derived(frameW * (383 / 522));
 	const amountStyle = $derived(abyssalBitmapStyle({ fontSize: frameH * AMOUNT_SIZE }));
 
@@ -177,11 +184,23 @@
 			.to(groupFx, { scale: 1, duration: 0.7, ease: 'elastic.out(1, 0.55)' }, 0);
 	};
 
-	const onTierUp = () => {
+	// each tier plays ITS OWN stinger when the count climbs into it — the ladder is audible
+	const TIER_SFX = {
+		bigWin: 'sfx_win_big',
+		hugeWin: 'sfx_win_big',
+		megaWin: 'sfx_win_mega',
+		epicWin: 'sfx_win_epic',
+		maxWin: 'sfx_win_max',
+	} as const;
+
+	const onTierUp = (tierKey: keyof typeof TIER_SFX) => {
 		burstKey++;
 		triggerShake(SYMBOL_SIZE * 0.16);
-		// PLACEHOLDER tier-up stinger — swap for a bespoke escalation sound later.
-		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_scatter_win' });
+		context.eventEmitter.broadcast({
+			type: 'soundOnce',
+			name: TIER_SFX[tierKey] ?? 'sfx_win_big',
+			forcePlay: true,
+		});
 	};
 
 	// while the number rolls it throbs gently (Gates-style "alive" count) — killed by the lock
@@ -202,8 +221,12 @@
 			.to(numFx, { flash: 0, duration: 0.45, ease: 'power2.out' }, 0);
 		burstKey++; // big final burst
 		triggerShake(SYMBOL_SIZE * 0.26);
-		// PLACEHOLDER lock stinger — swap for a bespoke "win locked" hit later.
-		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_winlevel_end' });
+		// the roll is over — kill the count-up loop at the lock (not at dismissal) so it never
+		// drones under the settled amount. Safe for capped books: the wincap handler restarts
+		// the loop for the trophy's own hero count.
+		context.eventEmitter.broadcast({ type: 'soundStop', name: 'sfx_countup_loop' });
+		// the win amount locks in — the final resolve hit
+		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_win_big', forcePlay: true });
 	};
 
 	// Escalation watcher: each time the live banner tier climbs (big → mega → epic → max),
@@ -211,7 +234,7 @@
 	let prevTierKey: string | undefined;
 	$effect(() => {
 		const key = bannerTier.key;
-		if (prevTierKey !== undefined && prevTierKey !== key && !countUpCompleted) onTierUp();
+		if (prevTierKey !== undefined && prevTierKey !== key && !countUpCompleted) onTierUp(key);
 		prevTierKey = key;
 	});
 

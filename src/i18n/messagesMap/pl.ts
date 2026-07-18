@@ -139,6 +139,8 @@ export default {
 	GAME_INFO_EYE_GAZE_TITLE: 'Eye &amp; Gaze',
 	GAME_INFO_EYE_GAZE_DESCRIPTION_HTML:
 		'Kazdy wygrywajacy klaster laduje <strong>Gaze</strong> Essence: <strong>+2</strong> za 8&ndash;9 symboli, <strong>+3</strong> za 10&ndash;11, <strong>+5</strong> za 12+, maksymalnie do <strong>30</strong>. Jesli <strong>Eye</strong> jest na planszy na koncu wygrywajacego spinu &ndash; od poczatku lub po wpadnieciu w trakcie tumbla &ndash; zamienia Gaze w duzy mnoznik stosowany do wszystkiego, co wygrales w tym spinie.',
+	GAME_INFO_EYE_VALUES_HTML:
+		'Oko startuje z jedna z tych liczb: <strong>2, 5, 10, 25, 50 lub 100</strong> &ndash; mniejsze wartosci pojawiaja sie najczesciej, 100 jest najrzadsze.',
 	GAME_INFO_EYE_GAZE_EXAMPLE_HTML:
 		'Przyklad: wygrana 2x z dwoch zwyklych klastrow buduje Gaze 4. ADD Eye od 10 &rarr; x14 &rarr; placi 28x. MULTIPLY Eye &rarr; x40 &rarr; placi 80x.',
 	GAME_INFO_FREE_SPINS_TITLE: 'Darmowe Spiny',
@@ -169,6 +171,32 @@ export default {
 	GAME_INFO_MODE_ULTIMATE_COST: 'stawka 300x',
 	GAME_INFO_MODE_ULTIMATE_TEXT:
 		'Jeden spin z zawsze co najmniej 2 Eyes (2-5), ktore sie lacza - ogromna wygrana albo nic.',
+	GAME_INFO_KEY_FIGURES_TITLE: 'RTP i maksymalna wygrana',
+	GAME_INFO_KEY_FIGURES_RTP_HTML:
+		'Zwrot dla gracza (RTP): <strong>96.00%</strong> &ndash; identyczny w kazdym trybie gry.',
+	GAME_INFO_KEY_FIGURES_MAX_WIN_HTML:
+		'Maksymalna wygrana: <strong>15 000x zakladu</strong>. Laczne wygrane w rundzie sa ograniczone do tej kwoty; po jej osiagnieciu runda natychmiast sie konczy.',
+	GAME_INFO_CONTROLS_TITLE: 'Przyciski i sterowanie',
+	GAME_INFO_CONTROL_SPIN_NAME: 'Zakrec',
+	GAME_INFO_CONTROL_SPIN_TEXT:
+		'Stawia zaklad i rozpoczyna runde. W trakcie rundy ten sam przycisk ja przewija.',
+	GAME_INFO_CONTROL_TURBO_NAME: 'Turbo',
+	GAME_INFO_CONTROL_TURBO_TEXT: 'Przyspiesza obroty i animacje, gdy jest aktywne.',
+	GAME_INFO_CONTROL_AUTO_NAME: 'Autogra',
+	GAME_INFO_CONTROL_AUTO_TEXT:
+		'Otwiera panel autogry. Wybierz liczbe obrotow, a nastepnie nacisnij Zakrec, aby je rozpoczac. Ponowne nacisniecie przycisku autogry anuluje.',
+	GAME_INFO_CONTROL_BET_NAME: 'Kwota zakladu',
+	GAME_INFO_CONTROL_BET_TEXT:
+		'Przyciski - i + przechodza przez dostepne poziomy zakladu; dotkniecie kwoty otwiera pelna liste.',
+	GAME_INFO_CONTROL_MODES_NAME: 'Tryby gry',
+	GAME_INFO_CONTROL_MODES_TEXT:
+		'Otwiera panel trybow gry. Kazdy tryb kosztujacy wiecej niz zwykly obrot zawsze pokazuje potwierdzenie z calkowitym kosztem przed startem.',
+	GAME_INFO_CONTROL_MENU_NAME: 'Menu',
+	GAME_INFO_CONTROL_MENU_TEXT:
+		'Zawiera te informacje o grze oraz suwaki glosnosci Muzyki i Efektow dzwiekowych.',
+	GAME_INFO_CONTROL_KEYBOARD_NAME: 'Klawiatura',
+	GAME_INFO_CONTROL_KEYBOARD_TEXT:
+		'Spacja krec (lub przewija); przytrzymanie spacji kreci dalej w trybie Turbo. Podczas celebracji wygranych dotkniecie lub klikniecie pomija; ekrany maksymalnej wygranej i konca bonusu czekaja na klikniecie.',
 	GAME_INFO_GENERAL_DISCLAIMER_TITLE: 'Ogólne zastrzezenie',
 	GAME_INFO_GENERAL_DISCLAIMER_HTML:
 		'Awaria uniewaznia wszystkie wygrane i gry. Wymagane jest stabilne polaczenie internetowe. W przypadku rozlaczenia odswiez gre, aby dokonczyc nieukonczone rundy. Oczekiwany zwrot jest obliczany na podstawie wielu gier. Wyswietlanie gry nie reprezentuje zadnego fizycznego urzadzenia i sluzy tylko ilustracji. Wygrane sa rozliczane zgodnie z kwota otrzymana z Remote Game Server, a nie zdarzeniami w przegladarce. TM i &copy; 2026 Stake Engine.',

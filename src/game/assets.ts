@@ -90,4 +90,14 @@ export default {
 			.href,
 		preload: true,
 	},
+
+	// Sound sprite — the production set (docs/ABYSSAL_SOUND_DESIGN.md §3), packed as one audio.m4a
+	// + Howler offset map (Valkyrie/Waylanders pattern). The m4a lives in static/ because Howler
+	// resolves the JSON's `src` relative to the PAGE, not the JSON — static/ serves it at
+	// ./assets/sounds/audio.m4a in both dev and build. Repack via assets/audio/README.md.
+	sound: {
+		type: 'audio',
+		src: new URL('../../static/assets/sounds/sounds.json', import.meta.url).href,
+		preload: true,
+	},
 } as const;
