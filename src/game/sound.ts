@@ -19,18 +19,15 @@ export type SoundEffectName =
 	// scatter & feature
 	| 'sfx_scatter_land'
 	| 'sfx_anticipation' // loop
-	| 'sfx_scatter_win'
 	| 'sfx_fs_intro'
 	| 'sfx_fs_outro' // the bonus-end congratulations card presents
 	// the Eye & Gaze (hero feature) — ADD = cyan, MUL = red
-	| 'sfx_gaze_fill'
-	| 'sfx_gaze_full'
+	| 'sfx_gaze_full' // the meter laps a colour band (GazeMeter)
 	| 'sfx_eye_land'
 	| 'sfx_eye_reveal_add'
 	| 'sfx_eye_reveal_mul'
-	| 'sfx_eye_combine_add'
-	| 'sfx_eye_combine_mul'
-	| 'sfx_eye_burst'
+	| 'sfx_eye_combine_add' // an ADD value arrives at the combine centre
+	| 'sfx_eye_burst' // a MUL value arrives — the multiplier explosion
 	| 'sfx_mult_moove' // the combined final multiplier flies from the Eye to the tumble banner
 	| 'sfx_snowball_up'
 	// wins & transition
@@ -41,48 +38,50 @@ export type SoundEffectName =
 	| 'sfx_win_mega'
 	| 'sfx_win_epic'
 	| 'sfx_win_max'
-	| 'sfx_transition'
-	// optional ambient bed (loop) — unwired until authored
-	| 'amb_underwater';
+	| 'sfx_transition';
 
 export type SoundName = MusicName | SoundEffectName;
 
 // --- Production enable-list ------------------------------------------------------------
-// We validate sounds ONE AT A TIME in the live game (too many at once = noise). Only names
-// in this set actually PLAY; every other sound stays generated + wired but MUTED. To test a
-// new sound: add its name here, verify in-game, and keep it if it's good — then move to the
-// next. `soundStop`/`soundFade` are NOT gated (stopping is always allowed).
+// Every sound in the union is validated and shipping (2026-07-16) — the one-at-a-time
+// validation pass is complete, and dormant names were removed rather than left muted, so the
+// union IS the enable-list. Keep it that way: a name that earns a place here must have a call
+// site and a clip in the sprite. To audition a NEW sound in isolation, temporarily narrow this
+// set instead of re-introducing muted names. `soundStop`/`soundFade` are never gated.
 export const ENABLED_SOUNDS = new Set<SoundName>([
-	// music (validated)
+	// music
 	'bgm_main',
 	'bgm_freespin',
 	'bgm_win',
-	// ui + reels (validated)
+	// ui + reels
 	'sfx_btn_general',
-	'sfx_btn_spin',
-	'sfx_reel_stop',
-	// --- add sounds below one at a time as they pass validation ---
-	// batch under test (2026-07-14) — user-authored clips imported from the drop folder
-	'sfx_cluster_win',
-	'sfx_anticipation',
-	'sfx_countup_loop',
-	'sfx_eye_burst',
-	'sfx_eye_land',
-	'sfx_fs_intro',
-	'sfx_scatter_land',
-	'sfx_transition',
-	// batch under test (2026-07-15) — new button-sound split
 	'sfx_btn_toggle',
 	'sfx_modal_open',
-	// batch under test (2026-07-15) — win-tier stingers
+	'sfx_btn_spin',
+	'sfx_reel_stop',
+	// scatter & feature
+	'sfx_scatter_land',
+	'sfx_anticipation',
+	'sfx_fs_intro',
+	'sfx_fs_outro',
+	// the Eye & Gaze
+	'sfx_gaze_full',
+	'sfx_eye_land',
+	'sfx_eye_reveal_add',
+	'sfx_eye_reveal_mul',
+	'sfx_eye_combine_add',
+	'sfx_eye_burst',
+	'sfx_mult_moove',
+	'sfx_snowball_up',
+	// wins & transition
+	'sfx_cluster_win',
+	'sfx_countup_loop',
 	'sfx_win_nice',
 	'sfx_win_big',
 	'sfx_win_mega',
 	'sfx_win_epic',
 	'sfx_win_max',
-	// batch under test (2026-07-16) — outro card + multiplier flight
-	'sfx_fs_outro',
-	'sfx_mult_moove',
+	'sfx_transition',
 ]);
 
 export const isSoundEnabled = (name: SoundName) => ENABLED_SOUNDS.has(name);

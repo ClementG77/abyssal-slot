@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import gsap from 'gsap';
-	import { GlowFilter } from 'pixi-filters/glow';
-	import { Tween } from 'svelte/motion';
+		import { Tween } from 'svelte/motion';
 	import { backOut, cubicIn } from 'svelte/easing';
 
 	import { Container, Graphics, Sprite, Text } from 'pixi-svelte';
@@ -21,6 +20,7 @@
 		type EyeVariant,
 	} from '../game/constants';
 	import type { SymbolState, RawSymbol, SymbolName } from '../game/types';
+	import { FONT } from './controls/theme';
 
 	type Props = {
 		x?: number;
@@ -165,11 +165,11 @@
 		return () => winGlowTween?.kill();
 	});
 
-	// Shape-hugging AURA: a GlowFilter traces the art's actual silhouette. It ramps HOTTER for
+	// Shape-hugging AURA (additive halo, see below). It ramps HOTTER for
 	// bigger clusters (the winning cell's essence tier): 8-9 keeps the symbol's own colour at the
 	// base strength; 10-11 reaches further and whitens; 12+ is a white-hot flare. Deliberately an
 	// INTENSITY ramp, not a hue swap — purple/red are the gaze language, so cluster size reads as
-	// "hotter", not "a different colour". Detached (filters=[]) whenever the cell isn't winning.
+	// "hotter", not "a different colour". Fades to nothing whenever the cell isn't winning.
 	const winTier = $derived((props.rawSymbol.winTier ?? 1) as 1 | 2 | 3);
 	const WIN_TIER = {
 		1: { distance: 26, minStrength: 1.6, maxStrength: 4.4, whiten: 0, core: 0.55 }, // 8-9
@@ -177,7 +177,18 @@
 		3: { distance: 44, minStrength: 3.4, maxStrength: 8.8, whiten: 0.55, core: 1.1 }, // 12+
 	} as const;
 	const winTierCfg = $derived(WIN_TIER[winTier]);
-	const WIN_AURA_QUALITY = 0.3; // filter sample quality (higher = smoother, costlier)
+	// Additive-halo tuning (replaces the old GlowFilter — see winAuraStrength below).
+	// A GlowFilter's `outerStrength` (~1..9) becomes halo ALPHA, and its `distance` (px of reach
+	// off the silhouette) becomes how much bigger the halo copies are drawn. Two layers give the
+	// falloff a single copy can't: a tight bright one and a wide soft one.
+	const AURA_ALPHA_PER_STRENGTH = 0.09; // strength 1.6 -> ~0.14 alpha, 8.8 -> ~0.79
+	const AURA_ALPHA_CAP = 0.8;
+	const AURA_SPREAD = { inner: 0.45, outer: 1 }; // fraction of `distance` each layer reaches
+	// px of reach -> a width/height multiplier for this symbol's on-screen size
+	const auraScale = (distance: number, spread: number) =>
+		1 + (distance * spread) / Math.max(1, symbolSize.width);
+	const auraAlpha = (strength: number, weight: number) =>
+		Math.min(AURA_ALPHA_CAP, strength * AURA_ALPHA_PER_STRENGTH) * weight;
 	// lerp a colour toward white by t (the hotter tiers whiten their glow)
 	const whitenColor = (color: number, t: number) => {
 		const r = (color >> 16) & 0xff;
@@ -191,33 +202,18 @@
 		);
 	};
 	const winAuraColor = $derived(whitenColor(info.color, winTierCfg.whiten));
-	let winAuraFilter = $state<GlowFilter | null>(null);
-	let winAuraFilterTier = 0;
-	$effect(() => {
-		if (!winGlowOn) return;
-		// (re)create when the tier changes — `distance` is baked into the filter's padding, so it
-		// can't be re-tuned at runtime. Tier is set once per win, so this is not a per-frame cost.
-		if (!winAuraFilter || winAuraFilterTier !== winTier) {
-			winAuraFilter?.destroy();
-			winAuraFilter = new GlowFilter({
-				distance: winTierCfg.distance,
-				outerStrength: winTierCfg.minStrength,
-				innerStrength: 0,
-				color: winAuraColor,
-				quality: WIN_AURA_QUALITY,
-			});
-			winAuraFilterTier = winTier;
-		}
-		winAuraFilter.color = winAuraColor;
-	});
-	$effect(() => {
-		if (winAuraFilter && winGlowOn) {
-			winAuraFilter.outerStrength =
-				winTierCfg.minStrength +
-				(winTierCfg.maxStrength - winTierCfg.minStrength) * winGlowFx.pulse;
-		}
-	});
-	onDestroy(() => winAuraFilter?.destroy());
+	// The aura used to be a per-symbol GlowFilter. A filtered container costs its OWN
+	// render-to-texture pass every frame, and a cluster is 8+ symbols — so a big win meant 8-12+
+	// simultaneous full-screen-ish RTTs, i.e. the game got slowest exactly when it should feel
+	// best (and mobile GPUs silently fail those allocations). It is now an ADDITIVE HALO: two
+	// scaled, tinted copies of the art behind it, which is the same technique AbyssalEye already
+	// uses ("all light lives in the additive halo") and costs 2 ordinary sprites — no RTT.
+	const winAuraStrength = $derived(
+		winGlowOn
+			? winTierCfg.minStrength +
+					(winTierCfg.maxStrength - winTierCfg.minStrength) * winGlowFx.pulse
+			: 0,
+	);
 
 	// --- Scatter (the leviathan): a hero symbol -----------------------------------------
 	// A gentle breathe over a golden under-glow; landing is a pure GLOW surge. The soft coloured
@@ -239,7 +235,7 @@
 	);
 
 	// Shape-hugging golden AURA around the leviathan's silhouette (replaces the old circular
-	// under-glow discs). One GlowFilter carries every scatter mood through its outerStrength:
+	// under-glow discs). One strength value carries every scatter mood:
 	// idle shimmer → hotter/faster while the board anticipates → spike on landing (count-
 	// scaled via landGlow) → heavy pulse while connecting on the bonus trigger.
 	const SCATTER_AURA = {
@@ -251,30 +247,22 @@
 		land: 3.4, // added at full landGlow (already count-scaled upstream)
 		connect: 3.0, // added at full connect pulse (the bonus-win celebration)
 	};
-	let scatterAuraFilter = $state<GlowFilter | null>(null);
-	$effect(() => {
-		if (!isScatter || scatterAuraFilter) return;
-		scatterAuraFilter = new GlowFilter({
-			distance: SCATTER_AURA.distance,
-			outerStrength: SCATTER_AURA.idle,
-			innerStrength: 0,
-			color: SCATTER_AURA.color,
-			quality: SCATTER_AURA.quality,
-		});
-	});
-	$effect(() => {
-		if (!scatterAuraFilter || !isScatter) return;
+	// Same conversion as the win aura (see above). This one mattered even more: it was applied
+	// whenever the symbol IS a scatter — i.e. a permanent per-frame RTT pass per scatter on the
+	// board, even with nothing happening.
+	const scatterAuraStrength = $derived.by(() => {
+		if (!isScatter) return 0;
 		const anticipating = context.stateGame.scatterAnticipating;
 		// same shimmer rhythm the disc glow used, now breathing the silhouette instead
 		const shimmer = anticipating
 			? 0.75 + Math.sin(scatterAmb.t * 3.6) * 0.25
 			: 0.8 + Math.sin(scatterAmb.t * 1.7) * 0.2;
-		scatterAuraFilter.outerStrength =
+		return (
 			SCATTER_AURA.idle * shimmer * (anticipating ? SCATTER_AURA.anticipation : 1) +
 			scatterFx.landGlow * SCATTER_AURA.land +
-			scatterFx.connect * SCATTER_AURA.connect;
+			scatterFx.connect * SCATTER_AURA.connect
+		);
 	});
-	onDestroy(() => scatterAuraFilter?.destroy());
 
 	$effect(() => {
 		if (!isScatter) {
@@ -494,11 +482,6 @@
 		y: scale.current * winFx.squashY * stretchFx.v,
 	}}
 	alpha={alpha.current}
-	filters={winGlowOn && winAuraFilter
-		? [winAuraFilter]
-		: isScatter && scatterAuraFilter
-			? [scatterAuraFilter]
-			: []}
 >
 	{#if isEye}
 		<!-- ONE persistent AbyssalEye across the whole lifecycle, so the variant EDGE animates:
@@ -515,13 +498,40 @@
 			intensity={isSpentEye ? 0 : gazeIntensity}
 		/>
 	{:else}
-		<!-- base art (the winning aura is the GlowFilter on the cell container — it traces the
-		     art's silhouette, so no separate bloom shape is drawn) -->
+		<!-- base art. The win / scatter aura is drawn BEHIND it as additive copies of the same
+		     texture (see auraScale/auraAlpha) — it still hugs the art's silhouette, because it IS
+		     the art, but costs two plain sprites instead of a per-symbol render-to-texture pass. -->
 		{#if frame}
+			{@const auraStrength = winGlowOn ? winAuraStrength : scatterAuraStrength}
+			{@const auraColor = winGlowOn ? winAuraColor : SCATTER_AURA.color}
+			{@const auraDistance = winGlowOn ? winTierCfg.distance : SCATTER_AURA.distance}
+			{@const auraBreathe = isScatter && !winGlowOn ? scatterFx.breathe : 1}
+			{#if auraStrength > 0.05}
+				<!-- wide soft layer -->
+				<Sprite
+					key={frame}
+					anchor={0.5}
+					width={symbolSize.width * auraScale(auraDistance, AURA_SPREAD.outer) * auraBreathe}
+					height={symbolSize.height * auraScale(auraDistance, AURA_SPREAD.outer) * auraBreathe}
+					alpha={auraAlpha(auraStrength, 0.55)}
+					tint={auraColor}
+					blendMode="add"
+				/>
+				<!-- tight bright layer -->
+				<Sprite
+					key={frame}
+					anchor={0.5}
+					width={symbolSize.width * auraScale(auraDistance, AURA_SPREAD.inner) * auraBreathe}
+					height={symbolSize.height * auraScale(auraDistance, AURA_SPREAD.inner) * auraBreathe}
+					alpha={auraAlpha(auraStrength, 1)}
+					tint={auraColor}
+					blendMode="add"
+				/>
+			{/if}
 			{#if isScatter}
-				<!-- leviathan: breathing body; the golden aura is the silhouette GlowFilter on the
-				     cell container (idle shimmer / anticipation / land surge / connect all drive
-				     its strength). The soft coloured halo copy only blooms on connect.
+				<!-- leviathan: breathing body; the golden aura is the additive halo drawn above
+				     (idle shimmer / anticipation / land surge / connect all drive its strength).
+				     The soft coloured halo copy only blooms on connect.
 				     NOTE: never set `scale` alongside `width`/`height` on a pixi-svelte Sprite — the
 				     scale prop is applied last and overrides the width/height sizing (rendering the
 				     sprite at its native texture size). Bake the multiplier into width/height. -->
@@ -563,7 +573,7 @@
 				anchor={0.5}
 				text={info.label}
 				style={{
-					fontFamily: 'sans-serif',
+					fontFamily: FONT,
 					fontWeight: '700',
 					fontSize: SYMBOL_SIZE * (info.label.length > 2 ? 0.24 : 0.34),
 					fill: isSpecial ? info.glow : 0x05080f,

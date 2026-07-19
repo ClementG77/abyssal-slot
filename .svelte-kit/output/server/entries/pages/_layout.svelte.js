@@ -572,7 +572,14 @@ const stateI18nDerived = {
     stateI18n.i18n.load(lang2, messages);
     stateI18n.i18n.activate(lang2);
   },
-  translate: (value) => stateI18n.i18n._(stateI18n.i18n.t(value))
+  // ONE lookup. This used to be `i18n._(i18n.t(value))`, which translated TWICE: `t()` already
+  // returns the translated string, so `_()` then looked THAT up as a message id, missed, and
+  // fell back to it. Output was correct by accident, but every call did two catalog lookups and
+  // tripped Lingui's dev-only "Uncompiled message detected!" warning (the log showed the
+  // translated text — "TUMBLE WIN", "WIN" — rather than the key, which is the tell). Text props
+  // re-evaluate inside the rAF loop during count-ups, so that warning fired every frame with a
+  // full stack capture.
+  translate: (value) => stateI18n.i18n._(value)
 };
 function OnMount($$payload, $$props) {
   push();
@@ -1033,27 +1040,82 @@ function BaseButtonContent($$payload, $$props) {
   $$payload.out += `<!----></div>`;
   pop();
 }
-const NO_LOCALISATION_CURRENCY_MAP = {
-  XGC: "GC",
-  XSC: "SC"
+const CURRENCY_DISPLAY = {
+  USD: { symbol: "$", position: "before", space: false, decimals: 2 },
+  CAD: { symbol: "CA$", position: "before", space: false, decimals: 2 },
+  JPY: { symbol: "¥", position: "before", space: false, decimals: 0 },
+  EUR: { symbol: "€", position: "before", space: false, decimals: 2 },
+  RUB: { symbol: "₽", position: "before", space: false, decimals: 2 },
+  CNY: { symbol: "CN¥", position: "before", space: false, decimals: 2 },
+  PHP: { symbol: "₱", position: "before", space: false, decimals: 2 },
+  INR: { symbol: "₹", position: "before", space: false, decimals: 2 },
+  IDR: { symbol: "Rp", position: "before", space: false, decimals: 0 },
+  KRW: { symbol: "₩", position: "before", space: false, decimals: 0 },
+  BRL: { symbol: "R$", position: "before", space: false, decimals: 2 },
+  MXN: { symbol: "MX$", position: "before", space: false, decimals: 2 },
+  DKK: { symbol: "KR", position: "after", space: true, decimals: 2 },
+  PLN: { symbol: "zł", position: "after", space: true, decimals: 2 },
+  VND: { symbol: "₫", position: "after", space: true, decimals: 0 },
+  TRY: { symbol: "₺", position: "before", space: false, decimals: 2 },
+  CLP: { symbol: "CLP", position: "after", space: true, decimals: 0 },
+  ARS: { symbol: "ARS", position: "after", space: true, decimals: 2 },
+  PEN: { symbol: "S/", position: "before", space: false, decimals: 2 },
+  NGN: { symbol: "₦", position: "before", space: false, decimals: 2 },
+  SAR: { symbol: "SAR", position: "after", space: true, decimals: 2 },
+  ILS: { symbol: "ILS", position: "after", space: true, decimals: 2 },
+  AED: { symbol: "AED", position: "after", space: true, decimals: 2 },
+  TWD: { symbol: "NT$", position: "before", space: false, decimals: 2 },
+  NOK: { symbol: "kr", position: "before", space: false, decimals: 2 },
+  KWD: { symbol: "KD", position: "before", space: false, decimals: 2 },
+  JOD: { symbol: "JD", position: "before", space: false, decimals: 2 },
+  CRC: { symbol: "₡", position: "before", space: false, decimals: 2 },
+  TND: { symbol: "TND", position: "after", space: true, decimals: 2 },
+  SGD: { symbol: "SG$", position: "before", space: false, decimals: 2 },
+  MYR: { symbol: "RM", position: "before", space: false, decimals: 2 },
+  OMR: { symbol: "OMR", position: "after", space: true, decimals: 2 },
+  QAR: { symbol: "QAR", position: "after", space: true, decimals: 2 },
+  BHD: { symbol: "BD", position: "before", space: false, decimals: 2 },
+  PKR: { symbol: "₨", position: "before", space: false, decimals: 2 },
+  EGP: { symbol: "ج.م", position: "before", space: false, decimals: 2 },
+  NZD: { symbol: "NZ$", position: "before", space: false, decimals: 2 },
+  BOB: { symbol: "Bs", position: "before", space: false, decimals: 2 },
+  GHS: { symbol: "GH₵", position: "before", space: false, decimals: 2 },
+  KES: { symbol: "KSh", position: "before", space: false, decimals: 2 },
+  MAD: { symbol: "MAD", position: "before", space: false, decimals: 2 },
+  BAM: { symbol: "KM", position: "before", space: false, decimals: 2 },
+  ISK: { symbol: "kr", position: "before", space: false, decimals: 2 },
+  TZS: { symbol: "TSh", position: "before", space: false, decimals: 2 },
+  UGX: { symbol: "USh", position: "before", space: false, decimals: 2 },
+  XOF: { symbol: "CFA", position: "before", space: false, decimals: 2 },
+  // Stake's own social-casino currencies — XEC ("Stake Euro Cash") shares XSC's "SC" display
+  // per Stake's table; this also fills a real gap, since XEC previously wasn't special-cased at
+  // all and fell through to the generic Intl path (rendering "XEC 10.00", not "10.00 SC").
+  XGC: { symbol: "GC", position: "after", space: true, decimals: 2 },
+  XSC: { symbol: "SC", position: "after", space: true, decimals: 2 },
+  XEC: { symbol: "SC", position: "after", space: true, decimals: 2 }
 };
 const bookEventAmountToBetAmountMultiplier = (bookEventAmount) => bookEventAmount / BOOK_AMOUNT_MULTIPLIER;
 const bookEventAmountToNormalisedAmount = (bookEventAmount) => {
   const betAmountMultiplier = bookEventAmountToBetAmountMultiplier(bookEventAmount);
   return stateBet$1.wageredBetAmount * betAmountMultiplier;
 };
-const numberToFloat = (value) => Number.parseFloat(`${value}`);
 const numberToCurrencyString = (value) => {
-  if (stateBet$1.currency in NO_LOCALISATION_CURRENCY_MAP) {
-    return `${NO_LOCALISATION_CURRENCY_MAP[stateBet$1.currency]} ${numberToFloat(value).toFixed(2)}`;
+  const display = CURRENCY_DISPLAY[stateBet$1.currency];
+  if (!display) {
+    return stateI18n.i18n.number(value, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      style: "currency",
+      currency: stateBet$1.currency
+    });
   }
-  return stateI18n.i18n.number(value, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    style: "currency",
-    currency: stateBet$1.currency
-    // numberingSystem: 'latn',
-  });
+  const number = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: display.decimals,
+    maximumFractionDigits: display.decimals,
+    useGrouping: true
+  }).format(value);
+  const spacer = "";
+  return display.position === "before" ? `${display.symbol}${spacer}${number}` : `${number}${spacer}${display.symbol}`;
 };
 const bookEventAmountToCurrencyString = (bookEventAmount) => {
   const normalisedAmount = bookEventAmountToNormalisedAmount(bookEventAmount);
@@ -11159,7 +11221,6 @@ const handleRequestEndRound = async ({ attempts = 3 } = {}) => {
         throw data;
       }
       if (data?.balance?.amount !== void 0) {
-        console.info("[end-round] round settled; balance credited.");
         return data;
       }
       throw {
@@ -11748,7 +11809,7 @@ const EYE_FRAME = {
   addEmpty: "EYE_ADD_EMPTY",
   multEmpty: "EYE_MULT_EMPTY"
 };
-const EYE_ASPECT = 495 / 501;
+const EYE_ASPECT = 484 / 495;
 const EYE_LABEL_OFFSET = { x: 0, y: 0.015 };
 const EYE_LABEL_OFFSET_PLAQUE = { x: 0, y: 0.36 };
 const EYE_VALUE_FILL = { add: 14679039, mul: 16770669 };
@@ -11893,7 +11954,9 @@ const assets = {
   reelFrame: {
     type: "sprites",
     src: new URL("../../assets/frame/reel_frame/atlas.json", import.meta.url).href,
-    preload: true
+    preload: true,
+    // downscaled hard on phones — mipmap it too (see the `symbols` note above)
+    data: { textureOptions: { autoGenerateMipmaps: true, scaleMode: "linear" } }
   },
   winMeter: {
     type: "sprite",
@@ -11910,15 +11973,28 @@ const assets = {
   // Eye set (`EYE_PURPLE_CLOSE`, `EYE_ADD_ACTIVE`/`EYE_MULT_ACTIVE`, `EYE_ADD_EMPTY`/`EYE_MULT_EMPTY`).
   symbols: {
     type: "sprites",
+    // TEST (2026-07-19): swapped from `symbols_final` to `symbol_black` to see whether the
+    // mobile pixelation follows the ATLAS or the renderer. Frame names are identical in both
+    // (16 frames: H1-H4, L1-L5, SCATTER, EYE_*), so this is a drop-in swap — but the cells are
+    // 495x501 here vs 484x495 there, so SYMBOL_SOURCE_SIZES in constants.ts must match.
+    // REVERT: point this back at symbols_final/spritesheet.json + set the sizes back to 484x495.
     src: new URL("../../assets/symbols/symbol_black/spritesheet.json", import.meta.url).href,
-    preload: true
+    preload: true,
+    // MIPMAPS — the fix for "symbols look pixelated on mobile". Atlas cells are 484x495, but
+    // the 1920x1080 design canvas scales down hard on a phone (~5x minification vs ~3x on
+    // desktop). Without mipmaps the GPU point-samples scattered texels instead of averaging
+    // them, which reads as shimmer/aliasing — worse the smaller the symbol, hence mobile-only.
+    // `antialias` does NOT help here; it only smooths geometry edges, not texture minification.
+    data: { textureOptions: { autoGenerateMipmaps: true, scaleMode: "linear" } }
   },
   // Win-step plaque frames (BIG_WIN / HUGE_WIN / MEGA_WIN / EPIC_WIN / MAX_WIN): ornate
   // empty frames with tier crests — WinBanner renders title + amount inside in bitmap font.
   winSteps: {
     type: "sprites",
     src: new URL("../../assets/wins/win_steps/spritesheet.json", import.meta.url).href,
-    preload: true
+    preload: true,
+    // downscaled hard on phones — mipmap it too (see the `symbols` note above)
+    data: { textureOptions: { autoGenerateMipmaps: true, scaleMode: "linear" } }
   },
   tumbleWin: {
     type: "sprite",
@@ -15314,36 +15390,39 @@ function createSound() {
   };
 }
 const ENABLED_SOUNDS = /* @__PURE__ */ new Set([
-  // music (validated)
+  // music
   "bgm_main",
   "bgm_freespin",
   "bgm_win",
-  // ui + reels (validated)
+  // ui + reels
   "sfx_btn_general",
-  "sfx_btn_spin",
-  "sfx_reel_stop",
-  // --- add sounds below one at a time as they pass validation ---
-  // batch under test (2026-07-14) — user-authored clips imported from the drop folder
-  "sfx_cluster_win",
-  "sfx_anticipation",
-  "sfx_countup_loop",
-  "sfx_eye_burst",
-  "sfx_eye_land",
-  "sfx_fs_intro",
-  "sfx_scatter_land",
-  "sfx_transition",
-  // batch under test (2026-07-15) — new button-sound split
   "sfx_btn_toggle",
   "sfx_modal_open",
-  // batch under test (2026-07-15) — win-tier stingers
+  "sfx_btn_spin",
+  "sfx_reel_stop",
+  // scatter & feature
+  "sfx_scatter_land",
+  "sfx_anticipation",
+  "sfx_fs_intro",
+  "sfx_fs_outro",
+  // the Eye & Gaze
+  "sfx_gaze_full",
+  "sfx_eye_land",
+  "sfx_eye_reveal_add",
+  "sfx_eye_reveal_mul",
+  "sfx_eye_combine_add",
+  "sfx_eye_burst",
+  "sfx_mult_moove",
+  "sfx_snowball_up",
+  // wins & transition
+  "sfx_cluster_win",
+  "sfx_countup_loop",
   "sfx_win_nice",
   "sfx_win_big",
   "sfx_win_mega",
   "sfx_win_epic",
   "sfx_win_max",
-  // batch under test (2026-07-16) — outro card + multiplier flight
-  "sfx_fs_outro",
-  "sfx_mult_moove"
+  "sfx_transition"
 ]);
 const isSoundEnabled = (name) => ENABLED_SOUNDS.has(name);
 const sound = createSound();
@@ -15378,10 +15457,7 @@ function TurboSpaceHold($$payload, $$props) {
 function recordBookEvent({
   bookEvent
 }) {
-  if (stateUrlDerived.replay()) {
-    console.log("mock request end-event:", { index: bookEvent.index, type: bookEvent.type });
-    return;
-  }
+  if (stateUrlDerived.replay()) return;
   try {
     requestEndEvent({
       eventIndex: bookEvent.index,
@@ -15433,6 +15509,14 @@ function createPlayBookUtils({
 }
 const WIN_PRESENT_MIN_MULTIPLIER = 20;
 const TURBO_SPIN_SETTLE_MS = 260;
+const currentMusicBed = () => stateGame.gameType === "freegame" ? "bgm_freespin" : "bgm_main";
+let activeMusicBed = null;
+const setMusicBed = (name, { restart = false } = {}) => {
+  const changed = activeMusicBed !== name;
+  activeMusicBed = name;
+  const restartThisBed = restart && changed && name !== "bgm_main";
+  eventEmitter.broadcast({ type: "soundMusic", name, restart: restartThisBed });
+};
 const winLevelSoundsPlay = ({
   winLevelData,
   skipSfx = false
@@ -15448,11 +15532,7 @@ const winLevelSoundsPlay = ({
 };
 const winLevelSoundsStop = () => {
   eventEmitter.broadcast({ type: "soundStop", name: "sfx_countup_loop" });
-  if (stateGame.gameType === "freegame") {
-    eventEmitter.broadcast({ type: "soundMusic", name: "bgm_freespin" });
-  } else {
-    eventEmitter.broadcast({ type: "soundMusic", name: "bgm_main" });
-  }
+  setMusicBed(currentMusicBed());
   eventEmitter.broadcastAsync({ type: "uiShow" });
 };
 const resetCompletedBuyMode = () => {
@@ -15492,12 +15572,7 @@ const bookEventHandlerMap = {
     const revealEvent = bookEvent;
     stateGame.gameType = bookEvent.gameType;
     if (stateGame.gameType !== "freegame") {
-      const isSuperSpins = stateBet$1.activeBetModeKey === "SUPERSPINS";
-      if (isSuperSpins) {
-        eventEmitter.broadcast({ type: "soundMusic", name: "bgm_freespin", restart: true });
-      } else {
-        eventEmitter.broadcast({ type: "soundMusic", name: "bgm_main" });
-      }
+      setMusicBed("bgm_main");
     }
     await stateGameDerived.enhancedBoard.spin({ revealEvent });
     eventEmitter.broadcast({ type: "reelFrameScatterAnticipationEnd" });
@@ -15717,29 +15792,15 @@ const bookEventHandlerMap = {
     await eventEmitter.broadcastAsync({ type: "snowballUpdate", mult: bookEvent.mult });
   },
   // --- Win-cap (15,000×) ------------------------------------------------------------
-  // Fires on the ROUND cumulative hitting the cap. In real capped books the cap is usually
-  // reached by many small tumble/scatter wins across a bonus round, NONE of which individually
-  // cross the 20x celebrate threshold in `setWin` (see WIN_PRESENT_MIN_MULTIPLIER) — so without
-  // help here the player jumps straight from ordinary small wins to the trophy with no
-  // escalation at all. Fix: replay the FULL BIG → HUGE → MEGA → EPIC ladder (Win.svelte) for the
-  // capped ROUND TOTAL first — always at full speed, same as any other big win — and only then
-  // hand off to the trophy, which is the authoritative, INDEFINITE-hold MAX WIN reveal: the
-  // red-dragon plaque slams in and holds until a press (see WinCapCelebration.svelte).
-  // (Edge case: if a single spin's own `setWin` already reached winLevel 10 on its own, this
-  // replays the ladder a second time for the round total — accepted as strictly better than the
-  // no-escalation bug this fixes, and unconfirmed to occur in practice.)
+  // Fires on the ROUND cumulative hitting the cap. Capped books never emit a max-level
+  // `setWin` (their setWins are all small sub-20× tumbles), so WinCapCelebration plays the
+  // WHOLE escalation itself: the BIG → HUGE → MEGA → EPIC banner morphs, the ruby MAX slam,
+  // the lock, then the indefinite click-to-continue hold. Hand off directly — do NOT also
+  // run Win.svelte's ladder (winShow/winUpdate) here: the takeover already contains that
+  // exact escalation, and running both plays the same ladder twice back to back.
   wincap: async (bookEvent) => {
     const winLevelData = winLevelMap[10];
     eventEmitter.broadcast({ type: "tumbleWinAmountHide" });
-    eventEmitter.broadcast({ type: "winShow" });
-    winLevelSoundsPlay({ winLevelData });
-    await eventEmitter.broadcastAsync({
-      type: "winUpdate",
-      amount: bookEvent.amount,
-      winLevelData
-    });
-    eventEmitter.broadcast({ type: "winHide" });
-    await waitForTimeout(400);
     winLevelSoundsPlay({ winLevelData, skipSfx: true });
     await eventEmitter.broadcastAsync({ type: "winCapTrigger", amount: bookEvent.amount });
     winLevelSoundsStop();
@@ -15758,7 +15819,7 @@ const bookEventHandlerMap = {
     });
     await eventEmitter.broadcastAsync({ type: "transitionCover" });
     stateGame.gameType = "freegame";
-    eventEmitter.broadcast({ type: "soundMusic", name: "bgm_freespin", restart: true });
+    setMusicBed("bgm_freespin", { restart: true });
     await eventEmitter.broadcastAsync({ type: "freeSpinIntroHide" });
     stateGame.freeSpinIntroActive = false;
     eventEmitter.broadcast({ type: "reelFrameGlowShow" });
@@ -15814,7 +15875,7 @@ const bookEventHandlerMap = {
     stateGame.gameType = "basegame";
     resetCompletedBuyMode();
     await eventEmitter.broadcastAsync({ type: "transitionReveal" });
-    eventEmitter.broadcast({ type: "soundMusic", name: "bgm_main" });
+    setMusicBed("bgm_main");
     await eventEmitter.broadcastAsync({ type: "uiShow" });
   },
   // customised — reconstruct the on-screen state at a mid-round resume point WITHOUT
@@ -15839,7 +15900,7 @@ const bookEventHandlerMap = {
     eventEmitter.broadcast({ type: "gazeMeterShow" });
     if (lastFreeSpinTrigger) {
       stateGame.gameType = "freegame";
-      eventEmitter.broadcast({ type: "soundMusic", name: "bgm_freespin" });
+      setMusicBed("bgm_freespin");
       eventEmitter.broadcast({ type: "reelFrameGlowShow" });
       eventEmitter.broadcast({ type: "freeSpinCounterShow" });
       eventEmitter.broadcast({
@@ -15940,14 +16001,11 @@ function Sound$1($$payload, $$props) {
   const context2 = getContext();
   context2.eventEmitter.subscribeOnMount({
     // ui
+    // Selecting a bet mode never switches the bed: bgm_freespin belongs to the FREE GAME only
+    // (a bonus earned or bought), and bgm_main keeps looping through every base-scene mode —
+    // Super Spins and Ultimate included. Only the fanfare marks the Super Spins buy.
     soundBetMode: async ({ betModeKey }) => {
-      if (betModeKey === "SUPERSPINS") {
-        playOnce("sfx_fs_intro");
-        await waitForTimeout(SECOND);
-        playMusic("bgm_freespin");
-      } else {
-        playMusic("bgm_main");
-      }
+      if (betModeKey === "SUPERSPINS") playOnce("sfx_fs_intro");
     },
     // forcePlay: rapid presses (bet stepper spam, quick UI taps) must EACH click — without it the
     // once-player silently drops any play while the same clip is still ringing.
@@ -16018,6 +16076,7 @@ function Background($$payload, $$props) {
   const heat = new Tween(0, { duration: 650 });
   let t2 = 0;
   const sizes = context2.stateLayoutDerived.canvasSizes();
+  const isMobile = ["mobile", "smallMobile"].includes(context2.stateLayoutDerived.canvasSizeType());
   const feature = context2.stateGame.gameType === "freegame";
   const featureMix = new Tween(0, { duration: 720 });
   const driftX = Math.sin(t2 * 0.06) * 14;
@@ -16127,47 +16186,63 @@ function Background($$payload, $$props) {
     { backgroundColor: 329743, zIndex: -3 }
   ]));
   $$payload.out += `<!----> `;
-  Sprite($$payload, {
-    key: "backgroundBase",
-    anchor: 0.5,
-    x: cover.cx,
-    y: cover.cy,
-    width: cover.w,
-    height: cover.h,
-    alpha: 1 - featureMix.current,
-    filters: [],
-    zIndex: -2
-  });
-  $$payload.out += `<!----> `;
-  Sprite($$payload, {
-    key: "backgroundFs",
-    anchor: 0.5,
-    x: cover.cx,
-    y: cover.cy,
-    width: cover.w,
-    height: cover.h,
-    alpha: featureMix.current,
-    filters: [],
-    zIndex: -2
-  });
-  $$payload.out += `<!----> `;
-  Graphics($$payload, { draw: drawAmbientGlow, zIndex: -1.98 });
-  $$payload.out += `<!----> `;
-  Graphics($$payload, { draw: drawGodRays, zIndex: -1.95 });
-  $$payload.out += `<!----> `;
-  Graphics($$payload, { draw: drawCaustics, zIndex: -1.9 });
-  $$payload.out += `<!----> `;
-  Container($$payload, {
-    zIndex: -1.8,
-    children: ($$payload2) => {
-      Graphics($$payload2, { draw: drawParticles });
-      $$payload2.out += `<!----> `;
-      Graphics($$payload2, { draw: drawBubbles });
-      $$payload2.out += `<!---->`;
-    },
-    $$slots: { default: true }
-  });
-  $$payload.out += `<!---->`;
+  if (featureMix.current < 1) {
+    $$payload.out += "<!--[-->";
+    Sprite($$payload, {
+      key: "backgroundBase",
+      anchor: 0.5,
+      x: cover.cx,
+      y: cover.cy,
+      width: cover.w,
+      height: cover.h,
+      alpha: 1 - featureMix.current,
+      filters: [],
+      zIndex: -2
+    });
+  } else {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]--> `;
+  if (featureMix.current > 0) {
+    $$payload.out += "<!--[-->";
+    Sprite($$payload, {
+      key: "backgroundFs",
+      anchor: 0.5,
+      x: cover.cx,
+      y: cover.cy,
+      width: cover.w,
+      height: cover.h,
+      alpha: featureMix.current,
+      filters: [],
+      zIndex: -2
+    });
+  } else {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]--> `;
+  if (!isMobile) {
+    $$payload.out += "<!--[-->";
+    Graphics($$payload, { draw: drawAmbientGlow, zIndex: -1.98 });
+    $$payload.out += `<!----> `;
+    Graphics($$payload, { draw: drawGodRays, zIndex: -1.95 });
+    $$payload.out += `<!----> `;
+    Graphics($$payload, { draw: drawCaustics, zIndex: -1.9 });
+    $$payload.out += `<!----> `;
+    Container($$payload, {
+      zIndex: -1.8,
+      children: ($$payload2) => {
+        Graphics($$payload2, { draw: drawParticles });
+        $$payload2.out += `<!----> `;
+        Graphics($$payload2, { draw: drawBubbles });
+        $$payload2.out += `<!---->`;
+      },
+      $$slots: { default: true }
+    });
+    $$payload.out += `<!---->`;
+  } else {
+    $$payload.out += "<!--[!-->";
+  }
+  $$payload.out += `<!--]-->`;
   pop();
 }
 function ReelFrame($$payload, $$props) {
@@ -16915,6 +16990,14 @@ function AbyssalEye($$payload, $$props) {
   bind_props($$props, { EYE_COLORS });
   pop();
 }
+const C = {
+  navyDeep: 526092,
+  amber: 16757052,
+  purpleBright: 8142335,
+  white: 16777215,
+  textDim: 12036553
+};
+const FONT = "Inter, Arial, sans-serif";
 function Symbol$1($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
@@ -17000,20 +17083,42 @@ function Symbol$1($$payload, $$props) {
     // 12+
   };
   const winTierCfg = WIN_TIER[winTier];
+  const AURA_ALPHA_PER_STRENGTH = 0.09;
+  const AURA_ALPHA_CAP = 0.8;
+  const AURA_SPREAD = { inner: 0.45, outer: 1 };
+  const auraScale = (distance, spread) => 1 + distance * spread / Math.max(1, symbolSize.width);
+  const auraAlpha = (strength, weight) => Math.min(AURA_ALPHA_CAP, strength * AURA_ALPHA_PER_STRENGTH) * weight;
   const whitenColor = (color, t2) => {
     const r = color >> 16 & 255;
     const g = color >> 8 & 255;
     const b = color & 255;
     return (Math.round(r + (255 - r) * t2) << 16 | Math.round(g + (255 - g) * t2) << 8 | Math.round(b + (255 - b) * t2)) >>> 0;
   };
-  whitenColor(info.color, winTierCfg.whiten);
-  let winAuraFilter = null;
-  onDestroy(() => winAuraFilter?.destroy());
+  const winAuraColor = whitenColor(info.color, winTierCfg.whiten);
+  const winAuraStrength = winGlowOn ? winTierCfg.minStrength + (winTierCfg.maxStrength - winTierCfg.minStrength) * winGlowFx.pulse : 0;
   const scatterFx = { breathe: 1, connect: 0, landGlow: 0 };
   const scatterAmb = { t: 0 };
   isScatter && (props.state === "win" || props.state === "postWinStatic");
-  let scatterAuraFilter = null;
-  onDestroy(() => scatterAuraFilter?.destroy());
+  const SCATTER_AURA = {
+    distance: 30,
+    // reach off the silhouette (px)
+    color: 16763236,
+    // the scatter gold
+    idle: 1.1,
+    // resting presence
+    anticipation: 2.4,
+    // idle multiplier while the board anticipates the trigger
+    land: 3.4,
+    // added at full landGlow (already count-scaled upstream)
+    connect: 3
+    // added at full connect pulse (the bonus-win celebration)
+  };
+  const scatterAuraStrength = (() => {
+    if (!isScatter) return 0;
+    const anticipating = context2.stateGame.scatterAnticipating;
+    const shimmer = anticipating ? 0.75 + Math.sin(scatterAmb.t * 3.6) * 0.25 : 0.8 + Math.sin(scatterAmb.t * 1.7) * 0.2;
+    return SCATTER_AURA.idle * shimmer * (anticipating ? SCATTER_AURA.anticipation : 1) + scatterFx.landGlow * SCATTER_AURA.land + scatterFx.connect * SCATTER_AURA.connect;
+  })();
   onDestroy(() => {
     gsap.killTweensOf(winFx);
     gsap.killTweensOf(boomFx);
@@ -17048,7 +17153,6 @@ function Symbol$1($$payload, $$props) {
       y: scale.current * winFx.squashY * stretchFx.v
     },
     alpha: alpha.current,
-    filters: winGlowOn && winAuraFilter ? [winAuraFilter] : isScatter && scatterAuraFilter ? [scatterAuraFilter] : [],
     children: ($$payload2) => {
       if (isEye) {
         $$payload2.out += "<!--[-->";
@@ -17064,6 +17168,36 @@ function Symbol$1($$payload, $$props) {
         $$payload2.out += "<!--[!-->";
         if (frame) {
           $$payload2.out += "<!--[-->";
+          const auraStrength = winGlowOn ? winAuraStrength : scatterAuraStrength;
+          const auraColor = winGlowOn ? winAuraColor : SCATTER_AURA.color;
+          const auraDistance = winGlowOn ? winTierCfg.distance : SCATTER_AURA.distance;
+          const auraBreathe = isScatter && !winGlowOn ? scatterFx.breathe : 1;
+          if (auraStrength > 0.05) {
+            $$payload2.out += "<!--[-->";
+            Sprite($$payload2, {
+              key: frame,
+              anchor: 0.5,
+              width: symbolSize.width * auraScale(auraDistance, AURA_SPREAD.outer) * auraBreathe,
+              height: symbolSize.height * auraScale(auraDistance, AURA_SPREAD.outer) * auraBreathe,
+              alpha: auraAlpha(auraStrength, 0.55),
+              tint: auraColor,
+              blendMode: "add"
+            });
+            $$payload2.out += `<!----> `;
+            Sprite($$payload2, {
+              key: frame,
+              anchor: 0.5,
+              width: symbolSize.width * auraScale(auraDistance, AURA_SPREAD.inner) * auraBreathe,
+              height: symbolSize.height * auraScale(auraDistance, AURA_SPREAD.inner) * auraBreathe,
+              alpha: auraAlpha(auraStrength, 1),
+              tint: auraColor,
+              blendMode: "add"
+            });
+            $$payload2.out += `<!---->`;
+          } else {
+            $$payload2.out += "<!--[!-->";
+          }
+          $$payload2.out += `<!--]--> `;
           if (isScatter) {
             $$payload2.out += "<!--[-->";
             if (scatterFx.connect > 0) {
@@ -17121,7 +17255,7 @@ function Symbol$1($$payload, $$props) {
             anchor: 0.5,
             text: info.label,
             style: {
-              fontFamily: "sans-serif",
+              fontFamily: FONT,
               fontWeight: "700",
               fontSize: SYMBOL_SIZE * (info.label.length > 2 ? 0.24 : 0.34),
               fill: isSpecial ? info.glow : 329743
@@ -17907,11 +18041,6 @@ function TumbleWinAmount($$payload, $$props) {
       },
       0
     ).to(panelFx, { glow: 0, duration: 0.7, ease: "power2.out" }, 0.1);
-    context2.eventEmitter.broadcast({
-      type: "soundOnce",
-      name: "sfx_eye_combine_mul",
-      forcePlay: true
-    });
   };
   const flyMultiplier = ({ mult, fromReel, fromRow }) => new Promise((resolve) => {
     flyFx.mult = mult;
@@ -18928,7 +19057,7 @@ function Eye($$payload, $$props) {
       popCenter();
       context2.eventEmitter.broadcast({
         type: "soundOnce",
-        name: eye.eyeType === "MUL" ? "sfx_eye_combine_mul" : "sfx_eye_combine_add",
+        name: eye.eyeType === "MUL" ? "sfx_eye_burst" : "sfx_eye_combine_add",
         forcePlay: true
       });
     }).to(chip, {
@@ -18960,7 +19089,6 @@ function Eye($$payload, $$props) {
         ease: "power2.out"
       });
       popCenter();
-      context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_gaze_full" });
       await skippableWait(450 / ts());
       gazeLabel = false;
       for (const eye of eyes) {
@@ -18971,16 +19099,10 @@ function Eye($$payload, $$props) {
         await context2.eventEmitter.broadcastAsync({ type: "snowballToCombine" });
         running = e.totalMult;
         popCenter();
-        context2.eventEmitter.broadcast({
-          type: "soundOnce",
-          name: "sfx_eye_combine_add",
-          forcePlay: true
-        });
         await skippableWait(220 / ts());
       }
       running = e.totalMult;
       popCenter(true);
-      context2.eventEmitter.broadcast({ type: "soundOnce", name: "sfx_eye_burst" });
       await skippableWait(750 / ts());
       gsap.killTweensOf(dimFx);
       await new Promise((resolve) => {
@@ -18999,7 +19121,7 @@ function Eye($$payload, $$props) {
       dimFx.alpha = 0;
     }
   });
-  const totalStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.78 });
+  const totalStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.59 });
   const gazeStyle = abyssalBitmapStyle({
     fontSize: SYMBOL_SIZE * 0.22,
     letterSpacing: 3
@@ -19416,11 +19538,17 @@ function PressToContinue($$payload, $$props) {
           y: context2.stateLayoutDerived.mainLayout().height - 60,
           text: context2.i18nDerived.tapToContinue(),
           style: {
-            fontFamily: "sans-serif",
+            fontFamily: FONT,
             fontWeight: "800",
             fontSize: 38,
             fill: 15398655,
-            letterSpacing: 3
+            letterSpacing: 3,
+            dropShadow: {
+              color: 0,
+              blur: 8,
+              distance: 2,
+              alpha: 0.85
+            }
           }
         });
       },
@@ -19469,6 +19597,7 @@ function WinCapCelebration($$payload, $$props) {
   const BACKDROP_ALPHA = 0.78;
   const SCENE_TINT_ALPHA = 0.1;
   const FRAME_SCALE = 0.72;
+  const FRAME_SCALE_PORTRAIT = 0.95;
   const AMOUNT_Y = 0.08;
   const AMOUNT_SIZE = 0.24;
   const AMOUNT_MAX_WIDTH = 0.66;
@@ -19481,7 +19610,7 @@ function WinCapCelebration($$payload, $$props) {
   let oncomplete = () => {
   };
   const boardWidth = context2.stateGameDerived.boardLayout().width;
-  const frameW = boardWidth * 1.05 * FRAME_SCALE;
+  const frameW = boardWidth * 1.05 * (context2.stateLayoutDerived.layoutType() === "portrait" ? FRAME_SCALE_PORTRAIT : FRAME_SCALE);
   const frameH = frameW * (383 / 522);
   const amountStyle = abyssalBitmapStyle({ fontSize: frameH * AMOUNT_SIZE });
   const countUp = new Tween(0);
@@ -19761,7 +19890,8 @@ function Win($$payload, $$props) {
   const finalTier = tierFor(multiplier);
   const boardWidth = context2.stateGameDerived.boardLayout().width;
   const imgW = boardWidth * 1.05;
-  const frameW = imgW * 0.62;
+  const frameScale = context2.stateLayoutDerived.layoutType() === "portrait" ? 0.95 : 0.72;
+  const frameW = imgW * frameScale;
   const frameH = frameW * (383 / 522);
   const amountStyle = abyssalBitmapStyle({ fontSize: frameH * AMOUNT_SIZE });
   const countUp = new Tween(0);
@@ -20133,7 +20263,7 @@ function FreeSpinIntro($$payload, $$props) {
               alpha: fx.hint,
               text: tapToPlay,
               style: {
-                fontFamily: "sans-serif",
+                fontFamily: FONT,
                 fontWeight: "800",
                 fontSize: imgH * 0.055,
                 letterSpacing: imgH * 6e-3,
@@ -20274,7 +20404,7 @@ function FreeSpinRetrigger($$payload, $$props) {
               alpha: fx.hint,
               text: tapToSkip,
               style: {
-                fontFamily: "Arial, Helvetica, sans-serif",
+                fontFamily: FONT,
                 fontWeight: "900",
                 fontSize: imgH * 0.044,
                 letterSpacing: imgH * 6e-3,
@@ -20360,7 +20490,10 @@ function FreeSpinCounter($$payload, $$props) {
     color: MULT_GLOW_COLOR,
     distance: 18,
     outerStrength: 0,
-    quality: 0.3
+    quality: 0.3,
+    // see Eye.svelte: a filter's render texture defaults to 1x, which rasterizes the banner +
+    // its multiplier text at a fraction of the screen's density on a high-DPR phone
+    resolution: Math.min(window.devicePixelRatio || 1, 2)
   });
   multGlow.enabled = false;
   const blinkGlow = () => {
@@ -21023,7 +21156,7 @@ const drawControlGlyph = (g, key, size, options = {}) => {
 function ControlBar($$payload, $$props) {
   push();
   const context2 = getContext();
-  const BAR_FONT = "Inter, Arial, sans-serif";
+  const BAR_FONT = FONT;
   const AUTO_POPUP_SIZE = { w: 340, h: 168 };
   const BET_POPUP_COLUMNS = { desktop: 5, mobile: 3 };
   const BET_POPUP_PADDING = { x: 46, y: 48 };
@@ -21044,6 +21177,11 @@ function ControlBar($$payload, $$props) {
     glow: 5954815,
     shadow: 2066,
     textDim: 14678271
+  };
+  const READOUT = {
+    label: 16766896,
+    value: 16777215,
+    shadow: 2754320
   };
   const MENU_POPUP_PANEL = { w: 290 };
   const BET_STEP_BUTTON = {
@@ -21407,9 +21545,9 @@ function ControlBar($$payload, $$props) {
   };
   const readoutLabelStyle = {
     ...labelStyle,
-    fill: 16766896,
+    fill: READOUT.label,
     dropShadow: {
-      color: 2754320,
+      color: READOUT.shadow,
       blur: 5,
       distance: 2,
       alpha: 0.82
@@ -21417,9 +21555,9 @@ function ControlBar($$payload, $$props) {
   };
   const readoutValueStyle = {
     ...valueStyle,
-    fill: 16777215,
+    fill: READOUT.value,
     dropShadow: {
-      color: 2754320,
+      color: READOUT.shadow,
       blur: 7,
       distance: 2,
       alpha: 0.82
@@ -22030,14 +22168,14 @@ function ControlBar($$payload, $$props) {
               anchor: 0.5,
               y: -17,
               text: context2.i18nDerived.win(),
-              style: { ...labelStyle, fontSize: 15 }
+              style: { ...readoutLabelStyle, fontSize: 15 }
             });
             $$payload3.out += `<!----> `;
             Text($$payload3, {
               anchor: 0.5,
               y: 16,
               text: winText,
-              style: { ...valueStyle, fontSize: 28 }
+              style: { ...readoutValueStyle, fontSize: 28 }
             });
             $$payload3.out += `<!---->`;
           },
@@ -22065,14 +22203,6 @@ function ControlBar($$payload, $$props) {
 const config = {
   gameName: "abyssal"
 };
-const C = {
-  navyDeep: 526092,
-  amber: 16757052,
-  purpleBright: 8142335,
-  white: 16777215,
-  textDim: 12036553
-};
-const FONT = "Inter, sans-serif";
 function GameHeader($$payload, $$props) {
   push();
   const context2 = getContext();
@@ -22420,25 +22550,30 @@ function ReplayControls($$payload, $$props) {
 }
 function GameInfo($$payload, $$props) {
   push();
-  const ATLAS = new URL("../../assets/symbols/symbol_black/symbol_black.png", import.meta.url).href;
-  const ATLAS_W = 1980;
-  const ATLAS_H = 2004;
-  const CELL_W = 495;
-  const CELL_H = 501;
+  const ATLAS = new URL("../../assets/symbols/symbols_final/symbols_final.png", import.meta.url).href;
+  const ATLAS_W = 1936;
+  const ATLAS_H = 1980;
+  const CELL_W = 484;
+  const CELL_H = 495;
   const FRAME = {
     H1: [0, 0],
-    H2: [1485, 0],
-    H3: [990, 0],
-    H4: [495, 0],
-    L1: [495, 501],
-    L2: [0, 501],
-    L3: [1485, 501],
-    L4: [990, 501],
-    L5: [1485, 1002],
-    SCATTER: [0, 1503],
-    ADD_EYE: [495, 1503],
-    MULT_EYE: [1485, 1503],
-    CLOSE_EYE: [0, 1002]
+    H2: [484, 0],
+    H3: [968, 0],
+    H4: [1452, 0],
+    L1: [484, 495],
+    L2: [968, 495],
+    L3: [1452, 495],
+    L4: [0, 495],
+    L5: [1452, 990],
+    SCATTER: [0, 1485],
+    ADD_EYE: [484, 1485],
+    // EYE_ADD_ACTIVE  — blue eye
+    // EYE_MULT_ACTIVE — the RED slit-pupil eye. This used to point at [1452, 1485]
+    // (EYE_PURPLE_ACTIVE, a BLUE eye), so the popup showed a blue eye for BOTH eye types.
+    // ADD = cyan, MUL = red — see CLAUDE.md.
+    MULT_EYE: [968, 1485],
+    CLOSE_EYE: [0, 990]
+    // EYE_PURPLE_CLOSE
   };
   const t2 = (key) => i18nDerived.gameInfo(key);
   const pay = (symbol, tier) => t2(`PAY_${symbol}_${tier}`);
@@ -22468,6 +22603,7 @@ function GameInfo($$payload, $$props) {
     specialMultEyeDescriptionHtml: t2("SPECIAL_MULT_EYE_DESCRIPTION_HTML"),
     eyeGazeTitle: t2("EYE_GAZE_TITLE"),
     eyeGazeDescriptionHtml: t2("EYE_GAZE_DESCRIPTION_HTML"),
+    eyeValuesHtml: t2("EYE_VALUES_HTML"),
     eyeGazeExampleHtml: t2("EYE_GAZE_EXAMPLE_HTML"),
     freeSpinsTitle: t2("FREE_SPINS_TITLE"),
     waysToPlayTitle: t2("WAYS_TO_PLAY_TITLE"),
@@ -22651,7 +22787,7 @@ function GameInfo($$payload, $$props) {
   symIcon($$payload, "ADD_EYE", 56);
   $$payload.out += `<!----> <div class="special-name svelte-19s4fcf">${escape_html(copy.specialAddEyeName)}</div> <p class="svelte-19s4fcf">${html(copy.specialAddEyeDescriptionHtml)}</p></div> <div class="special svelte-19s4fcf">`;
   symIcon($$payload, "MULT_EYE", 56);
-  $$payload.out += `<!----> <div class="special-name svelte-19s4fcf">${escape_html(copy.specialMultEyeName)}</div> <p class="svelte-19s4fcf">${html(copy.specialMultEyeDescriptionHtml)}</p></div></div></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${html(copy.eyeGazeTitle)}</h2> <p class="svelte-19s4fcf">${html(copy.eyeGazeDescriptionHtml)}</p> <p class="note svelte-19s4fcf">${html(copy.eyeGazeExampleHtml)}</p></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.freeSpinsTitle)}</h2> <ul class="bullets svelte-19s4fcf"><!--[-->`;
+  $$payload.out += `<!----> <div class="special-name svelte-19s4fcf">${escape_html(copy.specialMultEyeName)}</div> <p class="svelte-19s4fcf">${html(copy.specialMultEyeDescriptionHtml)}</p></div></div></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${html(copy.eyeGazeTitle)}</h2> <p class="svelte-19s4fcf">${html(copy.eyeGazeDescriptionHtml)}</p> <p class="svelte-19s4fcf">${html(copy.eyeValuesHtml)}</p> <p class="note svelte-19s4fcf">${html(copy.eyeGazeExampleHtml)}</p></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.freeSpinsTitle)}</h2> <ul class="bullets svelte-19s4fcf"><!--[-->`;
   for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
     let bullet = each_array_2[$$index_2];
     $$payload.out += `<li class="svelte-19s4fcf">${html(bullet)}</li>`;
@@ -22945,15 +23081,15 @@ function Game($$payload, $$props) {
               ControlBar($$payload3);
             }
             $$payload3.out += `<!--]--> `;
-            Win($$payload3);
-            $$payload3.out += `<!----> `;
-            WinCapCelebration($$payload3);
-            $$payload3.out += `<!----> `;
             FreeSpinCounter($$payload3);
+            $$payload3.out += `<!----> `;
+            GameHeader($$payload3);
             $$payload3.out += `<!----> `;
             FreeSpinOutro($$payload3);
             $$payload3.out += `<!----> `;
-            GameHeader($$payload3);
+            Win($$payload3);
+            $$payload3.out += `<!----> `;
+            WinCapCelebration($$payload3);
             $$payload3.out += `<!---->`;
           } else {
             $$payload3.out += "<!--[!-->";
@@ -23325,6 +23461,7 @@ const en = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Rare &amp; explosive. Multiplier = <strong>start&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "The Eye &amp; the Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Every winning cluster charges the <strong>Gaze</strong> with Essence: <strong>+2</strong> for 8&ndash;9 symbols, <strong>+3</strong> for 10&ndash;11, <strong>+5</strong> for 12+, up to a cap of <strong>30</strong>. If an <strong>Eye</strong> is on the board at the end of a winning spin &ndash; from the fill or dropped in mid-tumble &ndash; it turns the Gaze into one big multiplier applied to everything you won that spin.",
+  GAME_INFO_EYE_VALUES_HTML: "An Eye starts on one of these numbers: <strong>2, 5, 10, 25, 50 or 100</strong> &ndash; smaller values land most often, 100 is the rarest.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Example: a 2x win from two ordinary clusters builds a Gaze of 4. An ADD Eye starting at 10 &rarr; x14 &rarr; pays 28x. A MULTIPLY Eye &rarr; x40 &rarr; pays 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Land <strong>4+ Leviathan (Scatter)</strong> - they can drop mid-tumble - to trigger.",
@@ -23495,6 +23632,7 @@ const ar = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "نادر &amp; انفجاري. المضاعف = <strong>البداية&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "Eye و Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "كل مجموعة رابحة تشحن <strong>Gaze</strong> بمقدار Essence: <strong>+2</strong> لمجموعة 8&ndash;9 رموز، <strong>+3</strong> لمجموعة 10&ndash;11، <strong>+5</strong> لمجموعة 12+، بحد أقصى <strong>30</strong>. إذا كان <strong>Eye</strong> على اللوحة في نهاية دورة رابحة &ndash; سواء كان موجودا منذ البداية أو سقط في منتصف Tumble &ndash; يحول Gaze إلى مضاعف كبير يطبق على كل ما ربحته في تلك الدورة.",
+  GAME_INFO_EYE_VALUES_HTML: "تبدأ العين بأحد هذه الأرقام: <strong>2 أو 5 أو 10 أو 25 أو 50 أو 100</strong> &ndash; القيم الصغيرة هي الأكثر ظهورًا، و100 هي الأندر.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "مثال: ربح 2x من مجموعتين عاديتين يبني Gaze بقيمة 4. ADD Eye يبدأ من 10 &rarr; x14 &rarr; يدفع 28x. أما MULTIPLY Eye &rarr; x40 &rarr; يدفع 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "اهبط <strong>4+ Leviathan (Scatter)</strong> - يمكن أن تظهر أثناء Tumble - للتفعيل.",
@@ -23664,6 +23802,7 @@ const de = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Selten &amp; explosiv. Multiplikator = <strong>Start&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "Das Eye &amp; der Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Jeder gewinnende Cluster laedt den <strong>Gaze</strong> mit Essence auf: <strong>+2</strong> bei 8&ndash;9 Symbolen, <strong>+3</strong> bei 10&ndash;11, <strong>+5</strong> bei 12+, bis maximal <strong>30</strong>. Wenn am Ende eines gewinnenden Spins ein <strong>Eye</strong> auf dem Feld ist &ndash; von Anfang an oder mitten im Tumble hereingefallen &ndash; verwandelt es den Gaze in einen grossen Multiplikator fuer alles, was du in diesem Spin gewonnen hast.",
+  GAME_INFO_EYE_VALUES_HTML: "Ein Auge startet mit einer dieser Zahlen: <strong>2, 5, 10, 25, 50 oder 100</strong> &ndash; kleinere Werte erscheinen am haeufigsten, 100 ist am seltensten.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Beispiel: Ein 2x-Gewinn aus zwei gewoehnlichen Clustern baut einen Gaze von 4. Ein ADD Eye ab 10 &rarr; x14 &rarr; zahlt 28x. Ein MULTIPLY Eye &rarr; x40 &rarr; zahlt 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Lande <strong>4+ Leviathan (Scatter)</strong> - sie koennen auch mitten im Tumble fallen - zum Ausloesen.",
@@ -23833,6 +23972,7 @@ const es = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Raro y explosivo. Multiplicador = <strong>inicio&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "El Eye &amp; la Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Cada cluster ganador carga la <strong>Gaze</strong> con Essence: <strong>+2</strong> con 8&ndash;9 simbolos, <strong>+3</strong> con 10&ndash;11, <strong>+5</strong> con 12+, hasta un maximo de <strong>30</strong>. Si hay un <strong>Eye</strong> en el tablero al final de un giro ganador &ndash; desde el inicio o caido en pleno tumble &ndash; convierte la Gaze en un gran multiplicador aplicado a todo lo ganado en ese giro.",
+  GAME_INFO_EYE_VALUES_HTML: "Un Ojo comienza con uno de estos numeros: <strong>2, 5, 10, 25, 50 o 100</strong> &ndash; los valores pequenos aparecen con mas frecuencia, 100 es el mas raro.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Ejemplo: una victoria de 2x con dos clusters normales construye una Gaze de 4. Un ADD Eye desde 10 &rarr; x14 &rarr; paga 28x. Un MULTIPLY Eye &rarr; x40 &rarr; paga 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Giros Gratis",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Cae <strong>4+ Leviatan (Scatter)</strong>; tambien pueden caer durante un tumble para activar.",
@@ -24002,6 +24142,7 @@ const fi = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Harvinainen &amp; räjähtävä. Kerroin = <strong>alku&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Jokainen voittava klusteri lataa <strong>Gazea</strong> Essencellä: <strong>+2</strong> 8&ndash;9 symbolista, <strong>+3</strong> 10&ndash;11 symbolista, <strong>+5</strong> 12+ symbolista, enintään <strong>30</strong>. Jos <strong>Eye</strong> on laudalla voittavan pyöräytyksen lopussa &ndash; alusta asti tai kesken tumblen pudonneena &ndash; se muuttaa Gazen yhdeksi suureksi kertoimeksi, joka koskee kaikkea kyseisen pyöräytyksen voittoa.",
+  GAME_INFO_EYE_VALUES_HTML: "Silmä alkaa yhdellä näistä luvuista: <strong>2, 5, 10, 25, 50 tai 100</strong> &ndash; pienet arvot ovat yleisimpiä, 100 on harvinaisin.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Esimerkki: 2x voitto kahdesta tavallisesta klusterista rakentaa Gazen 4. ADD Eye alkaen 10 &rarr; x14 &rarr; maksaa 28x. MULTIPLY Eye &rarr; x40 &rarr; maksaa 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Saa <strong>4+ Leviathan (Scatter)</strong> - ne voivat pudota myös kesken tumblen - käynnistääksesi toiminnon.",
@@ -24171,6 +24312,7 @@ const fr = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Rare &amp; explosif. Multiplicateur = <strong>depart&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "Le Eye &amp; le Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Chaque cluster gagnant charge le <strong>Gaze</strong> en Essence : <strong>+2</strong> pour 8&ndash;9 symboles, <strong>+3</strong> pour 10&ndash;11, <strong>+5</strong> pour 12+, jusqu a un maximum de <strong>30</strong>. Si un <strong>Eye</strong> est sur le plateau a la fin d un tour gagnant &ndash; present des le depart ou tombe en plein tumble &ndash; il transforme le Gaze en un gros multiplicateur applique a tout ce que vous avez gagne pendant ce tour.",
+  GAME_INFO_EYE_VALUES_HTML: "Un Oeil demarre sur un de ces nombres : <strong>2, 5, 10, 25, 50 ou 100</strong> &ndash; les petites valeurs apparaissent le plus souvent, 100 est la plus rare.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Exemple : un gain de 2x issu de deux clusters ordinaires construit un Gaze de 4. Un ADD Eye demarrant a 10 &rarr; x14 &rarr; paie 28x. Un MULTIPLY Eye &rarr; x40 &rarr; paie 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Tours Gratuits",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Obtenez <strong>4+ Leviathan (Scatter)</strong> - ils peuvent tomber pendant un tumble - pour declencher.",
@@ -24340,6 +24482,7 @@ const hi = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "दुर्लभ &amp; विस्फोटक. मल्टीप्लायर = <strong>शुरुआत&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "Eye और Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "हर जीतने वाला क्लस्टर <strong>Gaze</strong> को Essence से चार्ज करता है: 8&ndash;9 सिंबल पर <strong>+2</strong>, 10&ndash;11 पर <strong>+3</strong>, 12+ पर <strong>+5</strong>, ज्यादा से ज्यादा <strong>30</strong>. अगर जीतने वाले स्पिन के अंत में बोर्ड पर <strong>Eye</strong> है &ndash; शुरू से या tumble के बीच गिरा हुआ &ndash; तो यह Gaze को एक बड़े मल्टीप्लायर में बदलता है जो उस स्पिन में जीती हर चीज पर लगता है.",
+  GAME_INFO_EYE_VALUES_HTML: "एक आँख इनमें से किसी एक संख्या से शुरू होती है: <strong>2, 5, 10, 25, 50 या 100</strong> &ndash; छोटे मान सबसे अधिक दिखते हैं, 100 सबसे दुर्लभ है।",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "उदाहरण: दो आम क्लस्टर से 2x की जीत Gaze 4 बनाती है. 10 से शुरू ADD Eye &rarr; x14 &rarr; 28x देता है. MULTIPLY Eye &rarr; x40 &rarr; 80x देता है.",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "ट्रिगर करने के लिए <strong>4+ Leviathan (Scatter)</strong> लाएं - वे tumble के बीच भी गिर सकते हैं.",
@@ -24509,6 +24652,7 @@ const id = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Langka &amp; eksplosif. Pengali = <strong>awal&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Setiap cluster menang mengisi <strong>Gaze</strong> dengan Essence: <strong>+2</strong> untuk 8&ndash;9 simbol, <strong>+3</strong> untuk 10&ndash;11, <strong>+5</strong> untuk 12+, maksimal <strong>30</strong>. Jika <strong>Eye</strong> ada di papan pada akhir spin menang &ndash; sejak awal atau jatuh di tengah tumble &ndash; Eye mengubah Gaze menjadi satu pengali besar yang diterapkan ke semua kemenangan pada spin tersebut.",
+  GAME_INFO_EYE_VALUES_HTML: "Mata dimulai dengan salah satu angka ini: <strong>2, 5, 10, 25, 50 atau 100</strong> &ndash; nilai kecil paling sering muncul, 100 paling langka.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Contoh: kemenangan 2x dari dua cluster biasa membangun Gaze 4. ADD Eye mulai dari 10 &rarr; x14 &rarr; membayar 28x. MULTIPLY Eye &rarr; x40 &rarr; membayar 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Dapatkan <strong>4+ Leviathan (Scatter)</strong> - dapat jatuh di tengah tumble - untuk memicu.",
@@ -24678,6 +24822,7 @@ const ja = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "希少 &amp; 強力。マルチプライヤー = <strong>開始値&nbsp;&times;&nbsp;Gaze</strong>。",
   GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "勝利クラスターごとに<strong>Gaze</strong>がEssenceでチャージされます：シンボル8&ndash;9個で<strong>+2</strong>、10&ndash;11個で<strong>+3</strong>、12個以上で<strong>+5</strong>、上限は<strong>30</strong>。勝利スピンの終わりにボード上に<strong>Eye</strong>があると &ndash; 最初からでも、tumbleの途中で落ちてきたものでも &ndash; Gazeを大きなマルチプライヤーに変え、そのスピンで得たすべての勝利に適用します。",
+  GAME_INFO_EYE_VALUES_HTML: "目は次のいずれかの数字で始まります: <strong>2、5、10、25、50、100</strong> &ndash; 小さい値ほど出やすく、100が最もレアです。",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "例：普通のクラスター2つで2x勝利、Gazeは4。10から始まるADD Eye &rarr; x14 &rarr; 28x。MULTIPLY Eye &rarr; x40 &rarr; 80x。",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "<strong>4+ Leviathan (Scatter)</strong>を出すと発動します。tumble中に落ちることもあります。",
@@ -24847,6 +24992,7 @@ const ko = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "희귀하고 &amp; 폭발적입니다. 배수 = <strong>시작값&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "승리한 클러스터마다 <strong>Gaze</strong>가 Essence로 충전됩니다: 심볼 8&ndash;9개는 <strong>+2</strong>, 10&ndash;11개는 <strong>+3</strong>, 12개 이상은 <strong>+5</strong>, 최대 <strong>30</strong>. 승리 스핀이 끝날 때 보드에 <strong>Eye</strong>가 있으면 &ndash; 처음부터 있었든 tumble 도중 떨어졌든 &ndash; Gaze를 해당 스핀에서 얻은 모든 승리에 적용되는 큰 배수로 바꿉니다.",
+  GAME_INFO_EYE_VALUES_HTML: "눈은 다음 숫자 중 하나로 시작합니다: <strong>2, 5, 10, 25, 50, 100</strong> &ndash; 작은 값일수록 자주 나오며 100이 가장 희귀합니다.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "예시: 평범한 클러스터 2개로 2x 승리, Gaze는 4. 10에서 시작하는 ADD Eye &rarr; x14 &rarr; 28x 지급. MULTIPLY Eye &rarr; x40 &rarr; 80x 지급.",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "<strong>4+ Leviathan (Scatter)</strong>를 착지시키면 발동합니다. tumble 중에도 떨어질 수 있습니다.",
@@ -25016,6 +25162,7 @@ const pl = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Rzadkie i wybuchowe. Mnoznik = <strong>start&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Kazdy wygrywajacy klaster laduje <strong>Gaze</strong> Essence: <strong>+2</strong> za 8&ndash;9 symboli, <strong>+3</strong> za 10&ndash;11, <strong>+5</strong> za 12+, maksymalnie do <strong>30</strong>. Jesli <strong>Eye</strong> jest na planszy na koncu wygrywajacego spinu &ndash; od poczatku lub po wpadnieciu w trakcie tumbla &ndash; zamienia Gaze w duzy mnoznik stosowany do wszystkiego, co wygrales w tym spinie.",
+  GAME_INFO_EYE_VALUES_HTML: "Oko startuje z jedna z tych liczb: <strong>2, 5, 10, 25, 50 lub 100</strong> &ndash; mniejsze wartosci pojawiaja sie najczesciej, 100 jest najrzadsze.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Przyklad: wygrana 2x z dwoch zwyklych klastrow buduje Gaze 4. ADD Eye od 10 &rarr; x14 &rarr; placi 28x. MULTIPLY Eye &rarr; x40 &rarr; placi 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Darmowe Spiny",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Wyladuj <strong>4+ Lewiatan (Scatter)</strong> - moga spasc w trakcie tumble - aby uruchomic.",
@@ -25185,6 +25332,7 @@ const pt = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Raro e explosivo. Multiplicador = <strong>inicio&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "O Eye &amp; o Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Cada cluster vencedor carrega o <strong>Gaze</strong> com Essence: <strong>+2</strong> com 8&ndash;9 simbolos, <strong>+3</strong> com 10&ndash;11, <strong>+5</strong> com 12+, ate o maximo de <strong>30</strong>. Se um <strong>Eye</strong> estiver no tabuleiro ao fim de um giro vencedor &ndash; presente desde o inicio ou caido no meio do tumble &ndash; ele transforma o Gaze em um grande multiplicador aplicado a tudo que voce ganhou nesse giro.",
+  GAME_INFO_EYE_VALUES_HTML: "Um Olho comeca com um destes numeros: <strong>2, 5, 10, 25, 50 ou 100</strong> &ndash; valores menores aparecem com mais frequencia, 100 e o mais raro.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Exemplo: uma vitoria de 2x com dois clusters comuns constroi um Gaze de 4. Um ADD Eye comecando em 10 &rarr; x14 &rarr; paga 28x. Um MULTIPLY Eye &rarr; x40 &rarr; paga 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Giros Gratis",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Caiam <strong>4+ Leviata (Scatter)</strong> - eles podem cair durante o tumble - para ativar.",
@@ -25354,6 +25502,7 @@ const ru = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Редкий &amp; взрывной. Множитель = <strong>старт&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "Eye и Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Каждый выигрышный кластер заряжает <strong>Gaze</strong> Essence: <strong>+2</strong> за 8&ndash;9 символов, <strong>+3</strong> за 10&ndash;11, <strong>+5</strong> за 12+, максимум <strong>30</strong>. Если <strong>Eye</strong> находится на поле в конце выигрышного спина &ndash; с самого начала или упав во время tumble &ndash; он превращает Gaze в большой множитель, применяемый ко всему выигрышу этого спина.",
+  GAME_INFO_EYE_VALUES_HTML: "Глаз начинается с одного из этих чисел: <strong>2, 5, 10, 25, 50 или 100</strong> &ndash; меньшие значения выпадают чаще всего, 100 &mdash; самое редкое.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Пример: выигрыш 2x из двух обычных кластеров дает Gaze 4. ADD Eye со стартом 10 &rarr; x14 &rarr; платит 28x. MULTIPLY Eye &rarr; x40 &rarr; платит 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Получите <strong>4+ Leviathan (Scatter)</strong> - они могут выпасть в середине tumble - чтобы запустить функцию.",
@@ -25523,6 +25672,7 @@ const tr = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Nadir &amp; patlayıcı. Çarpan = <strong>başlangıç&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "Eye ve Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Her kazanan küme <strong>Gaze</strong> değerini Essence ile doldurur: 8&ndash;9 sembolde <strong>+2</strong>, 10&ndash;11 sembolde <strong>+3</strong>, 12+ sembolde <strong>+5</strong>, en fazla <strong>30</strong>. Kazanan bir spinin sonunda tahtada <strong>Eye</strong> varsa &ndash; baştan beri olsun ya da tumble ortasında düşmüş olsun &ndash; Gaze o spinde kazandığınız her şeye uygulanan büyük bir çarpana dönüşür.",
+  GAME_INFO_EYE_VALUES_HTML: "Bir Göz şu sayılardan biriyle başlar: <strong>2, 5, 10, 25, 50 veya 100</strong> &ndash; küçük değerler en sık görülür, 100 en nadiridir.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Örnek: iki sıradan kümeden gelen 2x kazanç 4 Gaze biriktirir. 10 ile başlayan bir ADD Eye &rarr; x14 &rarr; 28x öder. Bir MULTIPLY Eye &rarr; x40 &rarr; 80x öder.",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Tetiklemek için <strong>4+ Leviathan (Scatter)</strong> getirin - tumble sırasında da düşebilirler.",
@@ -25692,6 +25842,7 @@ const vi = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "Hiếm &amp; bùng nổ. Hệ số = <strong>khởi đầu&nbsp;&times;&nbsp;Gaze</strong>.",
   GAME_INFO_EYE_GAZE_TITLE: "Eye &amp; Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "Mỗi cụm thắng nạp <strong>Gaze</strong> bằng Essence: <strong>+2</strong> với 8&ndash;9 biểu tượng, <strong>+3</strong> với 10&ndash;11, <strong>+5</strong> với 12+, tối đa <strong>30</strong>. Nếu có <strong>Eye</strong> trên bảng khi kết thúc vòng quay thắng &ndash; có từ đầu hoặc rơi vào giữa lúc tumble &ndash; nó biến Gaze thành một hệ số lớn áp dụng cho toàn bộ số thắng trong vòng quay đó.",
+  GAME_INFO_EYE_VALUES_HTML: "Một Con Mắt bắt đầu với một trong các số: <strong>2, 5, 10, 25, 50 hoặc 100</strong> &ndash; giá trị nhỏ xuất hiện thường xuyên nhất, 100 hiếm nhất.",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "Ví dụ: thắng 2x từ hai cụm thường tạo Gaze 4. Eye ADD bắt đầu từ 10 &rarr; x14 &rarr; trả 28x. Eye MULTIPLY &rarr; x40 &rarr; trả 80x.",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "Rơi <strong>4+ Leviathan (Scatter)</strong> - chúng có thể rơi giữa tumble - để kích hoạt.",
@@ -25862,6 +26013,7 @@ const zh = {
   GAME_INFO_SPECIAL_MULT_EYE_DESCRIPTION_HTML: "稀有且爆发力强。倍数 = <strong>起始值&nbsp;&times;&nbsp;Gaze</strong>。",
   GAME_INFO_EYE_GAZE_TITLE: "Eye 与 Gaze",
   GAME_INFO_EYE_GAZE_DESCRIPTION_HTML: "每个获胜的连消组合都会用 Essence 为 <strong>Gaze</strong> 充能：8&ndash;9 个符号 <strong>+2</strong>，10&ndash;11 个 <strong>+3</strong>，12 个及以上 <strong>+5</strong>，上限 <strong>30</strong>。若获胜旋转结束时棋盘上有 <strong>Eye</strong> &ndash; 无论是开局就有还是 tumble 中途掉落 &ndash; 它会将 Gaze 转化为一个大倍数，应用于该次旋转赢得的全部金额。",
+  GAME_INFO_EYE_VALUES_HTML: "眼睛以以下数字之一开始：<strong>2、5、10、25、50 或 100</strong> &ndash; 数值越小越常见，100 最为稀有。",
   GAME_INFO_EYE_GAZE_EXAMPLE_HTML: "例如：两个普通连消组合赢得 2x，Gaze 为 4。起始值 10 的 ADD Eye &rarr; x14 &rarr; 支付 28x。MULTIPLY Eye &rarr; x40 &rarr; 支付 80x。",
   GAME_INFO_FREE_SPINS_TITLE: "Free Spins",
   GAME_INFO_FREE_SPINS_BULLET_1_HTML: "落下 <strong>4+ Leviathan (Scatter)</strong> 即触发 - 它们也可能在 tumble 中途落下。",

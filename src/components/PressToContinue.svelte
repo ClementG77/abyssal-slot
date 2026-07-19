@@ -4,6 +4,7 @@
 	import { Text } from 'pixi-svelte';
 
 	import { getContext } from '../game/context';
+	import { FONT } from './controls/theme';
 
 	// Code-drawn prompt (replaces the cloned pressToContinueText sprite).
 	type Props = {
@@ -35,7 +36,7 @@
 			y={context.stateLayoutDerived.mainLayout().height - 60}
 			text={context.i18nDerived.tapToContinue()}
 			style={{
-				fontFamily: 'sans-serif',
+				fontFamily: FONT,
 				fontWeight: '800',
 				fontSize: 38,
 				fill: 0xeaf6ff,

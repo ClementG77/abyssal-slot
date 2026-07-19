@@ -6,30 +6,38 @@
 	// modes, and the slot's key numbers. Mirrors docs/ABYSSAL_GAME_OVERVIEW.md (no wild — the
 	// Eye is the sole multiplier). Paytable values are bet multipliers; the Eye applies on top.
 	//
-	// Symbol art is rendered straight from the `symbol_black` atlas via CSS sprites (the old
-	// per-symbol PNG icons were removed). Frame coords mirror spritesheet.json; every cell is a
-	// uniform 495×501 inside the 1980×2004 sheet. The PNG URL uses the deploy-root-safe
+	// Symbol art is rendered straight from the SAME atlas the board uses (see `symbols` in
+	// game/assets.ts) via CSS sprites. The PNG URL uses the deploy-root-safe
 	// `new URL(..., import.meta.url)` form (a root-absolute `/assets/...` would 403 on Stake).
+	//
+	// The coords below MIRROR that atlas's spritesheet.json. They are duplicated on purpose:
+	// `static/` is SERVED, not bundled, so importing that JSON trips Vite's serving allow list
+	// ("outside of Vite serving allow list"). If assets.ts is pointed at a different atlas, this
+	// table AND the ATLAS/CELL constants must follow — the frame name each entry resolves to is
+	// written beside it, so it's a lookup, not a guess.
 	const ATLAS = new URL('../../assets/symbols/symbol_black/symbol_black.png', import.meta.url).href;
 	const ATLAS_W = 1980;
 	const ATLAS_H = 2004;
 	const CELL_W = 495;
 	const CELL_H = 501;
-	// Local keys map to the atlas frames (ADD_EYE/MULT_EYE/CLOSE_EYE → the ACTIVE / PURPLE_CLOSE art).
 	const FRAME: Record<string, [number, number]> = {
-		H1: [0, 0],
-		H2: [1485, 0],
-		H3: [990, 0],
-		H4: [495, 0],
-		L1: [495, 501],
-		L2: [0, 501],
-		L3: [1485, 501],
-		L4: [990, 501],
-		L5: [1485, 1002],
-		SCATTER: [0, 1503],
-		ADD_EYE: [495, 1503],
-		MULT_EYE: [1485, 1503],
-		CLOSE_EYE: [0, 1002],
+		// symbol_black atlas (1980x2004, 495x501 cells). These are the GAME's symbol -> art
+		// pairings, NOT the raw atlas frame names: Symbol.svelte remaps H1->H3, H3->H1, L1->L3,
+		// L3->L1, so the paytable must apply the same remap or it shows different artwork than
+		// the board does (it did, for those four, before this).
+		H1: [0, 0], // frame H3 — diving helmet
+		H2: [1485, 0], // frame H2 — nautilus
+		H3: [990, 0], // frame H1 — anglerfish
+		H4: [495, 0], // frame H4 — jellyfish
+		L1: [495, 501], // frame L3
+		L2: [0, 501], // frame L2
+		L3: [1485, 501], // frame L1
+		L4: [990, 501], // frame L4
+		L5: [1485, 1002], // frame L5
+		SCATTER: [0, 1503], // frame SCATTER — leviathan
+		ADD_EYE: [495, 1503], // EYE_ADD_ACTIVE — blue eye
+		MULT_EYE: [1485, 1503], // EYE_MULT_ACTIVE — red eye
+		CLOSE_EYE: [0, 1002], // EYE_PURPLE_CLOSE
 	};
 
 	type PaySymbol = {
@@ -335,6 +343,16 @@
 	$accent: #6fe6ff;
 	$panel: rgba(255, 255, 255, 0.035);
 
+	/* Every box in this panel sizes border-box. Without it `width:100%` + horizontal padding
+	   computes WIDER than the parent, and `overflow-x:hidden` below then CLIPS the excess —
+	   which is why the right edge was cut off on mobile (on desktop the 720px cap left slack, so
+	   it never showed). `:global` is required because most of this panel's markup arrives via
+	   {@html} from the i18n catalog, which Svelte's scoped styles don't reach. */
+	.game-info,
+	.game-info :global(*) {
+		box-sizing: border-box;
+	}
+
 	.game-info {
 		width: 100%;
 		max-width: 720px;
@@ -509,6 +527,13 @@
 			gap: 0.45rem;
 			font-size: 10.5px;
 			line-height: 1.2;
+			/* flex children default to min-width:auto, so a long symbol name refuses to shrink and
+			   forces the row wider than the table. Let the label wrap instead of overflowing. */
+			min-width: 0;
+			span {
+				min-width: 0;
+				overflow-wrap: anywhere;
+			}
 			.sym-icon {
 				flex: none;
 				filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));

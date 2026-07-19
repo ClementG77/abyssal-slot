@@ -101,6 +101,10 @@
 		distance: 18,
 		outerStrength: 0,
 		quality: 0.3,
+		// see Eye.svelte: a filter's render texture defaults to 1x, which rasterizes the banner +
+		// its multiplier text at a fraction of the screen's density on a high-DPR phone. Match the
+		// renderer's resolution exactly — capping it just trades 1x blur for 1.5x blur.
+		resolution: window.devicePixelRatio || 1,
 	});
 	multGlow.enabled = false;
 	const blinkGlow = () => {

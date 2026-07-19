@@ -24,6 +24,8 @@ export default {
 		type: 'sprites',
 		src: new URL('../../assets/frame/reel_frame/atlas.json', import.meta.url).href,
 		preload: true,
+		// downscaled hard on phones — mipmap it too (see the `symbols` note above)
+		data: { textureOptions: { autoGenerateMipmaps: true, scaleMode: 'linear' } },
 	},
 	winMeter: {
 		type: 'sprite',
@@ -40,8 +42,19 @@ export default {
 	// Eye set (`EYE_PURPLE_CLOSE`, `EYE_ADD_ACTIVE`/`EYE_MULT_ACTIVE`, `EYE_ADD_EMPTY`/`EYE_MULT_EMPTY`).
 	symbols: {
 		type: 'sprites',
+		// TEST (2026-07-19): swapped from `symbols_final` to `symbol_black` to see whether the
+		// mobile pixelation follows the ATLAS or the renderer. Frame names are identical in both
+		// (16 frames: H1-H4, L1-L5, SCATTER, EYE_*), so this is a drop-in swap — but the cells are
+		// 495x501 here vs 484x495 there, so SYMBOL_SOURCE_SIZES in constants.ts must match.
+		// REVERT: point this back at symbols_final/spritesheet.json + set the sizes back to 484x495.
 		src: new URL('../../assets/symbols/symbol_black/spritesheet.json', import.meta.url).href,
 		preload: true,
+		// MIPMAPS — the fix for "symbols look pixelated on mobile". Atlas cells are 484x495, but
+		// the 1920x1080 design canvas scales down hard on a phone (~5x minification vs ~3x on
+		// desktop). Without mipmaps the GPU point-samples scattered texels instead of averaging
+		// them, which reads as shimmer/aliasing — worse the smaller the symbol, hence mobile-only.
+		// `antialias` does NOT help here; it only smooths geometry edges, not texture minification.
+		data: { textureOptions: { autoGenerateMipmaps: true, scaleMode: 'linear' } },
 	},
 	// Win-step plaque frames (BIG_WIN / HUGE_WIN / MEGA_WIN / EPIC_WIN / MAX_WIN): ornate
 	// empty frames with tier crests — WinBanner renders title + amount inside in bitmap font.
@@ -49,6 +62,8 @@ export default {
 		type: 'sprites',
 		src: new URL('../../assets/wins/win_steps/spritesheet.json', import.meta.url).href,
 		preload: true,
+		// downscaled hard on phones — mipmap it too (see the `symbols` note above)
+		data: { textureOptions: { autoGenerateMipmaps: true, scaleMode: 'linear' } },
 	},
 	tumbleWin: {
 		type: 'sprite',

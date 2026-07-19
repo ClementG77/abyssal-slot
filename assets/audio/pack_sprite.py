@@ -11,14 +11,18 @@ SRC = r"C:/Users/cleme/Documents/perso/Stake-Engine/lantern/front/web-sdk/apps/a
 OUT = r"C:/Users/cleme/Documents/perso/Stake-Engine/lantern/front/web-sdk/apps/abyssal/static/assets/sounds"
 SR, CH, GAP_S = 44100, 2, 1.0
 
+# Must stay 1:1 with the SoundName union in src/game/sound.ts. Names with no call site were
+# REMOVED (2026-07-16) rather than shipped silently — their source clips are still in src/ if a
+# moment ever wants them back: amb_underwater, sfx_scatter_win, sfx_gaze_fill,
+# sfx_eye_combine_mul, sfx_mult_total.
 ORDER = [
-    "bgm_main", "bgm_freespin", "bgm_win", "amb_underwater",
+    "bgm_main", "bgm_freespin", "bgm_win",
     "sfx_btn_general", "sfx_btn_toggle", "sfx_modal_open", "sfx_btn_spin", "sfx_reel_stop",
-    "sfx_scatter_land", "sfx_anticipation", "sfx_scatter_win", "sfx_fs_intro", "sfx_fs_outro",
-    "sfx_gaze_fill", "sfx_gaze_full",
+    "sfx_scatter_land", "sfx_anticipation", "sfx_fs_intro", "sfx_fs_outro",
+    "sfx_gaze_full",
     "sfx_eye_land", "sfx_eye_reveal_add", "sfx_eye_reveal_mul",
-    "sfx_eye_combine_add", "sfx_eye_combine_mul", "sfx_eye_burst", "sfx_mult_moove",
-    "sfx_snowball_up",
+    "sfx_eye_combine_add", "sfx_eye_burst",
+    "sfx_mult_moove", "sfx_snowball_up",
     "sfx_cluster_win", "sfx_countup_loop",
     "sfx_win_nice", "sfx_win_big", "sfx_win_mega", "sfx_win_epic", "sfx_win_max",
     "sfx_transition",
@@ -26,13 +30,15 @@ ORDER = [
 
 # measured loudness hierarchy (hits ~1.0, UI/ticks 12-15dB under, beds/ambience low)
 VOLUMES = {
-    "bgm_main": 0.175, "bgm_freespin": 0.25, "bgm_win": 0.3, "amb_underwater": 0.25,
+    "bgm_main": 0.175, "bgm_freespin": 0.25, "bgm_win": 0.3,
     "sfx_btn_general": 0.5, "sfx_btn_toggle": 0.55, "sfx_modal_open": 0.5, "sfx_btn_spin": 0.8, "sfx_reel_stop": 1.0,
-    "sfx_scatter_land": 0.9, "sfx_anticipation": 0.7, "sfx_scatter_win": 0.9, "sfx_fs_intro": 0.9,
+    "sfx_scatter_land": 0.9, "sfx_anticipation": 0.7, "sfx_fs_intro": 0.9,
     "sfx_fs_outro": 0.9, "sfx_mult_moove": 0.9,
-    "sfx_gaze_fill": 0.5, "sfx_gaze_full": 0.8,
-    "sfx_eye_land": 1.0, "sfx_eye_reveal_add": 0.9, "sfx_eye_reveal_mul": 0.9,
-    "sfx_eye_combine_add": 0.9, "sfx_eye_combine_mul": 0.9, "sfx_eye_burst": 1.0,
+    "sfx_gaze_full": 0.8,
+    # ADD < MUL by design: the cyan eye is common/small, the red eye must turn the player's head.
+    # USER-VALIDATED balance — do not change without asking.
+    "sfx_eye_land": 1.0, "sfx_eye_reveal_add": 0.7, "sfx_eye_reveal_mul": 1.0,
+    "sfx_eye_combine_add": 0.9, "sfx_eye_burst": 1.0,
     "sfx_snowball_up": 0.7, "sfx_cluster_win": 0.7, "sfx_countup_loop": 0.45,
     "sfx_win_nice": 0.85, "sfx_win_big": 0.9, "sfx_win_mega": 0.95, "sfx_win_epic": 0.95,
     "sfx_win_max": 1.0, "sfx_transition": 0.9,

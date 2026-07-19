@@ -16,4 +16,6 @@ export const C = {
 	iconDisabled: 0x6d6078,
 } as const;
 
-export const FONT = 'Inter, sans-serif';
+// ONE font for every piece of UI text/information in the game (control bar, replay controls,
+// buy/ante buttons, headers). Import this — never hardcode a family, or the HUD drifts.
+export const FONT = 'Inter, Arial, sans-serif';

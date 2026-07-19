@@ -15,6 +15,7 @@
 	import { getContext } from '../game/context';
 	import { FREE_SPINS_BANNER_ASPECT } from '../game/constants';
 	import { i18nDerived } from '../i18n/i18nDerived';
+	import { FONT } from './controls/theme';
 
 	const DISPLAY_MS = 2200;
 	const context = getContext();
@@ -108,7 +109,7 @@
 				alpha={fx.hint}
 				text={tapToSkip}
 				style={{
-					fontFamily: 'Arial, Helvetica, sans-serif',
+					fontFamily: FONT,
 					fontWeight: '900',
 					fontSize: imgH * 0.044,
 					letterSpacing: imgH * 0.006,

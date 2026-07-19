@@ -116,8 +116,8 @@
 			.to(panelFx, { flash: 0, duration: 0.42, ease: 'power2.out' })
 			.to(panelFx, { scale: 1, duration: 0.55, ease: 'elastic.out(1, 0.5)' }, 0)
 			.to(panelFx, { glow: 0, duration: 0.7, ease: 'power2.out' }, 0.1);
-		// the ×N multiplier slams into the win amount — a multiply application, not an Eye landing
-		context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_eye_combine_mul', forcePlay: true });
+		// Deliberately SILENT: the flight already sounds at launch (sfx_mult_moove). Re-using the
+		// combine clip here made it the 4th cue of the same family in one sequence.
 	};
 
 	const flyMultiplier = ({

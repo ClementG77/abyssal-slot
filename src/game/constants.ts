@@ -269,8 +269,8 @@ export const EYE_FRAME = {
 	multEmpty: 'EYE_MULT_EMPTY',
 } as const;
 export type EyeVariant = keyof typeof EYE_FRAME;
-// Eye art shares the uniform 495×501 atlas cell.
-export const EYE_ASPECT = 495 / 501;
+// Eye art shares the uniform 484×495 atlas cell.
+export const EYE_ASPECT = 484 / 495;
 
 // Value placement per art, as fractions of the eye's width/height:
 // EMPTY (closed) art → the multiplier sits in the MIDDLE of the face (~centre of the frame).
@@ -299,7 +299,9 @@ export const eyeValueTextStyle = ({
 	dropShadow: { color: 0x000000, blur: 4, distance: 2, alpha: 0.8 },
 });
 
-// All frames in the `symbol_black` atlas share a uniform 495×501 source cell.
+// All frames in the `symbols` atlas share a uniform 484×495 source cell.
+// TEST (2026-07-19): 495x501 = the `symbol_black` atlas cell. `symbols_final` cells are
+// 484x495 — set these back if assets.ts is pointed at symbols_final again.
 export const SYMBOL_SOURCE_SIZES: Record<SymbolName, { width: number; height: number }> = {
 	H1: { width: 495, height: 501 },
 	H2: { width: 495, height: 501 },

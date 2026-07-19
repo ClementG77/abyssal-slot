@@ -24,9 +24,11 @@
 	import { getContext } from '../game/context';
 	import { armSkip } from '../game/skip.svelte';
 	import { icons, type IconKey } from './controls/icons';
+	import { FONT } from './controls/theme';
 
 	const context = getContext();
-	const BAR_FONT = 'Inter, Arial, sans-serif';
+	// one shared family for the whole HUD (see controls/theme.ts) — never hardcode a font here
+	const BAR_FONT = FONT;
 	const autoPopupOptions: AutoSpinsText[] = ['10', '25', '50', '100', '250', INFINITY_MARK];
 	const AUTO_POPUP_SIZE = { w: 340, h: 168 };
 	const BET_POPUP_COLUMNS = { desktop: 5, mobile: 3 };
@@ -46,6 +48,13 @@
 		glowStrong: 0x5febff,
 		shadow: 0x000812,
 		textDim: 0xdff8ff,
+	} as const;
+	// The readout identity: warm gold label + white value on a deep warm shadow. Balance, Bet,
+	// Win and the menu volume sliders ALL use this, so every readout in the bar reads as one set.
+	const READOUT = {
+		label: 0xffd7b0,
+		value: 0xffffff,
+		shadow: 0x2a0710,
 	} as const;
 	const MENU_SLIDER = { w: 124, h: 34, labelX: -100, trackX: 40, labelFontSize: 18 };
 	const MENU_POPUP_PANEL = { w: 290, h: 248, centerY: -92 };
@@ -676,13 +685,13 @@
 	};
 	const readoutLabelStyle = {
 		...labelStyle,
-		fill: 0xffd7b0,
-		dropShadow: { color: 0x2a0710, blur: 5, distance: 2, alpha: 0.82 },
+		fill: READOUT.label,
+		dropShadow: { color: READOUT.shadow, blur: 5, distance: 2, alpha: 0.82 },
 	};
 	const readoutValueStyle = {
 		...valueStyle,
-		fill: 0xffffff,
-		dropShadow: { color: 0x2a0710, blur: 7, distance: 2, alpha: 0.82 },
+		fill: READOUT.value,
+		dropShadow: { color: READOUT.shadow, blur: 7, distance: 2, alpha: 0.82 },
 	};
 	const buttonScale = (
 		pressed: boolean,
@@ -937,14 +946,15 @@
 			alpha: 0.78,
 		});
 		if (filledW > 0) {
+			// warm gold fill — the same readout identity as the Balance / Bet / Win labels
 			g.roundRect(trackLeft, -5, Math.max(10, filledW), 10, 5).fill({
-				color: GLASS.glowStrong,
+				color: READOUT.label,
 				alpha: 0.95,
 			});
 		}
 		g.circle(knobX, 0, 15).fill({ color: GLASS.bg, alpha: 0.95 });
-		g.circle(knobX, 0, 11).fill({ color: 0xffffff, alpha: 0.94 });
-		g.circle(knobX, 0, 16).stroke({ width: 1.8, color: GLASS.border, alpha: 0.72 });
+		g.circle(knobX, 0, 11).fill({ color: READOUT.value, alpha: 0.94 });
+		g.circle(knobX, 0, 16).stroke({ width: 1.8, color: READOUT.label, alpha: 0.8 });
 	};
 
 	const drawMenuButton = (g: import('pixi.js').Graphics, size: number, active = false) => {
@@ -1570,6 +1580,7 @@
 						height={MENU_SLIDER.h}
 						backgroundAlpha={0.001}
 					/>
+					<!-- label stays WHITE — only the slider track/knob carries the warm readout tint -->
 					<Text
 						anchor={{ x: 0, y: 0.5 }}
 						x={MENU_SLIDER.labelX}
@@ -1578,7 +1589,7 @@
 							fontFamily: BAR_FONT,
 							fontWeight: '850',
 							fontSize: MENU_SLIDER.labelFontSize,
-							fill: 0xffffff,
+							fill: READOUT.value,
 							dropShadow: { color: 0x000000, blur: 3, distance: 1, alpha: 0.75 },
 						}}
 					/>
@@ -1631,8 +1642,9 @@
 	{#if stateBet.winBookEventAmount > 0}
 		<Container x={responsive.win.x} y={responsive.win.y} scale={responsive.scale} zIndex={7}>
 			<Graphics draw={(g) => drawGlassPanel(g, 300, 78, 18)} />
-			<Text anchor={0.5} y={-17} text={context.i18nDerived.win()} style={{ ...labelStyle, fontSize: 15 }} />
-			<Text anchor={0.5} y={16} text={winText} style={{ ...valueStyle, fontSize: 28 }} />
+			<!-- same readout identity as Balance / Bet (warm gold label, white value) -->
+			<Text anchor={0.5} y={-17} text={context.i18nDerived.win()} style={{ ...readoutLabelStyle, fontSize: 15 }} />
+			<Text anchor={0.5} y={16} text={winText} style={{ ...readoutValueStyle, fontSize: 28 }} />
 		</Container>
 	{/if}
 

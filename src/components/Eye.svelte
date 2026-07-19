@@ -63,6 +63,13 @@
 			color: TOTAL_COLOR,
 			quality: 0.4,
 			alpha: 0.9,
+			// A filtered container is rasterized into an off-screen render texture first. Without
+			// an explicit resolution that texture is allocated at 1x, so on a high-DPR phone the
+			// number is drawn at a fraction of the screen's pixel density and then scaled back up.
+			// MUST match the renderer's resolution (InitialiseApplication uses devicePixelRatio) —
+			// do NOT cap it. Capping at 2 on a DPR-3 phone builds a 56px texture for an 84px slot,
+			// i.e. a 1.5x upscale, which is exactly the blockiness this was meant to fix.
+			resolution: window.devicePixelRatio || 1,
 		});
 		return () => {
 			gsap.killTweensOf(dimFx);
@@ -108,17 +115,21 @@
 			tl.timeScale(ts());
 			tl.set(chip, { x: getPositionX(eye.reel), y: getPositionY(eye.row), scale: 0.5, alpha: 0 })
 				.to(chip, { alpha: 1, scale: 1.2, duration: 0.2, ease: 'back.out(2.2)' })
-				// the chip is fully formed — the multiplier has left the eye (the empty eye remains)
+				// the chip is fully formed — the multiplier has left the eye (the empty eye remains).
+				// Deliberately SILENT: each Eye already sounds twice (its reveal on the board, then
+				// its arrival at the centre below). A third cue per Eye turned an Ultimate's 2–5
+				// folds into mush — the launch is carried by the visual alone.
 				.add(() => spendBoardEye(eye))
 				.to(chip, { x: center.x, y: center.y, duration: 0.42, ease: 'power2.inOut' }, '<0.05')
 				.add(() => {
 					running = eye.eyeType === 'ADD' ? running + eye.startValue : running * eye.startValue;
 					popCenter();
 					// forcePlay: Ultimate folds several eyes in quick succession — each must sound
-					// (the once-player drops a repeat while the same clip is still ringing)
+					// (the once-player drops a repeat while the same clip is still ringing).
+					// A MUL fold IS the burst — it owns sfx_eye_burst; ADD gets the small note.
 					context.eventEmitter.broadcast({
 						type: 'soundOnce',
-						name: eye.eyeType === 'MUL' ? 'sfx_eye_combine_mul' : 'sfx_eye_combine_add',
+						name: eye.eyeType === 'MUL' ? 'sfx_eye_burst' : 'sfx_eye_combine_add',
 						forcePlay: true,
 					});
 				})
@@ -154,8 +165,8 @@
 			gsap.to(dimFx, { alpha: 0.72, duration: 0.18 / ts(), ease: 'power2.out' });
 
 			popCenter();
-			// the Gaze charge lands at the combine centre — its pay-off moment, not an Eye landing
-			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_gaze_full' });
+			// Deliberately SILENT: this is the PREAMBLE (the starting Gaze charge appearing), not
+			// a beat of its own. The sequence's sounds belong to the values actually arriving.
 			await skippableWait(450 / ts());
 			gazeLabel = false;
 
@@ -174,15 +185,17 @@
 				await context.eventEmitter.broadcastAsync({ type: 'snowballToCombine' });
 				running = e.totalMult;
 				popCenter();
-				// forcePlay: the banked ×M folds right after the per-eye combines — must sound too
-				context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_eye_combine_add', forcePlay: true }); // prettier-ignore
+				// Deliberately SILENT: this already lands on e.totalMult, and the hero punch below
+				// re-states the SAME number ~220ms later — one number, one sound. sfx_mult_total
+				// owns it; the snowball's arrival is carried by its flight + the centre punch.
 				await skippableWait(220 / ts());
 			}
 
-			// land exactly on the math's total, with a hero punch
+			// land exactly on the math's total, with a hero punch. Deliberately SILENT: the burst
+			// now belongs to the MUL fold above (each MUL arrival IS the explosion), and firing it
+			// again here doubled it up. The visual punch carries the landing.
 			running = e.totalMult;
 			popCenter(true);
-			context.eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_eye_burst' });
 			await skippableWait(750 / ts());
 
 			// fade out — the multiplier is carried to the tumble-win banner from here (setWin)
@@ -203,7 +216,14 @@
 	// banner / takeover / HUD), with the GlowFilter carrying the hero warmth. The flying CHIPS
 	// stay in the eye-coloured Cinzel face: each chip carries the value straight off its eye's
 	// face (ADD cyan / MUL red), so keeping that style reads as continuity, not a mismatch.
-	const totalStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.78 });
+	// CAP: the AbyssalBitmap page is rasterized ONCE at 96px (`size=96` in abyssal_font.fnt), and
+	// a BitmapText asked for more than that magnifies already-rasterized glyphs — which is what
+	// made this number look blocky next to the win/tumble banners. Those banners are sharp because
+	// they all go through ResponsiveBitmapText, whose `Math.min(scale, 1)` can only ever SHRINK.
+	// 0.78 asked for ~126px (1.31x native); 0.59 lands at ~95px, just under the native size.
+	// (popCenter's punch still peaks at 1.55x for ~0.12s — that transient is unavoidable without a
+	// larger font page, but the number is READ at rest, which is now at/below native.)
+	const totalStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.59 });
 	const gazeStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.22, letterSpacing: 3 });
 	const chipStyle = $derived(
 		eyeValueTextStyle({ fontSize: SYMBOL_SIZE * 0.6, fill: chip.mul ? MUL_COLOR : ADD_COLOR }),

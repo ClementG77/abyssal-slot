@@ -27,6 +27,32 @@ const WIN_PRESENT_MIN_MULTIPLIER = 20;
 // compress — but a manual press still cuts through it (skippableWait).
 const TURBO_SPIN_SETTLE_MS = 260;
 
+// --- Music beds ---------------------------------------------------------------------------
+// ONE source of truth for "which bed owns the current context". The feature bed belongs to the
+// FREE GAME only — i.e. a bonus that was earned or bought (BONUS / SUPERBONUS), which is exactly
+// when `gameType` flips to 'freegame'. Single-spin modes (Super Spins, Ultimate) stay on the
+// base bed: they are ordinary base-scene spins as far as music is concerned, and switching beds
+// for them stopped + restarted the music for one spin.
+const currentMusicBed = () =>
+	stateGame.gameType === 'freegame' ? ('bgm_freespin' as const) : ('bgm_main' as const);
+
+// The bed we last switched TO (bgm_win takeovers don't count — they only pause the bed).
+// Two rules enforced here, so no call site can get them wrong:
+//  1. `bgm_main` NEVER restarts. It is the game's continuous backdrop — bgm_win and the feature
+//     bed only ever pause it, and it always resumes where it left off.
+//  2. `restart` is honoured only when the bed actually CHANGES, so a bed already playing is
+//     never yanked back to 0:00 (e.g. every reveal of an autobet Super Spins streak).
+let activeMusicBed: ReturnType<typeof currentMusicBed> | null = null;
+const setMusicBed = (
+	name: ReturnType<typeof currentMusicBed>,
+	{ restart = false }: { restart?: boolean } = {},
+) => {
+	const changed = activeMusicBed !== name;
+	activeMusicBed = name;
+	const restartThisBed = restart && changed && name !== 'bgm_main';
+	eventEmitter.broadcast({ type: 'soundMusic', name, restart: restartThisBed });
+};
+
 const winLevelSoundsPlay = ({
 	winLevelData,
 	skipSfx = false,
@@ -52,13 +78,9 @@ const winLevelSoundsPlay = ({
 
 const winLevelSoundsStop = () => {
 	eventEmitter.broadcast({ type: 'soundStop', name: 'sfx_countup_loop' });
-	if (stateGame.gameType === 'freegame') {
-		// mid-bonus interruption (bgm_win takeover) → the feature bed RESUMES where it paused.
-		// It only restarts from 0:00 on a fresh bonus ENTRY (freeSpinTrigger / Super Spins reveal).
-		eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_freespin' });
-	} else {
-		eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_main' });
-	}
+	// The win takeover only ever PAUSES the bed — hand the context's own bed back and let it
+	// RESUME where it left off (never a restart, in the base game or inside a feature).
+	setMusicBed(currentMusicBed());
 	eventEmitter.broadcastAsync({ type: 'uiShow' });
 };
 
@@ -116,19 +138,12 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		stateGame.gameType = bookEvent.gameType;
 
 		// Music bed for this spin. Free spins keep bgm_freespin (set by freeSpinTrigger — untouched
-		// here). In the base scene, ride the FEATURE bed for a Super Spins buy (a single-spin feature
-		// with no free-spin events, so nothing else would switch it) and the base bed otherwise. Both
-		// calls are no-ops when that track is already playing, so this also self-corrects the music
-		// back to base once the player leaves Super Spins. (bgm_betmode switching, since Abyssal
-		// doesn't use components-ui-pixi's soundBetMode.)
+		// here). Every base-scene spin — including single-spin modes like Super Spins and Ultimate
+		// — stays on bgm_main, which simply keeps looping: it is the continuous backdrop and never
+		// restarts (only bgm_win and the free-game bed pause it). This also self-corrects the bed
+		// back to base after a bonus.
 		if (stateGame.gameType !== 'freegame') {
-			const isSuperSpins = stateBet.activeBetModeKey === 'SUPERSPINS';
-			if (isSuperSpins) {
-				// each Super Spins buy is a fresh single-spin feature — the bed opens on its intro
-				eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_freespin', restart: true });
-			} else {
-				eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_main' });
-			}
+			setMusicBed('bgm_main');
 		}
 
 		await stateGameDerived.enhancedBoard.spin({ revealEvent });
@@ -493,7 +508,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		stateGame.gameType = 'freegame';
 		// NOW switch to the feature bed — we've entered the bonus, under the water cover.
 		// restart: every bonus opens on the track's intro, never resuming a previous bonus's spot.
-		eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_freespin', restart: true });
+		setMusicBed('bgm_freespin', { restart: true });
 		await eventEmitter.broadcastAsync({ type: 'freeSpinIntroHide' });
 		stateGame.freeSpinIntroActive = false;
 		eventEmitter.broadcast({ type: 'reelFrameGlowShow' });
@@ -565,7 +580,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		// back in the base game, the wave has passed — NOW resume the base bed where it left
 		// off. (winLevelSoundsStop ran while gameType was still 'freegame', so it re-armed the
 		// FEATURE bed; without this the feature music keeps playing forever after the bonus.)
-		eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_main' });
+		setMusicBed('bgm_main');
 		await eventEmitter.broadcastAsync({ type: 'uiShow' });
 	},
 
@@ -601,7 +616,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 			stateGame.gameType = 'freegame';
 			// resumed mid-bonus → the feature bed, not bgm_main (Sound.svelte's onMount also
 			// checks gameType for the case where it mounts after this handler ran)
-			eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_freespin' });
+			setMusicBed('bgm_freespin');
 			eventEmitter.broadcast({ type: 'reelFrameGlowShow' });
 			eventEmitter.broadcast({ type: 'freeSpinCounterShow' });
 			eventEmitter.broadcast({

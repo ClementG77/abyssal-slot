@@ -6,6 +6,7 @@
 	import { getContext } from '../game/context';
 	import TransitionAnimation from './TransitionAnimation.svelte';
 	import PressToContinue from './PressToContinue.svelte';
+	import { FONT } from './controls/theme';
 
 	type Props = {
 		onloaded: () => void;
@@ -29,7 +30,7 @@
 				y={-40}
 				text={context.i18nDerived.loaderLogo()}
 				style={{
-					fontFamily: 'sans-serif',
+					fontFamily: FONT,
 					fontWeight: '900',
 					fontSize: 76,
 					fill: 0x22e0ff,

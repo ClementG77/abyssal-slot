@@ -24,25 +24,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { waitForTimeout } from 'utils-shared/wait';
-	import { SECOND } from 'constants-shared/time';
-	import { stateBet } from 'state-shared';
-
 	import { getContext } from '../game/context';
 
 	const context = getContext();
 
 	context.eventEmitter.subscribeOnMount({
 		// ui
+		// Selecting a bet mode never switches the bed: bgm_freespin belongs to the FREE GAME only
+		// (a bonus earned or bought), and bgm_main keeps looping through every base-scene mode —
+		// Super Spins and Ultimate included. Only the fanfare marks the Super Spins buy.
 		soundBetMode: async ({ betModeKey }) => {
-			if (betModeKey === 'SUPERSPINS') {
-				// Super Spins uses the feature music bed even though it is a one-spin buy.
-				playOnce('sfx_fs_intro');
-				await waitForTimeout(SECOND);
-				playMusic('bgm_freespin');
-			} else {
-				playMusic('bgm_main');
-			}
+			if (betModeKey === 'SUPERSPINS') playOnce('sfx_fs_intro');
 		},
 		// forcePlay: rapid presses (bet stepper spam, quick UI taps) must EACH click — without it the
 		// once-player silently drops any play while the same clip is still ringing.
@@ -75,9 +67,9 @@
 	}
 
 	onMount(() => {
-		if (stateBet.activeBetModeKey === 'SUPERSPINS' || context.stateGame.gameType === 'freegame') {
-			// Resume Super Spins — or a mid-bonus resume (createBonusSnapshot may have run before
-			// this component mounted) — into the feature music bed.
+		if (context.stateGame.gameType === 'freegame') {
+			// Mid-bonus resume (createBonusSnapshot may have run before this component mounted) —
+			// come back on the feature bed. Every other launch, incl. single-spin modes, is base.
 			playMusic('bgm_freespin');
 		} else {
 			playMusic('bgm_main');

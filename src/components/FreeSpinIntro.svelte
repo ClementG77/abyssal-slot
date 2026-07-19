@@ -14,6 +14,7 @@
 
 	import { getContext } from '../game/context';
 	import { i18nDerived } from '../i18n/i18nDerived';
+	import { FONT } from './controls/theme';
 
 	// Free-spins intro: shows the freespins banner (the awarded count is baked into the art) and
 	// waits for a click before the bonus plays (freeSpinTrigger awaits freeSpinIntroUpdate, so
@@ -138,7 +139,7 @@
 				alpha={fx.hint}
 				text={tapToPlay}
 				style={{
-					fontFamily: 'sans-serif',
+					fontFamily: FONT,
 					fontWeight: '800',
 					fontSize: imgH * 0.055,
 					letterSpacing: imgH * 0.006,

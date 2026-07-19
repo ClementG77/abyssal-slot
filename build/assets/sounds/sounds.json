@@ -15,120 +15,104 @@
    242065,
    30041
   ],
-  "amb_underwater": [
-   273106,
-   25000
-  ],
   "sfx_btn_general": [
-   299106,
+   273106,
    480
   ],
   "sfx_btn_toggle": [
-   300586,
+   274586,
    480
   ],
   "sfx_modal_open": [
-   302066,
+   276066,
    480
   ],
   "sfx_btn_spin": [
-   303546,
+   277546,
    480
   ],
   "sfx_reel_stop": [
-   305026,
+   279026,
    480
   ],
   "sfx_scatter_land": [
-   306506,
+   280506,
    1000
   ],
   "sfx_anticipation": [
-   308506,
+   282506,
    5000
   ],
-  "sfx_scatter_win": [
-   314506,
-   1993
-  ],
   "sfx_fs_intro": [
-   317499,
+   288506,
    2880
   ],
   "sfx_fs_outro": [
-   321379,
+   292386,
    1480
   ],
-  "sfx_gaze_fill": [
-   323859,
-   600
-  ],
   "sfx_gaze_full": [
-   325459,
-   1487
+   294866,
+   1000
   ],
   "sfx_eye_land": [
-   327946,
+   296866,
    1000
   ],
   "sfx_eye_reveal_add": [
-   329946,
-   1600
+   298866,
+   600
   ],
   "sfx_eye_reveal_mul": [
-   332546,
-   1600
+   300466,
+   1200
   ],
   "sfx_eye_combine_add": [
-   335146,
-   1209
-  ],
-  "sfx_eye_combine_mul": [
-   337355,
-   1045
+   302666,
+   480
   ],
   "sfx_eye_burst": [
-   339400,
+   304146,
    1480
   ],
   "sfx_mult_moove": [
-   341880,
+   306626,
    730
   ],
   "sfx_snowball_up": [
-   343610,
-   1499
+   308356,
+   480
   ],
   "sfx_cluster_win": [
-   346109,
+   309836,
    1000
   ],
   "sfx_countup_loop": [
-   348109,
+   311836,
    2774
   ],
   "sfx_win_nice": [
-   351883,
+   315610,
    2080
   ],
   "sfx_win_big": [
-   354963,
+   318690,
    2080
   ],
   "sfx_win_mega": [
-   358043,
+   321770,
    2080
   ],
   "sfx_win_epic": [
-   361123,
+   324850,
    2080
   ],
   "sfx_win_max": [
-   364203,
+   327930,
    3680
   ],
   "sfx_transition": [
-   368883,
+   332610,
    1480
   ]
  },
@@ -141,9 +125,6 @@
   },
   "bgm_win": {
    "volume": 0.3
-  },
-  "amb_underwater": {
-   "volume": 0.25
   },
   "sfx_btn_general": {
    "volume": 0.5
@@ -166,9 +147,6 @@
   "sfx_anticipation": {
    "volume": 0.7
   },
-  "sfx_scatter_win": {
-   "volume": 0.9
-  },
   "sfx_fs_intro": {
    "volume": 0.9
   },
@@ -178,9 +156,6 @@
   "sfx_mult_moove": {
    "volume": 0.9
   },
-  "sfx_gaze_fill": {
-   "volume": 0.5
-  },
   "sfx_gaze_full": {
    "volume": 0.8
   },
@@ -188,15 +163,12 @@
    "volume": 1.0
   },
   "sfx_eye_reveal_add": {
-   "volume": 0.9
+   "volume": 0.7
   },
   "sfx_eye_reveal_mul": {
-   "volume": 0.9
+   "volume": 1.0
   },
   "sfx_eye_combine_add": {
-   "volume": 0.9
-  },
-  "sfx_eye_combine_mul": {
    "volume": 0.9
   },
   "sfx_eye_burst": {

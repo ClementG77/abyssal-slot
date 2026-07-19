@@ -60,14 +60,14 @@
   "direction": "v6 abyssal-leviathan-themed"
  },
  "sfx_gaze_full.mp3": {
-  "prompt": "magical meter charging to full, a glowing energy surge completing",
-  "duration_s": 0.9,
+  "prompt": "underwater geyser surging upward, rushing pressure release",
+  "duration_s": 1.0,
   "loop": false,
   "model": "eleven_text_to_sound_v2",
   "prompt_influence": 0.5,
   "source": "ElevenLabs sound-generation API",
-  "bytes": 15090,
-  "direction": "v6 abyssal-leviathan-themed"
+  "bytes": 17180,
+  "direction": "real-world foley (leviathan/abyss physical events)"
  },
  "sfx_eye_land.mp3": {
   "prompt": "a heavy bomb dropping and slamming down, whistling fall into a deep booming impact, alarming",
@@ -80,44 +80,44 @@
   "direction": "v6 abyssal-leviathan-themed"
  },
  "sfx_eye_reveal_add.mp3": {
-  "prompt": "a soft magical eye blinking open, gentle glow, quick and light",
+  "prompt": "sharp drum hit with a bright glowing tone rising after it",
   "duration_s": 0.6,
   "loop": false,
   "model": "eleven_text_to_sound_v2",
   "prompt_influence": 0.5,
   "source": "ElevenLabs sound-generation API",
   "bytes": 10493,
-  "direction": "v6 abyssal-leviathan-themed"
+  "direction": "real-world foley (leviathan/abyss physical events)"
  },
  "sfx_eye_reveal_mul.mp3": {
-  "prompt": "a huge ominous eye snapping open, deep dramatic magical surge, powerful and dark",
-  "duration_s": 0.9,
+  "prompt": "huge deep drum boom with a dark powerful tone swelling after it",
+  "duration_s": 1.2,
   "loop": false,
   "model": "eleven_text_to_sound_v2",
   "prompt_influence": 0.5,
   "source": "ElevenLabs sound-generation API",
-  "bytes": 15090,
-  "direction": "v6 abyssal-leviathan-themed"
+  "bytes": 20106,
+  "direction": "real-world foley (leviathan/abyss physical events)"
  },
  "sfx_eye_combine_add.mp3": {
-  "prompt": "a small magical energy absorb, soft warm pop",
+  "prompt": "single warm marimba note, soft and bright, very short",
   "duration_s": 0.5,
   "loop": false,
   "model": "eleven_text_to_sound_v2",
   "prompt_influence": 0.5,
   "source": "ElevenLabs sound-generation API",
   "bytes": 8821,
-  "direction": "v6 abyssal-leviathan-themed"
+  "direction": "real-world foley (leviathan/abyss physical events)"
  },
  "sfx_eye_combine_mul.mp3": {
-  "prompt": "a powerful magical energy slam, deep heavy multiply hit",
-  "duration_s": 0.6,
+  "prompt": "deep wooden taiko drum hit, warm and heavy, short",
+  "duration_s": 0.7,
   "loop": false,
   "model": "eleven_text_to_sound_v2",
   "prompt_influence": 0.5,
   "source": "ElevenLabs sound-generation API",
-  "bytes": 10493,
-  "direction": "v6 abyssal-leviathan-themed"
+  "bytes": 12164,
+  "direction": "real-world foley (leviathan/abyss physical events)"
  },
  "sfx_eye_burst.mp3": {
   "prompt": "a massive magical explosion, deep boom with a glittering energy shower",
@@ -130,14 +130,14 @@
   "direction": "v6 abyssal-leviathan-themed"
  },
  "sfx_snowball_up.mp3": {
-  "prompt": "deep magical power growing, a short rising ominous swell",
+  "prompt": "short warm wooden mallet note rising in pitch",
   "duration_s": 0.5,
   "loop": false,
   "model": "eleven_text_to_sound_v2",
   "prompt_influence": 0.5,
   "source": "ElevenLabs sound-generation API",
   "bytes": 8821,
-  "direction": "v6 abyssal-leviathan-themed"
+  "direction": "real-world foley (leviathan/abyss physical events)"
  },
  "sfx_cluster_win.mp3": {
   "prompt": "a soft glowing bubble pop underwater, deep and bioluminescent",
@@ -248,5 +248,15 @@
   "source": "ElevenLabs sound-generation API",
   "bytes": 20106,
   "direction": "v6 abyssal-leviathan-themed"
+ },
+ "sfx_mult_total.mp3": {
+  "prompt": "vast underwater explosion, deep concussive boom and long swell",
+  "duration_s": 1.5,
+  "loop": false,
+  "model": "eleven_text_to_sound_v2",
+  "prompt_influence": 0.5,
+  "source": "ElevenLabs sound-generation API",
+  "bytes": 24703,
+  "direction": "real-world foley (leviathan/abyss physical events)"
  }
 }

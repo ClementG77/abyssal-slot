@@ -113,6 +113,13 @@
 	});
 
 	const sizes = $derived(context.stateLayoutDerived.canvasSizes());
+	// Ambient scenery budget. On phones these full-screen overlays (halo, god rays, caustics,
+	// marine snow, bubbles) are pure fill-rate on the weakest GPUs, and at phone size they read
+	// as haze rather than detail — so drop them. `canvasSizeType()` is the SDK's own breakpoint,
+	// keyed off the SHORT canvas edge, so it holds in both orientations.
+	const isMobile = $derived(
+		['mobile', 'smallMobile'].includes(context.stateLayoutDerived.canvasSizeType()),
+	);
 	const feature = $derived(context.stateGame.gameType === 'freegame');
 	const featureMix = new Tween(0, { duration: 720 });
 
@@ -261,39 +268,52 @@
 <!-- deep backdrop so letterbox edges read as abyss, never white -->
 <Rectangle {...sizes} backgroundColor={0x05080f} zIndex={-3} />
 
-<!-- painted scene as a full cover, animated with the shimmer filter + breathe/drift -->
-<Sprite
-	key="backgroundBase"
-	anchor={0.5}
-	x={cover.cx}
-	y={cover.cy}
-	width={cover.w}
-	height={cover.h}
-	alpha={1 - featureMix.current}
-	filters={shimmer ? [shimmer] : []}
-	zIndex={-2}
-/>
-<Sprite
-	key="backgroundFs"
-	anchor={0.5}
-	x={cover.cx}
-	y={cover.cy}
-	width={cover.w}
-	height={cover.h}
-	alpha={featureMix.current}
-	filters={shimmer ? [shimmer] : []}
-	zIndex={-2}
-/>
+<!-- Painted scene as a full cover, animated with the shimmer filter + breathe/drift.
+     Each of these carries a filter, and a FILTERED sprite costs a full-screen render-to-texture
+     pass EVERY frame — an `alpha: 0` sprite still pays it. Both are only needed during the 720ms
+     crossfade, so mount each one only while it actually contributes. Outside the crossfade this
+     halves the background fill cost (the single biggest per-frame cost on mobile). -->
+{#if featureMix.current < 1}
+	<Sprite
+		key="backgroundBase"
+		anchor={0.5}
+		x={cover.cx}
+		y={cover.cy}
+		width={cover.w}
+		height={cover.h}
+		alpha={1 - featureMix.current}
+		filters={!isMobile && shimmer ? [shimmer] : []}
+		zIndex={-2}
+	/>
+{/if}
+{#if featureMix.current > 0}
+	<Sprite
+		key="backgroundFs"
+		anchor={0.5}
+		x={cover.cx}
+		y={cover.cy}
+		width={cover.w}
+		height={cover.h}
+		alpha={featureMix.current}
+		filters={!isMobile && shimmer ? [shimmer] : []}
+		zIndex={-2}
+	/>
+{/if}
 
-<!-- soft mode-colored glow under the rays -->
-<Graphics draw={drawAmbientGlow} zIndex={-1.98} />
+<!-- Ambient scenery — desktop/tablet only (see `isMobile`). Each of these is a full-screen
+     Graphics re-tessellated on the rAF clock; on phones they cost real fill rate and read as
+     haze at that size. The painted background + its shimmer still carry the scene. -->
+{#if !isMobile}
+	<!-- soft mode-colored glow under the rays -->
+	<Graphics draw={drawAmbientGlow} zIndex={-1.98} />
 
-<!-- swaying light shafts -->
-<Graphics draw={drawGodRays} zIndex={-1.95} />
+	<!-- swaying light shafts -->
+	<Graphics draw={drawGodRays} zIndex={-1.95} />
 
-<!-- faint caustic lines, drifting marine snow, and a few slow bubbles for depth -->
-<Graphics draw={drawCaustics} zIndex={-1.9} />
-<Container zIndex={-1.8}>
-	<Graphics draw={drawParticles} />
-	<Graphics draw={drawBubbles} />
-</Container>
+	<!-- faint caustic lines, drifting marine snow, and a few slow bubbles for depth -->
+	<Graphics draw={drawCaustics} zIndex={-1.9} />
+	<Container zIndex={-1.8}>
+		<Graphics draw={drawParticles} />
+		<Graphics draw={drawBubbles} />
+	</Container>
+{/if}
