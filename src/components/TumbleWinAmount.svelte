@@ -23,15 +23,22 @@
 	import { Tween } from 'svelte/motion';
 	import { backOut } from 'svelte/easing';
 
-	import { BitmapText, Container, Graphics, Sprite } from 'pixi-svelte';
-	import { ResponsiveBitmapText, FadeContainer } from 'components-pixi';
+	import { Container, Graphics, Sprite, Text } from 'pixi-svelte';
+	import ResponsiveText from './ResponsiveText.svelte';
+	import { FadeContainer } from 'components-pixi';
+	import { FONT } from './controls/theme';
 	import { stateBetDerived } from 'state-shared';
 	import { waitForResolve } from 'utils-shared/wait';
 	import { bookEventAmountToCurrencyString } from 'utils-shared/amount';
 
 	import BoardContainer from './BoardContainer.svelte';
 	import { getContext } from '../game/context';
-	import { SYMBOL_SIZE, abyssalBitmapStyle } from '../game/constants';
+	import { SYMBOL_SIZE } from '../game/constants';
+	import {
+		abyssalAmountTextStyle,
+		abyssalLabelTextStyle,
+		CELEBRATION_FACE,
+	} from '../game/textStyles';
 	import { getPositionX, getPositionY } from '../game/utils';
 	import { raceSkip, skippableWait } from '../game/skip.svelte';
 
@@ -220,14 +227,22 @@
 		},
 	});
 
-	// ---- styles (the branded AbyssalBitmap face — gold fill/outline baked into the glyphs).
-	// Sized down vs the old Cinzel styles: the bitmap glyphs run wider and carry their own
-	// outline, so they fill the plate at a smaller nominal size. (Lab-tested alternatives —
-	// Cinzel/heavy-sans recolors — lost to the branded gold; we stay on the bitmap face.)
-	const labelStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.14, letterSpacing: 2 });
-	const amountStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.31 });
-	const exprStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.27 });
-	const multStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.6 });
+	// ---- styles. All from game/textStyles.ts so the banner carries the same metal as the rest of
+	// the game's numbers. Left on the NEUTRAL accent deliberately: the tumble banner is teal
+	// furniture with no win-step identity, so a tier colour here would claim a tier it hasn't won.
+	//
+	// The BANNER's own text stays on the UI face. It carries currency (which the display serif
+	// lacks for ~10 of Stake's symbols, so those amounts would render mixed) and its caption runs
+	// ~17-21px, where a serif's hairlines get eaten by the stroke. `exprStyle` and `amountStyle`
+	// share one slot and swap as the equation resolves, so they must always match each other.
+	const labelStyle = abyssalLabelTextStyle({ fontSize: SYMBOL_SIZE * 0.14, letterSpacing: 2 });
+	const amountStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.31 });
+	const exprStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.27 });
+
+	// The flying multiplier token is the exception: big, digits-only, no currency, and it reads as
+	// a prize being carried out of the Eye rather than as banner copy — so it keeps the display
+	// face. Drop `face` here to put it back on the UI face with everything else.
+	const multStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.6, face: CELEBRATION_FACE });
 
 	// ---- banner overlays -------------------------------------------------------------------
 	const drawGlow = (g: import('pixi.js').Graphics) => {
@@ -250,7 +265,7 @@
 <BoardContainer>
 	{#if flyFx.active}
 		<Container x={flyFx.x} y={flyFx.y} scale={flyFx.scale} alpha={flyFx.alpha}>
-			<BitmapText anchor={0.5} text={`×${flyFx.mult}`} style={multStyle} />
+			<Text anchor={0.5} text={`×${flyFx.mult}`} style={multStyle} />
 		</Container>
 	{/if}
 </BoardContainer>
@@ -272,7 +287,7 @@
 					</Container>
 				{/if}
 
-				<BitmapText
+				<Text
 					anchor={0.5}
 					y={-BANNER_H * 0.09}
 					text={context.i18nDerived.tumbleWin()}
@@ -281,16 +296,15 @@
 				<Container scale={numScale.current} y={BANNER_H * 0.09}>
 					{#if multiplyExpr}
 						<!-- "raw × mult" — the equation, before it resolves into the counted final -->
-						<ResponsiveBitmapText
+						<ResponsiveText
 							anchor={0.5}
 							maxWidth={INNER_W * 0.92}
 							text={`${multiplyExpr.rawText}  ×${multiplyExpr.mult}`}
 							style={exprStyle}
 						/>
 					{:else}
-						<ResponsiveBitmapText
+						<Text
 							anchor={0.5}
-							maxWidth={INNER_W * 0.9}
 							text={bookEventAmountToCurrencyString(displayAmount.current)}
 							style={amountStyle}
 						/>

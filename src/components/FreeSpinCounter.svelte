@@ -21,13 +21,15 @@
 	import { GlowFilter } from 'pixi-filters';
 
 	import { MainContainer } from 'components-layout';
-	import { FadeContainer, ResponsiveBitmapText } from 'components-pixi';
+	import { FadeContainer } from 'components-pixi';
 	import { stateBetDerived } from 'state-shared';
 
-	import { BitmapText, Container, Sprite } from 'pixi-svelte';
+	import { Container, Sprite, Text } from 'pixi-svelte';
+	import ResponsiveText from './ResponsiveText.svelte';
 
 	import { getContext } from '../game/context';
-	import { SYMBOL_SIZE, abyssalBitmapStyle } from '../game/constants';
+	import { SYMBOL_SIZE } from '../game/constants';
+	import { abyssalAmountTextStyle, abyssalLabelTextStyle, abyssalValueTextStyle } from '../game/textStyles';
 
 	const context = getContext();
 	const freeSpinsSize = $derived(SYMBOL_SIZE * 2.05); // width
@@ -180,11 +182,14 @@
 	// Branded AbyssalBitmap face everywhere, at the lab-approved big sizes (/lab round 3):
 	// gold label above the medallion, gold value in the teal porthole, gold FREE SPINS text on
 	// the frame interior — same gold-on-blue treatment the tumble-win banner ships with.
-	const totalMultLabelStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.16, letterSpacing: 2 });
-	const totalMultValueStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.3 });
-	const freeSpinsLabelStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.16, letterSpacing: 2 });
-	const freeSpinsValueStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.28 });
-	const flyTokenStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.4 });
+	const totalMultLabelStyle = abyssalLabelTextStyle({ fontSize: SYMBOL_SIZE * 0.16, letterSpacing: 2 });
+	const totalMultValueStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.3 });
+	const freeSpinsLabelStyle = abyssalLabelTextStyle({ fontSize: SYMBOL_SIZE * 0.16, letterSpacing: 2 });
+	// Canvas Text (see game/textStyles.ts). Forced, not preference: the counter reads "5 / 10" and
+	// the bitmap page HAS NO `/` GLYPH (verified against the loaded font), so a BitmapText would
+	// silently drop it and render "5 10".
+	const freeSpinsValueStyle = abyssalValueTextStyle({ fontSize: SYMBOL_SIZE * 0.28 });
+	const flyTokenStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.4 });
 </script>
 
 <MainContainer>
@@ -192,7 +197,7 @@
 		<Container scale={groupScale * entrance.current}>
 			<Container scale={totalMultPop.current}>
 				<Container y={-totalMultSize * 0.58}>
-					<BitmapText text={context.i18nDerived.totalMult()} anchor={0.5} style={totalMultLabelStyle} />
+					<Text text={context.i18nDerived.totalMult()} anchor={0.5} style={totalMultLabelStyle} />
 				</Container>
 				<Container filters={[multGlow]}>
 					<Sprite
@@ -201,7 +206,7 @@
 						width={totalMultSize}
 						height={totalMultSize}
 					/>
-					<ResponsiveBitmapText
+					<ResponsiveText
 						text={`x${context.stateGame.persistentMult}`}
 						anchor={0.5}
 						y={-totalMultSize * 0.06}
@@ -213,17 +218,16 @@
 
 			<Container x={spinsPanelOffset.x} y={spinsPanelOffset.y}>
 				<Sprite anchor={0.5} key="freeSpinsCount" width={freeSpinsSize} height={freeSpinsH} />
-				<BitmapText
+				<Text
 					text={context.i18nDerived.freeSpins()}
 					anchor={0.5}
 					y={-freeSpinsH * 0.11}
 					style={freeSpinsLabelStyle}
 				/>
-				<ResponsiveBitmapText
-					text={`${current} OF ${total}`}
+				<Text
+					text={`${current} / ${total}`}
 					anchor={0.5}
 					y={freeSpinsH * 0.1}
-					maxWidth={freeSpinsSize * 0.56}
 					style={freeSpinsValueStyle}
 				/>
 			</Container>
@@ -233,7 +237,7 @@
 	<!-- the banked ×M flying from the medallion into the combine at the board centre -->
 	{#if flyFx.active}
 		<Container x={flyFx.x} y={flyFx.y} scale={flyFx.scale} alpha={flyFx.alpha}>
-			<BitmapText
+			<Text
 				anchor={0.5}
 				text={`x${context.stateGame.persistentMult}`}
 				style={flyTokenStyle}

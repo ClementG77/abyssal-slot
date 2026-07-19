@@ -757,10 +757,10 @@
 			color: active ? GLASS.bgHover : GLASS.bg,
 			alpha: active ? 0.48 : 0.34,
 		});
-		g.roundRect(-w / 2, -h / 2 + h * 0.42, w, h * 0.58, radius).fill({
-			color: GLASS.bgDeep,
-			alpha: 0.3,
-		});
+		// (removed) a GLASS.bgDeep rect over the bottom 58% used to sit here. It carried the panel's
+		// full corner radius while starting mid-panel, so its rounded TOP corners were visible
+		// against the fill above — it read as a second, darker panel inside every element rather
+		// than as shading. The top-half white sheen below is what gives the glass its depth.
 		g.roundRect(-w / 2, -h / 2, w, h * 0.5, radius).fill({
 			color: 0xffffff,
 			alpha: 0.06 + hoverBoost * 0.08,
@@ -883,10 +883,8 @@
 			color: selected ? accent : GLASS.bg,
 			alpha: selected ? 0.24 : 0.38,
 		});
-		g.roundRect(-w / 2 + 7, -h / 2 + 7, w - 14, h - 14, Math.max(6, radius - 6)).fill({
-			color: GLASS.bgDeep,
-			alpha: selected ? 0.24 : 0.18,
-		});
+		// (removed) a GLASS.bgDeep plate inset 7px on every side used to sit here — the same
+		// second-darker-background artifact as the glass panels, just inset instead of half-height.
 		g.roundRect(-w / 2, -h / 2, w, h * 0.52, radius).fill({
 			color: 0xffffff,
 			alpha: selected ? 0.18 : 0.08,

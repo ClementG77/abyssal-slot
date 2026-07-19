@@ -8,7 +8,8 @@
 	import { Tween } from 'svelte/motion';
 
 	import { Container } from 'pixi-svelte';
-	import { FadeContainer, ResponsiveBitmapText } from 'components-pixi';
+	import ResponsiveText from './ResponsiveText.svelte';
+	import { FadeContainer } from 'components-pixi';
 	import { OnMount } from 'components-shared';
 	import { CanvasSizeRectangle, MainContainer } from 'components-layout';
 	import { waitForResolve, waitForTimeout } from 'utils-shared/wait';
@@ -20,7 +21,8 @@
 	import WinBubbles from './WinBubbles.svelte';
 	import WinBanner from './WinBanner.svelte';
 	import PressToContinue from './PressToContinue.svelte';
-	import { SYMBOL_SIZE, abyssalBitmapStyle } from '../game/constants';
+	import { SYMBOL_SIZE } from '../game/constants';
+	import { abyssalAmountTextStyle, CELEBRATION_FACE, WIN_TIER_ACCENT } from '../game/textStyles';
 	import { getContext } from '../game/context';
 
 	const context = getContext();
@@ -42,14 +44,9 @@
 		{ min: 50, key: 'hugeWin' },
 		{ min: 20, key: 'bigWin' },
 	] as const;
-	// accents matched to the win_steps frame art; ruby is the dragon MAX plaque.
-	const TIER_COLOR: Record<string, number> = {
-		bigWin: 0x2fd06c, // emerald
-		hugeWin: 0x3f8cff, // sapphire
-		megaWin: 0xffb13c, // amber
-		epicWin: 0xb45cff, // amethyst
-		maxWin: 0xff4438, // ruby (dragon) — the 15,000× climax
-	};
+	// accents matched to the win_steps frame art; ruby is the dragon MAX plaque. Shared table —
+	// see WIN_TIER_ACCENT, which the type's gradient reads from too.
+	const TIER_COLOR: Record<string, number> = WIN_TIER_ACCENT;
 	// each tier plays ITS OWN stinger as the count climbs into it — the ladder is audible
 	const TIER_SFX = {
 		bigWin: 'sfx_win_big',
@@ -93,7 +90,6 @@
 			(context.stateLayoutDerived.layoutType() === 'portrait' ? FRAME_SCALE_PORTRAIT : FRAME_SCALE),
 	);
 	const frameH = $derived(frameW * (383 / 522));
-	const amountStyle = $derived(abyssalBitmapStyle({ fontSize: frameH * AMOUNT_SIZE }));
 
 	// --- Stepped count-up + press-to-skip ---------------------------------------------------
 	// The count runs boundary to boundary (each tier floor), easing into each landing; the tier
@@ -107,6 +103,16 @@
 	// live tier tracks the climbing number, exactly like Win.svelte
 	const liveMult = $derived(countUp.current / BOOK_AMOUNT_MULTIPLIER);
 	const bannerTier = $derived(tierFor(liveMult) ?? lowestTier);
+
+	// Same as the win ladder: the amount's gradient base carries the live tier's colour, so the
+	// number bleeds emerald → sapphire → amber → amethyst → ruby as it climbs into the cap.
+	const amountStyle = $derived(
+		abyssalAmountTextStyle({
+			fontSize: frameH * AMOUNT_SIZE,
+			accent: TIER_COLOR[bannerTier.key],
+			face: CELEBRATION_FACE,
+		}),
+	);
 
 	// --- Celebration FX -----------------------------------------------------------------
 	const numFx = $state({ scale: 1, flash: 0, throb: 1 }); // lock pop + flash + counting throb
@@ -318,7 +324,7 @@
 						height={frameH}
 					/>
 					<Container scale={numFx.scale * numFx.throb}>
-						<ResponsiveBitmapText
+						<ResponsiveText
 							anchor={0.5}
 							y={frameH * AMOUNT_Y}
 							maxWidth={frameW * AMOUNT_MAX_WIDTH}
@@ -328,7 +334,7 @@
 						{#if numFx.flash > 0}
 							<!-- the lock flash: an additive copy of the gold glyphs blooms them to white -->
 							<Container alpha={numFx.flash} blendMode="add">
-								<ResponsiveBitmapText
+								<ResponsiveText
 									anchor={0.5}
 									y={frameH * AMOUNT_Y}
 									maxWidth={frameW * AMOUNT_MAX_WIDTH}

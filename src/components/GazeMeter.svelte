@@ -24,22 +24,16 @@
 	import { Tween } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 
-	import { BitmapText, Container, Graphics, Sprite } from 'pixi-svelte';
+	import { Container, Graphics, Sprite, Text } from 'pixi-svelte';
+	import ResponsiveText from './ResponsiveText.svelte';
 	import { stateBetDerived } from 'state-shared';
-	import { FadeContainer, ResponsiveBitmapText } from 'components-pixi';
+	import { FadeContainer } from 'components-pixi';
 	import { waitForResolve } from 'utils-shared/wait';
 
 	import BoardContainer from './BoardContainer.svelte';
 	import { getContext } from '../game/context';
-	import {
-		abyssalBitmapStyle,
-		BOARD_SIZES,
-		GAZE_LAP_SIZE,
-		GAZE_METER_IMAGE_SIZE,
-		GAZE_METER_LAYOUT,
-		GAZE_METER_MAX_CHARGE,
-		SYMBOL_SIZE,
-	} from '../game/constants';
+	import { BOARD_SIZES, GAZE_LAP_SIZE, GAZE_METER_IMAGE_SIZE, GAZE_METER_LAYOUT, GAZE_METER_MAX_CHARGE, SYMBOL_SIZE } from '../game/constants';
+	import { abyssalAmountTextStyle } from '../game/textStyles';
 	import { getPositionX, getPositionY } from '../game/utils';
 	import { raceSkip, SKIP_TIME_SCALE } from '../game/skip.svelte';
 
@@ -829,22 +823,22 @@
 					scale={fx.textScale}
 				>
 					<!-- branded AbyssalBitmap face — gold fill/outline baked into the glyphs.
-					     ResponsiveBitmapText shrinks to `maxWidth` so a 2-digit charge (up to 30)
+					     ResponsiveText shrinks to `maxWidth` so a 2-digit charge (up to 30)
 					     stays inside the round plaque instead of overflowing it.
 					     At GAZE MAXED the glyphs bloom with the sustained shimmer. -->
-					<ResponsiveBitmapText
+					<ResponsiveText
 						anchor={0.5}
 						maxWidth={plaqueR * 1.55}
 						text={String(charge)}
-						style={abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })}
+						style={abyssalAmountTextStyle({ fontSize: plaqueR * 1.34 })}
 					/>
 					{#if maxed && fx.overcharge > 0}
 						<Container alpha={fx.overcharge * 0.7} blendMode="add">
-							<ResponsiveBitmapText
+							<ResponsiveText
 								anchor={0.5}
 								maxWidth={plaqueR * 1.55}
 								text={String(charge)}
-								style={abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })}
+								style={abyssalAmountTextStyle({ fontSize: plaqueR * 1.34 })}
 							/>
 						</Container>
 					{/if}
@@ -863,10 +857,10 @@
 							scale={chipP < 0.18 ? 0.5 + (chipP / 0.18) * 0.65 : 1.15 - (chipP - 0.18) * 0.18}
 							alpha={chipP > 0.68 ? Math.max(0, (1 - chipP) / 0.32) : 1}
 						>
-							<BitmapText
+							<Text
 								anchor={0.5}
 								text={chip.text}
-								style={abyssalBitmapStyle({ fontSize: plaqueR * (0.58 + chip.tier * 0.14) })}
+								style={abyssalAmountTextStyle({ fontSize: plaqueR * (0.58 + chip.tier * 0.14) })}
 							/>
 						</Container>
 					</Container>
@@ -877,10 +871,10 @@
 		<!-- the Gaze seed flying to the board centre, where the combine equation picks it up -->
 		{#if flying}
 			<Container x={flyX} y={flyY} scale={flyScale} alpha={flyAlpha}>
-				<BitmapText
+				<Text
 					anchor={0.5}
 					text={`${flightValue}`}
-					style={abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.42 })}
+					style={abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.42 })}
 				/>
 			</Container>
 		{/if}

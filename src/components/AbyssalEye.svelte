@@ -11,9 +11,9 @@
 		EYE_LABEL_OFFSET,
 		EYE_LABEL_OFFSET_PLAQUE,
 		EYE_VALUE_FILL,
-		eyeValueTextStyle,
 		type EyeVariant,
 	} from '../game/constants';
+	import { eyeValueTextStyle } from '../game/textStyles';
 
 	export type EyeColorPreset = 'add' | 'mult' | 'close' | 'charged' | 'warning' | 'idle';
 	export type { EyeVariant };

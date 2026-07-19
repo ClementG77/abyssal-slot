@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Application, Assets, BitmapText, Container } from 'pixi.js';
+	import { Application, Container, Text } from 'pixi.js';
+
+	import { abyssalAmountTextStyle } from '../game/textStyles';
 
 	type Props = {
 		title: string;
@@ -10,12 +12,6 @@
 
 	let host = $state<HTMLDivElement>();
 
-	// Same URL form as game/assets.ts `abyssalFont`, so Pixi's Assets cache resolves both to one
-	// entry — whichever loads first wins, the other reuses it.
-	const abyssalFontUrl = new URL(
-		'../../assets/fonts/abyssal_bitmap_font_package/abyssal_font.fnt',
-		import.meta.url,
-	).href;
 
 	onMount(() => {
 		if (!host) return;
@@ -25,8 +21,6 @@
 		let resizeObserver: ResizeObserver | undefined;
 
 		const createLogo = async () => {
-			// The branded AbyssalBitmap face — gold fill, bevel and outline baked into the glyphs.
-			await Assets.load(abyssalFontUrl);
 			if (!active || !host) return;
 
 			app = new Application();
@@ -49,21 +43,19 @@
 			const logo = new Container();
 			// The face is uppercase-only (no lowercase glyphs).
 			const title = props.title.toUpperCase();
-			const style = {
-				fontFamily: 'AbyssalBitmap',
-				fontSize: 150,
-				letterSpacing: 4,
-				align: 'center',
-			} as const;
+			// Same canvas-text style as every number/caption in the game (see game/textStyles.ts),
+			// so the wordmark and the HUD read as one typographic system. The layered depth/glow
+			// copies below still do what the bitmap face used to bake into its glyphs.
+			const style = { ...abyssalAmountTextStyle({ fontSize: 150 }), letterSpacing: 4 };
 			// Depth: a dark solid copy dropped below the face (multiplicative tint turns the
 			// glyphs into a clean silhouette).
-			const depth = new BitmapText({ text: title, style, anchor: 0.5, tint: 0x0a0616 });
+			const depth = new Text({ text: title, style, anchor: 0.5, tint: 0x0a0616 });
 			depth.position.set(0, 10);
 			depth.alpha = 0.85;
-			// The gold face itself — fill/bevel/outline live in the glyph art.
-			const face = new BitmapText({ text: title, style, anchor: 0.5 });
-			// Glow: an additive warm copy blooms the gold without washing out the bevel.
-			const glow = new BitmapText({ text: title, style, anchor: 0.5, tint: 0xffd879 });
+			// The face itself — fill/stroke/shadow come from the shared style.
+			const face = new Text({ text: title, style, anchor: 0.5 });
+			// Glow: an additive warm copy blooms the face without washing out the stroke.
+			const glow = new Text({ text: title, style, anchor: 0.5, tint: 0xffd879 });
 			glow.alpha = 0.35;
 			glow.blendMode = 'add';
 			glow.scale.set(1.02);

@@ -95,16 +95,6 @@ export default {
 		src: new URL('../../assets/wins/freespin_retrigger.png', import.meta.url).href,
 		preload: true,
 	},
-	// Branded gold "minted" bitmap font (face name `AbyssalBitmap`). BMFont .fnt + sibling PNG page;
-	// Pixi installs it on load, then <BitmapText style={{ fontFamily: ABYSSAL_FONT_FAMILY }}> uses it.
-	// Glyph coverage is UPPERCASE-only: A–Z 0–9 space $ £ € × x , . ! ? % + - # & * < = > @ _ |
-	// — notably NO '/' and no lowercase (except 'x'). Keep on-screen strings inside that set.
-	abyssalFont: {
-		type: 'font',
-		src: new URL('../../assets/fonts/abyssal_bitmap_font_package/abyssal_font.fnt', import.meta.url)
-			.href,
-		preload: true,
-	},
 
 	// Sound sprite — the production set (docs/ABYSSAL_SOUND_DESIGN.md §3), packed as one audio.m4a
 	// + Howler offset map (Valkyrie/Waylanders pattern). The m4a lives in static/ because Howler

@@ -14,21 +14,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import gsap from 'gsap';
-	import { GlowFilter } from 'pixi-filters/glow';
 
-	import { BitmapText, Container, Graphics, Text } from 'pixi-svelte';
+	import { Container, Graphics, Text } from 'pixi-svelte';
 	import { FadeContainer } from 'components-pixi';
 	import { stateBetDerived } from 'state-shared';
 	import { skippableWait } from '../game/skip.svelte';
 
 	import BoardContainer from './BoardContainer.svelte';
 	import { getContext } from '../game/context';
-	import {
-		abyssalBitmapStyle,
-		BOARD_SIZES,
-		SYMBOL_SIZE,
-		eyeValueTextStyle,
-	} from '../game/constants';
+	import { BOARD_SIZES, SYMBOL_SIZE } from '../game/constants';
+	import { abyssalAmountTextStyle, abyssalLabelTextStyle, eyeValueTextStyle } from '../game/textStyles';
 	import { getPositionX, getPositionY } from '../game/utils';
 
 	const context = getContext();
@@ -53,29 +48,11 @@
 	// one chip animates at a time (eyes fold in sequence), so a single reusable object is enough
 	const chip = $state({ x: 0, y: 0, scale: 0.5, alpha: 0, text: '', mul: false, active: false });
 
-	let numberGlow = $state<GlowFilter | null>(null);
-
 	onMount(() => {
-		numberGlow = new GlowFilter({
-			distance: 16,
-			outerStrength: 2.2,
-			innerStrength: 0.5,
-			color: TOTAL_COLOR,
-			quality: 0.4,
-			alpha: 0.9,
-			// A filtered container is rasterized into an off-screen render texture first. Without
-			// an explicit resolution that texture is allocated at 1x, so on a high-DPR phone the
-			// number is drawn at a fraction of the screen's pixel density and then scaled back up.
-			// MUST match the renderer's resolution (InitialiseApplication uses devicePixelRatio) —
-			// do NOT cap it. Capping at 2 on a DPR-3 phone builds a 56px texture for an 84px slot,
-			// i.e. a 1.5x upscale, which is exactly the blockiness this was meant to fix.
-			resolution: window.devicePixelRatio || 1,
-		});
 		return () => {
 			gsap.killTweensOf(dimFx);
 			gsap.killTweensOf(centerFx);
 			gsap.killTweensOf(chip);
-			numberGlow?.destroy();
 		};
 	});
 
@@ -83,7 +60,10 @@
 		gsap.killTweensOf(centerFx);
 		gsap
 			.timeline()
-			.set(centerFx, { scale: big ? 1.0 : 0.9, flash: 0.85 })
+			// flash is deliberately gentle: the face is a near-white ivory, so an additive copy at
+			// the old 0.85 blew the glyphs out into a white blob and erased the baked bevel. 0.35
+			// reads as a lift on the punch without destroying the letterforms.
+			.set(centerFx, { scale: big ? 1.0 : 0.9, flash: 0.35 })
 			.to(centerFx, { scale: big ? 1.55 : 1.18, duration: 0.12, ease: 'back.out(3)' })
 			.to(centerFx, { scale: 1, duration: big ? 0.6 : 0.34, ease: 'elastic.out(1, 0.5)' })
 			.to(centerFx, { flash: 0, duration: 0.3, ease: 'power2.out' }, 0);
@@ -153,7 +133,6 @@
 				(a, b) => (a.eyeType === 'MUL' ? 1 : 0) - (b.eyeType === 'MUL' ? 1 : 0),
 			);
 			hasMul = eyes.some((eye) => eye.eyeType === 'MUL');
-			if (numberGlow) numberGlow.color = TOTAL_COLOR;
 
 			resolving = true;
 			show = true;
@@ -212,19 +191,14 @@
 		},
 	});
 
-	// The RUNNING TOTAL is the game's number — branded gold bitmap face (same as the tumble
-	// banner / takeover / HUD), with the GlowFilter carrying the hero warmth. The flying CHIPS
-	// stay in the eye-coloured Cinzel face: each chip carries the value straight off its eye's
-	// face (ADD cyan / MUL red), so keeping that style reads as continuity, not a mismatch.
-	// CAP: the AbyssalBitmap page is rasterized ONCE at 96px (`size=96` in abyssal_font.fnt), and
-	// a BitmapText asked for more than that magnifies already-rasterized glyphs — which is what
-	// made this number look blocky next to the win/tumble banners. Those banners are sharp because
-	// they all go through ResponsiveBitmapText, whose `Math.min(scale, 1)` can only ever SHRINK.
-	// 0.78 asked for ~126px (1.31x native); 0.59 lands at ~95px, just under the native size.
-	// (popCenter's punch still peaks at 1.55x for ~0.12s — that transient is unavoidable without a
-	// larger font page, but the number is READ at rest, which is now at/below native.)
-	const totalStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.59 });
-	const gazeStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.22, letterSpacing: 3 });
+	// The RUNNING TOTAL is the game's number, in the shared metal (see game/textStyles.ts). The
+	// flying CHIPS carry the value straight off their eye's face, so their colour (ADD cyan /
+	// MUL red) drives the gradient's accent — the chip reads as continuous with the eye it left.
+	//
+	// Deliberately on the UI face, NOT the display serif: the Eye lives on the board mid-spin, and
+	// the serif is reserved for win presentation so it still means "you won something".
+	const totalStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.78 });
+	const gazeStyle = abyssalLabelTextStyle({ fontSize: SYMBOL_SIZE * 0.22, letterSpacing: 3 });
 	const chipStyle = $derived(
 		eyeValueTextStyle({ fontSize: SYMBOL_SIZE * 0.6, fill: chip.mul ? MUL_COLOR : ADD_COLOR }),
 	);
@@ -250,19 +224,23 @@
 		     matching the seed that just flew in from the meter's plaque -->
 		<Container x={center.x} y={center.y}>
 			{#if gazeLabel}
-				<BitmapText
+				<Text
 					anchor={0.5}
 					y={-SYMBOL_SIZE * 0.62}
 					text={context.i18nDerived.gaze()}
 					style={gazeStyle}
 				/>
 			{/if}
-			<Container scale={centerFx.scale} filters={numberGlow ? [numberGlow] : []}>
-				<BitmapText anchor={0.5} text={`${running}`} style={totalStyle} />
+			<!-- No filter here on purpose: the bitmap font already bakes its own bevel, outline and
+			     shadow into the glyphs. A GlowFilter on top washed that out (and its gold no longer
+			     matched the frame-toned face). The punch scale carries the beat instead — and losing
+			     the filter also removes a per-frame render-texture pass. -->
+			<Container scale={centerFx.scale}>
+				<Text anchor={0.5} text={`${running}`} style={totalStyle} />
 				{#if centerFx.flash > 0}
-					<!-- the punch flash: an additive copy blooms the gold glyphs to white -->
+					<!-- the punch flash: a gentle additive copy lifts the glyphs on impact -->
 					<Container alpha={centerFx.flash} blendMode="add">
-						<BitmapText anchor={0.5} text={`${running}`} style={totalStyle} />
+						<Text anchor={0.5} text={`${running}`} style={totalStyle} />
 					</Container>
 				{/if}
 			</Container>

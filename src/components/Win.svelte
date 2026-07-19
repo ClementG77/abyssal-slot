@@ -12,7 +12,7 @@
 	import { Tween } from 'svelte/motion';
 
 	import { Container } from 'pixi-svelte';
-	import { FadeContainer, ResponsiveBitmapText } from 'components-pixi';
+	import { FadeContainer } from 'components-pixi';
 	import { waitForResolve, waitForTimeout } from 'utils-shared/wait';
 	import { createInterruptible } from 'utils-shared/interruptible';
 	import { bookEventAmountToCurrencyString } from 'utils-shared/amount';
@@ -24,7 +24,9 @@
 	import WinBubbles from './WinBubbles.svelte';
 	import WinBanner from './WinBanner.svelte';
 	import PressToContinue from './PressToContinue.svelte';
-	import { SYMBOL_SIZE, abyssalBitmapStyle } from '../game/constants';
+	import ResponsiveText from './ResponsiveText.svelte';
+	import { SYMBOL_SIZE } from '../game/constants';
+	import { abyssalAmountTextStyle, CELEBRATION_FACE, WIN_TIER_ACCENT } from '../game/textStyles';
 	import { getContext } from '../game/context';
 
 	const context = getContext();
@@ -56,15 +58,9 @@
 	// discreet tier-color wash over the whole dimmed scene behind the takeover
 	const SCENE_TINT_ALPHA = 0.06;
 
-	// accents matched to the win_steps frame art (crest + gem colors per step).
-	// Red is RESERVED for the win cap: MAX WIN wears the dragon frame, EPIC the eye frame.
-	const TIER_COLOR: Record<string, number> = {
-		bigWin: 0x2fd06c, // emerald (seahorse)
-		hugeWin: 0x3f8cff, // sapphire (jellyfish)
-		megaWin: 0xffb13c, // amber (nautilus)
-		epicWin: 0xb45cff, // amethyst (the Eye)
-		maxWin: 0xff4438, // ruby (dragon) — the 15,000× moment only
-	};
+	// accents matched to the win_steps frame art — shared with the type's gradient and the max-win
+	// takeover, so the frame tint, aura, bubbles and the amount itself can never drift apart.
+	const TIER_COLOR: Record<string, number> = WIN_TIER_ACCENT;
 
 	const tierFor = (mult: number) => WIN_TIERS.find((t) => mult >= t.min);
 	const lowestTier = WIN_TIERS[WIN_TIERS.length - 1];
@@ -102,7 +98,6 @@
 	);
 	const frameW = $derived(imgW * frameScale);
 	const frameH = $derived(frameW * (383 / 522));
-	const amountStyle = $derived(abyssalBitmapStyle({ fontSize: frameH * AMOUNT_SIZE }));
 
 	// --- Stepped count-up + press-to-skip ---------------------------------------------------
 	// The count runs boundary to boundary (each tier floor above the entry tier), easing into
@@ -147,6 +142,18 @@
 
 	const liveMult = $derived(countUp.current / BOOK_AMOUNT_MULTIPLIER);
 	const bannerTier = $derived(tierFor(liveMult) ?? lowestTier);
+
+	// The amount wears the LIVE tier's colour in its gradient base, so the number itself recolours
+	// as the count-up crosses each boundary — the escalation is in the type, not only in the frame
+	// around it. Cheap: gradients are cached per colour, so a tier-up swaps a texture reference
+	// rather than building one.
+	const amountStyle = $derived(
+		abyssalAmountTextStyle({
+			fontSize: frameH * AMOUNT_SIZE,
+			accent: TIER_COLOR[bannerTier.key],
+			face: CELEBRATION_FACE,
+		}),
+	);
 
 	// --- Celebration FX -------------------------------------------------------------------
 	const numFx = $state({ scale: 1, flash: 0, throb: 1 }); // lock pop + flash + counting throb
@@ -309,7 +316,11 @@
 					height={frameH}
 				/>
 				<Container scale={numFx.scale * numFx.throb}>
-					<ResponsiveBitmapText
+					<!-- ResponsiveText, not plain Text: canvas Text does NOT fit to width, so a long
+					     amount (0-decimal currency, or a wide symbol like CFA) overflowed the plaque
+					     instead of shrinking. AMOUNT_MAX_WIDTH was declared here but never wired,
+					     while WinCapCelebration — which shares this exact plaque size — did use it. -->
+					<ResponsiveText
 						anchor={0.5}
 						y={frameH * AMOUNT_Y}
 						maxWidth={frameW * AMOUNT_MAX_WIDTH}
@@ -317,9 +328,9 @@
 						style={amountStyle}
 					/>
 					{#if numFx.flash > 0}
-						<!-- the lock flash: an additive copy of the gold glyphs blooms them to white -->
+						<!-- the lock flash: an additive copy of the glyphs blooms them to white -->
 						<Container alpha={numFx.flash} blendMode="add">
-							<ResponsiveBitmapText
+							<ResponsiveText
 								anchor={0.5}
 								y={frameH * AMOUNT_Y}
 								maxWidth={frameW * AMOUNT_MAX_WIDTH}

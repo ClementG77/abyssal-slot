@@ -234,25 +234,7 @@ export const getSymbolFill = (symbolName: SymbolName) => {
 	return REEL_LAYOUT_BASE.symbolFill;
 };
 
-// --- Branded bitmap font (the gold "minted" Abyssal type) --------------------------------
-// Face name baked into static/assets/fonts/abyssal_bitmap_font_package/abyssal_font.fnt and
-// registered by the `abyssalFont` asset. Render it with <BitmapText>/<ResponsiveBitmapText> —
-// the gold fill, bevel and dark outline are baked into the glyph art (no stroke/dropShadow
-// style props needed, and `fill` tints multiplicatively so leave it unset to keep the gold).
-// UPPERCASE-only coverage, no '/' (use "OF"), no lowercase except 'x'.
-export const ABYSSAL_FONT_FAMILY = 'AbyssalBitmap';
-export const abyssalBitmapStyle = ({
-	fontSize,
-	letterSpacing,
-}: {
-	fontSize: number;
-	letterSpacing?: number;
-}): TextStyleOptions => ({
-	fontFamily: ABYSSAL_FONT_FAMILY,
-	fontSize,
-	align: 'center',
-	...(letterSpacing !== undefined ? { letterSpacing } : {}),
-});
+
 
 // The Eye states all live in the symbol atlas, in reveal order:
 //   CLOSE (purple, unrevealed) → flip → ADD_EMPTY/MULT_EMPTY (closed coloured art, our number
@@ -283,21 +265,6 @@ export const EYE_LABEL_OFFSET_PLAQUE = { x: 0, y: 0.36 } as const;
 // cyan = ADD, gold = MUL — so colour alone signals the eye type (no +/× prefix). One definition,
 // shared by the board Eye (AbyssalEye) and the resolve overlay (Eye), so they never drift.
 export const EYE_VALUE_FILL = { add: 0xdffbff, mul: 0xffe66d } as const;
-export const eyeValueTextStyle = ({
-	fontSize,
-	fill,
-}: {
-	fontSize: number;
-	fill: number;
-}): TextStyleOptions => ({
-	fontFamily: 'Cinzel, Georgia, serif',
-	fontWeight: '900',
-	fontSize,
-	fill,
-	align: 'center',
-	stroke: { color: 0x071a2d, width: Math.max(3, fontSize * 0.06) },
-	dropShadow: { color: 0x000000, blur: 4, distance: 2, alpha: 0.8 },
-});
 
 // All frames in the `symbols` atlas share a uniform 484×495 source cell.
 // TEST (2026-07-19): 495x501 = the `symbol_black` atlas cell. `symbols_final` cells are

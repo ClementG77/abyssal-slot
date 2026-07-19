@@ -7,9 +7,11 @@
 	import gsap from 'gsap';
 
 	import { Container, Graphics, Sprite } from 'pixi-svelte';
-	import { ResponsiveBitmapText } from 'components-pixi';
+	import ResponsiveText from './ResponsiveText.svelte';
 
-	import { abyssalBitmapStyle } from '../game/constants';
+
+
+	import { abyssalAmountTextStyle, CELEBRATION_FACE } from '../game/textStyles';
 	import { i18nDerived } from '../i18n/i18nDerived';
 
 	// The win-step screen: the tier's ornate plaque frame from the win_steps sheet (crest +
@@ -92,10 +94,14 @@
 
 	const frameKey = $derived(TIER_FRAMES[props.tierKey]);
 	const title = $derived(i18nDerived.winTier(props.tierKey));
+	// The headline takes the step's accent in its gradient base too, so "MEGA WIN" is amber-footed
+	// where "BIG WIN" was emerald-footed — title, frame, aura and amount all agree on the colour.
 	const titleStyle = $derived(
-		abyssalBitmapStyle({
+		abyssalAmountTextStyle({
 			fontSize: props.height * TITLE_SIZE,
 			letterSpacing: props.height * 0.01,
+			accent: props.color,
+			face: CELEBRATION_FACE,
 		}),
 	);
 
@@ -163,10 +169,10 @@
 
 	<!-- the headline pulses on its own rhythm (on top of the banner's gentle breathe) -->
 	<Container y={props.height * TITLE_Y} scale={1 + idle.glow * TITLE_PULSE}>
-		<ResponsiveBitmapText anchor={0.5} maxWidth={props.width * 1.05} text={title} style={titleStyle} />
+		<ResponsiveText anchor={0.5} maxWidth={props.width * 1.05} text={title} style={titleStyle} />
 		<!-- tier-colored bloom of the headline glyphs, swelling with the pulse -->
 		<Container alpha={(0.35 + idle.glow * 0.3) * (0.5 + fx.bloom * 0.5)} blendMode="add">
-			<ResponsiveBitmapText
+			<ResponsiveText
 				anchor={0.5}
 				maxWidth={props.width * 1.05}
 				text={title}
@@ -180,7 +186,7 @@
 		<!-- escalation flash: an additive white copy blooms the whole banner on each tier-up -->
 		<Container alpha={fx.flash} blendMode="add">
 			<Sprite anchor={0.5} key={frameKey} width={props.width} height={props.height} />
-			<ResponsiveBitmapText
+			<ResponsiveText
 				anchor={0.5}
 				y={props.height * TITLE_Y}
 				maxWidth={props.width * 1.05}

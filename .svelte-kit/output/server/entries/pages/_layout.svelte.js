@@ -6368,14 +6368,6 @@ function Sprite($$payload, $$props) {
   $$payload.out += `<!---->`;
   pop();
 }
-function BitmapText($$payload, $$props) {
-  push();
-  const { $$slots, $$events, ...props } = $$props;
-  const parentContext = getContextParent();
-  const bitmapText = new PIXI$1.BitmapText({ text: props.text, style: props.style });
-  parentContext.addToParent(bitmapText);
-  pop();
-}
 /*!
  * @barvynkoa/particle-emitter - v6.0.0
  * Compiled Mon, 27 May 2024 12:15:21 UTC
@@ -8043,32 +8035,6 @@ function FadeContainer($$payload, $$props) {
   }
   $$payload.out += `<!--]-->`;
   pop();
-}
-function ResponsiveBitmapText($$payload, $$props) {
-  const { maxWidth, $$slots, $$events, ...textProps } = $$props;
-  let baseSizes = { width: 0 };
-  const responsiveScale = maxWidth / (baseSizes.width || 1);
-  Container($$payload, {
-    visible: false,
-    children: ($$payload2) => {
-      BitmapText($$payload2, spread_props([
-        textProps,
-        { onresize: (sizes) => baseSizes = sizes }
-      ]));
-    },
-    $$slots: { default: true }
-  });
-  $$payload.out += `<!----> `;
-  Container($$payload, {
-    children: ($$payload2) => {
-      BitmapText($$payload2, spread_props([
-        textProps,
-        { scale: Math.min(responsiveScale, 1) }
-      ]));
-    },
-    $$slots: { default: true }
-  });
-  $$payload.out += `<!---->`;
 }
 function Button($$payload, $$props) {
   push();
@@ -11792,16 +11758,9 @@ const getSymbolFill = (symbolName) => {
   if (symbolName.startsWith("L")) return 0.74;
   return REEL_LAYOUT_BASE.symbolFill;
 };
-const ABYSSAL_FONT_FAMILY = "AbyssalBitmap";
-const abyssalBitmapStyle = ({
-  fontSize,
-  letterSpacing
-}) => ({
-  fontFamily: ABYSSAL_FONT_FAMILY,
-  fontSize,
-  align: "center",
-  ...letterSpacing !== void 0 ? { letterSpacing } : {}
-});
+new Set(
+  " !#$%&*+,-.0123456789<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ_x|€×"
+);
 const EYE_FRAME = {
   close: "EYE_PURPLE_CLOSE",
   add: "EYE_ADD_ACTIVE",
@@ -12026,14 +11985,18 @@ const assets = {
     src: new URL("../../assets/wins/freespin_retrigger.png", import.meta.url).href,
     preload: true
   },
-  // Branded gold "minted" bitmap font (face name `AbyssalBitmap`). BMFont .fnt + sibling PNG page;
+  // Branded gold "minted" bitmap font (face name `Abyssal_new`, 192px native). BMFont .fnt + PNG page;
   // Pixi installs it on load, then <BitmapText style={{ fontFamily: ABYSSAL_FONT_FAMILY }}> uses it.
   // Glyph coverage is UPPERCASE-only: A–Z 0–9 space $ £ € × x , . ! ? % + - # & * < = > @ _ |
   // — notably NO '/' and no lowercase (except 'x'). Keep on-screen strings inside that set.
   abyssalFont: {
     type: "font",
-    src: new URL("../../assets/fonts/abyssal_bitmap_font_package/abyssal_font.fnt", import.meta.url).href,
-    preload: true
+    src: new URL("../../assets/fonts/Abyssal_new/abyssal_new.fnt", import.meta.url).href,
+    preload: true,
+    // Mipmaps: the page is rasterized at 192px, but small labels render around 35px — a ~0.2x
+    // minification that aliases badly without them (the same class of bug that made the symbols
+    // look pixelated). Big text is now at/below native, small text is mipmapped: both ends sharp.
+    data: { textureOptions: { autoGenerateMipmaps: true, scaleMode: "linear" } }
   },
   // Sound sprite — the production set (docs/ABYSSAL_SOUND_DESIGN.md §3), packed as one audio.m4a
   // + Howler offset map (Valkyrie/Waylanders pattern). The m4a lives in static/ because Howler
@@ -17546,6 +17509,67 @@ function Anticipations($$payload, $$props) {
   $$payload.out += `<!--]-->`;
   pop();
 }
+const TEXT_PALETTE = {
+  fill: 16776173,
+  // pearl-cream face
+  fillBright: 16777215,
+  // captions on mid-tone panels, where contrast matters more than warmth
+  stroke: 2759180,
+  // deep warm brown — reads as the frame's shadow, not a black outline
+  shadow: 656400
+  // near-black with a violet lean, matching the abyss backdrop
+};
+const STROKE_RATIO = 0.09;
+const SHADOW_BLUR_RATIO = 0.07;
+const SHADOW_DISTANCE_RATIO = 0.028;
+const abyssalAmountTextStyle = ({
+  fontSize,
+  fill = TEXT_PALETTE.fill
+}) => ({
+  fontFamily: FONT,
+  fontWeight: "900",
+  fontSize,
+  align: "center",
+  fill,
+  stroke: {
+    color: TEXT_PALETTE.stroke,
+    width: Math.max(2, fontSize * STROKE_RATIO),
+    join: "round"
+  },
+  dropShadow: {
+    color: TEXT_PALETTE.shadow,
+    blur: Math.max(3, fontSize * SHADOW_BLUR_RATIO),
+    distance: Math.max(1, fontSize * SHADOW_DISTANCE_RATIO),
+    alpha: 0.9,
+    angle: Math.PI / 2
+  }
+});
+const abyssalLabelTextStyle = ({
+  fontSize,
+  letterSpacing = 2
+}) => ({
+  fontFamily: FONT,
+  fontWeight: "800",
+  fontSize,
+  letterSpacing,
+  align: "center",
+  // brightest of the palette: ivory on the tumble banner's #0D8290 teal measured only 3.4:1,
+  // under the 4.5:1 minimum for small text — white lifts it to 4.55:1
+  fill: TEXT_PALETTE.fillBright,
+  stroke: {
+    color: TEXT_PALETTE.stroke,
+    width: Math.max(1.5, fontSize * (STROKE_RATIO * 0.7)),
+    join: "round"
+  },
+  dropShadow: {
+    color: TEXT_PALETTE.shadow,
+    blur: Math.max(2, fontSize * SHADOW_BLUR_RATIO),
+    distance: Math.max(1, fontSize * SHADOW_DISTANCE_RATIO),
+    alpha: 0.9,
+    angle: Math.PI / 2
+  }
+});
+const abyssalValueTextStyle = ({ fontSize }) => abyssalAmountTextStyle({ fontSize });
 function ClusterWinAmount($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
@@ -17554,7 +17578,7 @@ function ClusterWinAmount($$payload, $$props) {
   let show = true;
   const TIER_LABEL_SCALE = [1, 1.22, 1.5];
   const tier = getEssenceTier(props.win.count ?? 8);
-  const labelStyle = abyssalBitmapStyle({
+  const labelStyle = abyssalAmountTextStyle({
     fontSize: SYMBOL_SIZE * 0.34 * TIER_LABEL_SCALE[tier - 1]
   });
   FadeContainer($$payload, {
@@ -17568,7 +17592,7 @@ function ClusterWinAmount($$payload, $$props) {
         y: getPositionY(props.win.row) + y.current,
         scale: scale.current,
         children: ($$payload3) => {
-          BitmapText($$payload3, {
+          Text($$payload3, {
             anchor: 0.5,
             text: bookEventAmountToCurrencyString(props.win.win),
             style: labelStyle
@@ -17994,6 +18018,40 @@ function BoardDebris($$payload, $$props) {
   });
   pop();
 }
+function ResponsiveText($$payload, $$props) {
+  push();
+  const { $$slots, $$events, ...props } = $$props;
+  let naturalWidth = 0;
+  const scale = naturalWidth > 0 ? Math.min(props.maxWidth / naturalWidth, 1) : 1;
+  Container($$payload, {
+    visible: false,
+    children: ($$payload2) => {
+      Text($$payload2, {
+        text: props.text,
+        style: props.style,
+        anchor: props.anchor ?? 0.5,
+        onresize: (sizes) => naturalWidth = sizes.width
+      });
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!----> `;
+  Container($$payload, {
+    x: props.x ?? 0,
+    y: props.y ?? 0,
+    scale,
+    children: ($$payload2) => {
+      Text($$payload2, {
+        text: props.text,
+        style: props.style,
+        anchor: props.anchor ?? 0.5
+      });
+    },
+    $$slots: { default: true }
+  });
+  $$payload.out += `<!---->`;
+  pop();
+}
 function TumbleWinAmount($$payload, $$props) {
   push();
   const context2 = getContext();
@@ -18144,13 +18202,13 @@ function TumbleWinAmount($$payload, $$props) {
       await skippableWait(500 / ts());
     }
   });
-  const labelStyle = abyssalBitmapStyle({
+  const labelStyle = abyssalLabelTextStyle({
     fontSize: SYMBOL_SIZE * 0.14,
     letterSpacing: 2
   });
-  const amountStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.31 });
-  const exprStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.27 });
-  const multStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.6 });
+  const amountStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.31 });
+  const exprStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.27 });
+  const multStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.6 });
   const drawGlow = (g) => {
     g.roundRect(-INNER_W / 2 - 12, -INNER_H / 2 - 12, INNER_W + 24, INNER_H + 24, INNER_RADIUS + 10).fill({ color: 16764506, alpha: 0.28 });
   };
@@ -18167,7 +18225,7 @@ function TumbleWinAmount($$payload, $$props) {
           scale: flyFx.scale,
           alpha: flyFx.alpha,
           children: ($$payload3) => {
-            BitmapText($$payload3, {
+            Text($$payload3, {
               anchor: 0.5,
               text: `×${flyFx.mult}`,
               style: multStyle
@@ -18231,7 +18289,7 @@ function TumbleWinAmount($$payload, $$props) {
                       $$payload5.out += "<!--[!-->";
                     }
                     $$payload5.out += `<!--]--> `;
-                    BitmapText($$payload5, {
+                    Text($$payload5, {
                       anchor: 0.5,
                       y: -BANNER_H * 0.09,
                       text: context2.i18nDerived.tumbleWin(),
@@ -18244,7 +18302,7 @@ function TumbleWinAmount($$payload, $$props) {
                       children: ($$payload6) => {
                         if (multiplyExpr) {
                           $$payload6.out += "<!--[-->";
-                          ResponsiveBitmapText($$payload6, {
+                          ResponsiveText($$payload6, {
                             anchor: 0.5,
                             maxWidth: INNER_W * 0.92,
                             text: `${multiplyExpr.rawText}  ×${multiplyExpr.mult}`,
@@ -18252,9 +18310,8 @@ function TumbleWinAmount($$payload, $$props) {
                           });
                         } else {
                           $$payload6.out += "<!--[!-->";
-                          ResponsiveBitmapText($$payload6, {
+                          Text($$payload6, {
                             anchor: 0.5,
-                            maxWidth: INNER_W * 0.9,
                             text: bookEventAmountToCurrencyString(displayAmount.current),
                             style: amountStyle
                           });
@@ -18879,11 +18936,11 @@ function GazeMeter($$payload, $$props) {
                   rotation: multiplierTextRotation,
                   scale: fx.textScale,
                   children: ($$payload5) => {
-                    ResponsiveBitmapText($$payload5, {
+                    ResponsiveText($$payload5, {
                       anchor: 0.5,
                       maxWidth: plaqueR * 1.55,
                       text: String(charge),
-                      style: abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })
+                      style: abyssalAmountTextStyle({ fontSize: plaqueR * 1.34 })
                     });
                     $$payload5.out += `<!----> `;
                     if (maxed && fx.overcharge > 0) {
@@ -18892,11 +18949,11 @@ function GazeMeter($$payload, $$props) {
                         alpha: fx.overcharge * 0.7,
                         blendMode: "add",
                         children: ($$payload6) => {
-                          ResponsiveBitmapText($$payload6, {
+                          ResponsiveText($$payload6, {
                             anchor: 0.5,
                             maxWidth: plaqueR * 1.55,
                             text: String(charge),
-                            style: abyssalBitmapStyle({ fontSize: plaqueR * 1.34 })
+                            style: abyssalAmountTextStyle({ fontSize: plaqueR * 1.34 })
                           });
                         },
                         $$slots: { default: true }
@@ -18928,10 +18985,10 @@ function GazeMeter($$payload, $$props) {
                         scale: chipP < 0.18 ? 0.5 + chipP / 0.18 * 0.65 : 1.15 - (chipP - 0.18) * 0.18,
                         alpha: chipP > 0.68 ? Math.max(0, (1 - chipP) / 0.32) : 1,
                         children: ($$payload6) => {
-                          BitmapText($$payload6, {
+                          Text($$payload6, {
                             anchor: 0.5,
                             text: chip.text,
-                            style: abyssalBitmapStyle({ fontSize: plaqueR * (0.58 + chip.tier * 0.14) })
+                            style: abyssalAmountTextStyle({ fontSize: plaqueR * (0.58 + chip.tier * 0.14) })
                           });
                         },
                         $$slots: { default: true }
@@ -18957,10 +19014,10 @@ function GazeMeter($$payload, $$props) {
               scale: flyScale,
               alpha: flyAlpha,
               children: ($$payload4) => {
-                BitmapText($$payload4, {
+                Text($$payload4, {
                   anchor: 0.5,
                   text: `${flightValue}`,
-                  style: abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.42 })
+                  style: abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.42 })
                 });
               },
               $$slots: { default: true }
@@ -19005,7 +19062,7 @@ function Eye($$payload, $$props) {
   };
   const popCenter = (big = false) => {
     gsap.killTweensOf(centerFx);
-    gsap.timeline().set(centerFx, { scale: big ? 1 : 0.9, flash: 0.85 }).to(centerFx, {
+    gsap.timeline().set(centerFx, { scale: big ? 1 : 0.9, flash: 0.35 }).to(centerFx, {
       scale: big ? 1.55 : 1.18,
       duration: 0.12,
       ease: "back.out(3)"
@@ -19121,8 +19178,8 @@ function Eye($$payload, $$props) {
       dimFx.alpha = 0;
     }
   });
-  const totalStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.59 });
-  const gazeStyle = abyssalBitmapStyle({
+  const totalStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.78 });
+  const gazeStyle = abyssalLabelTextStyle({
     fontSize: SYMBOL_SIZE * 0.22,
     letterSpacing: 3
   });
@@ -19157,7 +19214,7 @@ function Eye($$payload, $$props) {
             children: ($$payload4) => {
               if (gazeLabel) {
                 $$payload4.out += "<!--[-->";
-                BitmapText($$payload4, {
+                Text($$payload4, {
                   anchor: 0.5,
                   y: -SYMBOL_SIZE * 0.62,
                   text: context2.i18nDerived.gaze(),
@@ -19169,9 +19226,8 @@ function Eye($$payload, $$props) {
               $$payload4.out += `<!--]--> `;
               Container($$payload4, {
                 scale: centerFx.scale,
-                filters: [],
                 children: ($$payload5) => {
-                  BitmapText($$payload5, {
+                  Text($$payload5, {
                     anchor: 0.5,
                     text: `${running}`,
                     style: totalStyle
@@ -19183,7 +19239,7 @@ function Eye($$payload, $$props) {
                       alpha: centerFx.flash,
                       blendMode: "add",
                       children: ($$payload6) => {
-                        BitmapText($$payload6, {
+                        Text($$payload6, {
                           anchor: 0.5,
                           text: `${running}`,
                           style: totalStyle
@@ -19394,7 +19450,7 @@ function WinBanner($$payload, $$props) {
   const idle = { breathe: 1, glow: 0 };
   const frameKey = TIER_FRAMES[props.tierKey];
   const title = i18nDerived.winTier(props.tierKey);
-  const titleStyle = abyssalBitmapStyle({
+  const titleStyle = abyssalAmountTextStyle({
     fontSize: props.height * TITLE_SIZE,
     letterSpacing: props.height * 0.01
   });
@@ -19487,7 +19543,7 @@ function WinBanner($$payload, $$props) {
         y: props.height * TITLE_Y,
         scale: 1 + idle.glow * TITLE_PULSE,
         children: ($$payload3) => {
-          ResponsiveBitmapText($$payload3, {
+          ResponsiveText($$payload3, {
             anchor: 0.5,
             maxWidth: props.width * 1.05,
             text: title,
@@ -19498,7 +19554,7 @@ function WinBanner($$payload, $$props) {
             alpha: (0.35 + idle.glow * 0.3) * (0.5 + fx.bloom * 0.5),
             blendMode: "add",
             children: ($$payload4) => {
-              ResponsiveBitmapText($$payload4, {
+              ResponsiveText($$payload4, {
                 anchor: 0.5,
                 maxWidth: props.width * 1.05,
                 text: title,
@@ -19612,7 +19668,7 @@ function WinCapCelebration($$payload, $$props) {
   const boardWidth = context2.stateGameDerived.boardLayout().width;
   const frameW = boardWidth * 1.05 * (context2.stateLayoutDerived.layoutType() === "portrait" ? FRAME_SCALE_PORTRAIT : FRAME_SCALE);
   const frameH = frameW * (383 / 522);
-  const amountStyle = abyssalBitmapStyle({ fontSize: frameH * AMOUNT_SIZE });
+  const amountStyle = abyssalAmountTextStyle({ fontSize: frameH * AMOUNT_SIZE });
   const countUp = new Tween(0);
   const interruptible = createInterruptible();
   let countUpCompleted = false;
@@ -19788,7 +19844,7 @@ function WinCapCelebration($$payload, $$props) {
                     Container($$payload5, {
                       scale: numFx.scale * numFx.throb,
                       children: ($$payload6) => {
-                        ResponsiveBitmapText($$payload6, {
+                        ResponsiveText($$payload6, {
                           anchor: 0.5,
                           y: frameH * AMOUNT_Y,
                           maxWidth: frameW * AMOUNT_MAX_WIDTH,
@@ -19802,7 +19858,7 @@ function WinCapCelebration($$payload, $$props) {
                             alpha: numFx.flash,
                             blendMode: "add",
                             children: ($$payload7) => {
-                              ResponsiveBitmapText($$payload7, {
+                              ResponsiveText($$payload7, {
                                 anchor: 0.5,
                                 y: frameH * AMOUNT_Y,
                                 maxWidth: frameW * AMOUNT_MAX_WIDTH,
@@ -19878,7 +19934,6 @@ function Win($$payload, $$props) {
   const lowestTier = WIN_TIERS[WIN_TIERS.length - 1];
   const AMOUNT_Y = 0.08;
   const AMOUNT_SIZE = 0.22;
-  const AMOUNT_MAX_WIDTH = 0.66;
   const BANNER_SHIFT = 0.12;
   let show = false;
   let amount2 = 0;
@@ -19893,7 +19948,7 @@ function Win($$payload, $$props) {
   const frameScale = context2.stateLayoutDerived.layoutType() === "portrait" ? 0.95 : 0.72;
   const frameW = imgW * frameScale;
   const frameH = frameW * (383 / 522);
-  const amountStyle = abyssalBitmapStyle({ fontSize: frameH * AMOUNT_SIZE });
+  const amountStyle = abyssalAmountTextStyle({ fontSize: frameH * AMOUNT_SIZE });
   const countUp = new Tween(0);
   const interruptible = createInterruptible();
   let countUpCompleted = false;
@@ -20063,10 +20118,9 @@ function Win($$payload, $$props) {
                     Container($$payload5, {
                       scale: numFx.scale * numFx.throb,
                       children: ($$payload6) => {
-                        ResponsiveBitmapText($$payload6, {
+                        Text($$payload6, {
                           anchor: 0.5,
                           y: frameH * AMOUNT_Y,
-                          maxWidth: frameW * AMOUNT_MAX_WIDTH,
                           text: bookEventAmountToCurrencyString(countUp.current),
                           style: amountStyle
                         });
@@ -20077,10 +20131,9 @@ function Win($$payload, $$props) {
                             alpha: numFx.flash,
                             blendMode: "add",
                             children: ($$payload7) => {
-                              ResponsiveBitmapText($$payload7, {
+                              Text($$payload7, {
                                 anchor: 0.5,
                                 y: frameH * AMOUNT_Y,
-                                maxWidth: frameW * AMOUNT_MAX_WIDTH,
                                 text: bookEventAmountToCurrencyString(countUp.current),
                                 style: amountStyle
                               });
@@ -20492,8 +20545,9 @@ function FreeSpinCounter($$payload, $$props) {
     outerStrength: 0,
     quality: 0.3,
     // see Eye.svelte: a filter's render texture defaults to 1x, which rasterizes the banner +
-    // its multiplier text at a fraction of the screen's density on a high-DPR phone
-    resolution: Math.min(window.devicePixelRatio || 1, 2)
+    // its multiplier text at a fraction of the screen's density on a high-DPR phone. Match the
+    // renderer's resolution exactly — capping it just trades 1x blur for 1.5x blur.
+    resolution: window.devicePixelRatio || 1
   });
   multGlow.enabled = false;
   const blinkGlow = () => {
@@ -20601,17 +20655,17 @@ function FreeSpinCounter($$payload, $$props) {
       await totalMultPop.set(1);
     }
   });
-  const totalMultLabelStyle = abyssalBitmapStyle({
+  const totalMultLabelStyle = abyssalLabelTextStyle({
     fontSize: SYMBOL_SIZE * 0.16,
     letterSpacing: 2
   });
-  const totalMultValueStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.3 });
-  const freeSpinsLabelStyle = abyssalBitmapStyle({
+  const totalMultValueStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.3 });
+  const freeSpinsLabelStyle = abyssalLabelTextStyle({
     fontSize: SYMBOL_SIZE * 0.16,
     letterSpacing: 2
   });
-  const freeSpinsValueStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.28 });
-  const flyTokenStyle = abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.4 });
+  const freeSpinsValueStyle = abyssalValueTextStyle({ fontSize: SYMBOL_SIZE * 0.28 });
+  const flyTokenStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.4 });
   MainContainer($$payload, {
     children: ($$payload2) => {
       FadeContainer($$payload2, spread_props([
@@ -20628,7 +20682,7 @@ function FreeSpinCounter($$payload, $$props) {
                     Container($$payload5, {
                       y: -totalMultSize * 0.58,
                       children: ($$payload6) => {
-                        BitmapText($$payload6, {
+                        Text($$payload6, {
                           text: context2.i18nDerived.totalMult(),
                           anchor: 0.5,
                           style: totalMultLabelStyle
@@ -20647,7 +20701,7 @@ function FreeSpinCounter($$payload, $$props) {
                           height: totalMultSize
                         });
                         $$payload6.out += `<!----> `;
-                        ResponsiveBitmapText($$payload6, {
+                        ResponsiveText($$payload6, {
                           text: `x${context2.stateGame.persistentMult}`,
                           anchor: 0.5,
                           y: -totalMultSize * 0.06,
@@ -20674,18 +20728,17 @@ function FreeSpinCounter($$payload, $$props) {
                       height: freeSpinsH
                     });
                     $$payload5.out += `<!----> `;
-                    BitmapText($$payload5, {
+                    Text($$payload5, {
                       text: context2.i18nDerived.freeSpins(),
                       anchor: 0.5,
                       y: -freeSpinsH * 0.11,
                       style: freeSpinsLabelStyle
                     });
                     $$payload5.out += `<!----> `;
-                    ResponsiveBitmapText($$payload5, {
-                      text: `${current} OF ${total}`,
+                    Text($$payload5, {
+                      text: `${current} / ${total}`,
                       anchor: 0.5,
                       y: freeSpinsH * 0.1,
-                      maxWidth: freeSpinsSize * 0.56,
                       style: freeSpinsValueStyle
                     });
                     $$payload5.out += `<!---->`;
@@ -20709,7 +20762,7 @@ function FreeSpinCounter($$payload, $$props) {
           scale: flyFx.scale,
           alpha: flyFx.alpha,
           children: ($$payload3) => {
-            BitmapText($$payload3, {
+            Text($$payload3, {
               anchor: 0.5,
               text: `x${context2.stateGame.persistentMult}`,
               style: flyTokenStyle
@@ -20800,7 +20853,7 @@ function FreeSpinOutro($$payload, $$props) {
   const imgH = imgW / imageAspect;
   const amountY = imgH * (PLAQUE_CENTER_Y - 0.5);
   const amountMaxWidth = imgW * PLAQUE_TEXT_WIDTH;
-  const amountStyle = abyssalBitmapStyle({ fontSize: imgH * PLAQUE_FONT_SIZE });
+  const amountStyle = abyssalAmountTextStyle({ fontSize: imgH * PLAQUE_FONT_SIZE });
   FadeContainer($$payload, {
     show,
     zIndex: 45,
@@ -20833,7 +20886,7 @@ function FreeSpinOutro($$payload, $$props) {
               y: amountY,
               scale: numFx.scale,
               children: ($$payload4) => {
-                ResponsiveBitmapText($$payload4, {
+                ResponsiveText($$payload4, {
                   anchor: 0.5,
                   maxWidth: amountMaxWidth,
                   text: bookEventAmountToCurrencyString(countUp.current),
@@ -20846,7 +20899,7 @@ function FreeSpinOutro($$payload, $$props) {
                     alpha: numFx.flash,
                     blendMode: "add",
                     children: ($$payload5) => {
-                      ResponsiveBitmapText($$payload5, {
+                      ResponsiveText($$payload5, {
                         anchor: 0.5,
                         maxWidth: amountMaxWidth,
                         text: bookEventAmountToCurrencyString(countUp.current),
@@ -22550,29 +22603,41 @@ function ReplayControls($$payload, $$props) {
 }
 function GameInfo($$payload, $$props) {
   push();
-  const ATLAS = new URL("../../assets/symbols/symbols_final/symbols_final.png", import.meta.url).href;
-  const ATLAS_W = 1936;
-  const ATLAS_H = 1980;
-  const CELL_W = 484;
-  const CELL_H = 495;
+  const ATLAS = new URL("../../assets/symbols/symbol_black/symbol_black.png", import.meta.url).href;
+  const ATLAS_W = 1980;
+  const ATLAS_H = 2004;
+  const CELL_W = 495;
+  const CELL_H = 501;
   const FRAME = {
+    // symbol_black atlas (1980x2004, 495x501 cells). These are the GAME's symbol -> art
+    // pairings, NOT the raw atlas frame names: Symbol.svelte remaps H1->H3, H3->H1, L1->L3,
+    // L3->L1, so the paytable must apply the same remap or it shows different artwork than
+    // the board does (it did, for those four, before this).
     H1: [0, 0],
-    H2: [484, 0],
-    H3: [968, 0],
-    H4: [1452, 0],
-    L1: [484, 495],
-    L2: [968, 495],
-    L3: [1452, 495],
-    L4: [0, 495],
-    L5: [1452, 990],
-    SCATTER: [0, 1485],
-    ADD_EYE: [484, 1485],
-    // EYE_ADD_ACTIVE  — blue eye
-    // EYE_MULT_ACTIVE — the RED slit-pupil eye. This used to point at [1452, 1485]
-    // (EYE_PURPLE_ACTIVE, a BLUE eye), so the popup showed a blue eye for BOTH eye types.
-    // ADD = cyan, MUL = red — see CLAUDE.md.
-    MULT_EYE: [968, 1485],
-    CLOSE_EYE: [0, 990]
+    // frame H3 — diving helmet
+    H2: [1485, 0],
+    // frame H2 — nautilus
+    H3: [990, 0],
+    // frame H1 — anglerfish
+    H4: [495, 0],
+    // frame H4 — jellyfish
+    L1: [495, 501],
+    // frame L3
+    L2: [0, 501],
+    // frame L2
+    L3: [1485, 501],
+    // frame L1
+    L4: [990, 501],
+    // frame L4
+    L5: [1485, 1002],
+    // frame L5
+    SCATTER: [0, 1503],
+    // frame SCATTER — leviathan
+    ADD_EYE: [495, 1503],
+    // EYE_ADD_ACTIVE — blue eye
+    MULT_EYE: [1485, 1503],
+    // EYE_MULT_ACTIVE — red eye
+    CLOSE_EYE: [0, 1002]
     // EYE_PURPLE_CLOSE
   };
   const t2 = (key) => i18nDerived.gameInfo(key);
@@ -22755,54 +22820,54 @@ function GameInfo($$payload, $$props) {
     const fx = FRAME[name][0];
     const fy = FRAME[name][1];
     const s = size / CELL_W;
-    $$payload2.out += `<span class="sym-icon svelte-19s4fcf"${attr("style", `width:${stringify(CELL_W * s)}px; height:${stringify(CELL_H * s)}px; background-image:url('${stringify(ATLAS)}'); background-size:${stringify(ATLAS_W * s)}px ${stringify(ATLAS_H * s)}px; background-position:${stringify(-fx * s)}px ${stringify(-fy * s)}px;`)}></span>`;
+    $$payload2.out += `<span class="sym-icon svelte-17f73wm"${attr("style", `width:${stringify(CELL_W * s)}px; height:${stringify(CELL_H * s)}px; background-image:url('${stringify(ATLAS)}'); background-size:${stringify(ATLAS_W * s)}px ${stringify(ATLAS_H * s)}px; background-position:${stringify(-fx * s)}px ${stringify(-fy * s)}px;`)}></span>`;
   }
   const each_array = ensure_array_like(steps);
   function payColumn($$payload2, title, list, high) {
     const each_array_1 = ensure_array_like(list);
-    $$payload2.out += `<div${attr("class", to_class("pay-col", "svelte-19s4fcf", { "high": high }))}><h3 class="svelte-19s4fcf">${escape_html(title)}</h3> <table class="svelte-19s4fcf"><thead><tr><th class="sym svelte-19s4fcf">${escape_html(copy.paytableSymbolHeader)}</th><th class="svelte-19s4fcf">${escape_html(copy.paytableCount8To9)}</th><th class="svelte-19s4fcf">${escape_html(copy.paytableCount10To11)}</th><th class="svelte-19s4fcf">${escape_html(copy.paytableCount12Plus)}</th></tr></thead><tbody class="svelte-19s4fcf"><!--[-->`;
+    $$payload2.out += `<div${attr("class", to_class("pay-col", "svelte-17f73wm", { "high": high }))}><h3 class="svelte-17f73wm">${escape_html(title)}</h3> <table class="svelte-17f73wm"><thead><tr><th class="sym svelte-17f73wm">${escape_html(copy.paytableSymbolHeader)}</th><th class="svelte-17f73wm">${escape_html(copy.paytableCount8To9)}</th><th class="svelte-17f73wm">${escape_html(copy.paytableCount10To11)}</th><th class="svelte-17f73wm">${escape_html(copy.paytableCount12Plus)}</th></tr></thead><tbody class="svelte-17f73wm"><!--[-->`;
     for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
       let s = each_array_1[$$index_1];
-      $$payload2.out += `<tr class="svelte-19s4fcf"><td class="sym svelte-19s4fcf">`;
+      $$payload2.out += `<tr class="svelte-17f73wm"><td class="sym svelte-17f73wm">`;
       symIcon($$payload2, s.sym);
-      $$payload2.out += `<!----><span>${escape_html(s.name)}</span></td><td class="svelte-19s4fcf">${escape_html(s.pays[0])}</td><td class="svelte-19s4fcf">${escape_html(s.pays[1])}</td><td class="svelte-19s4fcf">${escape_html(s.pays[2])}</td></tr>`;
+      $$payload2.out += `<!----><span class="svelte-17f73wm">${escape_html(s.name)}</span></td><td class="svelte-17f73wm">${escape_html(s.pays[0])}</td><td class="svelte-17f73wm">${escape_html(s.pays[1])}</td><td class="svelte-17f73wm">${escape_html(s.pays[2])}</td></tr>`;
     }
     $$payload2.out += `<!--]--></tbody></table></div>`;
   }
   const each_array_2 = ensure_array_like(freeSpinBullets);
   const each_array_3 = ensure_array_like(modes);
   const each_array_4 = ensure_array_like(controls);
-  $$payload.out += `<div class="game-info svelte-19s4fcf"><header class="svelte-19s4fcf"><h1 class="svelte-19s4fcf">${escape_html(copy.title)}</h1> <p class="tag svelte-19s4fcf">${escape_html(copy.tagline)}</p></header> <p class="lead svelte-19s4fcf">${html(copy.leadHtml)}</p> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.keyFiguresTitle)}</h2> <p class="svelte-19s4fcf">${html(copy.keyFiguresRtpHtml)}</p> <p class="svelte-19s4fcf">${html(copy.keyFiguresMaxWinHtml)}</p></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.howSpinPlaysTitle)}</h2> <ol class="steps svelte-19s4fcf"><!--[-->`;
+  $$payload.out += `<div class="game-info svelte-17f73wm"><header class="svelte-17f73wm"><h1 class="svelte-17f73wm">${escape_html(copy.title)}</h1> <p class="tag svelte-17f73wm">${escape_html(copy.tagline)}</p></header> <p class="lead svelte-17f73wm">${html(copy.leadHtml)}</p> <section class="svelte-17f73wm"><h2 class="svelte-17f73wm">${escape_html(copy.keyFiguresTitle)}</h2> <p class="svelte-17f73wm">${html(copy.keyFiguresRtpHtml)}</p> <p class="svelte-17f73wm">${html(copy.keyFiguresMaxWinHtml)}</p></section> <section class="svelte-17f73wm"><h2 class="svelte-17f73wm">${escape_html(copy.howSpinPlaysTitle)}</h2> <ol class="steps svelte-17f73wm"><!--[-->`;
   for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
     let step = each_array[$$index];
-    $$payload.out += `<li class="svelte-19s4fcf">${html(step)}</li>`;
+    $$payload.out += `<li class="svelte-17f73wm">${html(step)}</li>`;
   }
-  $$payload.out += `<!--]--></ol></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.paytableTitle)}</h2> <p class="note svelte-19s4fcf">${escape_html(copy.paytableNote)}</p> <div class="paytables svelte-19s4fcf">`;
+  $$payload.out += `<!--]--></ol></section> <section class="svelte-17f73wm"><h2 class="svelte-17f73wm">${escape_html(copy.paytableTitle)}</h2> <p class="note svelte-17f73wm">${escape_html(copy.paytableNote)}</p> <div class="paytables svelte-17f73wm">`;
   payColumn($$payload, copy.paytableHighSymbols, highs, true);
   $$payload.out += `<!----> `;
   payColumn($$payload, copy.paytableLowSymbols, lows, false);
-  $$payload.out += `<!----></div></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.specialSymbolsTitle)}</h2> <div class="specials svelte-19s4fcf"><div class="special svelte-19s4fcf">`;
+  $$payload.out += `<!----></div></section> <section class="svelte-17f73wm"><h2 class="svelte-17f73wm">${escape_html(copy.specialSymbolsTitle)}</h2> <div class="specials svelte-17f73wm"><div class="special svelte-17f73wm">`;
   symIcon($$payload, "SCATTER", 56);
-  $$payload.out += `<!----> <div class="special-name svelte-19s4fcf">${escape_html(copy.specialScatterName)}</div> <p class="svelte-19s4fcf">${html(copy.specialScatterDescriptionHtml)}</p></div> <div class="special svelte-19s4fcf">`;
+  $$payload.out += `<!----> <div class="special-name svelte-17f73wm">${escape_html(copy.specialScatterName)}</div> <p class="svelte-17f73wm">${html(copy.specialScatterDescriptionHtml)}</p></div> <div class="special svelte-17f73wm">`;
   symIcon($$payload, "ADD_EYE", 56);
-  $$payload.out += `<!----> <div class="special-name svelte-19s4fcf">${escape_html(copy.specialAddEyeName)}</div> <p class="svelte-19s4fcf">${html(copy.specialAddEyeDescriptionHtml)}</p></div> <div class="special svelte-19s4fcf">`;
+  $$payload.out += `<!----> <div class="special-name svelte-17f73wm">${escape_html(copy.specialAddEyeName)}</div> <p class="svelte-17f73wm">${html(copy.specialAddEyeDescriptionHtml)}</p></div> <div class="special svelte-17f73wm">`;
   symIcon($$payload, "MULT_EYE", 56);
-  $$payload.out += `<!----> <div class="special-name svelte-19s4fcf">${escape_html(copy.specialMultEyeName)}</div> <p class="svelte-19s4fcf">${html(copy.specialMultEyeDescriptionHtml)}</p></div></div></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${html(copy.eyeGazeTitle)}</h2> <p class="svelte-19s4fcf">${html(copy.eyeGazeDescriptionHtml)}</p> <p class="svelte-19s4fcf">${html(copy.eyeValuesHtml)}</p> <p class="note svelte-19s4fcf">${html(copy.eyeGazeExampleHtml)}</p></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.freeSpinsTitle)}</h2> <ul class="bullets svelte-19s4fcf"><!--[-->`;
+  $$payload.out += `<!----> <div class="special-name svelte-17f73wm">${escape_html(copy.specialMultEyeName)}</div> <p class="svelte-17f73wm">${html(copy.specialMultEyeDescriptionHtml)}</p></div></div></section> <section class="svelte-17f73wm"><h2 class="svelte-17f73wm">${html(copy.eyeGazeTitle)}</h2> <p class="svelte-17f73wm">${html(copy.eyeGazeDescriptionHtml)}</p> <p class="svelte-17f73wm">${html(copy.eyeValuesHtml)}</p> <p class="note svelte-17f73wm">${html(copy.eyeGazeExampleHtml)}</p></section> <section class="svelte-17f73wm"><h2 class="svelte-17f73wm">${escape_html(copy.freeSpinsTitle)}</h2> <ul class="bullets svelte-17f73wm"><!--[-->`;
   for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
     let bullet = each_array_2[$$index_2];
-    $$payload.out += `<li class="svelte-19s4fcf">${html(bullet)}</li>`;
+    $$payload.out += `<li class="svelte-17f73wm">${html(bullet)}</li>`;
   }
-  $$payload.out += `<!--]--></ul></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.waysToPlayTitle)}</h2> <div class="modes svelte-19s4fcf"><!--[-->`;
+  $$payload.out += `<!--]--></ul></section> <section class="svelte-17f73wm"><h2 class="svelte-17f73wm">${escape_html(copy.waysToPlayTitle)}</h2> <div class="modes svelte-17f73wm"><!--[-->`;
   for (let $$index_3 = 0, $$length = each_array_3.length; $$index_3 < $$length; $$index_3++) {
     let m = each_array_3[$$index_3];
-    $$payload.out += `<div class="mode svelte-19s4fcf"><div class="mode-head svelte-19s4fcf"><span class="mode-name svelte-19s4fcf">${escape_html(m.name)}</span><span class="mode-cost svelte-19s4fcf">${escape_html(m.cost)}</span></div> <p class="svelte-19s4fcf">${escape_html(m.text)}</p></div>`;
+    $$payload.out += `<div class="mode svelte-17f73wm"><div class="mode-head svelte-17f73wm"><span class="mode-name svelte-17f73wm">${escape_html(m.name)}</span><span class="mode-cost svelte-17f73wm">${escape_html(m.cost)}</span></div> <p class="svelte-17f73wm">${escape_html(m.text)}</p></div>`;
   }
-  $$payload.out += `<!--]--></div></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.controlsTitle)}</h2> <div class="modes svelte-19s4fcf"><!--[-->`;
+  $$payload.out += `<!--]--></div></section> <section class="svelte-17f73wm"><h2 class="svelte-17f73wm">${escape_html(copy.controlsTitle)}</h2> <div class="modes svelte-17f73wm"><!--[-->`;
   for (let $$index_4 = 0, $$length = each_array_4.length; $$index_4 < $$length; $$index_4++) {
     let control = each_array_4[$$index_4];
-    $$payload.out += `<div class="mode svelte-19s4fcf"><div class="mode-head svelte-19s4fcf"><span class="mode-name svelte-19s4fcf">${escape_html(control.name)}</span></div> <p class="svelte-19s4fcf">${escape_html(control.text)}</p></div>`;
+    $$payload.out += `<div class="mode svelte-17f73wm"><div class="mode-head svelte-17f73wm"><span class="mode-name svelte-17f73wm">${escape_html(control.name)}</span></div> <p class="svelte-17f73wm">${escape_html(control.text)}</p></div>`;
   }
-  $$payload.out += `<!--]--></div></section> <section class="svelte-19s4fcf"><h2 class="svelte-19s4fcf">${escape_html(copy.generalDisclaimerTitle)}</h2> <p class="disclaimer svelte-19s4fcf">${html(copy.generalDisclaimerHtml)}</p></section></div>`;
+  $$payload.out += `<!--]--></div></section> <section class="svelte-17f73wm"><h2 class="svelte-17f73wm">${escape_html(copy.generalDisclaimerTitle)}</h2> <p class="disclaimer svelte-17f73wm">${html(copy.generalDisclaimerHtml)}</p></section></div>`;
   pop();
 }
 function BuyBonusModal($$payload, $$props) {
@@ -23144,7 +23209,7 @@ function Game($$payload, $$props) {
 function AbyssalPixiLogo($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
-  new URL("../../assets/fonts/abyssal_bitmap_font_package/abyssal_font.fnt", import.meta.url).href;
+  new URL("../../assets/fonts/Abyssal_new/abyssal_new.fnt", import.meta.url).href;
   $$payload.out += `<div class="abyssal-pixi-logo svelte-1sswcpt" role="img"${attr("aria-label", props.title)}></div>`;
   pop();
 }

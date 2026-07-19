@@ -13,7 +13,8 @@
 	import { Tween } from 'svelte/motion';
 
 	import { Container, Rectangle, Sprite } from 'pixi-svelte';
-	import { FadeContainer, ResponsiveBitmapText } from 'components-pixi';
+	import ResponsiveText from './ResponsiveText.svelte';
+	import { FadeContainer } from 'components-pixi';
 	import { OnMount } from 'components-shared';
 	import { waitForResolve } from 'utils-shared/wait';
 	import { createInterruptible } from 'utils-shared/interruptible';
@@ -23,7 +24,8 @@
 
 	import PressToContinue from './PressToContinue.svelte';
 	import { getContext } from '../game/context';
-	import { abyssalBitmapStyle } from '../game/constants';
+
+	import { abyssalAmountTextStyle, winTierAccent } from '../game/textStyles';
 
 	const context = getContext();
 
@@ -119,8 +121,15 @@
 	const imgH = $derived(imgW / imageAspect);
 	const amountY = $derived(imgH * (PLAQUE_CENTER_Y - 0.5));
 	const amountMaxWidth = $derived(imgW * PLAQUE_TEXT_WIDTH);
-	// Branded AbyssalBitmap face — gold fill/outline baked into the glyphs.
-	const amountStyle = $derived(abyssalBitmapStyle({ fontSize: imgH * PLAQUE_FONT_SIZE }));
+	// The feature total wears the win level it landed on, same as the win ladder — a bonus that
+	// ended on `mega` shows an amber-footed number, not the generic gold. Levels below `big` have
+	// no celebration colour and fall through to the neutral pearl-and-gold.
+	const amountStyle = $derived(
+		abyssalAmountTextStyle({
+			fontSize: imgH * PLAQUE_FONT_SIZE,
+			accent: winLevelData ? winTierAccent(winLevelData.alias) : undefined,
+		}),
+	);
 </script>
 
 <FadeContainer {show} zIndex={45}>
@@ -131,7 +140,7 @@
 		<Container x={sizes.width / 2} y={sizes.height / 2} scale={cardFx.scale}>
 			<Sprite anchor={0.5} key="freeSpinOutro" width={imgW} height={imgH} />
 			<Container y={amountY} scale={numFx.scale}>
-				<ResponsiveBitmapText
+				<ResponsiveText
 					anchor={0.5}
 					maxWidth={amountMaxWidth}
 					text={bookEventAmountToCurrencyString(countUp.current)}
@@ -140,7 +149,7 @@
 				{#if numFx.flash > 0}
 					<!-- the lock flash: an additive copy of the gold glyphs blooms them to white -->
 					<Container alpha={numFx.flash} blendMode="add">
-						<ResponsiveBitmapText
+						<ResponsiveText
 							anchor={0.5}
 							maxWidth={amountMaxWidth}
 							text={bookEventAmountToCurrencyString(countUp.current)}

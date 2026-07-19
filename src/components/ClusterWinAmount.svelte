@@ -13,13 +13,14 @@
 	import { Tween } from 'svelte/motion';
 	import { backOut } from 'svelte/easing';
 
-	import { BitmapText, Container } from 'pixi-svelte';
+	import { Container, Text } from 'pixi-svelte';
 	import { stateBetDerived } from 'state-shared';
 	import { SECOND } from 'constants-shared/time';
 	import { FadeContainer } from 'components-pixi';
 	import { bookEventAmountToCurrencyString } from 'utils-shared/amount';
 
-	import { abyssalBitmapStyle, getEssenceTier, SYMBOL_SIZE } from '../game/constants';
+	import { getEssenceTier, SYMBOL_SIZE } from '../game/constants';
+	import { abyssalAmountTextStyle } from '../game/textStyles';
 	import { getPositionX, getPositionY } from '../game/utils';
 
 	type Props = { win: Win };
@@ -36,7 +37,7 @@
 	const TIER_FLOAT_SCALE = [1, 1.1, 1.25] as const;
 	const tier = $derived(getEssenceTier(props.win.count ?? 8));
 	const labelStyle = $derived(
-		abyssalBitmapStyle({ fontSize: SYMBOL_SIZE * 0.34 * TIER_LABEL_SCALE[tier - 1] }),
+		abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.34 * TIER_LABEL_SCALE[tier - 1] }),
 	);
 
 	// snappy: pop in, a SHORT float up, then fade — this is awaited by winInfo, so its length
@@ -62,7 +63,7 @@
 		y={getPositionY(props.win.row) + y.current}
 		scale={scale.current}
 	>
-		<BitmapText
+		<Text
 			anchor={0.5}
 			text={bookEventAmountToCurrencyString(props.win.win)}
 			style={labelStyle}
