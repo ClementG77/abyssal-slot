@@ -15,6 +15,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Tween } from 'svelte/motion';
+	import { FillGradient } from 'pixi.js';
 
 	import { Container, Graphics, Sprite } from 'pixi-svelte';
 
@@ -279,31 +280,83 @@
 	// per-column blobs + hard bars). Tuned to read as a gentle aura, not a flash.
 	const BOTTOM_AURA = {
 		reach: 0.22, // how far up the glow reaches, as a fraction of the reel window height
-		spread: 0.62, // half-width of the pool, as a fraction of the reel window width
-		layers: 6, // stacked-ellipse radial falloff resolution
-		glow: 0.5, // pool brightness at the core (before the effectEnergy fade)
-		railAlpha: 0.18, // the hot white light rail hugging the very bottom edge
+		// HALF-width of the pool, as a fraction of the reel window width — so it MUST stay under
+		// 0.5. The effect mask is the grid rect, and anything wider gets sliced off against it with
+		// a straight vertical edge. At the previous 0.62 the two outermost layers overhung the
+		// window and the pool ended in a hard cut at the bottom corners (~0.17 additive alpha of
+		// visible edge) instead of fading out. 0.48 keeps it as wide as the window allows while
+		// still falling to nothing before the mask.
+		spread: 0.48,
+		glow: 0.5, // pool brightness at the core (before the launchEnergy fade)
 	};
+	// ONE radial gradient, not a stack of ellipses.
+	//
+	// The stack was the "multiple lines" problem. Six concentric hard-edged fills of equal alpha
+	// sum to a LINEAR cone in six discrete steps — and at additive 0.083 per step over a dark
+	// board that is ~21 levels of 255 per band, which is exactly the contour-line look. Adding
+	// layers only shrinks the bands; it never removes them, because a stack of solid shapes is a
+	// step function by construction.
+	//
+	// A gradient texture interpolates per texel instead, so the falloff is continuous. The curve
+	// is (1 - r^2)^2: it reaches zero WITH zero slope, so the pool dissolves instead of ending on
+	// a rim — a linear ramp always leaves a faint outer edge no matter how many steps it has.
+	// The old separate white "rail" ellipse is folded into the core stops for the same reason: it
+	// was another hard-edged shape, and its top arc read as one more line.
+	const AURA_FALLOFF: readonly (readonly [number, number])[] = [
+		// [radius 0..1, (1 - r^2)^2]
+		[0, 1],
+		[0.15, 0.955],
+		[0.3, 0.828],
+		[0.45, 0.636],
+		[0.6, 0.41],
+		[0.75, 0.191],
+		[0.9, 0.036],
+		[1, 0],
+	];
+	// How white the very core runs, by radius — the glow's apparent source, replacing the rail.
+	const AURA_CORE_HEAT: Record<number, number> = { 0: 0.75, 0.15: 0.45, 0.3: 0.2 };
+
+	const rgba = (color: number, alpha: number) =>
+		`rgba(${(color >> 16) & 0xff}, ${(color >> 8) & 0xff}, ${color & 0xff}, ${alpha})`;
+
+	// A FillGradient allocates a texture that must be destroyed to avoid a leak, so cache by
+	// colour. `textureSpace: 'local'` maps the gradient to the shape's own bounds, which makes it
+	// size-independent — one gradient per colour covers every layout and orientation. Only the two
+	// frame colours (violet base / ember feature) ever land here.
+	const auraGradientCache = new Map<number, import('pixi.js').FillGradient>();
+	const auraGradient = (color: number) => {
+		const cached = auraGradientCache.get(color);
+		if (cached) return cached;
+		const gradient = new FillGradient({
+			type: 'radial',
+			center: { x: 0.5, y: 0.5 },
+			innerRadius: 0,
+			outerCenter: { x: 0.5, y: 0.5 },
+			outerRadius: 0.5,
+			textureSpace: 'local',
+			colorStops: AURA_FALLOFF.map(([r, f]) => ({
+				offset: r,
+				color: rgba(mixColor(color, 0xffffff, AURA_CORE_HEAT[r] ?? 0), f * BOTTOM_AURA.glow),
+			})),
+		});
+		auraGradientCache.set(color, gradient);
+		return gradient;
+	};
+
 	const drawBottomAura = (g: import('pixi.js').Graphics, layout: ReelFrameLayout) => {
 		const bottom = layout.gridY + layout.gridHeight;
 		const cx = layout.gridX + layout.gridWidth / 2;
 		const reach = layout.gridHeight * BOTTOM_AURA.reach;
 		const spread = layout.gridWidth * BOTTOM_AURA.spread;
-		// stacked additive ellipses centred on the bottom-centre give a smooth radial falloff
-		// (no per-frame gradient allocation); the effect mask clips the lower half so the pool
-		// hugs the bottom rail and only its top half rises into the reels.
-		for (let i = 0; i < BOTTOM_AURA.layers; i++) {
-			const f = (i + 1) / BOTTOM_AURA.layers;
-			g.ellipse(cx, bottom, spread * f, reach * f).fill({
-				color: effectColor,
-				alpha: BOTTOM_AURA.glow / BOTTOM_AURA.layers,
-			});
-		}
-		// hot light rail hugging the bottom edge — the glow's apparent source
-		g.ellipse(cx, bottom, spread * 0.7, reach * 0.14).fill({
-			color: 0xffffff,
-			alpha: BOTTOM_AURA.railAlpha,
-		});
+		// Centred on the bottom edge, so the effect mask clips the lower half and only the top
+		// half rises into the reels. The gradient stretches to the ellipse's bounds, so the
+		// circular falloff becomes elliptical and matches the shape exactly.
+		//
+		// frame.glowColor, NOT effectColor: effectColor swings to eye-purple / scatter-cyan, which
+		// contradicts bottomAuraEnergy being launch-only. The launch fade (620ms) and an Eye burst
+		// (760ms) overlap constantly, so the rail was recolouring mid-fade on every Eye — the exact
+		// behaviour that was supposedly removed. Only the alpha had actually been unhooked.
+		g.ellipse(cx, bottom, spread, reach).fill(auraGradient(frame.glowColor));
 	};
 
 	// The Eye's reaction: soft PUFFS of purple light seeping out from BEHIND the reel frame
