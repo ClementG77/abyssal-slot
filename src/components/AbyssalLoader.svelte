@@ -77,6 +77,14 @@
 		startCardTimer();
 	};
 
+	// --- exit timing ---------------------------------------------------------------------------
+	// The two halves of the reveal, as one pair of knobs. FOCUS must stay LONGER than DISSOLVE:
+	// the game carries on resolving for a beat after the overlay has gone, so the moment the
+	// player lands on is the reels sharpening, not the loader disappearing. Collapse that gap and
+	// the transition ends on the fade instead, which feels abrupt however long it ran.
+	const EXIT_FOCUS_SECONDS = 2; // the game racking into focus behind
+	const EXIT_DISSOLVE_SECONDS = 1.15; // the loader fading + defocusing over it
+
 	const enter = async () => {
 		if (!ready || !visible || leaving || !loaderElement) return;
 		leaving = true;
@@ -97,7 +105,7 @@
 				{
 					filter: 'blur(0px) brightness(1)',
 					scale: 1,
-					duration: 1.3,
+					duration: EXIT_FOCUS_SECONDS,
 					ease: 'power2.out',
 					clearProps: 'filter,transform',
 				},
@@ -105,12 +113,21 @@
 		}
 
 		exitAnimation = gsap.timeline({ onComplete: () => (visible = false) });
-		exitAnimation.to(loaderElement, { autoAlpha: 0, duration: 0.75, ease: 'power2.inOut' });
+		exitAnimation.to(loaderElement, {
+			autoAlpha: 0,
+			duration: EXIT_DISSOLVE_SECONDS,
+			ease: 'power2.inOut',
+		});
 		const stage = loaderElement.querySelector('.loader-stage');
 		if (stage) {
 			exitAnimation.to(
 				stage,
-				{ scale: 1.04, filter: 'blur(5px)', duration: 0.75, ease: 'power2.inOut' },
+				{
+					scale: 1.04,
+					filter: 'blur(5px)',
+					duration: EXIT_DISSOLVE_SECONDS,
+					ease: 'power2.inOut',
+				},
 				0,
 			);
 		}

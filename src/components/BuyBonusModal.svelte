@@ -230,7 +230,10 @@
 					{@const activate = isActivate(m)}
 					{@const active = activate && isActive(m)}
 					<div class="bm-card" class:active>
-							<div class="bm-hero">
+						<div class="bm-hero" class:activate>
+							<!-- the same frame, overscanned and blurred: the card's backdrop is the art's OWN
+							     colours, so it can never clash with the picture in front of it -->
+							<div class="bm-hero-blur" style={heroStyle(m)} aria-hidden="true"></div>
 							<div class="bm-hero-art" style={heroStyle(m)} role="img" aria-label={m.text.title}></div>
 							{#if active}<div class="bm-badge">{i18nDerived.active()}</div>{/if}
 						</div>
@@ -334,7 +337,7 @@
 	$ink-soft: #51607a; // description text
 	$card-bg: #f8f6f0; // ivory card body
 	$card-line: rgba(20, 36, 58, 0.14);
-	$hero-bg: #0b2130; // deep petrol behind the art
+	$hero-bg: #0b2130; // deep petrol behind the art, and the wash that harmonises the art itself
 	$green: #17a56b;
 	$green-deep: #0d7f50;
 	$gold: #f0a81c;
@@ -414,15 +417,91 @@
 		}
 	}
 
+	// ---- Card hero ---------------------------------------------------------------------------
+	// The problem: the sheet is RGBA but every frame is `trimmed: false` and FULL-BLEED, so each of
+	// the five modes is a separate painting carrying its own baked background — different scenery,
+	// different light, different colour temperature — cut off by a straight line against the ivory
+	// panel. Nothing placed BEHIND the art can help; it is covered.
+	//
+	// The fix is to let each card's backdrop be its own art, blurred: the background can then never
+	// clash with the picture in front of it, and the five cards harmonise through softness instead
+	// of being flattened under one imposed colour. The sharp copy is masked at the edges so it
+	// dissolves into that blur rather than ending on a rectangle.
+	//
+	// Layer order, bottom to top:
+	//   1. .bm-hero            backstop gradient (seen only through the art's alpha)
+	//   2. .bm-hero-blur       the same frame, overscanned + blurred
+	//   3. .bm-hero-art        the sharp frame, edge-masked into the blur
+	//   4. .bm-hero::after     vignette, fade into the panel, accent bloom, hairline
+	//   5. .bm-badge           z-index 2, above all of it
 	.bm-hero {
 		position: relative;
 		aspect-ratio: 578 / 342; // the sprite frames' native shape — no crop
-		background: $hero-bg;
+		overflow: hidden; // clip the overscanned blur layer
+		background: linear-gradient(180deg, #143349 0%, $hero-bg 58%, #071925 100%);
+
+		// One accent per card, so the overlay below is written once instead of duplicated.
+		// Literal rgb triplets: rgba() cannot take a hex custom property, and Sass's global
+		// red()/green()/blue() are deprecated. Keep these in step with $gold / $green above.
+		--accent-rgb: 240, 168, 28; // $gold  #f0a81c
+		&.activate {
+			--accent-rgb: 23, 165, 107; // $green #17a56b
+		}
 	}
+
+	// `heroStyle`'s 400%/200% background-size and its percentage background-position are BOTH
+	// relative to this element's own box, so growing the box still shows exactly one frame — just
+	// zoomed. The crop stays correct at any overscan, which is what makes this safe.
+	//
+	// The overscan is derived from the blur radius on purpose: a CSS blur spreads roughly 3x its
+	// radius, so anything less and the blur layer's own soft edge creeps back into frame as a pale
+	// halo around the inside of the hero. Change --blur and the inset follows.
+	// DISCREET on purpose. At full strength this reads as a second, competing picture behind the
+	// first. Held at low opacity and slightly desaturated it becomes what it should be: a faint
+	// wash of the art's own colours over the dark base, closer to the reel frame's gentle aura
+	// than to a backdrop. --backdrop is the dial; raise it only if the hero looks empty.
+	.bm-hero-blur {
+		--blur: 18px;
+		--backdrop: 0.32;
+		position: absolute;
+		inset: calc(var(--blur) * -3.5);
+		background-repeat: no-repeat;
+		opacity: var(--backdrop);
+		filter: blur(var(--blur)) saturate(0.85);
+		pointer-events: none;
+	}
+
+	// Edge-masked so the sharp art fades out instead of stopping on a hard rectangle. Held back to
+	// 68% opaque before the fade begins: with the backdrop now faint, the edges dissolve into the
+	// dark base rather than into a bright blur, so a deeper mask would just eat the picture.
 	.bm-hero-art {
 		position: absolute;
 		inset: 0;
 		background-repeat: no-repeat;
+		-webkit-mask-image: radial-gradient(120% 116% at 50% 44%, #000 68%, transparent 100%);
+		mask-image: radial-gradient(120% 116% at 50% 44%, #000 68%, transparent 100%);
+	}
+
+	// One overlay for everything in front of the art: a vignette to settle the frame into the card,
+	// a fade so it dissolves into the ivory panel rather than being guillotined, the accent bloom +
+	// hairline carrying the modal's two-accent system (green = activate, gold = buy) up into the
+	// header, and an inset shadow seating the hero against the panel.
+	//
+	// These were originally tuned against a FULL-STRENGTH blur backdrop. With that now held at
+	// --backdrop they would be stacking darkness on darkness, so the vignette and the fade are
+	// pulled back to match — the hero should read as discreet, not murky.
+	.bm-hero::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		box-sizing: border-box;
+		pointer-events: none;
+		border-bottom: 2px solid rgba(var(--accent-rgb), 0.7);
+		box-shadow: inset 0 -14px 18px -14px rgba(4, 12, 24, 0.7);
+		background:
+			radial-gradient(130% 112% at 50% 42%, rgba(#071925, 0) 54%, rgba(#071925, 0.3) 100%),
+			linear-gradient(180deg, rgba($hero-bg, 0) 62%, rgba($hero-bg, 0.45) 100%),
+			linear-gradient(180deg, rgba(var(--accent-rgb), 0) 74%, rgba(var(--accent-rgb), 0.16) 100%);
 	}
 
 	.bm-badge {
@@ -693,6 +772,14 @@
 	// Sizes use viewport units (capped with min()) so they stay legible and are immune to the
 	// global <500px html font-size halving.
 	@media (max-width: 600px) {
+		// The blurred backdrop is desktop-only. A CSS filter forces its element onto its own
+		// composited layer, and this one is overscanned well past the card, so five of them means
+		// five oversized backing stores held for as long as the modal is open — on a device that
+		// is already the reason we are counting memory at all. The art keeps its edge mask and
+		// dissolves into .bm-hero's gradient instead, which is what that gradient is there for.
+		.bm-hero-blur {
+			display: none;
+		}
 		.bm-grid {
 			padding-inline: 4vw;
 			scroll-padding-inline: 4vw;

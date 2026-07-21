@@ -24,7 +24,7 @@
 	import { getContext } from '../game/context';
 	import { armSkip } from '../game/skip.svelte';
 	import { icons, type IconKey } from './controls/icons';
-	import { FONT } from './controls/theme';
+	import { C, FONT } from './controls/theme';
 
 	const context = getContext();
 	// one shared family for the whole HUD (see controls/theme.ts) — never hardcode a font here
@@ -52,7 +52,7 @@
 	// The readout identity: warm gold label + white value on a deep warm shadow. Balance, Bet,
 	// Win and the menu volume sliders ALL use this, so every readout in the bar reads as one set.
 	const READOUT = {
-		label: 0xffd7b0,
+		label: C.readoutGold,
 		value: 0xffffff,
 		shadow: 0x2a0710,
 	} as const;

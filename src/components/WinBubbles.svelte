@@ -27,6 +27,23 @@
 	const DRAG = 1.9; // water drag (1/s) — how fast launch speed bleeds off
 	const BUOYANCY = 0.22; // upward accel as a fraction of screen height / s²
 
+	// HARD CEILING on live bubbles. Without it the population is unbounded in the one case that
+	// matters: the win ladder fires a surge on EVERY tier-up, and at max intensity that is 95
+	// bubbles a time landing on top of a ~100-strong steady state. Every bubble costs 3 path ops
+	// in a Graphics that is rebuilt from scratch each frame, so an uncapped surge stack is what
+	// turns the takeover into a stutter on a phone. Oldest are dropped first — they are the
+	// faintest (alpha falls with age), so the ceiling is invisible.
+	const MAX_BUBBLES = 150;
+
+	// Phones pay the most for this and show it the least (the fountain is ambient, not
+	// information), so the whole effect runs at roughly half density there. Same SDK breakpoint
+	// Background.svelte uses to drop its scenery.
+	const isMobile = $derived(
+		['mobile', 'smallMobile'].includes(context.stateLayoutDerived.canvasSizeType()),
+	);
+	const densityScale = $derived(isMobile ? 0.5 : 1);
+	const maxBubbles = $derived(Math.round(MAX_BUBBLES * densityScale));
+
 	type Bubble = {
 		x: number;
 		y: number;
@@ -41,7 +58,11 @@
 
 	let bubbles: Bubble[] = [];
 	let now = $state(0);
-	let count = $state(0);
+	// A BOOLEAN, not a count. `now` already invalidates the draw every frame; a live bubble count
+	// would be a SECOND $state changing every frame for no benefit, since the template only asks
+	// "is there anything to draw". Svelte skips the assignment when the value is unchanged, so
+	// this settles after the first frame and stops contributing.
+	let active = $state(false);
 	let raf = 0;
 	let spawnDebt = 0;
 
@@ -57,6 +78,9 @@
 	);
 
 	const spawnBubble = (t0: number, surge = false) => {
+		// Drop the OLDEST rather than refusing the newest: age and alpha fall together, so the one
+		// being discarded is the faintest thing on screen and the ceiling never reads as a cut-off.
+		if (bubbles.length >= maxBubbles) bubbles.shift();
 		const { width, height } = sizes;
 		// two emitters just below the bottom edge, either side of centre
 		const side = Math.random() < 0.5 ? -1 : 1;
@@ -80,9 +104,9 @@
 
 	const spawnSurge = () => {
 		const t0 = performance.now();
-		const amount = Math.round(SURGE_COUNT * intensity);
+		const amount = Math.round(SURGE_COUNT * intensity * densityScale);
 		for (let i = 0; i < amount; i++) spawnBubble(t0, true);
-		count = bubbles.length;
+		active = bubbles.length > 0;
 	};
 
 	// fire a surge whenever burstKey changes (skip the initial mount value)
@@ -102,13 +126,20 @@
 			const dt = Math.min((t - last) / 1000, 0.05);
 			last = t;
 			// continuous fountain: accumulate fractional spawns so the rate is frame-rate proof
-			spawnDebt += FLOW_RATE * intensity * dt;
+			spawnDebt += FLOW_RATE * intensity * densityScale * dt;
 			while (spawnDebt >= 1) {
 				spawnDebt -= 1;
 				spawnBubble(t);
 			}
-			bubbles = bubbles.filter((b) => (t - b.born) / 1000 <= b.life);
-			count = bubbles.length;
+			// Compact IN PLACE. `.filter()` allocated a fresh array of ~100 objects every frame —
+			// 60 short-lived arrays a second, straight into the GC, for the whole takeover. The
+			// list is already age-ordered, so expiry only ever trims from the front.
+			let live = 0;
+			for (let i = 0; i < bubbles.length; i++) {
+				if ((t - bubbles[i].born) / 1000 <= bubbles[i].life) bubbles[live++] = bubbles[i];
+			}
+			bubbles.length = live;
+			active = live > 0;
 			raf = requestAnimationFrame(loop);
 		};
 		raf = requestAnimationFrame(loop);
@@ -133,9 +164,13 @@
 				(lifeFrac < 0.75 ? 1 : Math.max(0, (1 - lifeFrac) / 0.25)) * (b.bright ? 1 : 0.72);
 			const r = b.size * (1 + lifeFrac * 0.5); // bubbles grow as they rise
 
-			// soft glow core + rim + specular highlight (no hard shapes)
-			g.circle(x, y, r * 2.1).fill({ color: 0x7fd8ff, alpha: alpha * 0.08 });
-			g.circle(x, y, r).fill({ color: 0xbfeaff, alpha: alpha * 0.1 });
+			// Three ops, not four. The old first pass was a 2.1r halo at alpha*0.08 — under an
+			// additive blend that is ~2 levels of 255, invisible on its own, but it was the
+			// LARGEST geometry of the four and had to be tessellated and uploaded for every
+			// bubble, every frame. Its contribution is folded into the core fill instead.
+			//
+			// What actually reads is the rim and the specular dot; those stay untouched.
+			g.circle(x, y, r).fill({ color: 0xbfeaff, alpha: alpha * 0.16 });
 			g.circle(x, y, r).stroke({ width: 1.2, color: 0xd8f6ff, alpha: alpha * 0.75 });
 			g.circle(x - r * 0.32, y - r * 0.36, Math.max(0.8, r * 0.22)).fill({
 				color: 0xffffff,
@@ -145,7 +180,7 @@
 	};
 </script>
 
-{#if count > 0}
+{#if active}
 	<!-- a near-invisible full-canvas rect keeps the draw mounted in screen space -->
 	<CanvasSizeRectangle backgroundColor={0x000000} backgroundAlpha={0.001} />
 	<Container blendMode="add">

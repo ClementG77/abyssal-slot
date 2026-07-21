@@ -15,6 +15,7 @@
 </script>
 
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import gsap from 'gsap';
 	import { Tween } from 'svelte/motion';
 	import { backOut } from 'svelte/easing';
@@ -109,6 +110,12 @@
 		resolution: window.devicePixelRatio || 1,
 	});
 	multGlow.enabled = false;
+
+	// This component mounts on entering free spins and unmounts on leaving, so the filter is
+	// rebuilt every bonus round — without this, each round left the previous one behind holding
+	// its GPU program and (at `resolution: devicePixelRatio`, i.e. 9x the pixels on a 3x phone)
+	// its render texture. Over a session of bonuses that accumulates.
+	onDestroy(() => multGlow.destroy());
 	const blinkGlow = () => {
 		gsap.killTweensOf(multGlow);
 		multGlow.enabled = true;

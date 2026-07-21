@@ -9,10 +9,15 @@
 	import { getContext, setContext } from '../game/context';
 
 	import messagesMap, { socialMessagesMap } from '../i18n/messagesMap';
+	import { installMessageCompiler } from '../i18n/messageCompiler';
 
 	type Props = { children: Snippet };
 
 	const props: Props = $props();
+
+	// Before <LoadI18n> mounts and anything renders translated text — see messageCompiler.ts for
+	// why our raw catalogs need this and why a pass-through is the correct compiler for them.
+	installMessageCompiler();
 
 	setContext();
 	const context = getContext();

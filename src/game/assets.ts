@@ -100,9 +100,26 @@ export default {
 	// + Howler offset map (Valkyrie/Waylanders pattern). The m4a lives in static/ because Howler
 	// resolves the JSON's `src` relative to the PAGE, not the JSON — static/ serves it at
 	// ./assets/sounds/audio.m4a in both dev and build. Repack via assets/audio/README.md.
+	//
+	// NOTE THE PATH: `../../assets/...`, NOT `../../static/assets/...`, even though the file lives
+	// under static/. This was the odd one out — the only entry in this file that named `static/`,
+	// and the reason is subtle enough to be worth writing down.
+	//
+	// `new URL(<literal>, import.meta.url)` is resolved by Vite AT BUILD TIME when the literal
+	// points at a file that exists on disk relative to this module. `../../static/assets/...` does
+	// resolve on disk, so Vite claimed it, emitted it as a build asset and rewrote the URL to
+	// wherever IT decided the file belongs. Every other entry here names `../../assets/...`, which
+	// does NOT exist on disk (the repo has no apps/abyssal/assets/wins, only static/assets/wins) —
+	// Vite cannot resolve those, so it leaves them alone and the browser resolves them at RUNTIME
+	// against the page. That runtime form is what survives Stake's versioned sub-path deploy;
+	// see loaderFonts.ts, which calls it the "deploy-safe" form for the same reason.
+	//
+	// So the sound sprite was the single asset on the build-time path while all thirteen others
+	// were on the runtime path, which is exactly the shape of the bug: images load, sound 500s on
+	// a root-absolute /assets/sounds/sounds.json. Keep this identical to its siblings.
 	sound: {
 		type: 'audio',
-		src: new URL('../../static/assets/sounds/sounds.json', import.meta.url).href,
+		src: new URL('../../assets/sounds/sounds.json', import.meta.url).href,
 		preload: true,
 	},
 } as const;

@@ -1,7 +1,7 @@
 import { f as is_array, g as get_prototype_of, o as object_prototype, n as noop, h as current_component, j as getContext$1, s as setContext$1, p as push, e as pop, k as attr, t as to_class, l as stringify, m as spread_attributes, q as ensure_array_like, u as escape_html, v as clsx, w as copy_payload, x as assign_payload, y as spread_props, z as bind_props } from "../../chunks/index.js";
 import { p as page } from "../../chunks/index2.js";
 import * as PIXI$1 from "pixi.js";
-import { Texture as Texture$1, LoaderParserPriority, ExtensionType, extensions, checkExtension, path, TextureSource, copySearchParams, DOMAdapter, Resolver, Geometry, Buffer, BufferUsage, Shader, compileHighShaderGlProgram, colorBitGl, generateTextureBatchBitGl, roundPixelsBitGl, compileHighShaderGpuProgram, colorBit, generateTextureBatchBit, roundPixelsBit, getBatchSamplersUniformGroup, Batcher, Color as Color$1, collectAllRenderables, Point, Ticker, Sprite as Sprite$1, CanvasTextMetrics, TextStyle, FillGradient, Rectangle as Rectangle$2 } from "pixi.js";
+import { Texture as Texture$1, LoaderParserPriority, ExtensionType, extensions, checkExtension, path, TextureSource, copySearchParams, DOMAdapter, Resolver, Geometry, Buffer, BufferUsage, Shader, compileHighShaderGlProgram, colorBitGl, generateTextureBatchBitGl, roundPixelsBitGl, compileHighShaderGpuProgram, colorBit, generateTextureBatchBit, roundPixelsBit, getBatchSamplersUniformGroup, Batcher, Color as Color$1, collectAllRenderables, Point, Ticker, Sprite as Sprite$1, FillGradient, CanvasTextMetrics, TextStyle, Rectangle as Rectangle$2 } from "pixi.js";
 import { t as source, u as render_effect, s as set, n as get, v as effect_tracking, w as untrack, x as tick, y as on } from "../../chunks/events.js";
 import { i18n } from "@lingui/core";
 import _ from "lodash";
@@ -3491,27 +3491,27 @@ class AnimationState {
     let from = to.mixingFrom;
     if (from.mixingFrom)
       this.applyMixingFrom(from, skeleton, blend);
-    let mix = 0;
+    let mix2 = 0;
     if (to.mixDuration == 0) {
-      mix = 1;
+      mix2 = 1;
       if (blend == MixBlend.first)
         blend = MixBlend.setup;
     } else {
-      mix = to.mixTime / to.mixDuration;
-      if (mix > 1)
-        mix = 1;
+      mix2 = to.mixTime / to.mixDuration;
+      if (mix2 > 1)
+        mix2 = 1;
       if (blend != MixBlend.first)
         blend = from.mixBlend;
     }
-    let attachments = mix < from.mixAttachmentThreshold, drawOrder = mix < from.mixDrawOrderThreshold;
+    let attachments = mix2 < from.mixAttachmentThreshold, drawOrder = mix2 < from.mixDrawOrderThreshold;
     let timelines = from.animation.timelines;
     let timelineCount = timelines.length;
-    let alphaHold = from.alpha * to.interruptAlpha, alphaMix = alphaHold * (1 - mix);
+    let alphaHold = from.alpha * to.interruptAlpha, alphaMix = alphaHold * (1 - mix2);
     let animationLast = from.animationLast, animationTime = from.getAnimationTime(), applyTime = animationTime;
     let events = null;
     if (from.reverse)
       applyTime = from.animation.duration - applyTime;
-    else if (mix < from.eventThreshold)
+    else if (mix2 < from.eventThreshold)
       events = this.events;
     if (blend == MixBlend.add) {
       for (let i = 0; i < timelineCount; i++)
@@ -3571,7 +3571,7 @@ class AnimationState {
     this.events.length = 0;
     from.nextAnimationLast = animationTime;
     from.nextTrackLast = from.trackTime;
-    return mix;
+    return mix2;
   }
   applyAttachmentTimeline(timeline, skeleton, time, blend, attachments) {
     var slot = skeleton.slots[timeline.slotIndex];
@@ -11758,9 +11758,6 @@ const getSymbolFill = (symbolName) => {
   if (symbolName.startsWith("L")) return 0.74;
   return REEL_LAYOUT_BASE.symbolFill;
 };
-new Set(
-  " !#$%&*+,-.0123456789<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ_x|€×"
-);
 const EYE_FRAME = {
   close: "EYE_PURPLE_CLOSE",
   add: "EYE_ADD_ACTIVE",
@@ -11772,18 +11769,6 @@ const EYE_ASPECT = 484 / 495;
 const EYE_LABEL_OFFSET = { x: 0, y: 0.015 };
 const EYE_LABEL_OFFSET_PLAQUE = { x: 0, y: 0.36 };
 const EYE_VALUE_FILL = { add: 14679039, mul: 16770669 };
-const eyeValueTextStyle = ({
-  fontSize,
-  fill
-}) => ({
-  fontFamily: "Cinzel, Georgia, serif",
-  fontWeight: "900",
-  fontSize,
-  fill,
-  align: "center",
-  stroke: { color: 465453, width: Math.max(3, fontSize * 0.06) },
-  dropShadow: { color: 0, blur: 4, distance: 2, alpha: 0.8 }
-});
 const SYMBOL_SOURCE_SIZES = {
   H1: { width: 495, height: 501 },
   H2: { width: 495, height: 501 },
@@ -11985,26 +11970,30 @@ const assets = {
     src: new URL("../../assets/wins/freespin_retrigger.png", import.meta.url).href,
     preload: true
   },
-  // Branded gold "minted" bitmap font (face name `Abyssal_new`, 192px native). BMFont .fnt + PNG page;
-  // Pixi installs it on load, then <BitmapText style={{ fontFamily: ABYSSAL_FONT_FAMILY }}> uses it.
-  // Glyph coverage is UPPERCASE-only: A–Z 0–9 space $ £ € × x , . ! ? % + - # & * < = > @ _ |
-  // — notably NO '/' and no lowercase (except 'x'). Keep on-screen strings inside that set.
-  abyssalFont: {
-    type: "font",
-    src: new URL("../../assets/fonts/Abyssal_new/abyssal_new.fnt", import.meta.url).href,
-    preload: true,
-    // Mipmaps: the page is rasterized at 192px, but small labels render around 35px — a ~0.2x
-    // minification that aliases badly without them (the same class of bug that made the symbols
-    // look pixelated). Big text is now at/below native, small text is mipmapped: both ends sharp.
-    data: { textureOptions: { autoGenerateMipmaps: true, scaleMode: "linear" } }
-  },
   // Sound sprite — the production set (docs/ABYSSAL_SOUND_DESIGN.md §3), packed as one audio.m4a
   // + Howler offset map (Valkyrie/Waylanders pattern). The m4a lives in static/ because Howler
   // resolves the JSON's `src` relative to the PAGE, not the JSON — static/ serves it at
   // ./assets/sounds/audio.m4a in both dev and build. Repack via assets/audio/README.md.
+  //
+  // NOTE THE PATH: `../../assets/...`, NOT `../../static/assets/...`, even though the file lives
+  // under static/. This was the odd one out — the only entry in this file that named `static/`,
+  // and the reason is subtle enough to be worth writing down.
+  //
+  // `new URL(<literal>, import.meta.url)` is resolved by Vite AT BUILD TIME when the literal
+  // points at a file that exists on disk relative to this module. `../../static/assets/...` does
+  // resolve on disk, so Vite claimed it, emitted it as a build asset and rewrote the URL to
+  // wherever IT decided the file belongs. Every other entry here names `../../assets/...`, which
+  // does NOT exist on disk (the repo has no apps/abyssal/assets/wins, only static/assets/wins) —
+  // Vite cannot resolve those, so it leaves them alone and the browser resolves them at RUNTIME
+  // against the page. That runtime form is what survives Stake's versioned sub-path deploy;
+  // see loaderFonts.ts, which calls it the "deploy-safe" form for the same reason.
+  //
+  // So the sound sprite was the single asset on the build-time path while all thirteen others
+  // were on the runtime path, which is exactly the shape of the bug: images load, sound 500s on
+  // a root-absolute /assets/sounds/sounds.json. Keep this identical to its siblings.
   sound: {
     type: "audio",
-    src: new URL("../../static/assets/sounds/sounds.json", import.meta.url).href,
+    src: new URL("../../assets/sounds/sounds.json", import.meta.url).href,
     preload: true
   }
 };
@@ -16287,16 +16276,16 @@ function ReelFrame($$payload, $$props) {
     return elapsed < duration ? Math.max(0, 1 - elapsed / duration) : 0;
   };
   const mixColor = (from, to, amount2) => {
-    const mix = Math.max(0, Math.min(1, amount2));
+    const mix2 = Math.max(0, Math.min(1, amount2));
     const fromR = from >> 16 & 255;
     const fromG = from >> 8 & 255;
     const fromB = from & 255;
     const toR = to >> 16 & 255;
     const toG = to >> 8 & 255;
     const toB = to & 255;
-    const r = Math.round(fromR + (toR - fromR) * mix);
-    const g = Math.round(fromG + (toG - fromG) * mix);
-    const b = Math.round(fromB + (toB - fromB) * mix);
+    const r = Math.round(fromR + (toR - fromR) * mix2);
+    const g = Math.round(fromG + (toG - fromG) * mix2);
+    const b = Math.round(fromB + (toB - fromB) * mix2);
     return r << 16 | g << 8 | b;
   };
   const FRAME_HEAT = {
@@ -16399,28 +16388,54 @@ function ReelFrame($$payload, $$props) {
   const BOTTOM_AURA = {
     reach: 0.22,
     // how far up the glow reaches, as a fraction of the reel window height
-    spread: 0.62,
-    // half-width of the pool, as a fraction of the reel window width
-    layers: 6,
-    // stacked-ellipse radial falloff resolution
-    glow: 0.5,
-    // pool brightness at the core (before the effectEnergy fade)
-    railAlpha: 0.18
-    // the hot white light rail hugging the very bottom edge
+    // HALF-width of the pool, as a fraction of the reel window width — so it MUST stay under
+    // 0.5. The effect mask is the grid rect, and anything wider gets sliced off against it with
+    // a straight vertical edge. At the previous 0.62 the two outermost layers overhung the
+    // window and the pool ended in a hard cut at the bottom corners (~0.17 additive alpha of
+    // visible edge) instead of fading out. 0.48 keeps it as wide as the window allows while
+    // still falling to nothing before the mask.
+    spread: 0.48,
+    glow: 0.5
+    // pool brightness at the core (before the launchEnergy fade)
+  };
+  const AURA_FALLOFF = [
+    // [radius 0..1, (1 - r^2)^2]
+    [0, 1],
+    [0.15, 0.955],
+    [0.3, 0.828],
+    [0.45, 0.636],
+    [0.6, 0.41],
+    [0.75, 0.191],
+    [0.9, 0.036],
+    [1, 0]
+  ];
+  const AURA_CORE_HEAT = { 0: 0.75, 0.15: 0.45, 0.3: 0.2 };
+  const rgba = (color, alpha) => `rgba(${color >> 16 & 255}, ${color >> 8 & 255}, ${color & 255}, ${alpha})`;
+  const auraGradientCache = /* @__PURE__ */ new Map();
+  const auraGradient = (color) => {
+    const cached = auraGradientCache.get(color);
+    if (cached) return cached;
+    const gradient = new FillGradient({
+      type: "radial",
+      center: { x: 0.5, y: 0.5 },
+      innerRadius: 0,
+      outerCenter: { x: 0.5, y: 0.5 },
+      outerRadius: 0.5,
+      textureSpace: "local",
+      colorStops: AURA_FALLOFF.map(([r, f]) => ({
+        offset: r,
+        color: rgba(mixColor(color, 16777215, AURA_CORE_HEAT[r] ?? 0), f * BOTTOM_AURA.glow)
+      }))
+    });
+    auraGradientCache.set(color, gradient);
+    return gradient;
   };
   const drawBottomAura = (g, layout) => {
     const bottom = layout.gridY + layout.gridHeight;
     const cx = layout.gridX + layout.gridWidth / 2;
     const reach = layout.gridHeight * BOTTOM_AURA.reach;
     const spread = layout.gridWidth * BOTTOM_AURA.spread;
-    for (let i = 0; i < BOTTOM_AURA.layers; i++) {
-      const f = (i + 1) / BOTTOM_AURA.layers;
-      g.ellipse(cx, bottom, spread * f, reach * f).fill({
-        color: effectColor,
-        alpha: BOTTOM_AURA.glow / BOTTOM_AURA.layers
-      });
-    }
-    g.ellipse(cx, bottom, spread * 0.7, reach * 0.14).fill({ color: 16777215, alpha: BOTTOM_AURA.railAlpha });
+    g.ellipse(cx, bottom, spread, reach).fill(auraGradient(frame.glowColor));
   };
   const FRAME_BACK_PUFFS = {
     colorA: 16723790,
@@ -16769,6 +16784,193 @@ function BoardMask($$payload, $$props) {
   $$payload.out += `<!---->`;
   pop();
 }
+const C = {
+  navyDeep: 526092,
+  amber: 16757052,
+  purpleBright: 8142335,
+  white: 16777215,
+  textDim: 12036553,
+  // Dim chrome text — the header's clock and slot name. Deliberately the SAME value as the
+  // control bar's glass caption tint (GLASS.textDim), so the screen's furniture reads as one set
+  // instead of the header inventing its own near-miss of it.
+  chrome: 14678271,
+  // The readout identity — the warm gold on the Balance / Bet / Win labels and the menu volume
+  // sliders. Lives here rather than only in ControlBar's local READOUT so the vector glyphs can
+  // share the exact value instead of copying the hex; see the spin button's stop square.
+  readoutGold: 16766896
+};
+const FONT = "Inter, Arial, sans-serif";
+const DISPLAY_FONT = "Cinzel, Inter, Arial, sans-serif";
+const TEXT_PALETTE = {
+  fill: 16776173,
+  // pearl-cream face
+  fillBright: 16777215,
+  // captions on mid-tone panels, where contrast matters more than warmth
+  stroke: 2759180,
+  // deep warm brown — reads as the frame's shadow, not a black outline
+  shadow: 656400
+  // near-black with a violet lean, matching the abyss backdrop
+};
+const STROKE_RATIO = 0.09;
+const SHADOW_BLUR_RATIO = 0.07;
+const SHADOW_DISTANCE_RATIO = 0.028;
+const mix = (a, b, t2) => {
+  const ch = (shift) => {
+    const ca = a >> shift & 255;
+    const cb = b >> shift & 255;
+    return Math.round(ca + (cb - ca) * t2) & 255;
+  };
+  return ch(16) << 16 | ch(8) << 8 | ch(0);
+};
+const NEUTRAL_BASE = 15250524;
+const FACES = {
+  // Measured (see above).
+  ui: { family: FONT, inkTop: 0.18, inkBaseline: 0.78 },
+  // NOT YET MEASURED — these are Inter's numbers standing in until someone runs the measurement
+  // on Cinzel in the live renderer. Cinzel is an inscriptional serif with a taller cap height and
+  // a shallower descender than Inter, so its real band almost certainly sits higher and runs
+  // longer than this. Symptom of it being wrong: the accent never fully arrives at the baseline,
+  // or the specular lip cuts across the glyph instead of catching its cap.
+  display: { family: DISPLAY_FONT, inkTop: 0.18, inkBaseline: 0.78 }
+};
+const inkStop = (face, t2) => {
+  const { inkTop, inkBaseline } = FACES[face];
+  return inkTop + t2 * (inkBaseline - inkTop);
+};
+const CELEBRATION_FACE = "display";
+const RAMP = [
+  [0, 1],
+  // top of the ink — full pearl
+  [0.14, 0.94],
+  [0.3, 0.85],
+  [0.44, 0.76],
+  [0.54, 0.72],
+  // shoulder — the ramp flattens just before the sheen
+  [0.62, 0.78],
+  // sheen — a step BACK toward pearl, not toward white
+  [0.74, 0.55],
+  [0.86, 0.31],
+  [1, 0]
+  // baseline — full accent
+];
+const WIN_TIER_ACCENT = {
+  bigWin: 3133548,
+  // emerald (seahorse)
+  hugeWin: 4164863,
+  // sapphire (jellyfish)
+  megaWin: 16757052,
+  // amber (nautilus)
+  epicWin: 11820287,
+  // amethyst (the Eye)
+  maxWin: 16729144
+  // ruby (dragon) — the 15,000x moment only
+};
+const winTierAccent = (alias) => ({
+  big: WIN_TIER_ACCENT.bigWin,
+  superwin: WIN_TIER_ACCENT.hugeWin,
+  mega: WIN_TIER_ACCENT.megaWin,
+  epic: WIN_TIER_ACCENT.epicWin,
+  max: WIN_TIER_ACCENT.maxWin
+})[alias];
+const gradientCache = /* @__PURE__ */ new Map();
+const metalGradient = ({
+  accent,
+  light = TEXT_PALETTE.fill,
+  depth = 1,
+  face = "ui"
+}) => {
+  const key = `${accent ?? -1}|${light}|${depth}|${face}`;
+  const cached = gradientCache.get(key);
+  if (cached) return cached;
+  const base2 = mix(light, accent ?? NEUTRAL_BASE, depth);
+  const gradient = new FillGradient({
+    type: "linear",
+    start: { x: 0, y: 0 },
+    end: { x: 0, y: 1 },
+    textureSpace: "local",
+    colorStops: [
+      // The one genuinely achromatic stop, and it sits ABOVE the ink (see the face's
+      // `inkTop`) so it catches only the very cap — a specular lip, not a band across it.
+      { offset: 0, color: 16777215 },
+      ...RAMP.map(([at, lightMix]) => ({
+        offset: inkStop(face, at),
+        color: mix(base2, light, lightMix)
+      }))
+    ]
+  });
+  gradientCache.set(key, gradient);
+  return gradient;
+};
+const abyssalAmountTextStyle = ({
+  fontSize,
+  fill,
+  accent,
+  // MUST default here, not be left undefined. TextStyle merges as
+  // `{ ...defaultTextStyle, ...style }`, so an explicit `letterSpacing: undefined` OVERWRITES
+  // the default 0 instead of falling back to it — and undefined then poisons text measurement
+  // into NaN. Harmless with a flat fill, but the gradient feeds those metrics straight into
+  // `createLinearGradient`, which throws on a non-finite value.
+  letterSpacing = 0,
+  depth,
+  face = "ui"
+}) => ({
+  fontFamily: FACES[face].family,
+  fontWeight: "900",
+  fontSize,
+  letterSpacing,
+  align: "center",
+  fill: fill ?? metalGradient({ accent, depth, face }),
+  stroke: {
+    color: TEXT_PALETTE.stroke,
+    width: Math.max(2, fontSize * STROKE_RATIO),
+    join: "round"
+  },
+  dropShadow: {
+    color: TEXT_PALETTE.shadow,
+    blur: Math.max(3, fontSize * SHADOW_BLUR_RATIO),
+    distance: Math.max(1, fontSize * SHADOW_DISTANCE_RATIO),
+    alpha: 0.9,
+    angle: Math.PI / 2
+  }
+});
+const LABEL_DEPTH = 0.25;
+const abyssalLabelTextStyle = ({
+  fontSize,
+  letterSpacing = 2,
+  accent,
+  face = "ui"
+}) => ({
+  // Defaults to the UI face. Captions run small, and a serif's hairlines and serifs are the first
+  // thing the stroke eats — if a caption on the display face reads mushy rather than carved, that
+  // is why, and STROKE_RATIO (or dropping this one back to 'ui') is the fix.
+  fontFamily: FACES[face].family,
+  fontWeight: "800",
+  fontSize,
+  letterSpacing,
+  align: "center",
+  fill: metalGradient({ accent, light: TEXT_PALETTE.fillBright, depth: LABEL_DEPTH, face }),
+  stroke: {
+    color: TEXT_PALETTE.stroke,
+    width: Math.max(1.5, fontSize * (STROKE_RATIO * 0.7)),
+    join: "round"
+  },
+  dropShadow: {
+    color: TEXT_PALETTE.shadow,
+    blur: Math.max(2, fontSize * SHADOW_BLUR_RATIO),
+    distance: Math.max(1, fontSize * SHADOW_DISTANCE_RATIO),
+    alpha: 0.9,
+    angle: Math.PI / 2
+  }
+});
+const VALUE_DEPTH = 0.65;
+const abyssalValueTextStyle = ({
+  fontSize,
+  accent
+}) => abyssalAmountTextStyle({ fontSize, accent, depth: VALUE_DEPTH });
+const eyeValueTextStyle = ({
+  fontSize,
+  fill
+}) => abyssalAmountTextStyle({ fontSize, accent: fill });
 function AbyssalEye($$payload, $$props) {
   push();
   const EYE_COLORS = {
@@ -16953,14 +17155,6 @@ function AbyssalEye($$payload, $$props) {
   bind_props($$props, { EYE_COLORS });
   pop();
 }
-const C = {
-  navyDeep: 526092,
-  amber: 16757052,
-  purpleBright: 8142335,
-  white: 16777215,
-  textDim: 12036553
-};
-const FONT = "Inter, Arial, sans-serif";
 function Symbol$1($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
@@ -17509,67 +17703,6 @@ function Anticipations($$payload, $$props) {
   $$payload.out += `<!--]-->`;
   pop();
 }
-const TEXT_PALETTE = {
-  fill: 16776173,
-  // pearl-cream face
-  fillBright: 16777215,
-  // captions on mid-tone panels, where contrast matters more than warmth
-  stroke: 2759180,
-  // deep warm brown — reads as the frame's shadow, not a black outline
-  shadow: 656400
-  // near-black with a violet lean, matching the abyss backdrop
-};
-const STROKE_RATIO = 0.09;
-const SHADOW_BLUR_RATIO = 0.07;
-const SHADOW_DISTANCE_RATIO = 0.028;
-const abyssalAmountTextStyle = ({
-  fontSize,
-  fill = TEXT_PALETTE.fill
-}) => ({
-  fontFamily: FONT,
-  fontWeight: "900",
-  fontSize,
-  align: "center",
-  fill,
-  stroke: {
-    color: TEXT_PALETTE.stroke,
-    width: Math.max(2, fontSize * STROKE_RATIO),
-    join: "round"
-  },
-  dropShadow: {
-    color: TEXT_PALETTE.shadow,
-    blur: Math.max(3, fontSize * SHADOW_BLUR_RATIO),
-    distance: Math.max(1, fontSize * SHADOW_DISTANCE_RATIO),
-    alpha: 0.9,
-    angle: Math.PI / 2
-  }
-});
-const abyssalLabelTextStyle = ({
-  fontSize,
-  letterSpacing = 2
-}) => ({
-  fontFamily: FONT,
-  fontWeight: "800",
-  fontSize,
-  letterSpacing,
-  align: "center",
-  // brightest of the palette: ivory on the tumble banner's #0D8290 teal measured only 3.4:1,
-  // under the 4.5:1 minimum for small text — white lifts it to 4.55:1
-  fill: TEXT_PALETTE.fillBright,
-  stroke: {
-    color: TEXT_PALETTE.stroke,
-    width: Math.max(1.5, fontSize * (STROKE_RATIO * 0.7)),
-    join: "round"
-  },
-  dropShadow: {
-    color: TEXT_PALETTE.shadow,
-    blur: Math.max(2, fontSize * SHADOW_BLUR_RATIO),
-    distance: Math.max(1, fontSize * SHADOW_DISTANCE_RATIO),
-    alpha: 0.9,
-    angle: Math.PI / 2
-  }
-});
-const abyssalValueTextStyle = ({ fontSize }) => abyssalAmountTextStyle({ fontSize });
 function ClusterWinAmount($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
@@ -18044,7 +18177,8 @@ function ResponsiveText($$payload, $$props) {
       Text($$payload2, {
         text: props.text,
         style: props.style,
-        anchor: props.anchor ?? 0.5
+        anchor: props.anchor ?? 0.5,
+        tint: props.tint ?? 16777215
       });
     },
     $$slots: { default: true }
@@ -18208,7 +18342,10 @@ function TumbleWinAmount($$payload, $$props) {
   });
   const amountStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.31 });
   const exprStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.27 });
-  const multStyle = abyssalAmountTextStyle({ fontSize: SYMBOL_SIZE * 0.6 });
+  const multStyle = abyssalAmountTextStyle({
+    fontSize: SYMBOL_SIZE * 0.6,
+    face: CELEBRATION_FACE
+  });
   const drawGlow = (g) => {
     g.roundRect(-INNER_W / 2 - 12, -INNER_H / 2 - 12, INNER_W + 24, INNER_H + 24, INNER_RADIUS + 10).fill({ color: 16764506, alpha: 0.28 });
   };
@@ -18443,6 +18580,18 @@ function GazeMeter($$payload, $$props) {
       { offset: 1, color: lapColors.fillDeep }
     ]
   }));
+  const energyGlowGradient = new FillGradient({
+    type: "radial",
+    textureSpace: "local",
+    center: { x: 0.5, y: 0.5 },
+    innerRadius: 0,
+    outerCenter: { x: 0.5, y: 0.5 },
+    outerRadius: 0.5,
+    colorStops: [
+      { offset: 0, color: GAZE_COLORS.energy },
+      { offset: 1, color: 0 }
+    ]
+  });
   const isMobile = context2.stateLayoutDerived.layoutType() === "portrait";
   const gazeH = isMobile ? BOARD_SIZES.width * 0.82 : BOARD_SIZES.height * 0.84;
   const gazeW = gazeH * (GAZE_METER_IMAGE_SIZE.width / GAZE_METER_IMAGE_SIZE.height);
@@ -18491,22 +18640,6 @@ function GazeMeter($$payload, $$props) {
   const plaqueTextY = plaqueY + gazeH * GAZE_METER_LAYOUT.plaque.textDy;
   const meterEnergyX = isMobile ? position.x - eyeY : position.x + eyeX;
   const meterEnergyY = isMobile ? position.y + eyeX : position.y + eyeY;
-  const fillLead = (() => {
-    let remaining = Math.min(Math.max(fill.current, 0), 1) * trackTotalH;
-    let lead;
-    for (const segment of trackSegments) {
-      const height = Math.max(0, Math.min(segment.h, remaining));
-      if (height > 0.5) {
-        lead = {
-          x: segment.x + segment.w / 2,
-          y: segment.y + segment.h - height,
-          h: segment.w
-        };
-      }
-      remaining -= segment.h;
-    }
-    return lead;
-  })();
   const track = (animation) => {
     animations.add(animation);
     animation.eventCallback("onComplete", () => animations.delete(animation));
@@ -18843,48 +18976,11 @@ function GazeMeter($$payload, $$props) {
     const pulse = fx.burst;
     const orbAlpha = 0.18 + pulse * 0.58;
     const gemAlpha = pulse * 0.5;
-    const edgeAlpha = fillLead ? 0.28 + pulse * 0.5 : 0;
     if (gemAlpha > 0) {
-      const gemGlow = new FillGradient({
-        type: "radial",
-        center: { x: gemX, y: gemY },
-        innerRadius: 0,
-        outerCenter: { x: gemX, y: gemY },
-        outerRadius: gemR * 2.4,
-        colorStops: [
-          { offset: 0, color: GAZE_COLORS.energy },
-          { offset: 1, color: 0 }
-        ]
-      });
-      g.circle(gemX, gemY, gemR * 2.4).fill({ fill: gemGlow, alpha: gemAlpha });
+      g.circle(gemX, gemY, gemR * 2.4).fill({ fill: energyGlowGradient, alpha: gemAlpha });
     }
     if (orbAlpha > 0) {
-      const orbGlow = new FillGradient({
-        type: "radial",
-        center: { x: plaqueX, y: plaqueY },
-        innerRadius: 0,
-        outerCenter: { x: plaqueX, y: plaqueY },
-        outerRadius: plaqueR * 1.7,
-        colorStops: [
-          { offset: 0, color: GAZE_COLORS.energy },
-          { offset: 1, color: 0 }
-        ]
-      });
-      g.circle(plaqueX, plaqueY, plaqueR * 1.7).fill({ fill: orbGlow, alpha: orbAlpha });
-    }
-    if (fillLead && edgeAlpha > 0) {
-      const edgeGlow = new FillGradient({
-        type: "radial",
-        center: { x: fillLead.x, y: fillLead.y },
-        innerRadius: 0,
-        outerCenter: { x: fillLead.x, y: fillLead.y },
-        outerRadius: fillLead.h * 1.35,
-        colorStops: [
-          { offset: 0, color: GAZE_LAPS[lap].edge },
-          { offset: 1, color: 0 }
-        ]
-      });
-      g.circle(fillLead.x, fillLead.y, fillLead.h * 1.35).fill({ fill: edgeGlow, alpha: edgeAlpha });
+      g.circle(plaqueX, plaqueY, plaqueR * 1.7).fill({ fill: energyGlowGradient, alpha: orbAlpha });
     }
   };
   FadeContainer($$payload, {
@@ -19414,6 +19510,7 @@ function WinBubbles($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
   const context2 = getContext();
+  ["mobile", "smallMobile"].includes(context2.stateLayoutDerived.canvasSizeType());
   let raf2 = 0;
   context2.stateLayoutDerived.canvasSizes();
   props.levelAlias === "max" ? 1.7 : props.levelAlias === "epic" ? 1.35 : props.levelAlias === "mega" ? 1.1 : 0.9;
@@ -19452,7 +19549,9 @@ function WinBanner($$payload, $$props) {
   const title = i18nDerived.winTier(props.tierKey);
   const titleStyle = abyssalAmountTextStyle({
     fontSize: props.height * TITLE_SIZE,
-    letterSpacing: props.height * 0.01
+    letterSpacing: props.height * 0.01,
+    accent: props.color,
+    face: CELEBRATION_FACE
   });
   const drawPlaqueBg = (g) => {
     const w = props.width;
@@ -19633,18 +19732,7 @@ function WinCapCelebration($$payload, $$props) {
     { min: 50, key: "hugeWin" },
     { min: 20, key: "bigWin" }
   ];
-  const TIER_COLOR = {
-    bigWin: 3133548,
-    // emerald
-    hugeWin: 4164863,
-    // sapphire
-    megaWin: 16757052,
-    // amber
-    epicWin: 11820287,
-    // amethyst
-    maxWin: 16729144
-    // ruby (dragon) — the 15,000× climax
-  };
+  const TIER_COLOR = WIN_TIER_ACCENT;
   const STEP_BASE_SECONDS = 5;
   const STEP_ACCEL = 0.72;
   const STEP_MIN_SECONDS = 1.3;
@@ -19668,7 +19756,6 @@ function WinCapCelebration($$payload, $$props) {
   const boardWidth = context2.stateGameDerived.boardLayout().width;
   const frameW = boardWidth * 1.05 * (context2.stateLayoutDerived.layoutType() === "portrait" ? FRAME_SCALE_PORTRAIT : FRAME_SCALE);
   const frameH = frameW * (383 / 522);
-  const amountStyle = abyssalAmountTextStyle({ fontSize: frameH * AMOUNT_SIZE });
   const countUp = new Tween(0);
   const interruptible = createInterruptible();
   let countUpCompleted = false;
@@ -19676,6 +19763,11 @@ function WinCapCelebration($$payload, $$props) {
   const skipToNextStep = () => interruptible.interrupt();
   const liveMult = countUp.current / BOOK_AMOUNT_MULTIPLIER;
   const bannerTier = tierFor(liveMult) ?? lowestTier;
+  const amountStyle = abyssalAmountTextStyle({
+    fontSize: frameH * AMOUNT_SIZE,
+    accent: TIER_COLOR[bannerTier.key],
+    face: CELEBRATION_FACE
+  });
   const numFx = { scale: 1, flash: 0, throb: 1 };
   const groupFx = { scale: 0.6, alpha: 0 };
   const shake = { x: 0, y: 0 };
@@ -19918,22 +20010,12 @@ function Win($$payload, $$props) {
   const FINAL_STEP_MIN_SECONDS = 3.6;
   const CRAWL_EXPONENT = 2.6;
   const SCENE_TINT_ALPHA = 0.06;
-  const TIER_COLOR = {
-    bigWin: 3133548,
-    // emerald (seahorse)
-    hugeWin: 4164863,
-    // sapphire (jellyfish)
-    megaWin: 16757052,
-    // amber (nautilus)
-    epicWin: 11820287,
-    // amethyst (the Eye)
-    maxWin: 16729144
-    // ruby (dragon) — the 15,000× moment only
-  };
+  const TIER_COLOR = WIN_TIER_ACCENT;
   const tierFor = (mult) => WIN_TIERS.find((t2) => mult >= t2.min);
   const lowestTier = WIN_TIERS[WIN_TIERS.length - 1];
   const AMOUNT_Y = 0.08;
   const AMOUNT_SIZE = 0.22;
+  const AMOUNT_MAX_WIDTH = 0.66;
   const BANNER_SHIFT = 0.12;
   let show = false;
   let amount2 = 0;
@@ -19948,7 +20030,6 @@ function Win($$payload, $$props) {
   const frameScale = context2.stateLayoutDerived.layoutType() === "portrait" ? 0.95 : 0.72;
   const frameW = imgW * frameScale;
   const frameH = frameW * (383 / 522);
-  const amountStyle = abyssalAmountTextStyle({ fontSize: frameH * AMOUNT_SIZE });
   const countUp = new Tween(0);
   const interruptible = createInterruptible();
   let countUpCompleted = false;
@@ -19978,6 +20059,11 @@ function Win($$payload, $$props) {
   };
   const liveMult = countUp.current / BOOK_AMOUNT_MULTIPLIER;
   const bannerTier = tierFor(liveMult) ?? lowestTier;
+  const amountStyle = abyssalAmountTextStyle({
+    fontSize: frameH * AMOUNT_SIZE,
+    accent: TIER_COLOR[bannerTier.key],
+    face: CELEBRATION_FACE
+  });
   const numFx = { scale: 1, flash: 0, throb: 1 };
   const groupFx = { scale: 0.6, alpha: 0 };
   const shake = { x: 0, y: 0 };
@@ -20118,9 +20204,10 @@ function Win($$payload, $$props) {
                     Container($$payload5, {
                       scale: numFx.scale * numFx.throb,
                       children: ($$payload6) => {
-                        Text($$payload6, {
+                        ResponsiveText($$payload6, {
                           anchor: 0.5,
                           y: frameH * AMOUNT_Y,
+                          maxWidth: frameW * AMOUNT_MAX_WIDTH,
                           text: bookEventAmountToCurrencyString(countUp.current),
                           style: amountStyle
                         });
@@ -20131,9 +20218,10 @@ function Win($$payload, $$props) {
                             alpha: numFx.flash,
                             blendMode: "add",
                             children: ($$payload7) => {
-                              Text($$payload7, {
+                              ResponsiveText($$payload7, {
                                 anchor: 0.5,
                                 y: frameH * AMOUNT_Y,
+                                maxWidth: frameW * AMOUNT_MAX_WIDTH,
                                 text: bookEventAmountToCurrencyString(countUp.current),
                                 style: amountStyle
                               });
@@ -20550,6 +20638,7 @@ function FreeSpinCounter($$payload, $$props) {
     resolution: window.devicePixelRatio || 1
   });
   multGlow.enabled = false;
+  onDestroy(() => multGlow.destroy());
   const blinkGlow = () => {
     gsap.killTweensOf(multGlow);
     multGlow.enabled = true;
@@ -20853,7 +20942,10 @@ function FreeSpinOutro($$payload, $$props) {
   const imgH = imgW / imageAspect;
   const amountY = imgH * (PLAQUE_CENTER_Y - 0.5);
   const amountMaxWidth = imgW * PLAQUE_TEXT_WIDTH;
-  const amountStyle = abyssalAmountTextStyle({ fontSize: imgH * PLAQUE_FONT_SIZE });
+  const amountStyle = abyssalAmountTextStyle({
+    fontSize: imgH * PLAQUE_FONT_SIZE,
+    accent: winLevelData ? winTierAccent(winLevelData.alias) : void 0
+  });
   FadeContainer($$payload, {
     show,
     zIndex: 45,
@@ -21057,7 +21149,7 @@ const ABYSSAL_CONTROL_BAR_LAYOUT = {
   }
 };
 const WHITE = 16777215;
-const STOP_RED = 10568512;
+const STOP_FILL = C.readoutGold;
 const STOP_BORDER = 1705476;
 const alphaOf = (options) => options.disabled ? 0.42 : 1;
 const strokeLine = (g, width, color, alpha, cap = "round") => {
@@ -21196,7 +21288,7 @@ const drawControlGlyph = (g, key, size, options = {}) => {
   );
   if (options.stop) {
     g.roundRect(-s * 0.12, -s * 0.12, s * 0.24, s * 0.24, s * 0.035).fill({
-      color: STOP_RED,
+      color: STOP_FILL,
       alpha: alpha * 0.94
     });
     g.roundRect(-s * 0.12, -s * 0.12, s * 0.24, s * 0.24, s * 0.035).stroke({
@@ -21224,7 +21316,6 @@ function ControlBar($$payload, $$props) {
   const ACTIVE_ACCENT_BRIGHT = 16773340;
   const GLASS = {
     bg: 531498,
-    bgDeep: 198930,
     bgHover: 798276,
     border: 14809855,
     glow: 5954815,
@@ -21232,7 +21323,7 @@ function ControlBar($$payload, $$props) {
     textDim: 14678271
   };
   const READOUT = {
-    label: 16766896,
+    label: C.readoutGold,
     value: 16777215,
     shadow: 2754320
   };
@@ -21641,7 +21732,6 @@ function ControlBar($$payload, $$props) {
       color: active ? GLASS.bgHover : GLASS.bg,
       alpha: active ? 0.48 : 0.34
     });
-    g.roundRect(-w / 2, -h / 2 + h * 0.42, w, h * 0.58, radius).fill({ color: GLASS.bgDeep, alpha: 0.3 });
     g.roundRect(-w / 2, -h / 2, w, h * 0.5, radius).fill({
       color: 16777215,
       alpha: 0.06 + hoverBoost * 0.08
@@ -22268,12 +22358,12 @@ function GameHeader($$payload, $$props) {
   const fontSize = Math.round(18 * scale);
   const baseTextStyle = {
     fontFamily: FONT,
-    fontWeight: "600",
     fontSize,
-    letterSpacing: 4
+    letterSpacing: 4,
+    fill: C.chrome
   };
-  const timeStyle = { ...baseTextStyle, fill: 14220287 };
-  const nameStyle = { ...baseTextStyle, fill: 16768913 };
+  const timeStyle = { ...baseTextStyle, fontWeight: "500" };
+  const nameStyle = { ...baseTextStyle, fontWeight: "700" };
   if (!stateModal.modal) {
     $$payload.out += "<!--[-->";
     Container($$payload, {
@@ -22282,7 +22372,7 @@ function GameHeader($$payload, $$props) {
           x: pad,
           y: pad,
           anchor: { x: 0, y: 0 },
-          alpha: 0.95,
+          alpha: 0.6,
           text: timeText,
           style: timeStyle
         });
@@ -22291,7 +22381,7 @@ function GameHeader($$payload, $$props) {
           x: canvas.width - pad,
           y: pad,
           anchor: { x: 1, y: 0 },
-          alpha: 1,
+          alpha: 0.85,
           text: nameText,
           style: nameStyle
         });
@@ -22914,30 +23004,30 @@ function BuyBonusModal($$payload, $$props) {
       onclose: close,
       children: ($$payload2) => {
         const each_array = ensure_array_like(cards);
-        $$payload2.out += `<div class="buy-modal svelte-refr9d"><div class="bm-grid svelte-refr9d"><!--[-->`;
+        $$payload2.out += `<div class="buy-modal svelte-nw2mky"><div class="bm-grid svelte-nw2mky"><!--[-->`;
         for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
           let m = each_array[$$index];
           const activate = isActivate(m);
           const active = activate && isActive(m);
-          $$payload2.out += `<div${attr("class", to_class("bm-card", "svelte-refr9d", { "active": active }))}><div class="bm-hero svelte-refr9d"><div class="bm-hero-art svelte-refr9d"${attr("style", heroStyle(m))} role="img"${attr("aria-label", m.text.title)}></div> `;
+          $$payload2.out += `<div${attr("class", to_class("bm-card", "svelte-nw2mky", { "active": active }))}><div${attr("class", to_class("bm-hero", "svelte-nw2mky", { "activate": activate }))}><div class="bm-hero-blur svelte-nw2mky"${attr("style", heroStyle(m))} aria-hidden="true"></div> <div class="bm-hero-art svelte-nw2mky"${attr("style", heroStyle(m))} role="img"${attr("aria-label", m.text.title)}></div> `;
           if (active) {
             $$payload2.out += "<!--[-->";
-            $$payload2.out += `<div class="bm-badge svelte-refr9d">${escape_html(i18nDerived.active())}</div>`;
+            $$payload2.out += `<div class="bm-badge svelte-nw2mky">${escape_html(i18nDerived.active())}</div>`;
           } else {
             $$payload2.out += "<!--[!-->";
           }
-          $$payload2.out += `<!--]--></div> <div class="bm-panel svelte-refr9d"><div class="bm-title svelte-refr9d">${escape_html(m.text.title)}</div> <div class="bm-divider svelte-refr9d"></div> <div class="bm-desc svelte-refr9d">${escape_html(m.text.dialog)}</div> <div class="bm-price svelte-refr9d">${escape_html(money(costOf(m)))}</div> `;
+          $$payload2.out += `<!--]--></div> <div class="bm-panel svelte-nw2mky"><div class="bm-title svelte-nw2mky">${escape_html(m.text.title)}</div> <div class="bm-divider svelte-nw2mky"></div> <div class="bm-desc svelte-nw2mky">${escape_html(m.text.dialog)}</div> <div class="bm-price svelte-nw2mky">${escape_html(money(costOf(m)))}</div> `;
           if (activate && active) {
             $$payload2.out += "<!--[-->";
-            $$payload2.out += `<button class="bm-action activate on svelte-refr9d">${escape_html(i18nDerived.deactivate())}</button>`;
+            $$payload2.out += `<button class="bm-action activate on svelte-nw2mky">${escape_html(i18nDerived.deactivate())}</button>`;
           } else {
             $$payload2.out += "<!--[!-->";
             if (activate) {
               $$payload2.out += "<!--[-->";
-              $$payload2.out += `<button class="bm-action activate svelte-refr9d"${attr("disabled", !allowed(m), true)}>${escape_html(!withinMax(m) ? BET_TOO_HIGH : i18nDerived.activate())}</button>`;
+              $$payload2.out += `<button class="bm-action activate svelte-nw2mky"${attr("disabled", !allowed(m), true)}>${escape_html(!withinMax(m) ? BET_TOO_HIGH : i18nDerived.activate())}</button>`;
             } else {
               $$payload2.out += "<!--[!-->";
-              $$payload2.out += `<button class="bm-action buy svelte-refr9d"${attr("disabled", !allowed(m), true)}>`;
+              $$payload2.out += `<button class="bm-action buy svelte-nw2mky"${attr("disabled", !allowed(m), true)}>`;
               if (!withinMax(m)) {
                 $$payload2.out += "<!--[-->";
                 $$payload2.out += `${escape_html(BET_TOO_HIGH)}`;
@@ -22958,7 +23048,7 @@ function BuyBonusModal($$payload, $$props) {
           }
           $$payload2.out += `<!--]--></div></div>`;
         }
-        $$payload2.out += `<!--]--></div> <div class="bm-bet svelte-refr9d"><span class="bm-bet-label svelte-refr9d">${escape_html(i18nDerived.bet())}</span> <div class="bm-stepper svelte-refr9d"><button class="bm-step minus svelte-refr9d"${attr("disabled", decDisabled, true)}${attr("aria-label", i18nDerived.decreaseBet())}>−</button> <span class="bm-bet-value svelte-refr9d">${escape_html(money(stateBet$1.betAmount))}</span> <button class="bm-step plus svelte-refr9d"${attr("disabled", incDisabled, true)}${attr("aria-label", i18nDerived.increaseBet())}>+</button></div></div></div>`;
+        $$payload2.out += `<!--]--></div> <div class="bm-bet svelte-nw2mky"><span class="bm-bet-label svelte-nw2mky">${escape_html(i18nDerived.bet())}</span> <div class="bm-stepper svelte-nw2mky"><button class="bm-step minus svelte-nw2mky"${attr("disabled", decDisabled, true)}${attr("aria-label", i18nDerived.decreaseBet())}>−</button> <span class="bm-bet-value svelte-nw2mky">${escape_html(money(stateBet$1.betAmount))}</span> <button class="bm-step plus svelte-nw2mky"${attr("disabled", incDisabled, true)}${attr("aria-label", i18nDerived.increaseBet())}>+</button></div></div></div>`;
       },
       $$slots: { default: true }
     });
@@ -23053,7 +23143,8 @@ function ErrorModal($$payload, $$props) {
 function Game($$payload, $$props) {
   push();
   const context2 = getContext();
-  new Tween(0, { duration: 300 });
+  const introBlur = new Tween(0, { duration: 300 });
+  introBlur.current > 0.05;
   const introFilterArea = (() => {
     const sizes = context2.stateLayoutDerived.canvasSizes();
     return new Rectangle$2(0, 0, sizes.width, sizes.height);
@@ -23209,7 +23300,6 @@ function Game($$payload, $$props) {
 function AbyssalPixiLogo($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
-  new URL("../../assets/fonts/Abyssal_new/abyssal_new.fnt", import.meta.url).href;
   $$payload.out += `<div class="abyssal-pixi-logo svelte-1sswcpt" role="img"${attr("aria-label", props.title)}></div>`;
   pop();
 }
@@ -26150,9 +26240,26 @@ const socialMessagesMap = Object.fromEntries(
     { ...messagesMap.en, ...SOCIAL_MESSAGE_OVERRIDES }
   ])
 );
+const ICU_SYNTAX = /\{[^}]*\}/;
+let installed = false;
+const installMessageCompiler = () => {
+  if (installed) return;
+  installed = true;
+  stateI18n.i18n.setMessagesCompiler((message) => {
+    if (ICU_SYNTAX.test(message)) {
+      console.warn(
+        `[i18n] ICU syntax in an uncompiled message — it will render literally, not interpolate.
+Message: ${message}
+Fix: add @lingui/message-utils and use its compileMessage in src/i18n/messageCompiler.ts.`
+      );
+    }
+    return message;
+  });
+};
 function _layout($$payload, $$props) {
   push();
   const { $$slots, $$events, ...props } = $$props;
+  installMessageCompiler();
   setContext();
   const context2 = getContext();
   const activeMessagesMap = stateUrlDerived.social() ? socialMessagesMap : messagesMap;

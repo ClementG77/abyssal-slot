@@ -1,5 +1,7 @@
 import type { Graphics } from 'pixi.js';
 
+import { C } from '../components/controls/theme';
+
 export type ControlGlyphKey = 'menu' | 'autoplay' | 'turbo' | 'spin' | 'plus' | 'minus' | 'sound';
 
 export type ControlGlyphOptions = {
@@ -10,9 +12,12 @@ export type ControlGlyphOptions = {
 };
 
 const WHITE = 0xffffff;
-// the stop square shown on the spin button while a round plays (doubles as SKIP)
-const STOP_RED = 0xa14340;
-const STOP_BORDER = 0x1a0604; // thin near-black edge
+// The stop square shown on the spin button while a round plays (doubles as SKIP). It wears the
+// READOUT gold — the same warm tone as the Balance / Bet / Win labels — rather than the red it
+// used to, so the bar reads as one warm set instead of the spin button running its own accent.
+// C.readoutGold, not a copied hex: this and the readout labels must never drift apart.
+const STOP_FILL = C.readoutGold;
+const STOP_BORDER = 0x1a0604; // thin near-black edge — the gold needs it to hold its shape
 
 const alphaOf = (options: ControlGlyphOptions) => (options.disabled ? 0.42 : 1);
 
@@ -198,7 +203,7 @@ export const drawControlGlyph = (
 
 	if (options.stop) {
 		g.roundRect(-s * 0.12, -s * 0.12, s * 0.24, s * 0.24, s * 0.035).fill({
-			color: STOP_RED,
+			color: STOP_FILL,
 			alpha: alpha * 0.94,
 		});
 		g.roundRect(-s * 0.12, -s * 0.12, s * 0.24, s * 0.24, s * 0.035).stroke({

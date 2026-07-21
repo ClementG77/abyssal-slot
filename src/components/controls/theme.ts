@@ -18,6 +18,10 @@ export const C = {
 	// control bar's glass caption tint (GLASS.textDim), so the screen's furniture reads as one set
 	// instead of the header inventing its own near-miss of it.
 	chrome: 0xdff8ff,
+	// The readout identity — the warm gold on the Balance / Bet / Win labels and the menu volume
+	// sliders. Lives here rather than only in ControlBar's local READOUT so the vector glyphs can
+	// share the exact value instead of copying the hex; see the spin button's stop square.
+	readoutGold: 0xffd7b0,
 } as const;
 
 // ONE font for every piece of UI text/information in the game (control bar, replay controls,

@@ -62,6 +62,15 @@
 		introBlurFilter.enabled = introBlur.current > 0.05;
 	});
 
+	// DETACH the filter entirely when it isn't blurring, rather than leaving a disabled one on the
+	// array. This container wraps the WHOLE scene, and a container carrying filters is the trigger
+	// for Pixi's render-to-texture path — a full-screen target at the renderer's resolution, which
+	// is uncapped devicePixelRatio, so ~12 MB and an extra pass per frame on a 3x phone. Relying on
+	// `enabled = false` to avoid that means betting on an internal short-circuit; an empty array
+	// cannot be misread. The free-spins intro is a few seconds of a session, so this is off
+	// essentially always.
+	const introBlurActive = $derived(introBlur.current > 0.05);
+
 	// Clamp the blur's working area to the visible canvas. Without this, the filter texture is
 	// sized to the container's BOUNDS — in portrait the cover-scaled background extends far past
 	// the tall screen, and on high-DPR mobile that texture exceeds the GPU max size, so the
@@ -85,7 +94,10 @@
 	<EnableGameActor />
 	<EnablePixiExtension />
 
-	<Container filters={introBlurFilter ? [introBlurFilter] : []} filterArea={introFilterArea}>
+	<Container
+		filters={introBlurFilter && introBlurActive ? [introBlurFilter] : []}
+		filterArea={introFilterArea}
+	>
 		<Background />
 
 		{#if !context.stateLayout.showLoadingScreen}

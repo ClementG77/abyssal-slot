@@ -166,6 +166,30 @@
 			}),
 	);
 
+	// Meter-glow gradients, built ONCE for the same reason the fill gradients above are — and this
+	// is where that rule was actually being broken. drawMeterGlows runs every frame (it reads the
+	// pulsing fx.burst) and used to `new FillGradient(...)` up to THREE times per call. Each
+	// FillGradient bakes a 256x256 texture (~256 KB) that is never destroyed, so the meter alone
+	// leaked ~30-90 textures/second for the whole session — the on-device probe caught it as live
+	// GPU memory climbing past 500 MB and getting the iOS tab killed.
+	//
+	// These are radial energy->black falloffs; nothing about them changes frame to frame. The gem
+	// and orb glows are the SAME gradient (both GAZE_COLORS.energy), so they share one; the edge
+	// glow is per-lap. textureSpace 'local' + a normalised 0..0.5 radius makes them
+	// position-independent, so the circle fills below place them without rebaking anything. The
+	// pulse stays entirely in the per-frame ALPHA passed to .fill(), never in the texture.
+	const energyGlowGradient = new FillGradient({
+		type: 'radial',
+		textureSpace: 'local',
+		center: { x: 0.5, y: 0.5 },
+		innerRadius: 0,
+		outerCenter: { x: 0.5, y: 0.5 },
+		outerRadius: 0.5,
+		colorStops: [
+			{ offset: 0, color: GAZE_COLORS.energy },
+			{ offset: 1, color: 0x000000 },
+		],
+	});
 	onMount(() => {
 		const clock = gsap.to(liquid, { t: 3600, duration: 3600, ease: 'none', repeat: -1 });
 		animations.add(clock);
@@ -238,31 +262,6 @@
 	const plaqueTextY = $derived(plaqueY + gazeH * GAZE_METER_LAYOUT.plaque.textDy);
 	const meterEnergyX = $derived(isMobile ? position.x - eyeY : position.x + eyeX);
 	const meterEnergyY = $derived(isMobile ? position.y + eyeX : position.y + eyeY);
-	const fillLead = $derived.by(() => {
-		let remaining = Math.min(Math.max(fill.current, 0), 1) * trackTotalH;
-		let lead:
-			| {
-					x: number;
-					y: number;
-					h: number;
-			  }
-			| undefined;
-
-		for (const segment of trackSegments) {
-			const height = Math.max(0, Math.min(segment.h, remaining));
-			if (height > 0.5) {
-				lead = {
-					x: segment.x + segment.w / 2,
-					y: segment.y + segment.h - height,
-					h: segment.w,
-				};
-			}
-			remaining -= segment.h;
-		}
-
-		return lead;
-	});
-
 	const track = <T extends gsap.core.Animation>(animation: T) => {
 		animations.add(animation);
 		animation.eventCallback('onComplete', () => animations.delete(animation));
@@ -743,54 +742,19 @@
 		const pulse = fx.burst;
 		const orbAlpha = 0.18 + pulse * 0.58;
 		const gemAlpha = pulse * 0.5;
-		const edgeAlpha = fillLead ? 0.28 + pulse * 0.5 : 0;
 
+		// Both fills reuse the pre-built gradient. `textureSpace: 'local'` maps it to the bounds of
+		// the circle it fills, so the same energy->black texture lands centred at any position/
+		// radius with zero per-frame allocation.
+		//
+		// The edge glow that used to track the liquid surface (fillLead) was removed — it read as a
+		// distracting point of light riding up the fill. The plaque gem/orb glows stay.
 		if (gemAlpha > 0) {
-			const gemGlow = new FillGradient({
-				type: 'radial',
-				center: { x: gemX, y: gemY },
-				innerRadius: 0,
-				outerCenter: { x: gemX, y: gemY },
-				outerRadius: gemR * 2.4,
-				colorStops: [
-					{ offset: 0, color: GAZE_COLORS.energy },
-					{ offset: 1, color: 0x000000 },
-				],
-			});
-			g.circle(gemX, gemY, gemR * 2.4).fill({ fill: gemGlow, alpha: gemAlpha });
+			g.circle(gemX, gemY, gemR * 2.4).fill({ fill: energyGlowGradient, alpha: gemAlpha });
 		}
 
 		if (orbAlpha > 0) {
-			const orbGlow = new FillGradient({
-				type: 'radial',
-				center: { x: plaqueX, y: plaqueY },
-				innerRadius: 0,
-				outerCenter: { x: plaqueX, y: plaqueY },
-				outerRadius: plaqueR * 1.7,
-				colorStops: [
-					{ offset: 0, color: GAZE_COLORS.energy },
-					{ offset: 1, color: 0x000000 },
-				],
-			});
-			g.circle(plaqueX, plaqueY, plaqueR * 1.7).fill({ fill: orbGlow, alpha: orbAlpha });
-		}
-
-		if (fillLead && edgeAlpha > 0) {
-			const edgeGlow = new FillGradient({
-				type: 'radial',
-				center: { x: fillLead.x, y: fillLead.y },
-				innerRadius: 0,
-				outerCenter: { x: fillLead.x, y: fillLead.y },
-				outerRadius: fillLead.h * 1.35,
-				colorStops: [
-					{ offset: 0, color: GAZE_LAPS[lap].edge },
-					{ offset: 1, color: 0x000000 },
-				],
-			});
-			g.circle(fillLead.x, fillLead.y, fillLead.h * 1.35).fill({
-				fill: edgeGlow,
-				alpha: edgeAlpha,
-			});
+			g.circle(plaqueX, plaqueY, plaqueR * 1.7).fill({ fill: energyGlowGradient, alpha: orbAlpha });
 		}
 	};
 </script>

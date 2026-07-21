@@ -95,6 +95,7 @@
 	// multiply and big single-cluster jumps); otherwise it snaps. A press-to-skip FINISHES the
 	// running count fast (turbo pace) instead of jumping to the target.
 	const COUNT_SKIP_MS = 180; // the fast finish of an interrupted count-up
+
 	let token = 0;
 	$effect(() => {
 		const target = amount;

@@ -9,7 +9,31 @@ FF = imageio_ffmpeg.get_ffmpeg_exe()
 
 SRC = r"C:/Users/cleme/Documents/perso/Stake-Engine/lantern/front/web-sdk/apps/abyssal/assets/audio/src"
 OUT = r"C:/Users/cleme/Documents/perso/Stake-Engine/lantern/front/web-sdk/apps/abyssal/static/assets/sounds"
-SR, CH, GAP_S = 44100, 2, 1.0
+# ---------------------------------------------------------------------------------------------
+# MONO, AND WHY (2026-07-20) — this is an iOS memory fix, not a quality decision.
+#
+# Howler plays this sprite through Web Audio, which decodes the WHOLE file to an uncompressed
+# Float32 AudioBuffer up front. At 334s stereo that is ~112 MB resident from a 4.8 MB download,
+# and it was the single largest allocation in the app — the probe caught iOS killing the tab
+# outright (no webglcontextlost, no pagehide, just the log stopping) at ~263 MB total footprint.
+#
+# CH = 1 halves that to ~56 MB. Nothing else about the game changes: same sprite, same offsets
+# map, same code path, music still plays. On a phone speaker the loss of stereo width is
+# inaudible; on headphones the beds go centre-panned.
+#
+# WHAT DOES NOT WORK, so nobody retries it: lowering SR. `decodeAudioData` resamples to the
+# AudioContext's own rate (44.1k or 48k on iOS), so a 22k file is upsampled straight back to full
+# size in memory. Only CHANNELS and DURATION move the decoded number. Duration is the other real
+# lever — bgm_main and bgm_freespin are 120s EACH, 270s of the 307s total, so shorter loops would
+# buy more than anything else here if the music can take it (see loop_trim.py).
+# ---------------------------------------------------------------------------------------------
+SR, CH = 44100, 1
+
+# Was 1.0s. 27 boundaries x 1s = 27s of pure silence, ~9 MB of the decoded buffer spent on nothing.
+# The gap only has to exceed AAC's encoder padding (~20ms) so a seek cannot catch the previous
+# clip's tail; 0.4s is 20x that and still saves ~16s of buffer. Raise it if you ever hear bleed
+# between sprite segments.
+GAP_S = 0.4
 
 # Must stay 1:1 with the SoundName union in src/game/sound.ts. Names with no call site were
 # REMOVED (2026-07-16) rather than shipped silently — their source clips are still in src/ if a
@@ -61,8 +85,9 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     tmp = tempfile.mkdtemp(prefix="sprite_")
     silence = os.path.join(tmp, "silence.wav")
-    run([FF, "-y", "-f", "lavfi", "-i", f"anullsrc=r={SR}:cl=stereo", "-t", str(GAP_S),
-         "-ar", str(SR), "-ac", str(CH), "-c:a", "pcm_s16le", silence])
+    # channel layout follows CH — hardcoding stereo here worked only because -ac downmixed it
+    run([FF, "-y", "-f", "lavfi", "-i", f"anullsrc=r={SR}:cl={'mono' if CH == 1 else 'stereo'}",
+         "-t", str(GAP_S), "-ar", str(SR), "-ac", str(CH), "-c:a", "pcm_s16le", silence])
 
     pieces, sprite, cursor = [], {}, 0  # cursor in samples
     gap = wav_samples(silence)
