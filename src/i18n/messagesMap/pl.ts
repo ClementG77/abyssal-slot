@@ -62,7 +62,7 @@ export default {
 	ALL: 'WSZYSTKO',
 	START: 'START',
 	BET_MODE_BASE_TITLE: 'BAZA',
-	BET_MODE_BASE_DIALOG: 'Standardowy spin Abyssal. Eyes trafiaja sie mniej wiecej 1 na 7 spinow - i moga wpasc w trakcie tumbla.',
+	BET_MODE_BASE_DIALOG: 'Standardowy spin. Eyes trafiaja sie mniej wiecej 1 na 7 spinow - i moga wpasc w trakcie tumbla.',
 	BET_MODE_BASE_TICKER_IDLE: 'POSTAW STAWKE',
 	BET_MODE_BASE_TICKER_SPIN: 'POWODZENIA',
 	BET_MODE_ANTE_TITLE: 'ANTE',

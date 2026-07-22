@@ -61,7 +61,7 @@ export default {
 	ALL: 'KAIKKI',
 	START: 'ALOITA',
 	BET_MODE_BASE_TITLE: 'PERUS',
-	BET_MODE_BASE_DIALOG: 'Tavallinen Abyssal-pyöräytys. Eye osuu noin 1 pyöräytykseen seitsemästä - ja voi pudota kesken tumblen.',
+	BET_MODE_BASE_DIALOG: 'Tavallinen pyöräytys. Eye osuu noin 1 pyöräytykseen seitsemästä - ja voi pudota kesken tumblen.',
 	BET_MODE_BASE_TICKER_IDLE: 'ASETA PANOS',
 	BET_MODE_BASE_TICKER_SPIN: 'ONNEA',
 	BET_MODE_ANTE_TITLE: 'ANTE',

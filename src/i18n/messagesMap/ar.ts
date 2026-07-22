@@ -61,7 +61,7 @@ export default {
 	ALL: 'الكل',
 	START: 'ابدأ',
 	BET_MODE_BASE_TITLE: 'أساسي',
-	BET_MODE_BASE_DIALOG: 'دورة Abyssal العادية. يظهر Eye في نحو دورة من كل 7 - وقد يسقط في منتصف Tumble.',
+	BET_MODE_BASE_DIALOG: 'الدورة العادية. يظهر Eye في نحو دورة من كل 7 - وقد يسقط في منتصف Tumble.',
 	BET_MODE_BASE_TICKER_IDLE: 'ضع رهانك',
 	BET_MODE_BASE_TICKER_SPIN: 'حظا موفقا',
 	BET_MODE_ANTE_TITLE: 'ANTE',

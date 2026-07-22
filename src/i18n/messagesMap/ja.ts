@@ -61,7 +61,7 @@ export default {
 	ALL: 'すべて',
 	START: '開始',
 	BET_MODE_BASE_TITLE: 'ベース',
-	BET_MODE_BASE_DIALOG: 'Abyssalの標準スピン。Eyeは約7スピンに1回登場し、tumbleの途中でも落ちてきます。',
+	BET_MODE_BASE_DIALOG: '標準スピン。Eyeは約7スピンに1回登場し、tumbleの途中でも落ちてきます。',
 	BET_MODE_BASE_TICKER_IDLE: 'ベットしてください',
 	BET_MODE_BASE_TICKER_SPIN: '幸運を',
 	BET_MODE_ANTE_TITLE: 'ANTE',

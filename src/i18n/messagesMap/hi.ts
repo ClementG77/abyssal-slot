@@ -61,7 +61,7 @@ export default {
 	ALL: 'सभी',
 	START: 'शुरू करें',
 	BET_MODE_BASE_TITLE: 'बेस',
-	BET_MODE_BASE_DIALOG: 'Abyssal का स्टैंडर्ड स्पिन. Eye करीब 7 में से 1 स्पिन में आता है - और tumble के बीच में भी गिर सकता है.',
+	BET_MODE_BASE_DIALOG: 'स्टैंडर्ड स्पिन. Eye करीब 7 में से 1 स्पिन में आता है - और tumble के बीच में भी गिर सकता है.',
 	BET_MODE_BASE_TICKER_IDLE: 'अपनी बेट लगाएं',
 	BET_MODE_BASE_TICKER_SPIN: 'शुभकामनाएं',
 	BET_MODE_ANTE_TITLE: 'ANTE',

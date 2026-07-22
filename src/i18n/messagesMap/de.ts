@@ -62,7 +62,7 @@ export default {
 	ALL: 'ALLE',
 	START: 'START',
 	BET_MODE_BASE_TITLE: 'BASIS',
-	BET_MODE_BASE_DIALOG: 'Der normale Abyssal-Spin. Eyes landen etwa in 1 von 7 Spins - und koennen mitten im Tumble hereinfallen.',
+	BET_MODE_BASE_DIALOG: 'Der normale Spin. Eyes landen etwa in 1 von 7 Spins - und koennen mitten im Tumble hereinfallen.',
 	BET_MODE_BASE_TICKER_IDLE: 'EINSATZ PLATZIEREN',
 	BET_MODE_BASE_TICKER_SPIN: 'VIEL GLUECK',
 	BET_MODE_ANTE_TITLE: 'ANTE',

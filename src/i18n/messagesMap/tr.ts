@@ -61,7 +61,7 @@ export default {
 	ALL: 'TÜMÜ',
 	START: 'BAŞLAT',
 	BET_MODE_BASE_TITLE: 'TEMEL',
-	BET_MODE_BASE_DIALOG: 'Standart Abyssal spini. Eye yaklaşık 7 spinde 1 gelir - ve tumble ortasında da düşebilir.',
+	BET_MODE_BASE_DIALOG: 'Standart spin. Eye yaklaşık 7 spinde 1 gelir - ve tumble ortasında da düşebilir.',
 	BET_MODE_BASE_TICKER_IDLE: 'BAHSİNİZİ YAPIN',
 	BET_MODE_BASE_TICKER_SPIN: 'İYİ ŞANSLAR',
 	BET_MODE_ANTE_TITLE: 'ANTE',

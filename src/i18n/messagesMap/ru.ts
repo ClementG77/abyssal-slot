@@ -61,7 +61,7 @@ export default {
 	ALL: 'ВСЕ',
 	START: 'СТАРТ',
 	BET_MODE_BASE_TITLE: 'БАЗА',
-	BET_MODE_BASE_DIALOG: 'Стандартный спин Abyssal. Eye выпадает примерно 1 раз на 7 спинов - и может упасть прямо во время tumble.',
+	BET_MODE_BASE_DIALOG: 'Стандартный спин. Eye выпадает примерно 1 раз на 7 спинов - и может упасть прямо во время tumble.',
 	BET_MODE_BASE_TICKER_IDLE: 'СДЕЛАЙТЕ СТАВКУ',
 	BET_MODE_BASE_TICKER_SPIN: 'УДАЧИ',
 	BET_MODE_ANTE_TITLE: 'ANTE',

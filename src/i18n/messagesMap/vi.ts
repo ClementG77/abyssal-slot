@@ -61,7 +61,7 @@ export default {
 	ALL: 'TẤT CẢ',
 	START: 'BẮT ĐẦU',
 	BET_MODE_BASE_TITLE: 'CƠ BẢN',
-	BET_MODE_BASE_DIALOG: 'Vòng quay Abyssal tiêu chuẩn. Eye xuất hiện khoảng 1 trong 7 vòng quay - và có thể rơi vào giữa lúc tumble.',
+	BET_MODE_BASE_DIALOG: 'Vòng quay tiêu chuẩn. Eye xuất hiện khoảng 1 trong 7 vòng quay - và có thể rơi vào giữa lúc tumble.',
 	BET_MODE_BASE_TICKER_IDLE: 'ĐẶT CƯỢC',
 	BET_MODE_BASE_TICKER_SPIN: 'CHÚC MAY MẮN',
 	BET_MODE_ANTE_TITLE: 'ANTE',

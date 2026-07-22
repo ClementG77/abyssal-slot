@@ -62,7 +62,7 @@ export default {
 	ALL: 'TOUT',
 	START: 'DEMARRER',
 	BET_MODE_BASE_TITLE: 'BASE',
-	BET_MODE_BASE_DIALOG: 'Le spin standard de Abyssal. Les Eyes arrivent environ 1 spin sur 7 - et peuvent tomber en plein tumble.',
+	BET_MODE_BASE_DIALOG: 'Le spin standard. Les Eyes arrivent environ 1 spin sur 7 - et peuvent tomber en plein tumble.',
 	BET_MODE_BASE_TICKER_IDLE: 'PLACEZ VOTRE MISE',
 	BET_MODE_BASE_TICKER_SPIN: 'BONNE CHANCE',
 	BET_MODE_ANTE_TITLE: 'ANTE',

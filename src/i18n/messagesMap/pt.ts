@@ -62,7 +62,7 @@ export default {
 	ALL: 'TODOS',
 	START: 'INICIAR',
 	BET_MODE_BASE_TITLE: 'BASE',
-	BET_MODE_BASE_DIALOG: 'O giro padrao do Abyssal. Eyes chegam em cerca de 1 a cada 7 giros - e podem cair no meio do tumble.',
+	BET_MODE_BASE_DIALOG: 'O giro padrao. Eyes chegam em cerca de 1 a cada 7 giros - e podem cair no meio do tumble.',
 	BET_MODE_BASE_TICKER_IDLE: 'FAÇA SUA APOSTA',
 	BET_MODE_BASE_TICKER_SPIN: 'BOA SORTE',
 	BET_MODE_ANTE_TITLE: 'ANTE',

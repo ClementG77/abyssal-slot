@@ -11,6 +11,13 @@
 	import WarpedSprite from './WarpedSprite.svelte';
 	import { getContext } from '../game/context';
 	import { getWarpProfile } from '../game/symbolWarp';
+	import {
+		ensureSymbolIdleClock,
+		hasSymbolIdle,
+		symbolIdleClock,
+		symbolIdleOffset,
+		NO_IDLE,
+	} from '../game/symbolIdle.svelte';
 	import { getSymbolInfo } from '../game/utils';
 	import {
 		GAZE_EYE_INTENSITY_FULL,
@@ -27,6 +34,8 @@
 	type Props = {
 		x?: number;
 		y?: number;
+		/** per-CELL desync for warp + idle, supplied by ReelSymbol / TumbleSymbol */
+		phase?: number;
 		state: SymbolState;
 		rawSymbol: RawSymbol;
 		oncomplete?: () => void;
@@ -177,11 +186,36 @@
 	// H1 draws the diving helmet and H3 draws the anglerfish — so keying on the name would undulate
 	// a solid brass helmet and leave the fish rigid. The profile has to follow what is on screen.
 	const warpProfile = $derived(getWarpProfile(frame ?? ''));
-	// Per-CELL offset so a 12-symbol cluster of one symbol flexes as a shoal rather than as a single
-	// organism. Derived from the board position, so a given cell always moves the same way.
-	const warpPhase = $derived((((props.x ?? 0) * 3 + (props.y ?? 0) * 5) % 7) * 0.9);
+	// Per-CELL desync so a 12-symbol cluster flexes as a shoal rather than as one organism, and so
+	// the idle drift below never moves the whole board in unison.
+	//
+	// MUST come from the parent: <Symbol> is never given x/y — SymbolWrap owns the positioning — so
+	// the earlier `props.x * 3 + props.y * 5` was always 0*3 + 0*5 = 0 for every symbol on the board.
+	// Both effects were running in perfect lockstep, which is why neither read as motion.
+	const warpPhase = $derived(props.phase ?? 0);
 	const warpFx = $state({ amount: 0 });
 	let warpTween: gsap.core.Tween | undefined;
+
+	// --- SYMBOL IDLE (added 2026-07-22) ----------------------------------------------------------
+	// Keeps the board alive between wins. REVERT: flip SYMBOL_IDLE_ENABLED in game/symbolIdle —
+	// this block then evaluates to NO_IDLE and the transform below is a no-op. Search "SYMBOL IDLE".
+	//
+	// Only while the symbol is SETTLED: 'static' excludes spin, land and win, all of which already
+	// own the symbol's transform. Overlapping them would fight those animations. Scatter is excluded
+	// too — it has its own breathe — and the Eye renders through AbyssalEye, not this transform.
+	$effect(() => ensureSymbolIdleClock());
+	// `hasSymbolIdle` gates on the ART FRAME — only the four highs drift, and scatter/Eye frames are
+	// not in that set, so they are excluded by construction rather than by extra conditions here.
+	const idleOn = $derived(hasSymbolIdle(frame ?? '') && props.state === 'static');
+	const idle = $derived(
+		idleOn
+			? symbolIdleOffset(
+					symbolIdleClock.t,
+					warpPhase,
+					Math.max(symbolSize.width, symbolSize.height),
+				)
+			: NO_IDLE,
+	);
 
 	$effect(() => {
 		const on = winGlowOn;
@@ -507,12 +541,14 @@
 
 </script>
 
+<!-- SYMBOL IDLE: `idle` is NO_IDLE (0/0/1) unless the symbol is settled, so these three terms are
+     inert during spin, land and win — the existing animations keep full control of the transform. -->
 <Container
-	x={props.x}
-	y={props.y}
+	x={(props.x ?? 0) + idle.dx}
+	y={(props.y ?? 0) + idle.dy}
 	scale={{
-		x: (scale.current * winFx.squashX) / Math.sqrt(stretchFx.v),
-		y: scale.current * winFx.squashY * stretchFx.v,
+		x: (scale.current * winFx.squashX * idle.breathe) / Math.sqrt(stretchFx.v),
+		y: scale.current * winFx.squashY * idle.breathe * stretchFx.v,
 	}}
 	alpha={alpha.current}
 >

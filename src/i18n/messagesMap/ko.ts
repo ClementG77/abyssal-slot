@@ -61,7 +61,7 @@ export default {
 	ALL: '전체',
 	START: '시작',
 	BET_MODE_BASE_TITLE: '기본',
-	BET_MODE_BASE_DIALOG: '표준 Abyssal 스핀. Eye는 약 7스핀에 1번 등장하며, tumble 도중에도 떨어질 수 있습니다.',
+	BET_MODE_BASE_DIALOG: '표준 스핀. Eye는 약 7스핀에 1번 등장하며, tumble 도중에도 떨어질 수 있습니다.',
 	BET_MODE_BASE_TICKER_IDLE: '베팅하세요',
 	BET_MODE_BASE_TICKER_SPIN: '행운을 빕니다',
 	BET_MODE_ANTE_TITLE: 'ANTE',

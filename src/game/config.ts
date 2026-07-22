@@ -10,7 +10,9 @@
 
 export default {
 	providerName: 'stake_engine',
-	gameName: 'abyssal',
+	// DISPLAY name — shown (uppercased) in the header. Safe to change; `gameID` below is the
+	// identifier the RGS and the math repo key off and must stay 'abyssal'.
+	gameName: 'Abyssal Gaze',
 	gameID: 'abyssal',
 	rtp: 0.96,
 	numReels: 6,

@@ -62,7 +62,7 @@ export default {
 	ALL: '全部',
 	START: '开始',
 	BET_MODE_BASE_TITLE: '基础',
-	BET_MODE_BASE_DIALOG: '标准的 Abyssal 旋转。Eye 大约每 7 次旋转出现 1 次，也可能在 tumble 中途掉落。',
+	BET_MODE_BASE_DIALOG: '标准旋转。Eye 大约每 7 次旋转出现 1 次，也可能在 tumble 中途掉落。',
 	BET_MODE_BASE_TICKER_IDLE: '请下注',
 	BET_MODE_BASE_TICKER_SPIN: '祝你好运',
 	BET_MODE_ANTE_TITLE: 'ANTE',

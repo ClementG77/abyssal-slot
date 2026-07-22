@@ -1,7 +1,9 @@
 export default {
 	HOME: 'HOME',
 	LOADER_SUBTITLE: 'HOW IT WORKS',
-	LOADER_LOGO: 'ABYSSAL',
+	// The wordmark on the start screen. Deliberately defined ONLY here — it is a brand name, so
+	// every other locale falls back to this English string rather than translating it.
+	LOADER_LOGO: 'ABYSSAL GAZE',
 	LOADER_CARD_1_TITLE: 'CHARGE THE GAZE',
 	LOADER_CARD_1_BODY: 'Winning clusters charge your Gaze.\nBigger clusters give more Essence.',
 	LOADER_CARD_2_TITLE: 'EYE MULTIPLIERS',
@@ -60,7 +62,7 @@ export default {
 	ALL: 'ALL',
 	START: 'START',
 	BET_MODE_BASE_TITLE: 'BASE',
-	BET_MODE_BASE_DIALOG: 'The standard Abyssal spin. Eyes land about 1 spin in 7 - and can drop in mid-tumble.',
+	BET_MODE_BASE_DIALOG: 'The standard spin. Eyes land about 1 spin in 7 - and can drop in mid-tumble.',
 	BET_MODE_BASE_BUTTON: '',
 	BET_MODE_BASE_TICKER_IDLE: 'PLACE YOUR BET',
 	BET_MODE_BASE_TICKER_SPIN: 'GOOD LUCK',
@@ -100,7 +102,9 @@ export default {
 	BET_MODE_SUPERBONUS_BUTTON: 'BUY',
 	BET_MODE_SUPERBONUS_TICKER_IDLE: 'PLACE YOUR BET',
 	BET_MODE_SUPERBONUS_TICKER_SPIN: 'SUPER BONUS PURCHASED',
-	GAME_INFO_TITLE: 'ABYSSAL',
+	// Brand name — like LOADER_LOGO, defined only here so every locale falls back to it rather
+	// than translating it.
+	GAME_INFO_TITLE: 'ABYSSAL GAZE',
 	GAME_INFO_TAGLINE: 'DEEP-SEA TUMBLE SLOT',
 	GAME_INFO_LEAD_HTML:
 		'Symbols drop onto a <strong>6&times;5 board</strong>. You win whenever <strong>8 or more of the same symbol</strong> land <strong>anywhere</strong> &ndash; no paylines. Winners burst and new symbols tumble in, which can chain into more wins from a single spin. There is <strong>no wild</strong>; the <strong>Eye</strong> is the sole multiplier.',

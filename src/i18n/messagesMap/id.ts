@@ -61,7 +61,7 @@ export default {
 	ALL: 'SEMUA',
 	START: 'MULAI',
 	BET_MODE_BASE_TITLE: 'DASAR',
-	BET_MODE_BASE_DIALOG: 'Spin standar Abyssal. Eye muncul sekitar 1 dari 7 spin - dan bisa jatuh di tengah tumble.',
+	BET_MODE_BASE_DIALOG: 'Spin standar. Eye muncul sekitar 1 dari 7 spin - dan bisa jatuh di tengah tumble.',
 	BET_MODE_BASE_TICKER_IDLE: 'PASANG TARUHAN',
 	BET_MODE_BASE_TICKER_SPIN: 'SEMOGA BERUNTUNG',
 	BET_MODE_ANTE_TITLE: 'ANTE',
