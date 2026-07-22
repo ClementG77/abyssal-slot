@@ -25,6 +25,16 @@
 	import { armSkip } from '../game/skip.svelte';
 	import { icons, type IconKey } from './controls/icons';
 	import { C, FONT } from './controls/theme';
+	// The glass material and readout identity live in ./controls/glass so the REPLAY bar renders the
+	// same win panel instead of a lookalike. Imported under the same names this file always used.
+	import {
+		GLASS,
+		READOUT,
+		drawGlassPanel,
+		readoutLabelStyle,
+		readoutValueStyle,
+	} from './controls/glass';
+	import WinReadout from './WinReadout.svelte';
 
 	const context = getContext();
 	// one shared family for the whole HUD (see controls/theme.ts) — never hardcode a font here
@@ -38,24 +48,6 @@
 	const BET_POPUP_SCROLL_ROWS = { popout: 3, tiny: 2 };
 	const ACTIVE_ACCENT = 0xff4f57;
 	const ACTIVE_ACCENT_BRIGHT = 0xfff0dc;
-	const GLASS = {
-		bg: 0x081c2a,
-		bgDeep: 0x030912,
-		bgHover: 0x0c2e44,
-		border: 0xe1faff,
-		borderSoft: 0x9eefff,
-		glow: 0x5adcff,
-		glowStrong: 0x5febff,
-		shadow: 0x000812,
-		textDim: 0xdff8ff,
-	} as const;
-	// The readout identity: warm gold label + white value on a deep warm shadow. Balance, Bet,
-	// Win and the menu volume sliders ALL use this, so every readout in the bar reads as one set.
-	const READOUT = {
-		label: C.readoutGold,
-		value: 0xffffff,
-		shadow: 0x2a0710,
-	} as const;
 	const MENU_SLIDER = { w: 124, h: 34, labelX: -100, trackX: 40, labelFontSize: 18 };
 	const MENU_POPUP_PANEL = { w: 290, h: 248, centerY: -92 };
 	const MENU_ACTION_BUTTON = { w: 232, h: 56, iconX: -82, labelX: -42, iconSize: 38, fontSize: 20 };
@@ -668,31 +660,6 @@
 		});
 	};
 
-	const labelStyle = {
-		fontFamily: BAR_FONT,
-		fontWeight: '800',
-		fontSize: 17,
-		fill: GLASS.textDim,
-		letterSpacing: 0.8,
-		dropShadow: { color: GLASS.shadow, blur: 4, distance: 2, alpha: 0.8 },
-	};
-	const valueStyle = {
-		fontFamily: BAR_FONT,
-		fontWeight: '900',
-		fontSize: 36,
-		fill: 0xffffff,
-		dropShadow: { color: GLASS.shadow, blur: 6, distance: 2, alpha: 0.78 },
-	};
-	const readoutLabelStyle = {
-		...labelStyle,
-		fill: READOUT.label,
-		dropShadow: { color: READOUT.shadow, blur: 5, distance: 2, alpha: 0.82 },
-	};
-	const readoutValueStyle = {
-		...valueStyle,
-		fill: READOUT.value,
-		dropShadow: { color: READOUT.shadow, blur: 7, distance: 2, alpha: 0.82 },
-	};
 	const buttonScale = (
 		pressed: boolean,
 		hovered: boolean,
@@ -740,46 +707,6 @@
 		...MENU_POPUP_PANEL,
 	};
 
-	const drawGlassPanel = (
-		g: import('pixi.js').Graphics,
-		w: number,
-		h: number,
-		radius = 24,
-		active = false,
-	) => {
-		const hoverBoost = active ? 1 : 0;
-		g.roundRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8, radius + 4).stroke({
-			width: active ? 7 : 5,
-			color: GLASS.glow,
-			alpha: active ? 0.2 : 0.1,
-		});
-		g.roundRect(-w / 2, -h / 2, w, h, radius).fill({
-			color: active ? GLASS.bgHover : GLASS.bg,
-			alpha: active ? 0.48 : 0.34,
-		});
-		// (removed) a GLASS.bgDeep rect over the bottom 58% used to sit here. It carried the panel's
-		// full corner radius while starting mid-panel, so its rounded TOP corners were visible
-		// against the fill above — it read as a second, darker panel inside every element rather
-		// than as shading. The top-half white sheen below is what gives the glass its depth.
-		g.roundRect(-w / 2, -h / 2, w, h * 0.5, radius).fill({
-			color: 0xffffff,
-			alpha: 0.06 + hoverBoost * 0.08,
-		});
-		g.roundRect(-w / 2 + 7, -h / 2 + 6, w - 14, h * 0.34, Math.max(6, radius - 7)).fill({
-			color: 0xffffff,
-			alpha: 0.035 + hoverBoost * 0.055,
-		});
-		g.roundRect(-w / 2, -h / 2, w, h, radius).stroke({
-			width: active ? 2 : 1.5,
-			color: GLASS.border,
-			alpha: active ? 0.88 : 0.62,
-		});
-		g.roundRect(-w / 2 + 4, -h / 2 + 4, w - 8, h - 8, Math.max(4, radius - 5)).stroke({
-			width: 1.1,
-			color: 0xffffff,
-			alpha: active ? 0.3 : 0.18,
-		});
-	};
 
 	const drawPopoverPanel = (
 		g: import('pixi.js').Graphics,
@@ -1639,10 +1566,7 @@
 
 	{#if stateBet.winBookEventAmount > 0}
 		<Container x={responsive.win.x} y={responsive.win.y} scale={responsive.scale} zIndex={7}>
-			<Graphics draw={(g) => drawGlassPanel(g, 300, 78, 18)} />
-			<!-- same readout identity as Balance / Bet (warm gold label, white value) -->
-			<Text anchor={0.5} y={-17} text={context.i18nDerived.win()} style={{ ...readoutLabelStyle, fontSize: 15 }} />
-			<Text anchor={0.5} y={16} text={winText} style={{ ...readoutValueStyle, fontSize: 28 }} />
+			<WinReadout text={winText} />
 		</Container>
 	{/if}
 

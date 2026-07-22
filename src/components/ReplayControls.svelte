@@ -10,6 +10,7 @@
 	import { API_AMOUNT_MULTIPLIER } from 'constants-shared/bet';
 	import { bookEventAmountToCurrencyString, numberToCurrencyString } from 'utils-shared/amount';
 
+	import WinReadout from './WinReadout.svelte';
 	import { getContext } from '../game/context';
 	import { C, FONT } from './controls/theme';
 	import { drawControlGlyph } from '../controlbar/vectorIcons';
@@ -184,17 +185,56 @@
 		dropShadow: { color: 0x000000, blur: 4, distance: 2, alpha: 0.8 },
 	} as const;
 
-	const drawBar = (g: import('pixi.js').Graphics) => {
-		g.roundRect(-BAR_W / 2, -BAR_H / 2, BAR_W, BAR_H, 24).fill({ color: C.navyDeep, alpha: 0.82 });
-		g.roundRect(-BAR_W / 2, -BAR_H / 2, BAR_W, BAR_H, 24).stroke({
-			width: 2,
-			color: C.purpleBright,
-			alpha: 0.5,
+	// ONE plate material for the whole replay UI. These live here rather than at each call site
+	// because the compact win plate below first drifted to 0.78/0.45 against the bar's 0.82/0.5 —
+	// identical colours, slightly different alphas. That is invisible in code and reads on screen as
+	// two surfaces that ALMOST match, which is worse than two that clearly differ.
+	const PLATE = {
+		fill: C.navyDeep,
+		fillAlpha: 0.82,
+		stroke: C.purpleBright,
+		strokeAlpha: 0.5,
+		strokeWidth: 2,
+		/** corner radius as a fraction of plate HEIGHT, so a small plate curves like the big one */
+		radiusRatio: 24 / 168,
+	} as const;
+
+	const drawPlate = (g: import('pixi.js').Graphics, w: number, h: number) => {
+		const r = h * PLATE.radiusRatio;
+		g.roundRect(-w / 2, -h / 2, w, h, r).fill({ color: PLATE.fill, alpha: PLATE.fillAlpha });
+		g.roundRect(-w / 2, -h / 2, w, h, r).stroke({
+			width: PLATE.strokeWidth,
+			color: PLATE.stroke,
+			alpha: PLATE.strokeAlpha,
 		});
 	};
+
+	const drawBar = (g: import('pixi.js').Graphics) => drawPlate(g, BAR_W, BAR_H);
+
+	// --- Running win, shown WHILE the round plays ------------------------------------------------
+	// The full bar is hidden during playback so it does not cover the win animation, which took the
+	// WIN readout with it — leaving a replay with no way to see what the round was paying as it
+	// played. A live round never does that: the ControlBar stays up and its WIN counts along.
+	//
+	// So this is the same readout at a fraction of the footprint (a ~5x smaller plate), shown only
+	// while the bar is away. It reads the SAME `stateBet.winBookEventAmount` the bar and the
+	// ControlBar both use, so the number is identical and cannot drift between them.
+	// Only worth drawing once the round has actually paid something — an empty "WIN 0.00" hovering
+	// over the board for every losing replay is noise, not information.
+	const showMiniWin = $derived(phase === 'playing' && stateBet.winBookEventAmount > 0);
+
 </script>
 
 <MainContainer standard alignVertical="bottom">
+	<!-- Running win while the bar is away. Sits at the bar's own centre line so it reads as the bar
+	     shrinking down to just its essential number, rather than as a new element appearing
+	     somewhere else. Exactly one of the two is on screen at any time. -->
+	<FadeContainer show={showMiniWin}>
+		<Container x={layout.width * 0.5} y={layout.height - BAR_H * 0.5 - 36}>
+			<WinReadout text={winText} />
+		</Container>
+	</FadeContainer>
+
 	<!-- hide the whole bar while the round is playing so it doesn't cover the win animation -->
 	<FadeContainer show={phase !== 'playing'}>
 		<Container x={layout.width * 0.5} y={layout.height - BAR_H * 0.5 - 36}>

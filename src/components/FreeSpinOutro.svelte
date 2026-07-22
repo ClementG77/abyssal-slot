@@ -25,7 +25,7 @@
 	import PressToContinue from './PressToContinue.svelte';
 	import { getContext } from '../game/context';
 
-	import { abyssalAmountTextStyle, winTierAccent } from '../game/textStyles';
+	import { abyssalLabelTextStyle } from '../game/textStyles';
 
 	const context = getContext();
 
@@ -121,14 +121,26 @@
 	const imgH = $derived(imgW / imageAspect);
 	const amountY = $derived(imgH * (PLAQUE_CENTER_Y - 0.5));
 	const amountMaxWidth = $derived(imgW * PLAQUE_TEXT_WIDTH);
-	// The feature total wears the win level it landed on, same as the win ladder — a bonus that
-	// ended on `mega` shows an amber-footed number, not the generic gold. Levels below `big` have
-	// no celebration colour and fall through to the neutral pearl-and-gold.
+	// NEUTRAL ON PURPOSE — do not re-tie this to the win tier.
+	//
+	// It briefly took `winTierAccent(winLevelData.alias)`, so the feature total came out emerald /
+	// sapphire / amber / amethyst / ruby depending on where the bonus landed. That works on the win
+	// LADDER, where the plaque art, aura, bubbles and headline all change tier together and the
+	// colour is the visible result of an escalation the player just watched.
+	//
+	// This card has none of that: one fixed frame, one number, nothing else moving. The colour
+	// simply differed every bonus with nothing on screen explaining it, which reads as an
+	// inconsistency rather than as meaning. Pinned to the shared pearl-and-gold so the end-of-bonus
+	// total is the same every time.
+	// Uses abyssalLabelTextStyle — the SAME function behind the "TOTAL MULT" caption — so the outro
+	// total carries that caption's colours exactly: the bright (white) end of the metal gradient at
+	// LABEL_DEPTH, rather than the amounts' deeper pearl-to-gold. Calling the same function rather
+	// than copying its values means the two cannot drift if the palette is ever retuned.
+	//
+	// letterSpacing 0 because the caption's default tracking of 2 is meant for a short uppercase
+	// word, not a currency amount. Tracking does not affect colour.
 	const amountStyle = $derived(
-		abyssalAmountTextStyle({
-			fontSize: imgH * PLAQUE_FONT_SIZE,
-			accent: winLevelData ? winTierAccent(winLevelData.alias) : undefined,
-		}),
+		abyssalLabelTextStyle({ fontSize: imgH * PLAQUE_FONT_SIZE, letterSpacing: 0 }),
 	);
 </script>
 

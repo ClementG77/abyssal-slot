@@ -8,7 +8,9 @@
 	import { stateBetDerived } from 'state-shared';
 
 	import AbyssalEye from './AbyssalEye.svelte';
+	import WarpedSprite from './WarpedSprite.svelte';
 	import { getContext } from '../game/context';
+	import { getWarpProfile } from '../game/symbolWarp';
 	import { getSymbolInfo } from '../game/utils';
 	import {
 		GAZE_EYE_INTENSITY_FULL,
@@ -163,6 +165,35 @@
 			{ pulse: 1, duration: 0.45, ease: 'sine.inOut', repeat: -1, yoyo: true },
 		);
 		return () => winGlowTween?.kill();
+	});
+
+	// --- Win MOTION: the art itself flexes while it is winning -----------------------------------
+	// The glow above says "this one is winning"; this says "this thing is alive". Vertex deformation
+	// of the existing sprite (see game/symbolWarp.ts) — no animation frames, so no texture memory.
+	//
+	// `amount` eases 0 -> 1 rather than snapping, so the swap from <Sprite> to <WarpedSprite> is
+	// invisible: at amount 0 the mesh is undeformed and pixel-identical to the sprite it replaces.
+	// Keyed on `frame` (the ART), NOT on rawSymbol.name. SYMBOL_FRAME deliberately remaps the two —
+	// H1 draws the diving helmet and H3 draws the anglerfish — so keying on the name would undulate
+	// a solid brass helmet and leave the fish rigid. The profile has to follow what is on screen.
+	const warpProfile = $derived(getWarpProfile(frame ?? ''));
+	// Per-CELL offset so a 12-symbol cluster of one symbol flexes as a shoal rather than as a single
+	// organism. Derived from the board position, so a given cell always moves the same way.
+	const warpPhase = $derived((((props.x ?? 0) * 3 + (props.y ?? 0) * 5) % 7) * 0.9);
+	const warpFx = $state({ amount: 0 });
+	let warpTween: gsap.core.Tween | undefined;
+
+	$effect(() => {
+		const on = winGlowOn;
+		warpTween?.kill();
+		warpTween = gsap.to(warpFx, {
+			amount: on ? 1 : 0,
+			// in fast (the win should feel immediate), out slower so a symbol that survives the
+			// cascade settles rather than stopping dead
+			duration: on ? 0.16 : 0.28,
+			ease: on ? 'power2.out' : 'power2.in',
+		});
+		return () => warpTween?.kill();
 	});
 
 	// Shape-hugging AURA (additive halo, see below). It ramps HOTTER for
@@ -366,6 +397,7 @@
 		boomTl?.kill();
 		landTl?.kill();
 		winGlowTween?.kill();
+		warpTween?.kill();
 		scatterIdleTl?.kill();
 		scatterAmbTween?.kill();
 		scatterFlareTl?.kill();
@@ -373,6 +405,7 @@
 		gsap.killTweensOf(winFx);
 		gsap.killTweensOf(boomFx);
 		gsap.killTweensOf(winGlowFx);
+		gsap.killTweensOf(warpFx);
 		gsap.killTweensOf(scatterFx);
 		gsap.killTweensOf(scatterAmb);
 	});
@@ -565,7 +598,22 @@
 					/>
 				{/if}
 			{:else}
-				<Sprite key={frame} anchor={0.5} width={symbolSize.width} height={symbolSize.height} />
+					<!-- While winning the art is drawn through a deforming mesh so it FLEXES instead of
+				     just flashing (see game/symbolWarp.ts). Idle symbols keep the plain, cheaper
+				     Sprite path untouched. The swap is invisible because the mesh starts undeformed
+				     (warpFx.amount eases from 0) and is pixel-identical to the sprite at that point. -->
+				{#if winGlowOn}
+					<WarpedSprite
+						key={frame}
+						width={symbolSize.width}
+						height={symbolSize.height}
+						amount={warpFx.amount}
+						profile={warpProfile}
+						phase={warpPhase}
+					/>
+				{:else}
+					<Sprite key={frame} anchor={0.5} width={symbolSize.width} height={symbolSize.height} />
+				{/if}
 			{/if}
 		{:else}
 			<Graphics {draw} />

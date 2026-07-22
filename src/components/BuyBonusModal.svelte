@@ -19,9 +19,10 @@
 
 	// Abyssal-owned buy-bonus modal. Replaces the SDK's default ModalBuyBonus (wired through the
 	// `buyBonus` snippet on the shared <Modals>). Fully data-driven off `stateMeta.betModeMeta`
-	// (see betModeMeta.ts). Clean “shop card” look: ivory card, mode art on top (cropped from the
+	// (see betModeMeta.ts). Built from the SAME glass as the control bar (components/controls/
+	// glass.ts, expressed in CSS here because this modal is DOM): mode art on top (cropped from the
 	// bonus_buy sprite sheet), title / description / price, and exactly TWO accent colours —
-	// green for ACTIVATE modes, gold for BUY modes. Bet stepper sits on a white-glass pill.
+	// teal for ACTIVATE modes, amber for BUY modes.
 	//
 	// Buying reuses the exact action the SDK confirm modal performs: set the active bet mode, then
 	// broadcast `bet` on the shared emitter (the same one the in-game Spin button uses). Activate
@@ -332,16 +333,35 @@
 {/if}
 
 <style lang="scss">
-	// Clean two-accent palette: green = activate, gold = buy. Everything else is ivory/navy.
-	$ink: #14243a; // dark navy text
-	$ink-soft: #51607a; // description text
-	$card-bg: #f8f6f0; // ivory card body
-	$card-line: rgba(20, 36, 58, 0.14);
+	// ---------------------------------------------------------------------------------------------
+	// THE GAME'S GLASS, NOT A SHOP UI.
+	//
+	// This modal used to be ivory cards (#f8f6f0) with navy text, gold and green — a bright,
+	// warm "shop card" language sitting inside a dark deep-sea game. Opening the buy menu meant
+	// jumping to what looked like a different product, and it was the single clearest instance of
+	// the "mismatched visual elements / clashing themes" the review flagged.
+	//
+	// Every value below is now the SAME material the control bar is built from (see
+	// components/controls/glass.ts — GLASS.* and READOUT.*), just expressed in CSS because this
+	// modal is DOM rather than Pixi. Keep the two in step: if the bar's glass is retuned, retune
+	// these to match rather than inventing near-misses.
+	// ---------------------------------------------------------------------------------------------
+	$glass-bg: #081c2a; // GLASS.bg — the panel body
+	$glass-hover: #0c2e44; // GLASS.bgHover
+	$glass-border: #e1faff; // GLASS.border — the bright rim
+	$glass-glow: #5adcff; // GLASS.glow — the cyan halo
+	$glass-shadow: #000812; // GLASS.shadow
+	$text: #ffffff; // READOUT.value — values and titles
+	$text-dim: #dff8ff; // GLASS.textDim — descriptions and captions
+	$readout-gold: #ffd7b0; // READOUT.label — the warm label gold, prices
 	$hero-bg: #0b2130; // deep petrol behind the art, and the wash that harmonises the art itself
-	$green: #17a56b;
-	$green-deep: #0d7f50;
-	$gold: #f0a81c;
-	$gold-light: #ffd34d;
+
+	// TWO ACCENTS, both drawn from the game's own palette (controls/theme.ts) rather than invented
+	// for this screen: cool = a toggle you switch ON, warm = a purchase you commit to.
+	$teal: #1fb6a6; // C.teal — ACTIVATE
+	$teal-deep: #147a6f;
+	$amber: #ffb13c; // C.amber — BUY
+	$amber-deep: #e08a1c;
 
 	// no panel background — the cards + bet pill float over the dimmed game
 	.buy-modal {
@@ -386,7 +406,7 @@
 		}
 	}
 
-	// Cards: mode art on top (sprite crop), ivory body with title / divider / description /
+	// Cards: mode art on top (sprite crop), glass body with title / divider / description /
 	// price, and a single pill button. Two accent colours across the whole modal.
 	// Sized so ALL FIVE cards are fully on screen (no scrolling) on every landscape device:
 	// 5 × 17vw + gaps ≈ 90vw, capped at 10.5rem for large screens, floored for Popout L.
@@ -397,31 +417,45 @@
 		flex-direction: column;
 		border-radius: 1rem;
 		overflow: hidden;
-		background: $card-bg;
-		border: 1px solid rgba(255, 255, 255, 0.75);
+		// The control bar's glass panel, rebuilt in CSS: tinted body, a white sheen across the top
+		// half, a bright rim, and a cyan halo outside it. Same construction as drawGlassPanel — the
+		// layer order and weights are deliberately matched, not approximated.
+		background:
+			linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 50%),
+			rgba($glass-bg, 0.86);
+		border: 1.5px solid rgba($glass-border, 0.62);
 		box-shadow:
-			0 10px 26px rgba(4, 12, 24, 0.45),
-			inset 0 1px 0 rgba(255, 255, 255, 0.8);
+			0 0 0 5px rgba($glass-glow, 0.1),
+			0 10px 26px rgba($glass-shadow, 0.55),
+			inset 0 0 0 1.1px rgba(255, 255, 255, 0.18);
 		transition:
 			transform 0.14s ease,
-			box-shadow 0.14s ease;
+			box-shadow 0.14s ease,
+			border-color 0.14s ease;
 
 		&:hover {
 			transform: translateY(-3px);
-			box-shadow: 0 18px 34px rgba(4, 12, 24, 0.55);
+			background:
+				linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 50%),
+				rgba($glass-hover, 0.9);
+			border-color: rgba($glass-border, 0.88);
+			box-shadow:
+				0 0 0 7px rgba($glass-glow, 0.2),
+				0 18px 34px rgba($glass-shadow, 0.65),
+				inset 0 0 0 1.1px rgba(255, 255, 255, 0.3);
 		}
 		&.active {
 			box-shadow:
-				0 0 0 2px rgba(23, 165, 107, 0.75),
-				0 0 22px rgba(23, 165, 107, 0.35);
+				0 0 0 2px rgba($teal, 0.8),
+				0 0 22px rgba($teal, 0.4);
 		}
 	}
 
 	// ---- Card hero ---------------------------------------------------------------------------
 	// The problem: the sheet is RGBA but every frame is `trimmed: false` and FULL-BLEED, so each of
 	// the five modes is a separate painting carrying its own baked background — different scenery,
-	// different light, different colour temperature — cut off by a straight line against the ivory
-	// panel. Nothing placed BEHIND the art can help; it is covered.
+	// different light, different colour temperature — cut off by a straight line against the panel
+	// below. Nothing placed BEHIND the art can help; it is covered.
 	//
 	// The fix is to let each card's backdrop be its own art, blurred: the background can then never
 	// clash with the picture in front of it, and the five cards harmonise through softness instead
@@ -442,10 +476,10 @@
 
 		// One accent per card, so the overlay below is written once instead of duplicated.
 		// Literal rgb triplets: rgba() cannot take a hex custom property, and Sass's global
-		// red()/green()/blue() are deprecated. Keep these in step with $gold / $green above.
-		--accent-rgb: 240, 168, 28; // $gold  #f0a81c
+		// red()/green()/blue() are deprecated. Keep these in step with $amber / $teal above.
+		--accent-rgb: 255, 177, 60; // $amber #ffb13c
 		&.activate {
-			--accent-rgb: 23, 165, 107; // $green #17a56b
+			--accent-rgb: 31, 182, 166; // $teal  #1fb6a6
 		}
 	}
 
@@ -483,7 +517,7 @@
 	}
 
 	// One overlay for everything in front of the art: a vignette to settle the frame into the card,
-	// a fade so it dissolves into the ivory panel rather than being guillotined, the accent bloom +
+	// a fade so it dissolves into the panel below rather than being guillotined, the accent bloom +
 	// hairline carrying the modal's two-accent system (green = activate, gold = buy) up into the
 	// header, and an inset shadow seating the hero against the panel.
 	//
@@ -513,7 +547,7 @@
 		font-weight: 900;
 		letter-spacing: 0.12em;
 		color: #fff;
-		background: $green;
+		background: $teal;
 		padding: 0.14rem 0.45rem;
 		border-radius: 0.4rem;
 		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
@@ -541,13 +575,13 @@
 		letter-spacing: 0.03em;
 		text-transform: uppercase;
 		line-height: 1.1;
-		color: $ink;
+		color: $text;
 	}
 
 	.bm-divider {
 		height: 1px;
 		margin: 0 0.4rem;
-		background: $card-line;
+		background: rgba($glass-border, 0.22);
 	}
 
 	.bm-desc {
@@ -559,7 +593,7 @@
 		text-align: center;
 		font-size: 0.66rem;
 		line-height: 1.35;
-		color: $ink-soft;
+		color: $text-dim;
 	}
 
 	.bm-price {
@@ -570,7 +604,7 @@
 		font-family: 'Abyssal Cinzel', Georgia, serif;
 		font-size: 1.2rem;
 		font-weight: 900;
-		color: $ink;
+		color: $text;
 	}
 
 	.bm-action {
@@ -602,36 +636,36 @@
 			cursor: default;
 		}
 
-		// gold BUY
+		// amber BUY — warm, the one commit-to-a-purchase action on the screen
 		&.buy {
-			background: linear-gradient(180deg, $gold-light, $gold);
+			background: linear-gradient(180deg, $amber, $amber-deep);
 			box-shadow:
-				inset 0 1px 0 rgba(255, 255, 255, 0.6),
-				0 3px 8px rgba(240, 168, 28, 0.35);
-			text-shadow: 0 1px 2px rgba(140, 90, 0, 0.4);
+				inset 0 1px 0 rgba(255, 255, 255, 0.5),
+				0 3px 8px rgba($amber, 0.35);
+			text-shadow: 0 1px 2px rgba(120, 66, 0, 0.45);
 		}
-		// green ACTIVATE
+		// teal ACTIVATE — cool, a mode you switch on and off
 		&.activate {
-			background: linear-gradient(180deg, $green, $green-deep);
+			background: linear-gradient(180deg, $teal, $teal-deep);
 			box-shadow:
-				inset 0 1px 0 rgba(255, 255, 255, 0.45),
-				0 3px 8px rgba(23, 165, 107, 0.35);
-			text-shadow: 0 1px 2px rgba(0, 70, 40, 0.45);
+				inset 0 1px 0 rgba(255, 255, 255, 0.4),
+				0 3px 8px rgba($teal, 0.35);
+			text-shadow: 0 1px 2px rgba(0, 60, 55, 0.45);
 		}
-		// active state → deeper green "deactivate"
+		// already on → sunken, ringed "deactivate"
 		&.activate.on {
-			background: linear-gradient(180deg, #0c6b45, #084b31);
-			box-shadow: inset 0 0 0 1.5px rgba(120, 230, 180, 0.75);
+			background: linear-gradient(180deg, $teal-deep, #0d554d);
+			box-shadow: inset 0 0 0 1.5px rgba($teal, 0.8);
 		}
 		// neutral cancel button in the confirm overlay
 		&.ghost {
-			color: $ink;
-			background: rgba(20, 36, 58, 0.08);
-			box-shadow: inset 0 0 0 1px rgba(20, 36, 58, 0.22);
+			color: $text-dim;
+			background: rgba(255, 255, 255, 0.07);
+			box-shadow: inset 0 0 0 1px rgba($glass-border, 0.34);
 		}
 	}
 
-	// --- bet stepper: a white-glass pill ------------------------------------------------------
+	// --- bet stepper: the bar's glass pill -----------------------------------------------------
 	.bm-bet {
 		align-self: center;
 		display: flex;
@@ -644,7 +678,7 @@
 		font-size: 0.72rem;
 		font-weight: 800;
 		letter-spacing: 0.22em;
-		color: #f2f7ff;
+		color: $readout-gold;
 		text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 	}
 	.bm-stepper {
@@ -653,15 +687,15 @@
 		gap: 0.55rem;
 		padding: 0.35rem 0.45rem;
 		border-radius: 999px;
-		border: 1px solid rgba(255, 255, 255, 0.8);
-		background: linear-gradient(
-			to bottom,
-			rgba(255, 255, 255, 0.86),
-			rgba(240, 244, 248, 0.78)
-		);
+		// the bar's glass, same construction as the cards — not a white pill
+		border: 1.5px solid rgba($glass-border, 0.62);
+		background:
+			linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 50%),
+			rgba($glass-bg, 0.86);
 		box-shadow:
-			0 10px 24px rgba(4, 12, 24, 0.45),
-			inset 0 1px 0 rgba(255, 255, 255, 0.9);
+			0 0 0 5px rgba($glass-glow, 0.1),
+			0 10px 24px rgba($glass-shadow, 0.55),
+			inset 0 0 0 1.1px rgba(255, 255, 255, 0.18);
 		backdrop-filter: blur(8px);
 	}
 	.bm-bet-value {
@@ -704,7 +738,7 @@
 		}
 	}
 
-	// --- confirm panel: same ivory language ---------------------------------------------------
+	// --- confirm panel: same glass language ---------------------------------------------------
 	.bm-confirm-panel {
 		position: relative;
 		z-index: 100;
@@ -716,10 +750,16 @@
 		gap: 0.6rem;
 		padding: 1.2rem 1.15rem;
 		border-radius: 1rem;
-		background: $card-bg;
-		border: 1px solid rgba(255, 255, 255, 0.8);
-		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
-		color: $ink;
+		// same glass as the cards behind it, one step deeper so it reads as being ON TOP of them
+		background:
+			linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 50%),
+			rgba($glass-bg, 0.94);
+		border: 1.5px solid rgba($glass-border, 0.66);
+		box-shadow:
+			0 0 0 5px rgba($glass-glow, 0.12),
+			0 24px 60px rgba($glass-shadow, 0.7),
+			inset 0 0 0 1.1px rgba(255, 255, 255, 0.18);
+		color: $text;
 	}
 	.bm-confirm-hero {
 		width: min(15rem, 80%);
@@ -739,7 +779,7 @@
 	.bm-confirm-dialog {
 		font-size: 0.78rem;
 		line-height: 1.4;
-		color: $ink-soft;
+		color: $text-dim;
 	}
 	.bm-confirm-cost {
 		display: flex;
@@ -749,12 +789,12 @@
 		span {
 			font-size: 0.68rem;
 			letter-spacing: 0.16em;
-			color: $ink-soft;
+			color: $text-dim;
 		}
 		strong {
 			font-family: 'Abyssal Cinzel', Georgia, serif;
 			font-size: 1.5rem;
-			color: $ink;
+			color: $text;
 		}
 	}
 	.bm-confirm-actions {
