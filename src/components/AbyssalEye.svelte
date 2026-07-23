@@ -14,6 +14,7 @@
 		type EyeVariant,
 	} from '../game/constants';
 	import { eyeValueTextStyle } from '../game/textStyles';
+	import { fireScreenLightning } from '../game/screenLightning.svelte'; // SCREEN LIGHTNING (revertible)
 
 	export type EyeColorPreset = 'add' | 'mult' | 'close' | 'charged' | 'warning' | 'idle';
 	export type { EyeVariant };
@@ -109,6 +110,19 @@
 	const shockFx = $state({ scale: 0.25, alpha: 0 });
 	let burstParticles = $state<{ angle: number; speed: number; size: number }[]>([]);
 
+	// --- REVEAL ARCS: bioluminescent energy discharge as the eye springs open --------------------
+	// Jagged energy bolts thrown outward from the eye the instant the reveal flip settles — the
+	// "charge releasing" beat the reveal was missing. Cyan/few/thin for ADD, red/many/thick/forked
+	// for MUL, so the arcs widen the ADD-vs-MUL read the whole component is built around.
+	//
+	// MEMORY: this is exactly the pattern that must NOT leak — the iOS crash was FillGradient built
+	// per frame. Arcs are plain additive Graphics strokes: no texture, no gradient, no filter. The
+	// jagged paths are generated ONCE per reveal (below) and only their alpha/width animate, so the
+	// per-frame cost is a handful of moveTo/lineTo and nothing is allocated while they play.
+	const arcFx = $state({ progress: 0 });
+	// each arc is a precomputed polyline in local space (eye centre = 0,0), plus a fork branch point
+	let revealArcs = $state<{ points: { x: number; y: number }[]; branchAt: number }[]>([]);
+
 	let glowPulse = $state(0);
 
 	const rootScale = $derived(landingFx.scale * pulseFx.scale * (1 + intensity * 0.04));
@@ -165,6 +179,37 @@
 		return () => timeline.kill();
 	});
 
+	// One jagged bolt from the eye centre outward. Midpoint displacement gives the lightning kink:
+	// each segment steps along the radius and jitters sideways, harder for MUL. Generated once per
+	// reveal — never per frame — so the bolt is stable while it flashes and fades.
+	const makeArc = (angle: number, reach: number, jag: number, forked: boolean) => {
+		const SEGS = 5;
+		const points: { x: number; y: number }[] = [{ x: 0, y: 0 }];
+		const nx = Math.cos(angle);
+		const ny = Math.sin(angle);
+		// perpendicular, for sideways jitter
+		const px = -ny;
+		const py = nx;
+		for (let i = 1; i <= SEGS; i++) {
+			const t = i / SEGS;
+			const dist = reach * t;
+			// no jitter at the very tip so the bolt tapers to a point
+			const j = (Math.random() - 0.5) * reach * jag * (1 - t * 0.5);
+			points.push({ x: nx * dist + px * j, y: ny * dist + py * j });
+		}
+		return { points, branchAt: forked ? 2 + Math.floor(Math.random() * 2) : -1 };
+	};
+
+	const spawnRevealArcs = (mult: boolean) => {
+		const count = mult ? 7 : 4;
+		const reach = props.size * (mult ? 1.15 : 0.9);
+		revealArcs = Array.from({ length: count }, (_, i) => {
+			// spread around the eye with a little wobble so they don't look mechanically radial
+			const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
+			return makeArc(angle, reach * (0.75 + Math.random() * 0.45), mult ? 0.24 : 0.14, mult);
+		});
+	};
+
 	// The reveal card-flip: closed purple face squeezes, flips edge-on, the art swaps to the
 	// revealed variant, springs back open, and the glow + number land on the settle.
 	let flipTl: gsap.core.Timeline | undefined;
@@ -183,6 +228,19 @@
 			.to(flipFx, { scaleX: 0.02, duration: 0.15, ease: 'power2.in' })
 			// swap to the revealed art while nobody can see the face
 			.add(() => (displayVariant = next))
+			// energy discharges the instant the eye opens — arcs snap out bright, then fade
+			.add(() => {
+				spawnRevealArcs(mult);
+				gsap.killTweensOf(arcFx);
+				gsap.fromTo(
+					arcFx,
+					{ progress: 0 },
+					{ progress: 1, duration: mult ? 0.52 : 0.4, ease: 'power2.out' },
+				);
+				// SCREEN LIGHTNING: full-canvas strike (game/screenLightning.svelte.ts). Revertible —
+				// flip SCREEN_LIGHTNING_ENABLED, or remove this line to keep only the local arcs.
+				fireScreenLightning(mult);
+			})
 			// …and spring back open as the charged eye
 			.to(flipFx, { scaleX: 1, duration: mult ? 0.34 : 0.26, ease: 'back.out(2.6)' })
 			// light + number land with the flip's settle
@@ -344,6 +402,7 @@
 			gsap.killTweensOf(swayFx);
 			gsap.killTweensOf(particleFx);
 			gsap.killTweensOf(shockFx);
+			gsap.killTweensOf(arcFx);
 		};
 	});
 
@@ -365,6 +424,48 @@
 			color: effectColor,
 			alpha: 1,
 		});
+	};
+
+	// Reveal energy arcs. `progress` 0→1: the bolt extends fast to full length, its alpha snaps
+	// bright then fades, and it thins as it dies — a discharge, not a persistent glow.
+	const drawArcs = (g: import('pixi.js').Graphics) => {
+		const p = arcFx.progress;
+		if (p <= 0 || p >= 1 || revealArcs.length === 0) return;
+		const mult = isMultiplierEye;
+		// bright immediately, then ease out — max at ~15% in
+		const alpha = p < 0.15 ? p / 0.15 : 1 - (p - 0.15) / 0.85;
+		if (alpha <= 0) return;
+		const extend = Math.min(1, p / 0.3); // bolt reaches full length in the first third
+		const w = Math.max(1.5, props.size * (mult ? 0.03 : 0.018)) * (1 - p * 0.5);
+
+		// Trace every bolt into the current path. Called once per stroke pass (coloured body, then a
+		// thinner white-hot core over it) rather than relying on stroke() retaining the path across
+		// two calls — the docs only promise fill→stroke reuse, so re-tracing is the safe form.
+		const trace = () => {
+			for (const arc of revealArcs) {
+				const pts = arc.points;
+				const last = 1 + Math.floor((pts.length - 1) * extend);
+				g.moveTo(pts[0].x, pts[0].y);
+				for (let i = 1; i < last && i < pts.length; i++) g.lineTo(pts[i].x, pts[i].y);
+				// a MUL bolt forks: a short branch splitting off a mid-point toward a random side
+				if (arc.branchAt > 0 && arc.branchAt < last && arc.branchAt < pts.length - 1) {
+					const b = pts[arc.branchAt];
+					const tip = pts[Math.min(arc.branchAt + 2, pts.length - 1)];
+					g.moveTo(b.x, b.y);
+					g.lineTo(
+						b.x + (tip.x - b.x) * 0.6 - (tip.y - b.y) * 0.5,
+						b.y + (tip.y - b.y) * 0.6 + (tip.x - b.x) * 0.5,
+					);
+				}
+			}
+		};
+
+		// coloured body — additive, so overlapping bolts read as hotter
+		trace();
+		g.stroke({ width: w, color: effectColor, alpha, cap: 'round', join: 'round' });
+		// white-hot core along the same paths — what actually sells "electric"
+		trace();
+		g.stroke({ width: w * 0.4, color: 0xffffff, alpha: alpha * 0.7, cap: 'round', join: 'round' });
 	};
 
 	// Energy motes flung outward during the burst (transient redraw, like the Gaze beams).
@@ -440,6 +541,10 @@
 	</Container>
 	<Container blendMode="add">
 		<Graphics draw={drawParticles} />
+	</Container>
+	<!-- reveal energy arcs: additive, in the eye's local space so they radiate FROM the pupil -->
+	<Container blendMode="add">
+		<Graphics draw={drawArcs} />
 	</Container>
 
 	<!-- the multiplier NEVER shows on the closed purple face — only on revealed/awakened art -->

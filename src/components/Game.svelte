@@ -35,6 +35,7 @@
 	import FreeSpinCounter from './FreeSpinCounter.svelte';
 	import FreeSpinOutro from './FreeSpinOutro.svelte';
 	import Transition from './Transition.svelte';
+	import ScreenLightning from './ScreenLightning.svelte'; // SCREEN LIGHTNING (revertible)
 	import SkipPress from './SkipPress.svelte';
 	import ControlBar from './ControlBar.svelte';
 	import GameHeader from './GameHeader.svelte';
@@ -128,6 +129,15 @@
 				<TumbleWinAmount />
 				<GazeMeter />
 				<ClusterWinAmounts />
+			</MainContainer>
+
+			<!-- SCREEN LIGHTNING: reel-window strike on Eye reveal. Dims + flashes the reel window
+			     using the SAME full-window rectangle as Eye.svelte's combine dim, mounted here (above
+			     the frame, just below the Eye) so it matches that effect exactly. Revert: delete this
+			     block + ScreenLightning.svelte + game/screenLightning.svelte.ts + the
+			     fireScreenLightning() call in AbyssalEye.svelte. -->
+			<MainContainer>
+				<ScreenLightning />
 			</MainContainer>
 
 			<MainContainer>
